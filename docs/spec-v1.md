@@ -187,6 +187,8 @@ users/{uid}/files/{id}/chunks/{n}  { data: Bytes }                              
     exercice acquis +50 (une seule fois), mission +10, journée parfaite (3 missions) +20.
   - Niveaux : 100 XP pour le niveau 2, puis 50 de plus à chaque palier ; 12 titres de « Chiot curieux » à « Légende du quartier ».
   - Missions du jour : un exercice recommandé, le jeu du jour, un défi (exposition à une peur, ou 2e exercice).
+  - Écran en 3 parties : **Du jour** (les 3 choses à faire, résultat noté en un tap sur la carte, « Annuler » possible),
+    **Exercices** (tout le catalogue, jeux et peurs), **Progrès** (niveau, semaine, acquis, peurs, succès).
   - Jeux : 9 jeux guidés, enregistrés comme séances `jeu-<id>`. Succès : 16 badges. Règles dans `src/lib/gamification.ts`.
 
 ```ts

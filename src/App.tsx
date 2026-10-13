@@ -8,12 +8,13 @@ import Calendar from './features/calendar/Calendar'
 import EventForm from './features/calendar/EventForm'
 import EntryForm from './features/journal/EntryForm'
 import Billy from './features/billy/Billy'
+import EnCours from './features/billy/EnCours'
 import Skill from './features/billy/Skill'
 import Journal from './features/journal/Journal'
 import Noter from './features/journal/Noter'
 import DocumentForm from './features/profile/DocumentForm'
 import DocumentView from './features/profile/DocumentView'
-import Profile from './features/profile/Profile'
+import Profile, { ProfileEditScreen } from './features/profile/Profile'
 import Opening from './features/start/Opening'
 import Questionnaire from './features/start/Questionnaire'
 import Today from './features/today/Today'
@@ -79,10 +80,11 @@ export default function App() {
             <Route path="noter" element={<Noter />} />
             <Route path="raconter" element={<Navigate to="/noter" replace />} />
             <Route path="competence/:id" element={<Skill />} />
-            <Route path="profil/modifier" element={<Profile />} />
+            <Route path="en-cours" element={<EnCours />} />
+            <Route path="profil" element={<Profile />} />
+            <Route path="profil/modifier" element={<ProfileEditScreen />} />
             {/* Anciennes adresses : rien n'est perdu, tout a une nouvelle place. */}
             <Route path="calendrier" element={<Navigate to="/sante" replace />} />
-            <Route path="profil" element={<Navigate to="/billy" replace />} />
             <Route path="dressage" element={<Navigate to="/billy" replace />} />
             <Route path="boss/:id" element={<Navigate to="/billy" replace />} />
             <Route path="exposition" element={<Navigate to="/noter" replace />} />

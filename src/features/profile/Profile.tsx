@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { CloudCheckIcon, CloudPendingIcon, PhoneIcon } from '../../components/Icons'
+import { Link } from 'react-router-dom'
+import { FileImage } from '../../components/FileImage'
+import { ChevronLeftIcon, ChevronRightIcon, CloudCheckIcon, CloudPendingIcon, NoteIcon, PhoneIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
 import { ConfirmSheet } from '../../components/Sheet'
 import { auth } from '../../firebase/app'
@@ -9,8 +10,10 @@ import { QUOTA_BYTES, storageUsed } from '../../firebase/files'
 import { useData } from '../../firebase/store'
 import type { Contact } from '../../firebase/types'
 import { formatAgeShort } from '../../lib/age'
-import { formatLong, formatTime } from '../../lib/dates'
-import { CHARACTER } from '../../content/phrases'
+import { formatLong, formatShort, formatTime } from '../../lib/dates'
+import { levelTitle } from '../../content/phrases'
+import { questionnaireStatus, statusLabel } from '../../lib/questionnaire'
+import { globalLevel, totalXp } from '../../lib/xp'
 import { formatBytes } from '../../lib/image'
 import { sortMeals } from '../../lib/feeding'
 import { useBack } from '../../lib/useBack'
@@ -29,39 +32,42 @@ function InfoRow({ label, value, first }: { label: string; value: string; first?
   )
 }
 
-function ContactRow({ role, callLabel, contact, first, onAdd }: { role: string; callLabel: string; contact?: Contact; first?: boolean; onAdd: () => void }) {
+function ContactRow({ role, callLabel, contact, first }: { role: string; callLabel: string; contact?: Contact; first?: boolean }) {
   const phone = contact?.phone.replace(/[^\d+]/g, '')
+  const known = Boolean(contact?.name || phone)
   return (
     <div className={`flex items-center gap-3 py-3 ${first ? '' : 'border-t border-divider'}`}>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="text-[13px] text-muted">{role}</span>
-        {contact?.name || phone ? (
+        {known ? (
           <>
             <span className="truncate text-base font-semibold">{contact?.name || contact?.phone}</span>
             {contact?.name && contact.phone && <span className="text-[13px] text-muted">{contact.phone}</span>}
           </>
         ) : (
-          <button type="button" onClick={onAdd} className="btn btn-outline self-start">
-            Ajouter
-          </button>
+          <span className="text-base text-muted">Pas encore renseigné</span>
         )}
       </div>
-      {phone && (
+      {/* « Appeler » seulement si un numéro est enregistré. */}
+      {phone ? (
         <a href={`tel:${phone}`} aria-label={callLabel} className="btn btn-outline min-h-12 shrink-0 px-4">
           <PhoneIcon size={20} />
           Appeler
         </a>
+      ) : (
+        <Link to="/profil/modifier" aria-label={`Ajouter : ${role.toLocaleLowerCase('fr')}`} className="btn btn-outline min-h-12 shrink-0 px-4">
+          Ajouter
+        </Link>
       )}
     </div>
   )
 }
 
-/** Le profil, sous les compétences dans l'onglet Billy : identité, alimentation, caractère, contacts, compte. */
-export function ProfileSections() {
-  const { dog, documents, pendingCount, online } = useData()
+/** Le profil de Billy : on l'ouvre en touchant sa photo dans l'onglet Billy. */
+export default function Profile() {
+  const { dog, documents, weights, xpLog, pendingCount, online } = useData()
   const today = useToday()
-  const navigate = useNavigate()
-  const edit = () => navigate('/profil/modifier')
+  const back = useBack('/billy')
   const [confirmLogout, setConfirmLogout] = useState(false)
   const [used, setUsed] = useState<number>()
 
@@ -78,27 +84,53 @@ export function ProfileSections() {
 
   const email = auth.currentUser?.email ?? ''
   const usedRatio = used === undefined ? 0 : used / QUOTA_BYTES
-  const character = CHARACTER.filter((c) => dog.traits?.includes(c.trait))
+  const level = globalLevel(totalXp(xpLog))
+  const fears = [...(dog.fears ?? []), dog.fearsOther ?? ''].filter(Boolean)
+  const lastWeight = weights[0]
+  const status = questionnaireStatus(dog.questionnaire, dog.traits ?? [])
 
   return (
-    <>
+    <div className="mx-auto flex max-w-[430px] flex-col gap-5 px-5 pb-[calc(env(safe-area-inset-bottom)+40px)]">
+      <header className="sticky top-0 z-10 -mx-5 flex items-center justify-between bg-bg px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5">
+        <button type="button" onClick={back} className="btn btn-quiet min-h-12 px-4">
+          <ChevronLeftIcon size={20} />
+          Retour
+        </button>
+        <span className="text-lg font-bold">Son profil</span>
+        <div className="w-[104px]" />
+      </header>
+
+      <div className="flex flex-col items-center gap-2 text-center">
+        <span className="flex size-[120px] items-center justify-center overflow-hidden rounded-full border-4 border-solid border-white bg-milestone-soft font-display text-5xl font-bold text-milestone-dark shadow-[0_2px_8px_rgba(24,32,30,0.12)]">
+          {dog.photoThumbFileId ? <FileImage fileId={dog.photoThumbFileId} alt={`Photo de ${dog.name}`} className="size-full" eager /> : dog.name.charAt(0).toUpperCase()}
+        </span>
+        <h1 className="mt-1 font-display text-[32px] leading-none font-extrabold">{dog.name}</h1>
+        <p className="text-base text-muted">
+          {formatAgeShort(dog.birthDate, today)} · Niveau {level.level} · {levelTitle(level.level)}
+        </p>
+        <Link to="/profil/modifier" className="btn btn-outline mt-1">
+          {dog.photoThumbFileId ? 'Changer la photo' : 'Ajouter une photo'}
+        </Link>
+      </div>
+
       <section className="flex flex-col gap-2.5">
-        <h2 className="text-xl font-bold">Son profil</h2>
+        <h2 className="text-xl font-bold">Son identité</h2>
         <Pending show={dog.pending} />
         <div className="card px-4 py-1">
-          <InfoRow first label="Naissance" value={formatLong(dog.birthDate)} />
-          <InfoRow label="Adoption" value={formatLong(dog.adoptionDate)} />
-          <InfoRow label="Race" value={`${dog.breed} · ${formatAgeShort(dog.birthDate, today)}`} />
-          <InfoRow label="Puce" value={dog.chip || 'À compléter'} />
+          <InfoRow first label="Né le" value={`${formatLong(dog.birthDate)} · ${formatAgeShort(dog.birthDate, today)}`} />
+          <InfoRow label="Race" value={dog.breed} />
+          <InfoRow label="Adopté le" value={formatLong(dog.adoptionDate)} />
+          <InfoRow label="Puce" value={dog.chip || 'Pas encore renseignée'} />
+          {lastWeight && <InfoRow label="Poids" value={`${String(lastWeight.kg).replace('.', ',')} kg · ${formatShort(lastWeight.date)}`} />}
         </div>
         <Link to="/profil/modifier" className="btn btn-outline">
-          Modifier le profil
+          Modifier son identité
         </Link>
       </section>
 
       {dog.feeding && (
         <section className="flex flex-col gap-2.5">
-          <h2 className="text-xl font-bold">Alimentation</h2>
+          <h2 className="text-xl font-bold">Au quotidien</h2>
           <div className="card px-4 py-1">
             <InfoRow first label="Ration" value={`${dog.feeding.gramsPerDay} g par jour`} />
             <InfoRow label="Repas" value={sortMeals(dog.feeding.meals).map((m) => formatTime(m.time)).join(' · ') || 'À compléter'} />
@@ -107,20 +139,19 @@ export function ProfileSections() {
       )}
 
       <section className="flex flex-col gap-2.5">
-        <h2 className="text-xl font-bold">Son caractère</h2>
+        <h2 className="text-xl font-bold">Comment il réagit</h2>
         <div className="card flex flex-col gap-3 p-4">
-          {character.length > 0 ? (
+          {fears.length > 0 ? (
             <ul className="m-0 flex list-none flex-col gap-1.5 p-0 text-[17px] leading-snug">
-              {character.map((c) => (
-                <li key={c.trait}>{c.label}</li>
+              {fears.map((fear) => (
+                <li key={fear}>Il a peur : {fear.toLocaleLowerCase('fr')}.</li>
               ))}
             </ul>
           ) : (
-            <p className="text-[17px] leading-snug text-muted">Rien de noté pour l'instant.</p>
+            <p className="text-[17px] leading-snug text-muted">Pas encore renseigné.</p>
           )}
-          {dog.fears?.length || dog.fearsOther ? <p className="text-[15px] leading-snug text-muted">Ce qui lui fait peur : {[...(dog.fears ?? []), dog.fearsOther].filter(Boolean).join(', ').toLocaleLowerCase('fr')}.</p> : null}
-          <Link to="/profil/modifier" className="btn btn-outline">
-            Modifier son caractère
+          <Link to="/questionnaire" className="btn btn-outline">
+            Modifier ses réactions
           </Link>
         </div>
       </section>
@@ -128,10 +159,19 @@ export function ProfileSections() {
       <section className="flex flex-col gap-2.5">
         <h2 className="text-xl font-bold">Contacts</h2>
         <div className="card px-4 py-1">
-          <ContactRow first role="Vétérinaire" callLabel="Appeler le vétérinaire" contact={dog.vet} onAdd={edit} />
-          <ContactRow role="Éducateur" callLabel="Appeler l'éducateur" contact={dog.trainer} onAdd={edit} />
+          <ContactRow first role="Vétérinaire" callLabel="Appeler le vétérinaire" contact={dog.vet} />
+          <ContactRow role="Éducateur" callLabel="Appeler l'éducateur" contact={dog.trainer} />
         </div>
       </section>
+
+      <Link to="/questionnaire" className="card-link min-h-16">
+        <NoteIcon size={24} className="shrink-0 text-primary" />
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="text-[17px] font-bold">Questionnaire de départ</span>
+          <span className="text-sm text-muted">{statusLabel(status)}</span>
+        </span>
+        <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
+      </Link>
 
       <section className="flex flex-col gap-2.5">
         <h2 className="text-xl font-bold">Compte</h2>
@@ -176,6 +216,10 @@ export function ProfileSections() {
         </button>
       </section>
 
+      <p className="text-center text-[13px] text-muted">
+        Version du {new Date(__BUILD_TIME__).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+      </p>
+
       {confirmLogout && (
         <ConfirmSheet
           title="Se déconnecter ?"
@@ -189,13 +233,13 @@ export function ProfileSections() {
           onConfirm={() => void logOut()}
         />
       )}
-    </>
+    </div>
   )
 }
 
-/** Modifier le profil : plein écran, hors des onglets. */
-export default function ProfileEditScreen() {
+/** Modifier le profil : plein écran. */
+export function ProfileEditScreen() {
   const { dog } = useData()
-  const back = useBack('/billy')
+  const back = useBack('/profil')
   return <ProfileEdit dog={dog} onClose={back} />
 }

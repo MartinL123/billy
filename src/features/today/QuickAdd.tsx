@@ -10,7 +10,7 @@ import { useToday } from '../../lib/useToday'
 import { restXp } from '../../lib/xp'
 import { setDraftPhotos } from '../journal/draft'
 
-/** Le « + » : raconter d'abord, puis faire un exercice, puis le reste. */
+/** Le « + » : noter d'abord, puis faire un exercice, puis le reste. */
 export function QuickAdd({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate()
   const { xpLog } = useData()
@@ -33,9 +33,9 @@ export function QuickAdd({ onClose }: { onClose: () => void }) {
     <Sheet label="Ajouter" onClose={onClose}>
       <h2 className="my-1 font-display text-2xl font-bold">Ajouter</h2>
 
-      <button type="button" onClick={() => go('/raconter')} className="btn btn-main min-h-16 w-full text-[19px]">
+      <button type="button" onClick={() => go('/noter')} className="btn btn-main min-h-16 w-full text-[19px]">
         <NoteIcon size={24} />
-        Raconter ce qu'on a fait
+        Noter ce qu'on a fait
       </button>
       <button type="button" onClick={() => go('/exercice')} className="btn btn-outline min-h-14 w-full">
         <TargetIcon size={22} />
@@ -43,12 +43,12 @@ export function QuickAdd({ onClose }: { onClose: () => void }) {
       </button>
 
       <h3 className="mt-2 text-[15px] font-bold tracking-[0.5px] text-muted uppercase">Autre</h3>
-      {/* « Photos » ouvre la photothèque, puis « Raconter un moment » avec les photos choisies. */}
+      {/* « Photos » ouvre la photothèque, puis « Noter ce qu'on a fait » avec les photos choisies. */}
       <FilePicker
         accept="image/*"
         onFiles={(files) => {
           setDraftPhotos(files)
-          go('/raconter')
+          go('/noter')
         }}
         className={other}
       >

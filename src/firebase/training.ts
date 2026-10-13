@@ -1,7 +1,7 @@
 import { deleteDoc, setDoc, writeBatch, type DocumentData } from 'firebase/firestore'
 import { db } from './app'
 import { newId, send, userDoc } from './paths'
-import type { BossProgress, Entry, Exposure, Place, TrainingSession, XpEntry } from './types'
+import type { BossProgress, DailyQuestDoc, Entry, Exposure, Place, TrainingSession, XpEntry } from './types'
 import { bossById } from '../content/training'
 import { addValidation, EMPTY_PROGRESS, markPreApp } from '../lib/bossProgress'
 import type { ISODate } from '../lib/dates'
@@ -148,7 +148,30 @@ export function declareRest(date: ISODate, sniff: boolean, xp: number): { undo: 
   return { undo: () => removeAward(id) }
 }
 
-// ——— Raconter un moment (V3) ———
+// ——— Quête du jour (V3 § 5.9) ———
+
+/** « Autre idée » : on retient combien de fois on l'a demandé aujourd'hui. */
+export function skipQuest(date: ISODate, skips: number): void {
+  send(setDoc(userDoc('dailyQuest', date), { date, done: false, skips } satisfies DailyQuestDoc, { merge: true }))
+}
+
+/**
+ * Quête du jour faite : +15 XP, une seule fois par jour (identifiant fixe).
+ * Une journée de repos compte comme une vraie action, et s'ajoute au Carnet.
+ */
+export function completeQuest(date: ISODate, quest: { kind: 'exercice' | 'revision' | 'repos'; bossId?: string; exerciseId?: string }, skips: number, xp: number): void {
+  const batch = writeBatch(db)
+  batch.set(userDoc('dailyQuest', date), strip<DailyQuestDoc>({ date, kind: quest.kind, bossId: quest.bossId, exerciseId: quest.exerciseId, done: true, skips }))
+  if (quest.kind === 'repos') {
+    batch.set(xpRef(`repos-${date}`), strip<XpEntry>({ date, kind: 'repos', xp, key: 'repos', label: 'Jour de repos', createdAt: now() }))
+    batch.set(userDoc('entries', `repos-${date}`), { date, text: 'Jour de repos.', tags: [], photos: [], createdAt: now() } satisfies Entry)
+  } else {
+    batch.set(xpRef(`quete-jour-${date}`), strip<XpEntry>({ date, kind: 'quete', xp, bossId: quest.bossId, label: 'Quête du jour', createdAt: now() }))
+  }
+  send(batch.commit())
+}
+
+// ——— Noter ce qu'on a fait (V3) ———
 
 export interface MomentOutcome {
   xp: number

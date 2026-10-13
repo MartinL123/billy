@@ -88,3 +88,11 @@ export function milestoneMessage(
   }
   return undefined
 }
+
+/** Prochaine étape de vie : chaque mois jusqu'à 1 an, puis chaque anniversaire. « 6 mois », le 2026-11-13. */
+export function nextLifeStep(birth: ISODate, today: ISODate): { label: string; date: ISODate } {
+  const age = ageAt(birth, today)
+  const total = age.years * 12 + age.months
+  if (total < 11) return { label: months(total + 1), date: addMonths(birth, total + 1) }
+  return { label: years(age.years + 1), date: addMonths(birth, (age.years + 1) * 12) }
+}

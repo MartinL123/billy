@@ -35,6 +35,8 @@ export interface Dog {
   /** Ce qui lui fait peur (questionnaire). */
   fears?: string[]
   fearsOther?: string
+  /** Compétences en cours choisies par le maître (3 au plus). Absent : l'app propose les 3 premières non maîtrisées. */
+  activeSkills?: string[]
   /** Version des données de départ déjà appliquées (voir seed.ts). */
   seedVersion?: number
 }
@@ -192,4 +194,14 @@ export type WithId<T> = T & {
   id: string
   /** Écriture locale pas encore envoyée au serveur. */
   pending: boolean
+}
+
+/** users/{uid}/dailyQuest/{date} — la quête du jour : ce qui a été fait, et combien de fois on a demandé une autre idée. */
+export interface DailyQuestDoc {
+  date: ISODate
+  kind?: 'exercice' | 'revision' | 'repos'
+  bossId?: string
+  exerciseId?: string
+  done: boolean
+  skips: number
 }

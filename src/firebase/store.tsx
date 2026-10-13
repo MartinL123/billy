@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ensureSeed, upgradeSeed, watchAll, watchCollection, watchDog } from './db'
-import { isExposure, isTrainingSession, type BillyDocument, type BillyEvent, type BossProgress, type Dog, type Entry, type Exposure, type Place, type QuestWeek, type TrainingSession, type Weight, type WithId, type XpEntry } from './types'
+import { isExposure, isTrainingSession, type BillyDocument, type BillyEvent, type BossProgress, type DailyQuestDoc, type Dog, type Entry, type Exposure, type Place, type QuestWeek, type TrainingSession, type Weight, type WithId, type XpEntry } from './types'
 
 interface Data {
   dog: WithId<Dog>
@@ -17,6 +17,8 @@ interface Data {
   /** Journal d'XP, en ajout seul. */
   xpLog: WithId<XpEntry>[]
   questWeeks: WithId<QuestWeek>[]
+  /** Quêtes du jour, les plus récentes d'abord. */
+  dailyQuests: WithId<DailyQuestDoc>[]
   /** Nombre d'éléments écrits localement et pas encore envoyés. */
   pendingCount: number
   online: boolean
@@ -61,6 +63,7 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   const [places, setPlaces] = useState<WithId<Place>[]>()
   const [xpLog, setXpLog] = useState<WithId<XpEntry>[]>()
   const [questWeeks, setQuestWeeks] = useState<WithId<QuestWeek>[]>()
+  const [dailyQuests, setDailyQuests] = useState<WithId<DailyQuestDoc>[]>()
 
   useEffect(() => {
     const stops = [
@@ -76,6 +79,7 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
       watchAll<Place>('places', setPlaces),
       watchCollection<XpEntry>('xpLog', 'desc', setXpLog),
       watchCollection<QuestWeek>('quests', 'desc', setQuestWeeks),
+      watchCollection<DailyQuestDoc>('dailyQuest', 'desc', setDailyQuests),
     ]
     return () => stops.forEach((stop) => stop())
   }, [])
@@ -91,11 +95,11 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   }, [dog, events])
 
   const data = useMemo<Data | null>(() => {
-    if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures || !bossProgress || !places || !xpLog || !questWeeks) return null
+    if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures || !bossProgress || !places || !xpLog || !questWeeks || !dailyQuests) return null
     const pendingCount = [dog, ...events, ...weights, ...entries, ...documents, ...sessions, ...exposures, ...bossProgress, ...places].filter((item) => item.pending).length
     const progressById = Object.fromEntries(bossProgress.map((p) => [p.id, p]))
-    return { dog, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, places, xpLog, questWeeks, pendingCount, online }
-  }, [dog, events, weights, entries, documents, sessions, exposures, bossProgress, places, xpLog, questWeeks, online])
+    return { dog, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, places, xpLog, questWeeks, dailyQuests, pendingCount, online }
+  }, [dog, events, weights, entries, documents, sessions, exposures, bossProgress, places, xpLog, questWeeks, dailyQuests, online])
 
   if (!data) return <>{fallback(dog === null && !online)}</>
   return <DataContext.Provider value={data}>{children}</DataContext.Provider>

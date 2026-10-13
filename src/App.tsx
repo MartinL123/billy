@@ -10,7 +10,7 @@ import EntryForm from './features/journal/EntryForm'
 import Billy from './features/billy/Billy'
 import Skill from './features/billy/Skill'
 import Journal from './features/journal/Journal'
-import Raconter from './features/journal/Raconter'
+import Noter from './features/journal/Noter'
 import DocumentForm from './features/profile/DocumentForm'
 import DocumentView from './features/profile/DocumentView'
 import Profile from './features/profile/Profile'
@@ -76,7 +76,8 @@ export default function App() {
             </Route>
             <Route path="ouverture" element={<Opening />} />
             <Route path="questionnaire" element={<Questionnaire />} />
-            <Route path="raconter" element={<Raconter />} />
+            <Route path="noter" element={<Noter />} />
+            <Route path="raconter" element={<Navigate to="/noter" replace />} />
             <Route path="competence/:id" element={<Skill />} />
             <Route path="profil/modifier" element={<Profile />} />
             {/* Anciennes adresses : rien n'est perdu, tout a une nouvelle place. */}
@@ -84,10 +85,10 @@ export default function App() {
             <Route path="profil" element={<Navigate to="/billy" replace />} />
             <Route path="dressage" element={<Navigate to="/billy" replace />} />
             <Route path="boss/:id" element={<Navigate to="/billy" replace />} />
-            <Route path="exposition" element={<Navigate to="/raconter" replace />} />
+            <Route path="exposition" element={<Navigate to="/noter" replace />} />
             <Route path="evenement/nouveau" element={<EventForm />} />
             <Route path="evenement/:id" element={<EventForm />} />
-            <Route path="souvenir/nouveau" element={<Navigate to="/raconter" replace />} />
+            <Route path="souvenir/nouveau" element={<Navigate to="/noter" replace />} />
             <Route path="souvenir/:id" element={<EntryForm />} />
             <Route path="exercice" element={<Exercise />} />
             <Route path="seance" element={<Session />} />

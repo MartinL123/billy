@@ -197,15 +197,18 @@ describe('Carnet unifié', () => {
 })
 
 import { challengeProgress, weekChallenge } from './challenge'
+import { addDays } from './dates'
 
 describe('défi de la semaine', () => {
-  it('est unique, sur une compétence conseillée, et change chaque semaine', () => {
-    const a = weekChallenge('2026-10-12', ['chiot', 'craintif'])
+  it('est unique, toujours sûr, et change chaque semaine', () => {
+    const a = weekChallenge('2026-10-12')
     expect(a.target).toBe(3)
-    expect(a.label).toMatch(/^Raconter 3 moments pour /)
+    expect(a.label).toMatch(/^3 fois « .+ » cette semaine$/)
     expect(a.label).not.toMatch(BANNED)
-    expect(weekChallenge('2026-10-12', ['chiot', 'craintif'])).toEqual(a)
-    expect(weekChallenge('2026-10-19', ['chiot', 'craintif']).bossId).not.toBe(a.bossId)
+    expect(weekChallenge('2026-10-12')).toEqual(a)
+    expect(weekChallenge('2026-10-19').bossId).not.toBe(a.bossId)
+    // Jamais une compétence de peur, quelle que soit la semaine.
+    for (let i = 0; i < 30; i++) expect(['lien', 'calme', 'manieres']).toContain(weekChallenge(addDays('2026-10-12', 7 * i)).bossId)
   })
 
   it('compte les moments de la semaine où la compétence est choisie', () => {
@@ -363,5 +366,93 @@ describe('durée des séances', () => {
     expect(sessionMinutes('2026-05-13', '2026-11-13')).toBe(5)
     expect(sessionMinutes('2020-01-01', '2026-10-13')).toBe(5)
     expect(longSessionsDate('2026-05-13')).toBe('2026-11-13')
+  })
+})
+
+import { activeSkills, skillHints, toggleActive } from './active'
+import { isFearMoment } from './moment'
+import { dailyQuest, MAX_SKIPS, questMission, questNote } from './quest'
+
+describe('compétences en cours', () => {
+  const done = { level: 5, validations: [], masteryPlaces: [] }
+
+  it('propose les 3 premières non maîtrisées quand le maître n’a rien choisi', () => {
+    expect(activeSkills(undefined, ['chiot', 'craintif'], {})).toHaveLength(3)
+    expect(activeSkills(undefined, [], { lien: done })).toEqual(['calme', 'soins', 'laisse'])
+  })
+
+  it('garde le choix du maître, 3 au plus, sans les compétences maîtrisées', () => {
+    expect(activeSkills(['rappel', 'ville'], [], {})).toEqual(['rappel', 'ville'])
+    expect(activeSkills(['rappel', 'ville', 'lien', 'calme'], [], { ville: done })).toEqual(['rappel', 'lien', 'calme'])
+    expect(activeSkills([], ['chiot'], {})).toEqual([])
+  })
+
+  it('refuse une 4e compétence tant qu’on n’en a pas décoché une', () => {
+    expect(toggleActive(['a', 'b', 'c'], 'd')).toEqual({ chosen: ['a', 'b', 'c'], refused: true })
+    expect(toggleActive(['a', 'b', 'c'], 'b')).toEqual({ chosen: ['a', 'c'], refused: false })
+    expect(toggleActive(['a'], 'b')).toEqual({ chosen: ['a', 'b'], refused: false })
+  })
+
+  it('indique « Tout doux » sur une peur déclarée et « Conseillé » avant une visite véto', () => {
+    const hints = skillHints(['Les enfants', 'Les rues étroites', 'Son reflet'], [], [{ type: 'veto', date: '2026-10-20', done: false }], '2026-10-13')
+    expect(hints.rencontres).toEqual({ kind: 'doux', text: 'Tout doux : il a peur des enfants' })
+    expect(hints.ville?.text).toBe('Tout doux : il se bloque dans les rues étroites')
+    expect(hints.nouveaute?.kind).toBe('doux')
+    expect(hints.soins?.text).toMatch(/^Conseillé : utile avant sa prochaine visite/)
+    expect(skillHints([], [], [{ type: 'veto', date: '2026-12-25', done: false }], '2026-10-13').soins?.text ?? '').not.toMatch(/visite/)
+  })
+})
+
+describe('quête du jour', () => {
+  const base = { today: '2026-10-13', active: ['lien', 'rappel', 'ville'], progress: {}, moments: [], rests: [] }
+
+  it('propose un exercice d’une compétence en cours, à l’étape en cours', () => {
+    const quest = dailyQuest(base)
+    expect(quest.kind).toBe('exercice')
+    expect(base.active).toContain(quest.bossId)
+    expect(quest.planned!.exercise.bossIds).toContain(quest.bossId)
+    expect(dailyQuest(base)).toEqual(quest)
+    const mission = questMission(quest, 3)
+    expect(mission.detail).toMatch(/^3 minutes · /)
+    expect(`${mission.title} ${mission.detail} ${questNote(quest, 3)}`).not.toMatch(BANNED)
+  })
+
+  it('le lendemain d’un moment « Difficile », c’est toujours une journée de repos, même avec « Autre idée »', () => {
+    const hard = { ...base, moments: [{ date: '2026-10-12', feeling: 'difficile' }] }
+    for (let skips = 0; skips <= MAX_SKIPS; skips++) expect(dailyQuest(hard, skips)).toMatchObject({ kind: 'repos', afterHardDay: true })
+    expect(dailyQuest({ ...base, moments: [{ date: '2026-10-11', feeling: 'difficile' }] }).kind).not.toBe('repos')
+  })
+
+  it('propose un jour de repos le dimanche, sauf si la semaine en a déjà eu un', () => {
+    expect(dailyQuest({ ...base, today: '2026-10-18' }).kind).toBe('repos')
+    expect(dailyQuest({ ...base, today: '2026-10-18', rests: ['2026-10-14'] }).kind).not.toBe('repos')
+  })
+
+  it('« Autre idée » change de proposition', () => {
+    expect(dailyQuest(base, 1)).not.toEqual(dailyQuest(base, 0))
+  })
+
+  it('révise de temps en temps une compétence maîtrisée, jamais une compétence hors liste autrement', () => {
+    const progress = { calme: { level: 5, validations: [], masteryPlaces: [] } }
+    const kinds = new Map<string, Set<string | undefined>>()
+    for (let i = 0; i < 20; i++) {
+      const quest = dailyQuest({ ...base, today: addDays('2026-10-12', i), progress, rests: ['2026-10-12', '2026-10-19', '2026-10-26'] })
+      kinds.set(quest.kind, (kinds.get(quest.kind) ?? new Set()).add(quest.bossId))
+    }
+    expect([...kinds.get('revision')!]).toEqual(['calme'])
+    for (const id of kinds.get('exercice')!) expect(base.active).toContain(id)
+  })
+
+  it('sans compétence en cours ni maîtrisée, propose du repos plutôt que rien', () => {
+    expect(dailyQuest({ ...base, active: [] }).kind).toBe('repos')
+  })
+})
+
+describe('situation de peur', () => {
+  it('se déduit du ressenti « Difficile » et d’une compétence de peur', () => {
+    expect(isFearMoment('difficile', ['ville'])).toBe(true)
+    expect(isFearMoment('difficile', ['lien'])).toBe(false)
+    expect(isFearMoment('bien', ['ville'])).toBe(false)
+    expect(isFearMoment(undefined, ['ville'])).toBe(false)
   })
 })

@@ -3,17 +3,19 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FilePicker } from '../../components/FilePicker'
 import { CheckIcon, PhotoIcon } from '../../components/Icons'
 import { useToast } from '../../components/Toast'
-import { SKILLS, stepPhrase } from '../../content/phrases'
+import { SKILLS, stepPhrase, territoryOf } from '../../content/phrases'
 import { saveImage } from '../../firebase/files'
 import { useData } from '../../firebase/store'
-import { recordMoment, type MomentOutcome } from '../../firebase/training'
+import { completeQuest, recordMoment, type MomentOutcome } from '../../firebase/training'
 import type { EntryPhoto } from '../../firebase/types'
 import { EMPTY_PROGRESS, remaining } from '../../lib/bossProgress'
 import { addDays, formatLong, isValidISO } from '../../lib/dates'
 import { compressImage, PHOTO } from '../../lib/image'
-import { canAskStep, FEELINGS, hasNextStep, previewMoment, tileOrder, type Feeling } from '../../lib/moment'
+import { canAskStep, FEELINGS, hasNextStep, isFearMoment, previewMoment, tileOrder, type Feeling } from '../../lib/moment'
+import { QUEST_XP } from '../../lib/quest'
 import { useToday } from '../../lib/useToday'
 import { totalXp } from '../../lib/xp'
+import { useQuest } from '../today/useQuest'
 import { BossIcon } from '../training/BossIcon'
 import { LevelUp, StepSuccess } from '../training/Celebration'
 import { takeDraftPhotos } from './draft'
@@ -43,22 +45,31 @@ function Face({ feeling }: { feeling: Feeling }) {
   )
 }
 
-/** Raconter un moment : l'action principale de l'app. Tout est choisi par l'utilisateur, rien n'est deviné. */
-export default function Raconter() {
+/**
+ * Noter ce qu'on a fait : l'action principale de l'app. Tout est choisi par l'utilisateur, rien n'est deviné.
+ * L'écran ne demande jamais ce qui est évident : depuis la quête du jour, la compétence est fixe et c'est aujourd'hui.
+ */
+export default function Noter() {
   const [params] = useSearchParams()
   const { dog, entries, sessions, bossProgress, xpLog } = useData()
   const today = useToday()
   const toast = useToast()
   const navigate = useNavigate()
 
-  const [text, setText] = useState('')
+  const from = params.get('depuis')
+  const today0 = useQuest()
+  // Depuis la quête du jour : la compétence vient de la quête, elle n'est pas modifiable.
+  const [fromQuest] = useState(() => from === 'quete' && !today0.done && today0.quest.kind !== 'repos')
+  const asked = fromQuest ? [today0.quest.bossId ?? ''] : (params.get('competences') ?? '').split(',')
+  const [text, setText] = useState(fromQuest ? today0.note : '')
   const [photos, setPhotos] = useState<Photo[]>([])
   const [when, setWhen] = useState<When>(params.get('quand') === 'autre' ? 'autre' : 'aujourdhui')
   const [otherDate, setOtherDate] = useState(params.get('quand') === 'autre' ? dog.adoptionDate : today)
   const [feeling, setFeeling] = useState<Feeling>()
   // Seule une compétence demandée explicitement (fiche d'une compétence, exercice terminé) arrive cochée.
-  const [skills, setSkills] = useState<string[]>(() => (params.get('competences') ?? '').split(',').filter((id) => SKILLS.some((s) => s.id === id)))
-  const [fear, setFear] = useState<boolean | null>(null)
+  const [skills, setSkills] = useState<string[]>(() => asked.filter((id) => SKILLS.some((s) => s.id === id)))
+  // La compétence est connue (fiche, exercice) : pas de grille, sauf si on touche « Changer ».
+  const [choosing, setChoosing] = useState(() => !fromQuest && skills.length === 0)
   const [movedAway, setMovedAway] = useState(false)
   const [yes, setYes] = useState<Record<string, boolean>>({})
   const [progress, setProgress] = useState('')
@@ -97,28 +108,33 @@ export default function Raconter() {
   }, [])
 
   const date = when === 'aujourdhui' ? today : when === 'hier' ? addDays(today, -1) : otherDate
-  const input = { feeling, fear: fear === true, movedAway: fear === true && movedAway }
+  // Aucune question « Il a eu peur ? » : un moment difficile sur une compétence de peur en est une.
+  const fear = isFearMoment(feeling, skills)
+  const input = { feeling, fear, movedAway: fear && movedAway }
   const askable = canAskStep(input)
   const stepSkills = skills.filter((id) => hasNextStep(bossProgress, id))
   const yesIds = askable ? stepSkills.filter((id) => yes[id]) : []
   const preview = previewMoment(input, yesIds, bossProgress, isValidISO(date) ? date : today)
+  const gain = preview.xp + (fromQuest ? QUEST_XP : 0)
+  const territory = territoryOf(skills[0] ?? '')
   const leave = () => navigate(params.get('retour') === 'questionnaire' ? '/questionnaire' : '/', { replace: true })
 
   const save = async () => {
     if (progress || saving) return
-    if (!text.trim() && photos.length === 0) return setError('Écrivez quelques mots ou ajoutez une photo.')
+    if (!fromQuest && !text.trim() && photos.length === 0) return setError('Écrivez quelques mots ou ajoutez une photo.')
     if (!isValidISO(date) || date > today) return setError('Choisissez une date, aujourd’hui ou avant.')
     setSaving(true)
     try {
       const saved: EntryPhoto[] = []
       for (const photo of photos) saved.push({ fileId: await saveImage(photo.full), thumbFileId: await saveImage(photo.thumb) })
       const result = recordMoment(
-        { date, text: text.trim(), tags: [], photos: saved, skills, feeling, fear: fear === true, movedAway: input.movedAway },
+        { date, text: text.trim() || today0.note, tags: [], photos: saved, skills, feeling, fear, movedAway: input.movedAway },
         yesIds,
         bossProgress,
         dog.name,
         totalXp(xpLog),
       )
+      if (fromQuest) completeQuest(today, { kind: today0.quest.kind, bossId: today0.quest.bossId, exerciseId: today0.quest.planned?.exercise.id }, today0.skips, QUEST_XP)
       setOutcome(result)
     } catch (err) {
       setSaving(false)
@@ -130,7 +146,7 @@ export default function Raconter() {
   const celebrations = outcome ? outcome.steps.length + (outcome.levelReached ? 1 : 0) : 0
   useEffect(() => {
     if (outcome && shown >= celebrations) {
-      toast(`Moment ajouté au Carnet · +${outcome.xp} XP`, { label: 'Annuler', run: outcome.undo })
+      toast(`Ajouté au Carnet · +${outcome.xp + (fromQuest ? QUEST_XP : 0)} XP`, fromQuest ? undefined : { label: 'Annuler', run: outcome.undo })
       leave()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -156,14 +172,30 @@ export default function Raconter() {
         <button type="button" onClick={leave} className="btn btn-quiet min-h-12 px-4">
           Annuler
         </button>
-        <h1 className="text-lg font-bold">Raconter un moment</h1>
+        <h1 className="text-lg font-bold">{fromQuest ? 'Quête réussie ?' : 'Noter ce qu’on a fait'}</h1>
         <div className="w-[92px]" />
       </header>
 
       <div className="flex flex-col gap-6 px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+130px)]">
-        <div className="flex flex-col gap-2">
+        {fromQuest && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="flex min-h-9 items-center gap-2 rounded-full px-3.5 text-[15px] font-bold" style={{ background: territory.soft, color: territory.color }}>
+              <BossIcon bossId={skills[0] ?? ''} size={18} />
+              Pour : {SKILLS.find((s) => s.id === skills[0])?.name}
+            </span>
+            <span className="text-[15px] font-semibold text-muted">Quête du jour</span>
+          </div>
+        )}
+
+        <div className={fromQuest ? 'card flex flex-col gap-2.5 p-4' : 'flex flex-col gap-2'}>
           <label htmlFor="txt" className="text-lg font-bold">
-            Qu'avez-vous fait ?
+            {fromQuest ? (
+              <>
+                Ajouter des photos et/ou un commentaire <span className="font-normal text-muted">(facultatif)</span>
+              </>
+            ) : (
+              "Qu'avez-vous fait ?"
+            )}
           </label>
           <textarea
             id="txt"
@@ -209,29 +241,31 @@ export default function Raconter() {
           )}
         </div>
 
-        <fieldset className="m-0 border-0 p-0">
-          <legend className={legend}>Quand ?</legend>
-          <div className="grid grid-cols-3 gap-2">
-            {(
-              [
-                ['aujourdhui', 'Aujourd’hui'],
-                ['hier', 'Hier'],
-                ['autre', 'Autre date'],
-              ] as [When, string][]
-            ).map(([value, label]) => (
-              <button key={value} type="button" aria-pressed={when === value} onClick={() => setWhen(value)} className={choice(when === value)}>
-                {label}
-              </button>
-            ))}
-          </div>
-          {when === 'autre' && (
-            <label className="mt-2.5 flex flex-col gap-1.5">
-              <span className="text-[15px] font-semibold">Quel jour ?</span>
-              <input type="date" max={today} value={otherDate} onChange={(e) => setOtherDate(e.target.value)} className="field min-h-14 px-3 text-[17px]" />
-              {isValidISO(otherDate) && <span className="text-[15px] text-muted">Le {formatLong(otherDate)}</span>}
-            </label>
-          )}
-        </fieldset>
+        {!fromQuest && (
+          <fieldset className="m-0 border-0 p-0">
+            <legend className={legend}>Quand ?</legend>
+            <div className="grid grid-cols-3 gap-2">
+              {(
+                [
+                  ['aujourdhui', 'Aujourd’hui'],
+                  ['hier', 'Hier'],
+                  ['autre', 'Autre date'],
+                ] as [When, string][]
+              ).map(([value, label]) => (
+                <button key={value} type="button" aria-pressed={when === value} onClick={() => setWhen(value)} className={choice(when === value)}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            {when === 'autre' && (
+              <label className="mt-2.5 flex flex-col gap-1.5">
+                <span className="text-[15px] font-semibold">Quel jour ?</span>
+                <input type="date" max={today} value={otherDate} onChange={(e) => setOtherDate(e.target.value)} className="field min-h-14 px-3 text-[17px]" />
+                {isValidISO(otherDate) && <span className="text-[15px] text-muted">Le {formatLong(otherDate)}</span>}
+              </label>
+            )}
+          </fieldset>
+        )}
 
         <fieldset className="m-0 border-0 p-0">
           <legend className={legend}>Comment ça s'est passé ?</legend>
@@ -254,43 +288,49 @@ export default function Raconter() {
           </div>
         </fieldset>
 
-        <fieldset className="m-0 border-0 p-0">
-          <legend className="mb-1 p-0 text-lg font-bold">Vous avez travaillé quoi ?</legend>
-          <p className="mb-2.5 text-[15px] text-muted">Touchez une ou plusieurs cases. Facultatif.</p>
-          <div className="grid grid-cols-2 gap-2">
-            {order.map((id) => {
-              const skill = SKILLS.find((s) => s.id === id)!
-              const on = skills.includes(id)
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  role="checkbox"
-                  aria-checked={on}
-                  onClick={() => setSkills(on ? skills.filter((s) => s !== id) : [...skills, id])}
-                  className={`flex min-h-16 items-center gap-2.5 rounded-[18px] border-2 border-solid px-3 text-left text-[17px] leading-tight font-bold ${on ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}
-                >
-                  <span className={`flex size-9 shrink-0 items-center justify-center rounded-full ${on ? 'bg-white text-primary' : 'bg-primary-soft text-primary-dark'}`}>
-                    {on ? <CheckIcon size={20} /> : <BossIcon bossId={id} size={20} />}
-                  </span>
-                  {skill.short}
-                </button>
-              )
-            })}
+        {!fromQuest && !choosing && (
+          <div className="card flex items-center gap-3 p-3.5">
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="text-[15px] text-muted">Pour</span>
+              <span className="text-[17px] font-bold">{skills.map((id) => SKILLS.find((s) => s.id === id)?.name).join(' · ')}</span>
+            </span>
+            <button type="button" onClick={() => setChoosing(true)} className="btn btn-outline min-h-12 shrink-0 px-4">
+              Changer
+            </button>
           </div>
-        </fieldset>
+        )}
 
-        <fieldset className="m-0 flex flex-col gap-2.5 border-0 p-0">
-          <legend className={legend}>Il a eu peur ?</legend>
-          <div className="grid grid-cols-2 gap-2">
-            <button type="button" aria-pressed={fear === true} onClick={() => setFear(fear === true ? null : true)} className={choice(fear === true)}>
-              Oui
-            </button>
-            <button type="button" aria-pressed={fear === false} onClick={() => setFear(fear === false ? null : false)} className={choice(fear === false)}>
-              Non
-            </button>
-          </div>
-          {fear === true && (
+        {!fromQuest && choosing && (
+          <fieldset className="m-0 border-0 p-0">
+            <legend className="mb-1 p-0 text-lg font-bold">Vous avez travaillé quoi ?</legend>
+            <p className="mb-2.5 text-[15px] text-muted">Touchez une ou plusieurs cases. Facultatif.</p>
+            <div className="grid grid-cols-2 gap-2">
+              {order.map((id) => {
+                const skill = SKILLS.find((s) => s.id === id)!
+                const on = skills.includes(id)
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    role="checkbox"
+                    aria-checked={on}
+                    onClick={() => setSkills(on ? skills.filter((s) => s !== id) : [...skills, id])}
+                    className={`flex min-h-16 items-center gap-2.5 rounded-[18px] border-2 border-solid px-3 text-left text-[17px] leading-tight font-bold ${on ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}
+                  >
+                    <span className={`flex size-9 shrink-0 items-center justify-center rounded-full ${on ? 'bg-white text-primary' : 'bg-primary-soft text-primary-dark'}`}>
+                      {on ? <CheckIcon size={20} /> : <BossIcon bossId={id} size={20} />}
+                    </span>
+                    {skill.short}
+                  </button>
+                )
+              })}
+            </div>
+          </fieldset>
+        )}
+
+        {fear && (
+          <fieldset className="m-0 flex flex-col gap-2.5 border-0 p-0">
+            <legend className={legend}>C'était difficile : qu'avez-vous fait ?</legend>
             <label className={`flex min-h-16 items-center gap-3.5 rounded-[18px] border-2 border-solid px-4 py-3 ${movedAway ? 'border-primary bg-primary-soft' : 'border-border bg-surface'}`}>
               <input type="checkbox" checked={movedAway} onChange={(e) => setMovedAway(e.target.checked)} className="size-7 shrink-0 accent-primary" />
               <span className="flex flex-col gap-0.5">
@@ -298,8 +338,8 @@ export default function Raconter() {
                 <span className="text-[15px] text-muted">C'est la bonne réaction</span>
               </span>
             </label>
-          )}
-        </fieldset>
+          </fieldset>
+        )}
 
         {askable &&
           stepSkills.map((id) => {
@@ -313,7 +353,9 @@ export default function Raconter() {
               <fieldset key={id} className="card m-0 flex flex-col gap-3 border-0 p-4">
                 <legend className="sr-only">{skill.name} : prochaine étape</legend>
                 <span className="text-[13px] font-bold tracking-[0.6px] text-milestone-dark uppercase">{skill.name} · prochaine étape</span>
-                <p className="text-[17px] leading-snug font-semibold">{stepPhrase(id, left.target ?? 1)}. C'est réussi ?</p>
+                <p className="text-[17px] leading-snug font-semibold">
+                  {stepPhrase(id, left.target ?? 1)}. {date === today ? "C'est réussi aujourd'hui ?" : "C'est réussi ?"}
+                </p>
                 <div className="flex items-center gap-3">
                   <span className="flex gap-1.5" aria-hidden="true">
                     {[0, 1, 2].map((i) => (
@@ -352,7 +394,7 @@ export default function Raconter() {
         <div className="mx-auto max-w-[430px] px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           <button type="submit" disabled={saving || Boolean(progress)} className="btn btn-main min-h-[60px] w-full justify-between px-6 text-[19px] disabled:opacity-60">
             <span>{saving ? 'Enregistrement…' : 'Enregistrer'}</span>
-            <span aria-live="polite">+{preview.xp} XP</span>
+            <span aria-live="polite">+{gain} XP</span>
           </button>
         </div>
       </div>

@@ -21,9 +21,9 @@ function EmptyJournal({ onPhotos }: { onPhotos: (files: File[]) => void }) {
         <PhotoIcon size={84} strokeWidth={1.5} />
       </div>
       <h2 className="mt-2 font-display text-2xl leading-tight font-bold">Le Carnet commence ici</h2>
-      <p className="text-[17px] leading-[1.45] text-muted">Racontez ce que vous vivez ensemble, avec ou sans photo.</p>
-      <Link to="/raconter" className="btn btn-main mt-2 w-full">
-        Raconter ce qu'on a fait
+      <p className="text-[17px] leading-[1.45] text-muted">Notez ce que vous vivez ensemble, avec ou sans photo.</p>
+      <Link to="/noter" className="btn btn-main mt-2 w-full">
+        Noter ce qu'on a fait
       </Link>
       <FilePicker accept="image/*" onFiles={onPhotos} className="btn btn-outline w-full">
         <ImportIcon size={20} />
@@ -35,7 +35,7 @@ function EmptyJournal({ onPhotos }: { onPhotos: (files: File[]) => void }) {
 
 export default function Journal() {
   const { entries: written, sessions, exposures } = useData()
-  // Le Carnet est la seule liste : moments racontés, et anciennes séances et situations en lecture seule.
+  // Le Carnet est la seule liste : moments notés, et anciennes séances et situations en lecture seule.
   const legacy: Moment[] = [...sessions.map(sessionAsMoment), ...exposures.map(exposureAsMoment)].map((m) => ({ ...m, tags: [], photos: [], pending: false, readOnly: true }))
   const entries: Moment[] = [...written.map(modernCard), ...legacy].sort(byRecency)
   const today = useToday()
@@ -45,7 +45,7 @@ export default function Journal() {
 
   const importPhotos = (files: File[]) => {
     setDraftPhotos(files)
-    navigate('/raconter')
+    navigate('/noter')
   }
 
   // Seuls les tags réellement utilisés servent de filtre.
@@ -111,7 +111,7 @@ export default function Journal() {
             </div>
           )}
 
-          <Fab label="Raconter ce qu'on a fait" onClick={() => navigate('/raconter')} />
+          <Fab label="Noter ce qu'on a fait" onClick={() => navigate('/noter')} />
         </>
       )}
 

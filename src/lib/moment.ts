@@ -1,4 +1,4 @@
-import { SKILLS } from '../content/phrases'
+import { isFearSkill, SKILLS } from '../content/phrases'
 import { MAX_LEVEL } from '../content/training'
 import { addValidation, EMPTY_PROGRESS, type ProgressMap } from './bossProgress'
 import type { ISODate } from './dates'
@@ -20,7 +20,7 @@ export const MOMENT_XP = {
   moment: 10,
   /** Ressenti « Super ». */
   great: 5,
-  /** Une situation qui lui fait peur, quel que soit le ressenti. */
+  /** Une situation de peur : ressenti « Difficile » sur une compétence de peur. */
   fear: 5,
   /** « On s'est éloignés » : la bonne réaction. */
   movedAway: 8,
@@ -42,9 +42,12 @@ export function momentBaseXp({ feeling, fear, movedAway }: MomentInput): number 
   return MOMENT_XP.moment + (feeling === 'super' ? MOMENT_XP.great : 0) + (fear ? MOMENT_XP.fear : 0) + (fear && movedAway ? MOMENT_XP.movedAway : 0)
 }
 
+/** Aucune question « Il a eu peur ? » : un moment « Difficile » sur une compétence de peur est une situation de peur. */
+export const isFearMoment = (feeling: Feeling | undefined, skills: string[]) => feeling === 'difficile' && skills.some(isFearSkill)
+
 /**
- * On ne demande « c'est réussi ? » que si le moment s'est bien passé : pas un jour difficile, pas un jour où il a eu
- * peur. L'app ne récompense jamais le fait d'avoir poussé le chien.
+ * On ne demande « c'est réussi ? » que si le moment s'est bien passé : pas un jour difficile.
+ * L'app ne récompense jamais le fait d'avoir poussé le chien.
  */
 export const canAskStep = ({ feeling, fear }: MomentInput) => feeling !== 'difficile' && !fear
 

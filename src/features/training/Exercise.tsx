@@ -11,7 +11,7 @@ import { useBack } from '../../lib/useBack'
 import { Illustration } from './Illustration'
 
 /**
- * Faire un exercice : le geste, où le faire aujourd'hui, puis on raconte.
+ * Faire un exercice : le geste, où le faire aujourd'hui, puis on le note.
  * L'interrupteur « Mode précis » ouvre la séance à 5 essais.
  */
 export default function Exercise() {
@@ -83,8 +83,8 @@ export default function Exercise() {
 
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto max-w-[430px] px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-          <button type="button" onClick={() => navigate(`/raconter?competences=${exercise.bossIds.join(',')}`)} className="btn btn-main min-h-[60px] w-full text-[19px]">
-            C'est fait, je raconte
+          <button type="button" onClick={() => navigate(`/noter?depuis=exercice&competences=${exercise.bossIds.join(',')}`)} className="btn btn-main min-h-[60px] w-full text-[19px]">
+            C'est fait, je le note
           </button>
         </div>
       </div>

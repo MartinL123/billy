@@ -12,7 +12,7 @@ import { useToday } from '../../lib/useToday'
  * L'identifiant du gain est fixe : il ne peut pas être compté deux fois.
  */
 export function DressageAwards() {
-  const { dog, entries, sessions, xpLog } = useData()
+  const { entries, sessions, bossProgress, xpLog } = useData()
   const today = useToday()
   const toast = useToast()
   const given = useRef(new Set<string>())
@@ -21,12 +21,12 @@ export function DressageAwards() {
     const week = weekId(today)
     const id = `defi-${week}`
     if (given.current.has(id) || xpLog.some((e) => e.id === id)) return
-    const challenge = weekChallenge(week, dog.traits ?? [])
+    const challenge = weekChallenge(week, bossProgress)
     if (challengeProgress(challenge, today, entries, sessions) < challenge.target) return
     given.current.add(id)
     awardOnce(id, { date: today, kind: 'defi', xp: MOMENT_XP.challenge, bossId: challenge.bossId, label: challenge.label })
     toast(`Défi de la semaine réussi · +${MOMENT_XP.challenge} XP`)
-  }, [dog.traits, entries, sessions, xpLog, today, toast])
+  }, [bossProgress, entries, sessions, xpLog, today, toast])
 
   return null
 }

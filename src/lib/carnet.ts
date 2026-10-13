@@ -69,7 +69,7 @@ const OLD_CARD = /^Palier acquis : (.+), P([1-5]) «/
 /** Les « premières fois » de la V2, avec les mots d'aujourd'hui. */
 const OLD_FIRSTS: [string, string][] = [
   ['Première séance', 'Premier exercice'],
-  ['Première exposition notée', 'Première situation qui lui fait peur racontée'],
+  ['Première exposition notée', 'Première situation qui lui fait peur notée'],
   ['Première retraite stratégique', 'Première fois où on s’est éloignés pour qu’il se sente mieux'],
   ['Premier palier acquis', 'Première étape acquise'],
   ['Premier palier « Dehors au calme »', 'Première étape acquise dehors, au calme'],

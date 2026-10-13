@@ -230,16 +230,16 @@ export default function Questionnaire() {
         {step === 'souvenirs' && (
           <>
             <h1 className="font-display text-[28px] leading-tight font-bold">Vos premiers souvenirs</h1>
-            <p className="text-[17px] leading-snug text-muted">Racontez un moment de vos premières semaines avec {dog.name}. C'est facultatif.</p>
+            <p className="text-[17px] leading-snug text-muted">Notez un moment de vos premières semaines avec {dog.name}. C'est facultatif.</p>
             <button
               type="button"
               onClick={() => {
                 answerQuestion('souvenirs', 'ok')
-                navigate('/raconter?quand=autre&retour=questionnaire')
+                navigate('/noter?quand=autre&retour=questionnaire')
               }}
               className="btn btn-outline"
             >
-              Raconter un moment
+              Noter un moment
             </button>
           </>
         )}
@@ -264,7 +264,7 @@ export default function Questionnaire() {
                 </ul>
               </>
             ) : (
-              <p className="text-[17px] leading-snug text-muted">Tout est à découvrir ensemble. Chaque moment raconté le fera progresser.</p>
+              <p className="text-[17px] leading-snug text-muted">Tout est à découvrir ensemble. Chaque moment noté le fera progresser.</p>
             )}
           </>
         )}

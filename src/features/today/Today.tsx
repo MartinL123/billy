@@ -9,7 +9,7 @@ import { formatAge, milestoneMessage } from '../../lib/age'
 import { upcoming } from '../../lib/events'
 import { onThisDay } from '../../lib/memories'
 import { useToday } from '../../lib/useToday'
-import { TodayEventRow } from '../calendar/EventRows'
+import { CalendarEventRow } from '../calendar/EventRows'
 import { entryDateLabel } from '../journal/EntryCard'
 import { DailyIdeas } from './DailyIdeas'
 import { Meals } from './Meals'
@@ -86,7 +86,7 @@ export default function Today() {
         {next.length > 0 ? (
           <div className="card overflow-hidden">
             {next.map((event, i) => (
-              <TodayEventRow key={event.id} event={event} today={today} first={i === 0} />
+              <CalendarEventRow key={event.id} event={event} today={today} first={i === 0} />
             ))}
           </div>
         ) : (

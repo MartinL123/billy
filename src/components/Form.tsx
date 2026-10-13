@@ -18,16 +18,16 @@ export function FormScreen({ title, submitLabel, onCancel, onSubmit, busy, child
   return (
     <form onSubmit={submit} noValidate className="mx-auto max-w-[430px]">
       <header className="sticky top-0 z-10 flex items-center justify-between bg-bg px-2 pt-[env(safe-area-inset-top)]">
-        <button type="button" onClick={onCancel} className="h-14 min-w-[76px] border-0 bg-transparent px-3 text-left text-base font-semibold text-primary">
+        <button type="button" onClick={onCancel} className="btn btn-quiet my-1.5 min-h-12 px-4">
           Annuler
         </button>
         <h1 className="text-[17px] font-bold">{title}</h1>
-        <div className="w-[76px]" />
+        <div className="w-[92px]" />
       </header>
       <div className="flex flex-col gap-5 px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+120px)]">{children}</div>
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto max-w-[430px] px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-          <button type="submit" disabled={busy} className="h-[54px] w-full rounded-full border-0 bg-primary text-[17px] font-bold text-white disabled:opacity-60">
+          <button type="submit" disabled={busy} className="btn btn-main w-full disabled:opacity-60">
             {submitLabel}
           </button>
         </div>
@@ -90,7 +90,7 @@ export function Segmented<T extends string>({ legend, options, value, onChange, 
               type="button"
               aria-pressed={active}
               onClick={() => onChange(option.value)}
-              className={`h-11 rounded-[10px] border-0 text-sm ${active ? 'bg-surface font-bold text-text shadow-[0_1px_3px_rgba(24,32,30,0.12)]' : 'bg-transparent font-medium text-[#3F4946]'}`}
+              className={`min-h-12 rounded-[10px] border-0 px-1 text-[17px] ${active ? 'bg-primary font-bold text-white' : 'bg-transparent font-semibold text-[#3F4946]'}`}
             >
               {option.label}
             </button>
@@ -104,4 +104,4 @@ export function Segmented<T extends string>({ legend, options, value, onChange, 
 
 /** Bouton secondaire à contour, pleine largeur. */
 export const outlineButton =
-  'flex h-12 w-full items-center justify-center gap-2 rounded-full border-[1.5px] border-primary bg-surface text-[15px] font-bold text-primary no-underline'
+  'btn btn-outline w-full'

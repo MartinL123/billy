@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { CheckIcon, CloseIcon } from '../../components/Icons'
+import { CheckIcon } from '../../components/Icons'
 import { Sheet } from '../../components/Sheet'
 import { bossById, EXERCISES, exerciseById, MAX_DIFFICULTY, MAX_LEVEL, type Exercise } from '../../content/training'
 import { addPlace, recordSession, type Outcome } from '../../firebase/training'
@@ -106,7 +106,7 @@ export default function Session() {
           {decision === 'baisser' && <p className="text-muted">Baisser est une bonne décision : on reste sous son seuil.</p>}
         </div>
         <div className="mt-auto flex flex-col gap-2">
-          <button type="button" onClick={back} className="h-[54px] rounded-full border-0 bg-primary text-[17px] font-bold text-white">
+          <button type="button" onClick={back} className="btn btn-main">
             Terminer
           </button>
           <button
@@ -115,7 +115,7 @@ export default function Session() {
               outcome.undo()
               back()
             }}
-            className="h-12 rounded-full border-0 bg-transparent text-[15px] font-semibold text-muted"
+            className="btn btn-quiet"
           >
             Annuler cette séance (erreur de saisie)
           </button>
@@ -247,7 +247,7 @@ export default function Session() {
             )
           })}
 
-        <button type="button" disabled={!ready} onClick={save} className="mt-auto h-[54px] shrink-0 rounded-full border-0 bg-primary text-[17px] font-bold text-white disabled:opacity-50">
+        <button type="button" disabled={!ready} onClick={save} className="btn btn-main mt-auto shrink-0 disabled:opacity-50">
           Enregistrer la séance
         </button>
       </main>
@@ -259,10 +259,10 @@ export default function Session() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col px-5 pt-[env(safe-area-inset-top)] pb-[calc(env(safe-area-inset-bottom)+16px)]">
       <header className="flex items-center justify-between">
-        <button type="button" onClick={back} aria-label="Quitter la séance" className="-ml-2 flex size-11 items-center justify-center rounded-full border-0 bg-transparent text-text">
-          <CloseIcon />
+        <button type="button" onClick={back} className="btn btn-quiet min-h-12 px-4">
+          Quitter
         </button>
-        <button type="button" onClick={() => setPicking(true)} disabled={trials.length > 0} className="h-11 border-0 bg-transparent px-2 text-base font-semibold text-primary disabled:text-muted">
+        <button type="button" onClick={() => setPicking(true)} disabled={trials.length > 0} className="btn btn-outline disabled:text-muted">
           Changer d'exercice
         </button>
       </header>
@@ -300,7 +300,7 @@ export default function Session() {
             {!exercise.verified && <p className="text-sm text-muted">Fiche à vérifier avec l'éducateur.</p>}
           </div>
         ) : (
-          <button type="button" onClick={() => setShowSteps(true)} className="h-11 self-start border-0 bg-transparent p-0 text-[15px] font-semibold text-primary">
+          <button type="button" onClick={() => setShowSteps(true)} className="btn btn-outline self-start">
             Voir le geste
           </button>
         )}
@@ -317,7 +317,7 @@ export default function Session() {
               <span key={i} className={`size-4 rounded-full ${trials[i] === true ? 'bg-primary' : trials[i] === false ? 'bg-[#9AA39F]' : 'border-2 border-dashed border-[#9AA39F]'}`} />
             ))}
           </div>
-          <button type="button" disabled={trials.length === 0} onClick={() => setTrials(trials.slice(0, -1))} className="h-11 border-0 bg-transparent px-3 text-[15px] font-semibold text-primary disabled:invisible">
+          <button type="button" disabled={trials.length === 0} onClick={() => setTrials(trials.slice(0, -1))} className="btn btn-outline disabled:invisible">
             Corriger le dernier essai
           </button>
         </div>

@@ -99,7 +99,7 @@ export default function DocumentView() {
     return (
       <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col items-center justify-center gap-4 px-6 text-center">
         <p className="text-muted">Ce document n'existe plus.</p>
-        <button type="button" onClick={back} className="h-12 rounded-full border-0 bg-primary px-6 text-[15px] font-bold text-white">
+        <button type="button" onClick={back} className="btn btn-main">
           Retour
         </button>
       </main>
@@ -123,18 +123,10 @@ export default function DocumentView() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
-      <header className="sticky top-0 z-10 flex items-center justify-between bg-bg px-2 pt-[env(safe-area-inset-top)]">
-        <button type="button" onClick={back} className="flex h-14 items-center gap-1 border-0 bg-transparent px-2 text-base font-semibold text-primary">
+      <header className="sticky top-0 z-10 flex items-center bg-bg px-3 py-1.5 pt-[calc(env(safe-area-inset-top)+6px)]">
+        <button type="button" onClick={back} className="btn btn-outline">
           <ChevronLeftIcon />
           Retour
-        </button>
-        <button
-          type="button"
-          aria-label="Supprimer ce document"
-          onClick={() => setConfirmDelete(true)}
-          className="flex size-11 items-center justify-center rounded-full border-0 bg-transparent text-danger"
-        >
-          <TrashIcon />
         </button>
       </header>
 
@@ -149,7 +141,7 @@ export default function DocumentView() {
             <button
               type="button"
               onClick={() => navigate(`/evenement/${linkedEvent.id}`)}
-              className="min-h-11 self-start border-0 bg-transparent p-0 text-left text-[15px] font-semibold text-primary"
+              className="btn btn-outline self-start text-left"
             >
               Lié à « {linkedEvent.title} »{linkedEvent.date ? ` du ${formatLong(linkedEvent.date)}` : ''}
             </button>
@@ -163,6 +155,10 @@ export default function DocumentView() {
         )}
         {!failed && !blobs && <p className="py-8 text-center text-muted">Chargement…</p>}
         {blobs && (document_.kind === 'pdf' && blobs[0] ? <PdfPages blob={blobs[0]} /> : <ImagePages blobs={blobs} />)}
+        <button type="button" onClick={() => setConfirmDelete(true)} className="btn btn-danger">
+          <TrashIcon size={20} />
+          Supprimer ce document
+        </button>
         {message && (
           <p role="status" className="text-sm text-muted">
             {message}
@@ -176,7 +172,7 @@ export default function DocumentView() {
             type="button"
             disabled={!blobs}
             onClick={() => void share()}
-            className="flex h-[54px] w-full items-center justify-center gap-2 rounded-full border-0 bg-primary text-[17px] font-bold text-white disabled:opacity-60"
+            className="btn btn-main w-full disabled:opacity-60"
           >
             <ImportIcon size={20} />
             Partager

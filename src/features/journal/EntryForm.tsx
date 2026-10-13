@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { FilePicker } from '../../components/FilePicker'
 import { FormScreen } from '../../components/Form'
-import { CloseIcon, PlusIcon } from '../../components/Icons'
+import { PlusIcon } from '../../components/Icons'
 import { ConfirmSheet } from '../../components/Sheet'
 import { deleteEntry, newId, saveEntry } from '../../firebase/db'
 import { deleteFile, saveImage } from '../../firebase/files'
@@ -127,8 +127,8 @@ export default function EntryForm() {
 
   const choices = allTags([...entries.flatMap((e) => e.tags), ...tags])
   const chipClass = (active: boolean) =>
-    `h-11 rounded-full border-[1.5px] px-3.5 text-[15px] ${
-      active ? 'border-primary bg-primary-soft font-bold text-primary-dark' : 'border-border bg-surface font-medium text-text'
+    `min-h-12 rounded-full border-2 px-3.5 text-[17px] ${
+      active ? 'border-primary bg-primary font-bold text-white' : 'border-border bg-surface font-medium text-text'
     }`
 
   return (
@@ -142,7 +142,7 @@ export default function EntryForm() {
       >
         <div className="flex flex-col gap-2.5">
           <div className="flex items-baseline justify-between">
-            <span className="text-[15px] font-semibold">Photos</span>
+            <span className="text-[17px] font-semibold">Photos</span>
             <span className="text-[13px] text-muted">
               {items.length} sur {MAX_PHOTOS}
             </span>
@@ -159,11 +159,9 @@ export default function EntryForm() {
                   type="button"
                   aria-label={`Retirer la photo ${i + 1}`}
                   onClick={() => remove(item)}
-                  className="absolute top-0 right-0 flex size-11 items-start justify-end border-0 bg-transparent p-1"
+                  className="absolute inset-x-0 bottom-0 flex min-h-12 items-center justify-center border-0 bg-[rgba(24,32,30,0.72)] text-[17px] font-bold text-white"
                 >
-                  <span className="flex size-8 items-center justify-center rounded-full bg-[rgba(24,32,30,0.65)] text-white">
-                    <CloseIcon size={14} strokeWidth={3} />
-                  </span>
+                  Retirer
                 </button>
               </div>
             ))}
@@ -171,7 +169,7 @@ export default function EntryForm() {
               <FilePicker
                 accept="image/*"
                 onFiles={(files) => void addFiles(files)}
-                className="flex aspect-square flex-col items-center justify-center gap-1 rounded-field border-[1.5px] border-dashed border-[#9AA39F] bg-surface text-[13px] font-semibold text-primary"
+                className="flex aspect-square flex-col items-center justify-center gap-1 rounded-field border-2 border-dashed border-[#9AA39F] bg-surface text-[13px] font-semibold text-primary"
               >
                 <PlusIcon size={24} />
                 Ajouter
@@ -186,14 +184,14 @@ export default function EntryForm() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="texte" className="text-[15px] font-semibold">
+          <label htmlFor="texte" className="text-[17px] font-semibold">
             Ce qui s'est passé
           </label>
           <textarea id="texte" rows={4} value={text} onChange={(e) => setText(e.target.value)} className="field resize-none py-3.5 leading-[1.45]" />
         </div>
 
         <fieldset className="m-0 border-0 p-0">
-          <legend className="mb-2.5 p-0 text-[15px] font-semibold">Tags</legend>
+          <legend className="mb-2.5 p-0 text-[17px] font-semibold">Tags</legend>
           <div className="flex flex-wrap gap-2">
             {choices.map((tag) => {
               const active = tags.some((t) => sameTag(t, tag))
@@ -207,7 +205,7 @@ export default function EntryForm() {
               <button
                 type="button"
                 onClick={() => setNewTag('')}
-                className="h-11 rounded-full border-[1.5px] border-dashed border-[#9AA39F] bg-transparent px-3.5 text-[15px] font-semibold text-primary"
+                className="min-h-12 rounded-full border-2 border-dashed border-[#9AA39F] bg-transparent px-3.5 text-[17px] font-semibold text-primary"
               >
                 + Nouveau
               </button>
@@ -227,14 +225,14 @@ export default function EntryForm() {
                     commitNewTag()
                   }
                 }}
-                className="h-11 w-40 rounded-full border-[1.5px] border-primary bg-surface px-3.5"
+                className="h-11 w-40 rounded-full border-2 border-primary bg-surface px-3.5"
               />
             )}
           </div>
         </fieldset>
 
-        <div className="flex min-h-[52px] items-center justify-between gap-3 rounded-field border-[1.5px] border-border bg-surface px-4">
-          <label htmlFor="dt" className="text-[15px] font-semibold">
+        <div className="flex min-h-[52px] items-center justify-between gap-3 rounded-field border-2 border-border bg-surface px-4">
+          <label htmlFor="dt" className="text-[17px] font-semibold">
             Date
           </label>
           <input
@@ -243,7 +241,7 @@ export default function EntryForm() {
             max={today}
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="h-11 border-0 bg-transparent p-0 text-right font-semibold text-primary"
+            className="btn btn-outline text-right"
           />
         </div>
 
@@ -254,7 +252,7 @@ export default function EntryForm() {
         )}
 
         {existing && (
-          <button type="button" onClick={() => setConfirmDelete(true)} className="h-12 rounded-full border-0 bg-transparent text-[15px] font-semibold text-danger">
+          <button type="button" onClick={() => setConfirmDelete(true)} className="btn btn-danger">
             Supprimer ce souvenir
           </button>
         )}

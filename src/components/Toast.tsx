@@ -34,7 +34,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   toast.action?.run()
                   setToast(null)
                 }}
-                className="h-11 shrink-0 rounded-xl border-0 bg-transparent px-3 font-bold text-[#9FD8C9]"
+                className="min-h-12 shrink-0 rounded-full border-2 border-solid border-white/70 bg-transparent px-4 text-[17px] font-bold text-white"
               >
                 {toast.action.label}
               </button>

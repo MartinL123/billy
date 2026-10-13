@@ -1,6 +1,6 @@
 import { ChevronLeftIcon, ChevronRightIcon } from '../../components/Icons'
 import type { BillyEvent, WithId } from '../../firebase/types'
-import { addDays, addMonths, dayNumber, daysInMonth, formatLong, formatMonthYear, parseISO, toISO, type ISODate } from '../../lib/dates'
+import { addDays, addMonths, dayNumber, daysInMonth, formatLong, formatMonthYear, parseISO, type ISODate } from '../../lib/dates'
 import { typeInfo } from '../../lib/events'
 
 interface MonthGridProps {
@@ -48,14 +48,9 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
         <button type="button" aria-label="Mois précédent" onClick={() => onMonthChange(addMonths(month, -1))} className={navButton}>
           <ChevronLeftIcon />
         </button>
-        <button
-          type="button"
-          onClick={() => onMonthChange(toISO({ ...parseISO(today), d: 1 }))}
-          aria-label={`${formatMonthYear(month)}, revenir au mois en cours`}
-          className="h-11 border-0 bg-transparent px-3 text-[17px] font-bold text-text"
-        >
+        <div className="text-[17px] font-bold" aria-live="polite">
           {formatMonthYear(month)}
-        </button>
+        </div>
         <button type="button" aria-label="Mois suivant" onClick={() => onMonthChange(addMonths(month, 1))} className={navButton}>
           <ChevronRightIcon />
         </button>

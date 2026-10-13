@@ -56,15 +56,16 @@ export function PhotoViewer({ photos, start, onClose }: PhotoViewerProps) {
         ))}
       </div>
       <div className="absolute inset-x-0 top-0 flex items-center justify-between px-3 pt-[calc(env(safe-area-inset-top)+8px)]">
-        <button type="button" aria-label="Fermer" onClick={onClose} className="flex size-11 items-center justify-center rounded-full border-0 bg-white/15 text-white">
-          <CloseIcon />
+        <button type="button" onClick={onClose} className="flex min-h-12 items-center gap-2 rounded-full border-2 border-solid border-white/70 bg-black/40 px-4 text-[17px] font-bold text-white">
+          <CloseIcon size={20} />
+          Fermer
         </button>
         {photos.length > 1 && (
           <span aria-live="polite" className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold text-white">
             {index + 1} / {photos.length}
           </span>
         )}
-        <span className="w-11" />
+        <span className="w-[110px]" />
       </div>
     </div>,
     document.body,

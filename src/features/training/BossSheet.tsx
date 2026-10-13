@@ -30,7 +30,7 @@ export default function BossSheet() {
     return (
       <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col items-center justify-center gap-4 px-6 text-center">
         <p className="text-muted">Ce boss n'existe pas.</p>
-        <button type="button" onClick={back} className="h-12 rounded-full border-0 bg-primary px-6 text-[15px] font-bold text-white">
+        <button type="button" onClick={back} className="btn btn-main">
           Retour
         </button>
       </main>
@@ -52,7 +52,7 @@ export default function BossSheet() {
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
       <header className="sticky top-0 z-10 flex items-center bg-bg px-2 pt-[env(safe-area-inset-top)]">
-        <button type="button" onClick={back} className="flex h-14 items-center gap-1 border-0 bg-transparent px-2 text-base font-semibold text-primary">
+        <button type="button" onClick={back} className="btn btn-outline">
           <ChevronLeftIcon />
           Dressage
         </button>
@@ -154,7 +154,7 @@ export default function BossSheet() {
             </p>
           )}
           {progress.level < MAX_LEVEL && (
-            <button type="button" onClick={() => setChoosing(true)} className="h-11 self-start border-0 bg-transparent p-0 text-[15px] font-semibold text-primary">
+            <button type="button" onClick={() => setChoosing(true)} className="btn btn-outline self-start">
               {dog.name} maîtrise déjà un palier ?
             </button>
           )}
@@ -218,10 +218,10 @@ export default function BossSheet() {
 
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto grid max-w-[430px] grid-cols-2 gap-2 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-          <button type="button" onClick={() => navigate(`/exposition?boss=${boss.id}`)} className="h-[54px] rounded-full border-[1.5px] border-primary bg-surface text-base font-bold text-primary">
+          <button type="button" onClick={() => navigate(`/exposition?boss=${boss.id}`)} className="btn btn-outline">
             Exposition
           </button>
-          <button type="button" onClick={() => navigate(`/seance?boss=${boss.id}`)} className="h-[54px] rounded-full border-0 bg-primary text-base font-bold text-white">
+          <button type="button" onClick={() => navigate(`/seance?boss=${boss.id}`)} className="btn btn-main">
             Séance
           </button>
         </div>

@@ -12,6 +12,12 @@
   --color-muted: #5a6662;
   --color-divider: #e6eae7;
   --color-placeholder: #e4e8e4;
+  /* Action principale de l'écran (spec V3 § 6) : une seule par écran */
+  --color-action: #c2571a;
+  /* Doré : réservé au niveau et aux réussites */
+  --color-gold: #f2b544;
+  --color-gold-soft: #fcefd3;
+  --color-gold-dark: #3d2a00;
   --color-milestone: #d9661f;
   --color-milestone-soft: #fbe6d4;
   --color-milestone-dark: #8a3e0c;
@@ -63,6 +69,72 @@
   padding: 0 16px;
   font-size: 16px;
   color: var(--color-text);
+}
+
+/*
+ * Boutons (spec V3 § 6) : tout ce qui est cliquable ressemble à un bouton,
+ * 48 px de haut et 17 px de texte au minimum.
+ */
+@utility btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 6px 20px;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+/* L'action principale : plein orange. */
+@utility btn-main {
+  background: var(--color-action);
+  border-color: var(--color-action);
+  color: #ffffff;
+}
+/* Action secondaire : contour vert de 2 px. */
+@utility btn-outline {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+/* Annuler, fermer : contour neutre. */
+@utility btn-quiet {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+/* Supprimer, se déconnecter pour de bon : contour rouge. */
+@utility btn-danger {
+  background: var(--color-surface);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+/* Choix sélectionné : vert plein. */
+@utility btn-on {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+/* Carte blanche cliquable : toujours avec un chevron. */
+@utility card-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 56px;
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  color: var(--color-text);
+  text-decoration: none;
+  text-align: left;
 }
 
 html,

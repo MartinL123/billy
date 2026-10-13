@@ -99,10 +99,10 @@ export default function Login() {
             </div>
           )}
         </div>
-        <button type="submit" disabled={busy} className="mt-2 h-[54px] rounded-full border-0 bg-primary text-[17px] font-bold text-white disabled:opacity-60">
+        <button type="submit" disabled={busy} className="btn btn-main mt-2 disabled:opacity-60">
           {busy ? 'Connexion…' : 'Se connecter'}
         </button>
-        <button type="button" onClick={forgot} className="min-h-11 self-center border-0 bg-transparent p-3 text-[15px] font-semibold text-primary">
+        <button type="button" onClick={forgot} className="btn btn-outline self-center p-3">
           Mot de passe oublié ?
         </button>
         {info && (

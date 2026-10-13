@@ -55,7 +55,7 @@ export function Meals({ dogName, feeding, today }: { dogName: string; feeding: F
             )
           })}
         </ul>
-        <button type="button" onClick={() => void installReminders()} className="h-12 rounded-full border-[1.5px] border-primary bg-surface text-[15px] font-bold text-primary">
+        <button type="button" onClick={() => void installReminders()} className="btn btn-outline">
           Recevoir les rappels sur l'iPhone
         </button>
         {message && (

@@ -89,7 +89,7 @@ export function Quests() {
                   type="button"
                   aria-label={`Remplacer la quête « ${quest.label} »`}
                   onClick={() => replaceQuest(week, [...replaced, quest.key])}
-                  className="h-11 shrink-0 border-0 bg-transparent px-1 text-[15px] font-semibold text-primary"
+                  className="btn btn-outline shrink-0"
                 >
                   Changer
                 </button>

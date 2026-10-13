@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { outlineButton } from '../../components/Form'
+import { ChevronRightIcon } from '../../components/Icons'
 import { PageHeader } from '../../components/PageHeader'
 import { Pending } from '../../components/Pending'
 import { Fab } from '../../components/TabBar'
@@ -29,7 +30,7 @@ export default function Calendar() {
   const next = upcoming(events, today)
   const done = events.filter((e) => e.done).sort((a, b) => (b.doneAt ?? b.date).localeCompare(a.doneAt ?? a.date))
   const ofDay = selected ? events.filter((e) => e.date === selected) : []
-  const [lastWeight, ...olderWeights] = weights
+  const lastWeight = weights[0]
   const year = parseISO(today).y
 
   const newEvent = () => navigate(selected ? `/evenement/nouveau?date=${selected}` : '/evenement/nouveau')
@@ -59,7 +60,7 @@ export default function Calendar() {
           )}
           <Link
             to={`/evenement/nouveau?date=${selected}`}
-            className="flex h-[52px] items-center justify-center rounded-field border-[1.5px] border-dashed border-[#9AA39F] text-[15px] font-semibold text-primary no-underline"
+            className="btn btn-outline rounded-field border-dashed border-[#9AA39F]"
           >
             Ajouter un événement ce jour-là
           </Link>
@@ -106,7 +107,7 @@ export default function Calendar() {
               <button
                 type="button"
                 onClick={() => setShowAllDone(!showAllDone)}
-                className="h-12 w-full border-0 border-t border-solid border-divider bg-transparent text-[15px] font-semibold text-primary"
+                className="btn btn-outline w-full border-t border-divider"
               >
                 {showAllDone ? 'Réduire' : `Voir les ${done.length} événements faits`}
               </button>
@@ -122,30 +123,26 @@ export default function Calendar() {
             <div className="text-[13px] text-muted">{lastWeight ? `Pesé le ${formatShort(lastWeight.date, year)}` : 'Aucune pesée pour l’instant'}</div>
           </div>
           {lastWeight && (
-            <button
-              type="button"
-              aria-label={`Modifier la pesée du ${formatLong(lastWeight.date)}, ${formatKg(lastWeight.kg)} kilos`}
-              onClick={() => setWeightSheet({ editing: lastWeight })}
-              className="min-h-11 border-0 bg-transparent p-0 text-right font-display text-[30px] font-bold text-text"
-            >
+            <div className="font-display text-[30px] font-bold">
               {formatKg(lastWeight.kg)} <span className="font-sans text-base font-semibold text-muted">kg</span>
-            </button>
+            </div>
           )}
         </div>
         {lastWeight && <Pending show={lastWeight.pending} />}
         <WeightChart weights={weights} />
-        {olderWeights.length > 0 && (
-          <div className="flex flex-col text-sm text-muted">
-            {olderWeights.slice(0, 4).map((weight) => (
+        {weights.length > 0 && (
+          <div className="flex flex-col">
+            {weights.slice(0, 5).map((weight) => (
               <button
                 key={weight.id}
                 type="button"
                 aria-label={`Modifier la pesée du ${formatLong(weight.date)}`}
                 onClick={() => setWeightSheet({ editing: weight })}
-                className="flex min-h-11 items-center justify-between border-0 border-t border-solid border-divider bg-transparent px-0 text-sm text-muted"
+                className="flex min-h-12 items-center gap-3 border-0 border-t border-solid border-divider bg-transparent px-0 text-left text-[17px] text-text"
               >
-                <span>{formatShort(weight.date, year)}</span>
-                <span>{formatKg(weight.kg)} kg</span>
+                <span className="flex-1">{formatShort(weight.date, year)}</span>
+                <span className="font-semibold">{formatKg(weight.kg)} kg</span>
+                <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
               </button>
             ))}
           </div>

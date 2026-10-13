@@ -29,7 +29,7 @@ function EmptyJournal({ onPhotos }: { onPhotos: (files: File[]) => void }) {
         <ImportIcon size={20} />
         Importer des photos
       </FilePicker>
-      <Link to="/souvenir/nouveau" className="p-3 text-base font-semibold text-primary no-underline">
+      <Link to="/souvenir/nouveau" className="btn btn-outline p-3">
         Écrire une note
       </Link>
     </div>
@@ -62,8 +62,8 @@ export default function Journal() {
   }
 
   const chip = (active: boolean) =>
-    `h-11 shrink-0 rounded-full px-4 text-[15px] whitespace-nowrap ${
-      active ? 'border-0 bg-primary font-semibold text-white' : 'border-[1.5px] border-solid border-border bg-surface font-medium text-text'
+    `min-h-12 shrink-0 rounded-full px-4 text-[17px] whitespace-nowrap ${
+      active ? 'border-0 bg-primary font-semibold text-white' : 'border-2 border-solid border-border bg-surface font-medium text-text'
     }`
 
   return (
@@ -105,7 +105,7 @@ export default function Journal() {
           {visible.length === 0 && (
             <div className="flex flex-col items-center gap-2 px-6 pt-6 text-center">
               <p className="text-muted">Aucun souvenir avec le tag « {tag} ».</p>
-              <button type="button" onClick={() => setTag(null)} className="h-11 border-0 bg-transparent px-3 text-base font-semibold text-primary">
+              <button type="button" onClick={() => setTag(null)} className="btn btn-outline">
                 Voir tous les souvenirs
               </button>
             </div>

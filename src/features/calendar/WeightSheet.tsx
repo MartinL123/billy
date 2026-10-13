@@ -69,7 +69,7 @@ export function WeightSheet({ today, weights, editing, onClose }: WeightSheetPro
                   setError('')
                 }}
                 aria-invalid={error ? true : undefined}
-                className="min-w-0 flex-1 border-0 bg-transparent p-0 font-display text-[30px] font-bold text-text outline-none"
+                className="btn btn-quiet min-w-0 flex-1 font-display outline-none"
               />
               <span className="text-[17px] font-semibold text-muted">kg</span>
             </div>
@@ -96,7 +96,7 @@ export function WeightSheet({ today, weights, editing, onClose }: WeightSheetPro
           )
         )}
 
-        <button type="submit" className="h-[54px] rounded-full border-0 bg-primary text-[17px] font-bold text-white">
+        <button type="submit" className="btn btn-main">
           Enregistrer
         </button>
         {editing && (
@@ -106,7 +106,7 @@ export function WeightSheet({ today, weights, editing, onClose }: WeightSheetPro
               deleteWeight(editing.id)
               onClose()
             }}
-            className="h-12 rounded-full border-0 bg-transparent text-[15px] font-semibold text-danger"
+            className="btn btn-danger"
           >
             Supprimer cette pesée
           </button>

@@ -77,7 +77,7 @@ export function ConfirmSheet({ title, message, confirmLabel, tone = 'danger', on
       <button type="button" onClick={onConfirm} className={`mt-2 h-[54px] rounded-full border-0 text-[17px] font-bold text-white ${tone === 'danger' ? 'bg-danger' : 'bg-primary'}`}>
         {confirmLabel}
       </button>
-      <button type="button" onClick={onCancel} className="h-[52px] rounded-full border-[1.5px] border-border bg-surface text-base font-semibold text-text">
+      <button type="button" onClick={onCancel} className="btn btn-quiet">
         Annuler
       </button>
     </Sheet>

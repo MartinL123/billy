@@ -53,14 +53,15 @@ function ContactRow({ role, callLabel, contact, first, onAdd }: { role: string; 
             {contact?.name && contact.phone && <span className="text-[13px] text-muted">{contact.phone}</span>}
           </>
         ) : (
-          <button type="button" onClick={onAdd} className="min-h-11 self-start border-0 bg-transparent p-0 text-base font-semibold text-primary">
+          <button type="button" onClick={onAdd} className="btn btn-outline self-start">
             Ajouter
           </button>
         )}
       </div>
       {phone && (
-        <a href={`tel:${phone}`} aria-label={callLabel} className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
+        <a href={`tel:${phone}`} aria-label={callLabel} className="btn btn-outline min-h-12 shrink-0 px-4">
           <PhoneIcon size={20} />
+          Appeler
         </a>
       )}
     </div>
@@ -95,11 +96,11 @@ export default function Profile() {
   return (
     <div className="mx-auto flex max-w-[430px] flex-col gap-5 px-5 pt-[calc(env(safe-area-inset-top)+4px)] pb-[calc(env(safe-area-inset-bottom)+40px)]">
       <div className="flex items-center justify-between">
-        <button type="button" onClick={back} className="flex h-11 items-center gap-1 border-0 bg-transparent p-0 text-base font-semibold text-primary">
+        <button type="button" onClick={back} className="btn btn-outline">
           <ChevronLeftIcon />
           Retour
         </button>
-        <button type="button" onClick={() => setEditing(true)} className="h-11 border-0 bg-transparent px-3 text-base font-semibold text-primary">
+        <button type="button" onClick={() => setEditing(true)} className="btn btn-outline">
           Modifier
         </button>
       </div>
@@ -137,7 +138,7 @@ export default function Profile() {
       <section className="flex flex-col gap-2.5">
         <div className="flex items-baseline justify-between">
           <h2 className="text-[19px] font-bold">Santé</h2>
-          <Link to="/calendrier" className="py-1 text-[15px] font-semibold text-primary no-underline">
+          <Link to="/calendrier" className="btn btn-outline py-1">
             Calendrier
           </Link>
         </div>
@@ -187,7 +188,7 @@ export default function Profile() {
         ) : (
           <p className="text-[15px] leading-snug text-muted">Les traits adaptent le chemin du dressage (exercices, précautions), jamais les objectifs.</p>
         )}
-        <button type="button" onClick={() => setEditing(true)} className="h-11 self-start border-0 bg-transparent p-0 text-base font-semibold text-primary">
+        <button type="button" onClick={() => setEditing(true)} className="btn btn-outline self-start">
           Modifier les traits
         </button>
       </section>
@@ -283,7 +284,7 @@ export default function Profile() {
             </div>
           )}
         </div>
-        <button type="button" onClick={() => setConfirmLogout(true)} className="h-12 rounded-full border-[1.5px] border-border bg-surface text-[15px] font-semibold text-text">
+        <button type="button" onClick={() => setConfirmLogout(true)} className="btn btn-quiet">
           Se déconnecter
         </button>
       </section>

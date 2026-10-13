@@ -63,7 +63,7 @@ export function QuickAdd({ onClose }: { onClose: () => void }) {
         <RowContent icon={<DocumentIcon size={26} />} tone="bg-[#F6E3E1] text-[#9A2F28]" title="Document" detail="PDF ou photos de pages" />
       </button>
 
-      <button type="button" onClick={onClose} className="mt-1 h-[52px] rounded-full border-[1.5px] border-border bg-surface text-base font-semibold text-text">
+      <button type="button" onClick={onClose} className="btn btn-quiet mt-1">
         Annuler
       </button>
     </Sheet>

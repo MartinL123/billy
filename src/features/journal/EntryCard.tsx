@@ -54,7 +54,7 @@ export function EntryCard({ entry, today, activeTag, onOpenPhoto }: EntryCardPro
           })}
         </div>
       )}
-      <Link to={`/souvenir/${entry.id}`} aria-label="Modifier ce souvenir" className="flex flex-col gap-2.5 px-4 pt-3.5 pb-4 text-text no-underline">
+      <div className="flex flex-col gap-2.5 px-4 pt-3.5 pb-4">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className="text-[13px] font-semibold text-muted">{entryDateLabel(entry.date, today)}</span>
           <Pending show={entry.pending} />
@@ -74,7 +74,10 @@ export function EntryCard({ entry, today, activeTag, onOpenPhoto }: EntryCardPro
             ))}
           </div>
         )}
-      </Link>
+        <Link to={`/souvenir/${entry.id}`} className="btn btn-outline mt-1 min-h-12 self-start px-4">
+          Modifier
+        </Link>
+      </div>
     </article>
   )
 }

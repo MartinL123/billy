@@ -110,7 +110,7 @@ export default function EventForm() {
     <>
       <FormScreen title={existing ? "Modifier l'événement" : 'Nouvel événement'} submitLabel="Enregistrer" onCancel={back} onSubmit={save}>
         <fieldset className="m-0 border-0 p-0">
-          <legend className="mb-2.5 p-0 text-[15px] font-semibold">Type</legend>
+          <legend className="mb-2.5 p-0 text-[17px] font-semibold">Type</legend>
           <div className="flex flex-wrap gap-2">
             {EVENT_TYPE_ORDER.map((value) => {
               const active = value === type
@@ -120,7 +120,7 @@ export default function EventForm() {
                   type="button"
                   aria-pressed={active}
                   onClick={() => chooseType(value)}
-                  className={`flex h-11 items-center gap-1.5 rounded-full border-[1.5px] px-3.5 text-[15px] ${
+                  className={`flex min-h-12 items-center gap-1.5 rounded-full border-2 px-3.5 text-[17px] ${
                     active ? 'border-primary bg-primary font-bold text-white' : 'border-border bg-surface font-medium text-text'
                   }`}
                 >
@@ -166,7 +166,7 @@ export default function EventForm() {
         />
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="note" className="text-[15px] font-semibold">
+          <label htmlFor="note" className="text-[17px] font-semibold">
             Note
             <Optional />
           </label>
@@ -182,7 +182,7 @@ export default function EventForm() {
 
         {linked.length > 0 && (
           <div className="flex flex-col gap-2">
-            <span className="text-[15px] font-semibold">Documents joints</span>
+            <span className="text-[17px] font-semibold">Documents joints</span>
             <div className="card px-4 py-1">
               {linked.map((document, i) => (
                 <Link
@@ -201,7 +201,7 @@ export default function EventForm() {
         <button
           type="button"
           onClick={attach}
-          className="flex h-[52px] items-center justify-center gap-2 rounded-field border-[1.5px] border-dashed border-[#9AA39F] bg-transparent text-[15px] font-semibold text-primary"
+          className="flex h-[52px] items-center justify-center gap-2 rounded-field border-2 border-dashed border-[#9AA39F] bg-transparent text-[17px] font-semibold text-primary"
         >
           <PaperclipIcon size={20} />
           Joindre un document
@@ -216,18 +216,18 @@ export default function EventForm() {
                   setEventDone(existing, !existing.done)
                   back()
                 }}
-                className="h-12 rounded-full border-[1.5px] border-primary bg-surface text-[15px] font-bold text-primary"
+                className="btn btn-outline"
               >
                 {existing.done ? 'Remettre à faire' : 'Marquer comme fait'}
               </button>
             )}
             {existing.date && !existing.done && (
-              <button type="button" onClick={exportToCalendar} className="flex h-12 items-center justify-center gap-2 rounded-full border-0 bg-transparent text-[15px] font-semibold text-primary">
+              <button type="button" onClick={exportToCalendar} className="btn btn-outline">
                 <CalendarIcon size={20} />
                 Ajouter au calendrier de l'iPhone
               </button>
             )}
-            <button type="button" onClick={() => setConfirmDelete(true)} className="h-12 rounded-full border-0 bg-transparent text-[15px] font-semibold text-danger">
+            <button type="button" onClick={() => setConfirmDelete(true)} className="btn btn-danger">
               Supprimer l'événement
             </button>
           </div>

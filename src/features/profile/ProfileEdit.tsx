@@ -141,7 +141,7 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
         <legend className="mb-2.5 p-0 text-[19px] font-bold">Alimentation</legend>
         <TextField label="Ration par jour (grammes)" inputMode="numeric" autoComplete="off" value={grams} onChange={(e) => setGrams(e.target.value.replace(/[^\d]/g, ''))} />
         {meals.map((meal, i) => (
-          <div key={i} className="grid grid-cols-[minmax(0,1fr)_130px_44px] items-end gap-2">
+          <div key={i} className="grid grid-cols-[minmax(0,1fr)_130px] items-end gap-2">
             <TextField
               label={`Repas ${i + 1}`}
               value={meal.label}
@@ -159,9 +159,10 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
               type="button"
               aria-label={`Retirer le repas ${i + 1}`}
               onClick={() => setMeals(meals.filter((_, j) => j !== i))}
-              className="flex h-[52px] w-11 items-center justify-center rounded-full border-0 bg-transparent text-muted"
+              className="btn btn-quiet col-span-2 min-h-12"
             >
               <TrashIcon size={20} />
+              Retirer ce repas
             </button>
           </div>
         ))}

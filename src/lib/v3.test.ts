@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { levelTitle, SKILLS, skillText, stepPhrase, stepPhraseLower } from '../content/phrases'
 import { BOSSES } from '../content/training'
-import { isPuppy, questionnaireStatus, questionnaireSteps, statusLabel, stepsForAnswer } from './questionnaire'
+import { deriveTraits, fearSkills, isPuppy, PARTS, questionnaireStatus, reactionSentence, reactionsFromFears, situationSkill, skillOptions, statusLabel, STEPS, stepsForAnswer } from './questionnaire'
 import { acquiredSteps, lastSuccess } from './skills'
 
 // Vocabulaire banni de l'interface (spec V3 § 1).
@@ -49,32 +49,69 @@ describe('titre selon le niveau', () => {
 })
 
 describe('questionnaire de départ', () => {
-  it('a 15 écrans pour un chien craintif, 14 sinon', () => {
-    expect(questionnaireSteps(['craintif'])).toHaveLength(15)
-    expect(questionnaireSteps([])).toHaveLength(14)
-    expect(questionnaireSteps(['craintif']).slice(0, 4)).toEqual(['identite', 'caractere', 'peurs', 'lien'])
+  it('suit les 5 parties dans l’ordre, une question par écran', () => {
+    expect(PARTS).toHaveLength(5)
+    expect(STEPS.map((s) => s.part)).toEqual([...STEPS.map((s) => s.part)].sort())
+    expect(STEPS[0]!.id).toBe('nom')
+    expect(STEPS.at(-1)!.id).toBe('fin')
+    expect(STEPS.filter((s) => s.kind === 'skill').map((s) => s.id)).toEqual(SKILLS.map((s) => s.id))
+    expect(new Set(STEPS.map((s) => s.id)).size).toBe(STEPS.length)
+    for (const step of STEPS) expect(`${step.title} ${step.help ?? ''}`).not.toMatch(BANNED)
   })
 
   it('se reprend là où on s’était arrêté', () => {
-    const status = questionnaireStatus({ answers: { identite: 'ok', caractere: 'ok', peurs: 'ok', lien: 'maison', calme: 'nsp', soins: 'non' } }, ['craintif'])
-    expect(status).toMatchObject({ answered: 6, total: 15, complete: false, resumeAt: 6 })
-    expect(statusLabel(status)).toBe('À compléter · 6 réponses sur 15')
-    expect(statusLabel(questionnaireStatus(undefined, []))).toBe('À compléter · 14 questions')
+    const status = questionnaireStatus({ answers: { nom: 'ok', photo: 'ok', naissance: 'ok' } })
+    expect(status).toMatchObject({ answered: 3, total: STEPS.length, complete: false, resumeAt: 3 })
+    expect(statusLabel(status)).toBe(`À compléter · 3 réponses sur ${STEPS.length}`)
+    expect(statusLabel(questionnaireStatus(undefined))).toBe(`À compléter · ${STEPS.length} questions`)
+  })
+
+  it('garde les réponses de l’ancien questionnaire quand elles ont un équivalent', () => {
+    const status = questionnaireStatus({ answers: { identite: 'ok', caractere: 'ok', lien: 'maison', rappel: 'dehors' }, completedAt: '2026-10-13' })
+    // nom, naissance, race, adoption + les deux compétences ; l'ancien « terminé » ne suffit plus.
+    expect(status.answered).toBe(6)
+    expect(status.complete).toBe(false)
+    expect(STEPS[status.resumeAt]!.id).toBe('photo')
   })
 
   it('est complété quand tout est répondu et terminé', () => {
-    const answers = Object.fromEntries(questionnaireSteps([]).map((s) => [s, 'ok']))
-    expect(questionnaireStatus({ answers }, []).complete).toBe(false)
-    const done = questionnaireStatus({ answers, completedAt: '2026-10-13' }, [])
+    const answers = Object.fromEntries(STEPS.map((s) => [s.id, 'ok']))
+    expect(questionnaireStatus({ answers }).complete).toBe(false)
+    const done = questionnaireStatus({ answers, completedAt: '2026-10-13' })
     expect(done.complete).toBe(true)
     expect(statusLabel(done)).toBe('Complété · revoir mes réponses')
   })
 
-  it('traduit les réponses en étapes acquises avant l’app', () => {
-    expect(['non', 'nsp', undefined, 'maison', 'dehors'].map(stepsForAnswer)).toEqual([0, 0, 0, 2, 3])
+  it('traduit les réponses en étapes acquises : un chien déjà éduqué peut tout avoir', () => {
+    expect(['non', 'nsp', undefined, 'maison', 'dehors', 'anime', 'partout'].map(stepsForAnswer)).toEqual([0, 0, 0, 2, 3, 4, 5])
+    expect(skillOptions('lien').map((o) => o.label)).toEqual(['Pas encore', 'À la maison', 'Même dehors'])
+    expect(skillOptions('ville').map((o) => o.label)).toEqual(['Pas encore', 'Dans une rue calme', 'Même en rue animée'])
+    expect(skillOptions('congeneres').map((o) => o.label)).toEqual(['Pas encore', 'De loin', 'Même de près'])
   })
 
-  it('déduit « chiot » de la date de naissance', () => {
+  it('relie chaque situation à sa compétence et écrit la phrase', () => {
+    expect(situationSkill('il croise des enfants')).toBe('rencontres')
+    expect(situationSkill('il passe dans une rue étroite')).toBe('ville')
+    expect(situationSkill('il voit son reflet')).toBe('nouveaute')
+    expect(situationSkill('autre chose')).toBeUndefined()
+    expect(reactionSentence({ situation: 'il croise des enfants', reaction: 'peur' })).toBe('Quand il croise des enfants, il a peur.')
+    expect(reactionSentence({ situation: 'il reste seul', reaction: 'agité' })).toBe('Quand il reste seul, il est agité.')
+  })
+
+  it('reprend les anciennes peurs en phrases à confirmer', () => {
+    expect(reactionsFromFears(['Les enfants', 'Les rues étroites', 'Son reflet', 'Inconnu au bataillon'])).toEqual([
+      { situation: 'il croise des enfants', reaction: 'peur', bossId: 'rencontres' },
+      { situation: 'il passe dans une rue étroite', reaction: 'peur', bossId: 'ville' },
+      { situation: 'il voit son reflet', reaction: 'peur', bossId: 'nouveaute' },
+    ])
+  })
+
+  it('déduit le caractère au lieu de le demander', () => {
+    const fears = reactionsFromFears(['Les enfants', 'Son reflet'])
+    expect(deriveTraits([], fears, 'Calme', '2026-05-13', '2026-10-13')).toEqual(['chiot', 'craintif'])
+    expect(deriveTraits([], fears.slice(0, 1), 'Très excité', '2024-05-13', '2026-10-13')).toEqual(['energique'])
+    expect(deriveTraits(['adopte-adulte', 'energique'], [{ situation: 'il croise un autre chien', reaction: 'peur', bossId: 'congeneres' }], undefined, '2017-01-01', '2026-10-13')).toEqual(['reactif-chiens', 'senior', 'adopte-adulte'])
+    expect(fearSkills(fears)).toEqual(['rencontres', 'nouveaute'])
     expect(isPuppy('2026-05-13', '2026-10-13')).toBe(true)
     expect(isPuppy('2026-05-13', '2026-11-13')).toBe(false)
   })

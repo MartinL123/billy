@@ -7,7 +7,6 @@ import { saveDog } from '../../firebase/db'
 import { deleteFile, saveImage } from '../../firebase/files'
 import type { Contact, Dog, WithId } from '../../firebase/types'
 import { isValidISO } from '../../lib/dates'
-import { CHARACTER } from '../../content/phrases'
 import { TRAITS, type Trait } from '../../content/training'
 import { sortMeals, type Meal } from '../../lib/feeding'
 import { compressImage, PHOTO, type CompressedImage } from '../../lib/image'
@@ -28,7 +27,8 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
   const [trainerPhone, setTrainerPhone] = useState(dog.trainer?.phone ?? '')
   const [grams, setGrams] = useState(dog.feeding ? String(dog.feeding.gramsPerDay) : '')
   const [meals, setMeals] = useState<Meal[]>(() => sortMeals(dog.feeding?.meals ?? []))
-  const [traits, setTraits] = useState<Trait[]>(dog.traits ?? [])
+  // Les traits ne se cochent plus : ils sont déduits du questionnaire, et conservés tels quels ici.
+  const traits: Trait[] = dog.traits ?? []
   const [photo, setPhoto] = useState<(CompressedImage & { previewUrl: string }) | null>(null)
   const [errors, setErrors] = useState<{ name?: string; birthDate?: string; adoptionDate?: string; photo?: string }>({})
   const [saving, setSaving] = useState(false)
@@ -124,21 +124,6 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
         value={chip}
         onChange={(e) => setChip(e.target.value)}
       />
-
-      <fieldset className="m-0 flex flex-col gap-1 border-0 p-0">
-        <legend className="mb-1 p-0 text-[19px] font-bold">Son caractère</legend>
-        {CHARACTER.map(({ trait, label }) => (
-          <label key={trait} className="flex min-h-12 items-center gap-3 text-[17px]">
-            <input
-              type="checkbox"
-              checked={traits.includes(trait)}
-              onChange={(e) => setTraits(e.target.checked ? [...traits, trait] : traits.filter((t) => t !== trait))}
-              className="size-6 shrink-0 accent-primary"
-            />
-            {label}
-          </label>
-        ))}
-      </fieldset>
 
       <fieldset className="m-0 flex flex-col gap-3 border-0 p-0">
         <legend className="mb-2.5 p-0 text-[19px] font-bold">Alimentation</legend>

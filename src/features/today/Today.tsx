@@ -28,7 +28,7 @@ export default function Today() {
   const level = globalLevel(totalXp(xpLog))
   const ratio = Math.min(1, level.current / level.needed)
   const life = nextLifeStep(dog.birthDate, today)
-  const questionnaire = questionnaireStatus(dog.questionnaire, dog.traits ?? [])
+  const questionnaire = questionnaireStatus(dog.questionnaire)
   const challenge = weekChallenge(weekId(today), bossProgress)
   const done = challengeProgress(challenge, today, entries, sessions)
   const success = lastSuccess(bossProgress, xpLog)

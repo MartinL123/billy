@@ -9,12 +9,12 @@ import { questionnaireStatus, statusLabel } from '../../lib/questionnaire'
 export default function Opening() {
   const { dog } = useData()
   const navigate = useNavigate()
-  const status = questionnaireStatus(dog.questionnaire, dog.traits ?? [])
+  const status = questionnaireStatus(dog.questionnaire)
 
   const enter = () => {
-    // Toute première fois : le questionnaire de départ s'enchaîne, une seule fois d'office.
-    if (!dog.questionnaire?.startedAt && status.answered === 0) {
-      updateDog({ questionnaire: { answers: {}, ...dog.questionnaire, startedAt: new Date().toISOString() } })
+    // Tant que le questionnaire de départ n'est pas terminé, il s'ouvre tout seul. « Continuer plus tard » reste possible.
+    if (!status.complete) {
+      if (!dog.questionnaire?.startedAt) updateDog({ questionnaire: { answers: {}, ...dog.questionnaire, startedAt: new Date().toISOString() } })
       navigate('/questionnaire', { replace: true })
     } else {
       navigate('/', { replace: true })

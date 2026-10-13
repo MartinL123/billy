@@ -18,7 +18,7 @@ import { deleteFile } from './files'
 export { newId } from './paths'
 import { buildSeed, DEFAULT_FEEDING, DEFAULT_TRAITS, healthHistory, SEED_VERSION, VACCINE_REMINDER_DATE, VACCINE_REMINDER_ID } from './seed'
 import type { BillyDocument, BillyEvent, Dog, Entry, Weight, WithId } from './types'
-import { todayISO } from '../lib/dates'
+import { todayISO, type ISODate } from '../lib/dates'
 import { nextOccurrence } from '../lib/recurrence'
 
 // ——— Écoute en direct ———
@@ -105,6 +105,22 @@ export function answerQuestion(key: string, value: string, extra: Record<string,
 }
 
 // ——— Événements ———
+
+/**
+ * Questionnaire de départ : un soin déjà fait à une date donnée. S'il n'est pas déjà noté, il est ajouté comme fait,
+ * avec son prochain rappel si aucun n'est prévu. Rien n'est jamais créé en double.
+ */
+export function recordCare(events: WithId<BillyEvent>[], care: { type: BillyEvent['type']; title: string; date: ISODate; recurrence: BillyEvent['recurrence']; match?: RegExp }): void {
+  const own = events.filter((e) => e.type === care.type && (!care.match || care.match.test(e.title)))
+  if (own.some((e) => e.done && e.date === care.date)) return
+  const batch = writeBatch(db)
+  const base = { title: care.title, type: care.type, recurrence: care.recurrence }
+  const nextDate = own.some((e) => !e.done && e.date > care.date) ? undefined : nextOccurrence(care.date, care.recurrence)
+  const nextId = nextDate ? newId('events') : undefined
+  if (nextDate && nextId) batch.set(userDoc('events', nextId), { ...base, date: nextDate, done: false } satisfies BillyEvent)
+  batch.set(userDoc('events', newId('events')), { ...base, date: care.date, done: true, doneAt: care.date, ...(nextId ? { nextId } : {}) } satisfies BillyEvent)
+  send(batch.commit())
+}
 
 export function saveEvent(id: string, event: BillyEvent): void {
   send(setDoc(userDoc('events', id), event as DocumentData))

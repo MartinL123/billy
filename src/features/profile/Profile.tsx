@@ -12,7 +12,7 @@ import type { Contact } from '../../firebase/types'
 import { formatAgeShort } from '../../lib/age'
 import { formatLong, formatShort, formatTime } from '../../lib/dates'
 import { levelTitle } from '../../content/phrases'
-import { questionnaireStatus, statusLabel } from '../../lib/questionnaire'
+import { questionnaireStatus, reactionSentence, reactionsFromFears, statusLabel } from '../../lib/questionnaire'
 import { globalLevel, totalXp } from '../../lib/xp'
 import { formatBytes } from '../../lib/image'
 import { sortMeals } from '../../lib/feeding'
@@ -85,9 +85,9 @@ export default function Profile() {
   const email = auth.currentUser?.email ?? ''
   const usedRatio = used === undefined ? 0 : used / QUOTA_BYTES
   const level = globalLevel(totalXp(xpLog))
-  const fears = [...(dog.fears ?? []), dog.fearsOther ?? ''].filter(Boolean)
+  const sentences = (dog.reactions ?? reactionsFromFears(dog.fears ?? [])).map(reactionSentence)
   const lastWeight = weights[0]
-  const status = questionnaireStatus(dog.questionnaire, dog.traits ?? [])
+  const status = questionnaireStatus(dog.questionnaire)
 
   return (
     <div className="mx-auto flex max-w-[430px] flex-col gap-5 px-5 pb-[calc(env(safe-area-inset-bottom)+40px)]">
@@ -118,8 +118,9 @@ export default function Profile() {
         <Pending show={dog.pending} />
         <div className="card px-4 py-1">
           <InfoRow first label="Né le" value={`${formatLong(dog.birthDate)} · ${formatAgeShort(dog.birthDate, today)}`} />
+          {(dog.sex || dog.neutered) && <InfoRow label={dog.sex || 'Stérilisé'} value={dog.neutered === 'Oui' ? 'Stérilisé' : dog.neutered === 'Non' ? 'Non stérilisé' : dog.neutered ? 'Stérilisation prévue' : '—'} />}
           <InfoRow label="Race" value={dog.breed} />
-          <InfoRow label="Adopté le" value={formatLong(dog.adoptionDate)} />
+          <InfoRow label="Adopté le" value={`${formatLong(dog.adoptionDate)}${dog.origin ? ` · ${dog.origin.toLocaleLowerCase('fr')}` : ''}`} />
           <InfoRow label="Puce" value={dog.chip || 'Pas encore renseignée'} />
           {lastWeight && <InfoRow label="Poids" value={`${String(lastWeight.kg).replace('.', ',')} kg · ${formatShort(lastWeight.date)}`} />}
         </div>
@@ -134,6 +135,9 @@ export default function Profile() {
           <div className="card px-4 py-1">
             <InfoRow first label="Ration" value={`${dog.feeding.gramsPerDay} g par jour`} />
             <InfoRow label="Repas" value={sortMeals(dog.feeding.meals).map((m) => formatTime(m.time)).join(' · ') || 'À compléter'} />
+            {dog.treats && <InfoRow label="Il adore" value={dog.treats} />}
+            {dog.games?.length ? <InfoRow label="Ses jeux" value={dog.games.join(', ').toLocaleLowerCase('fr')} /> : null}
+            {dog.aloneTime && <InfoRow label="Seul" value={`${dog.aloneTime.toLocaleLowerCase('fr')}${dog.aloneTime === 'Jamais' ? '' : ' par jour'}`} />}
           </div>
         </section>
       )}
@@ -141,16 +145,17 @@ export default function Profile() {
       <section className="flex flex-col gap-2.5">
         <h2 className="text-xl font-bold">Comment il réagit</h2>
         <div className="card flex flex-col gap-3 p-4">
-          {fears.length > 0 ? (
+          {sentences.length > 0 ? (
             <ul className="m-0 flex list-none flex-col gap-1.5 p-0 text-[17px] leading-snug">
-              {fears.map((fear) => (
-                <li key={fear}>Il a peur : {fear.toLocaleLowerCase('fr')}.</li>
+              {sentences.map((sentence) => (
+                <li key={sentence}>{sentence}</li>
               ))}
             </ul>
           ) : (
             <p className="text-[17px] leading-snug text-muted">Pas encore renseigné.</p>
           )}
-          <Link to="/questionnaire" className="btn btn-outline">
+          {dog.homeMood && <p className="text-[17px] leading-snug">À la maison, il est plutôt {dog.homeMood.toLocaleLowerCase('fr')}.</p>}
+          <Link to="/questionnaire?etape=reactions" className="btn btn-outline">
             Modifier ses réactions
           </Link>
         </div>

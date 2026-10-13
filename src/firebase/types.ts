@@ -3,7 +3,7 @@ import type { ISODate } from '../lib/dates'
 import type { EventType } from '../lib/events'
 import type { Feeding } from '../lib/feeding'
 import type { Feeling } from '../lib/moment'
-import type { Questionnaire } from '../lib/questionnaire'
+import type { Questionnaire, Reaction } from '../lib/questionnaire'
 import type { Recurrence } from '../lib/recurrence'
 import type { Decision } from '../lib/xp'
 import type { Trait } from '../content/training'
@@ -35,6 +35,30 @@ export interface Dog {
   /** Ce qui lui fait peur (questionnaire). */
   fears?: string[]
   fearsOther?: string
+  // ——— Questionnaire de départ en 5 parties : tous ces champs sont optionnels ———
+  sex?: string
+  neutered?: string
+  /** Élevage, refuge ou association, particulier, autre. */
+  origin?: string
+  vaccineName?: string
+  rabies?: string
+  antiparasiteType?: string
+  /** Traitement ou souci de santé à surveiller. */
+  healthNotes?: string
+  allergies?: string
+  foodType?: string
+  foodBrand?: string
+  treats?: string
+  games?: string[]
+  housing?: string
+  garden?: string
+  aloneTime?: string
+  walksPerDay?: string
+  household?: string
+  /** « Quand [situation], il est [réaction]. » */
+  reactions?: Reaction[]
+  /** À la maison, il est plutôt calme, joueur, très excité. */
+  homeMood?: string
   /** Compétences en cours choisies par le maître (3 au plus). Absent : l'app propose les 3 premières non maîtrisées. */
   activeSkills?: string[]
   /** Version des données de départ déjà appliquées (voir seed.ts). */

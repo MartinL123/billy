@@ -18,7 +18,9 @@ export default function EnCours() {
   const toast = useToast()
   const [chosen, setChosen] = useState(() => activeSkills(dog.activeSkills, dog.traits ?? [], bossProgress))
   const [refused, setRefused] = useState(false)
-  const hints = skillHints([...(dog.fears ?? []), dog.fearsOther ?? ''].filter(Boolean), dog.traits ?? [], events, today)
+  // Les peurs déclarées au questionnaire : ses réactions, ou les anciennes cases tant qu'il n'a pas été refait.
+  const fears = dog.reactions ? dog.reactions.filter((r) => r.reaction === 'peur').map((r) => r.situation) : [...(dog.fears ?? []), dog.fearsOther ?? ''].filter(Boolean)
+  const hints = skillHints(fears, dog.traits ?? [], events, today)
 
   const toggle = (id: string) => {
     const result = toggleActive(chosen, id)

@@ -64,8 +64,8 @@ export default function EventForm() {
 
   const build = (): BillyEvent | null => {
     const found: typeof errors = {}
-    if (!title.trim()) found.title = 'Donne un titre à cet événement.'
-    if (!isValidISO(date)) found.date = 'Choisis une date.'
+    if (!title.trim()) found.title = 'Donnez un titre à cet événement.'
+    if (!isValidISO(date)) found.date = 'Choisissez une date.'
     setErrors(found)
     if (found.title || found.date) return null
     return {
@@ -161,7 +161,7 @@ export default function EventForm() {
             recurrence !== 'none' && (
               <>
                 {suggested && `Suggéré pour ${suggested}. `}
-                Le suivant sera créé quand tu marqueras celui-ci comme fait.
+                Le suivant sera créé quand vous marquerez celui-ci comme fait.
               </>
             )
           }

@@ -63,8 +63,9 @@ describe('milestoneMessage', () => {
   const msg = (today: string) => milestoneMessage('Billy', '2026-05-13', '2026-09-19', today)
 
   it('célèbre les mois, les anniversaires et l’adoption', () => {
-    expect(msg('2026-10-13')).toBe("Billy a 5 mois aujourd'hui. Prochaine étape : 6 mois, le 13 novembre.")
-    expect(msg('2026-11-13')).toBe("Billy a 6 mois aujourd'hui. Prochaine étape : 1 an, le 13 mai.")
+    // Un mois ordinaire ne répète pas le sous-titre de la carte du chien.
+    expect(msg('2026-10-13')).toBeUndefined()
+    expect(msg('2026-11-13')).toBe("Billy a 6 mois aujourd'hui !")
     expect(msg('2027-05-13')).toBe("Joyeux anniversaire Billy ! 1 an aujourd'hui.")
     expect(msg('2028-05-13')).toBe("Joyeux anniversaire Billy ! 2 ans aujourd'hui.")
     expect(msg('2027-09-19')).toBe('Ça fait 1 an que Billy est arrivé à la maison.')

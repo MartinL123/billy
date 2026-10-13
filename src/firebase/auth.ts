@@ -42,14 +42,14 @@ export function authErrorMessage(error: unknown): AuthMessage {
     case 'auth/wrong-password':
     case 'auth/user-not-found':
     case 'auth/missing-password':
-      return { field: 'password', text: 'Mot de passe incorrect. Réessaie.' }
+      return { field: 'password', text: 'Mot de passe incorrect. Réessayez.' }
     case 'auth/too-many-requests':
-      return { field: 'password', text: 'Trop de tentatives. Patiente quelques minutes avant de réessayer.' }
+      return { field: 'password', text: 'Trop de tentatives. Patientez quelques minutes avant de réessayer.' }
     case 'auth/network-request-failed':
       return { field: 'password', text: 'Pas de réseau. La première connexion a besoin d’Internet.' }
     case 'auth/user-disabled':
       return { field: 'email', text: 'Ce compte est désactivé.' }
     default:
-      return { field: 'password', text: 'Connexion impossible. Réessaie dans un instant.' }
+      return { field: 'password', text: 'Connexion impossible. Réessayez dans un instant.' }
   }
 }

@@ -39,3 +39,12 @@ export function exercisesForStep(bossId: string, acquired: number): PlannedExerc
 
 /** L'exercice du moment d'une compétence : le premier de son étape en cours. */
 export const currentExercise = (bossId: string, acquired: number): PlannedExercise | undefined => exercisesForStep(bossId, acquired)[0]
+
+/** Réponses qui ne nomment aucune friandise : un mot générique, ou l'exemple du champ. */
+const NO_TREAT = /^(treats?|friandises?|des friandises|croquettes?|oui|non|aucune?|rien|\?+|-+|fromage, poulet séché…?)$/i
+
+/** « Ce qu'il faut » : le nom des friandises seulement s'il est vraiment renseigné dans le profil. */
+export function neededTreats(treats: string | undefined): string {
+  const name = (treats ?? '').trim().replace(/\.$/, '')
+  return name && !NO_TREAT.test(name) ? `Ses friandises préférées (${name})` : 'Ses friandises préférées'
+}

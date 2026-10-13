@@ -96,8 +96,8 @@ export default function EntryForm() {
 
   const save = async () => {
     if (progress) return
-    if (!text.trim() && items.length === 0) return setError('Ajoute au moins une photo ou quelques mots.')
-    if (!isValidISO(date)) return setError('Choisis une date.')
+    if (!text.trim() && items.length === 0) return setError('Ajoutez au moins une photo ou quelques mots.')
+    if (!isValidISO(date)) return setError('Choisissez une date.')
     setSaving(true)
     try {
       const photos: EntryPhoto[] = []

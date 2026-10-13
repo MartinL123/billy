@@ -21,8 +21,8 @@ export default function Login() {
     e.preventDefault()
     setError(null)
     setInfo('')
-    if (!email.trim()) return setError({ field: 'email', text: 'Entre ton adresse e-mail.' })
-    if (!password) return setError({ field: 'password', text: 'Entre ton mot de passe.' })
+    if (!email.trim()) return setError({ field: 'email', text: 'Entrez votre adresse e-mail.' })
+    if (!password) return setError({ field: 'password', text: 'Entrez votre mot de passe.' })
     setBusy(true)
     try {
       await signIn(email, password)
@@ -36,7 +36,7 @@ export default function Login() {
   const forgot = async () => {
     setError(null)
     setInfo('')
-    if (!email.trim()) return setError({ field: 'email', text: 'Entre ton adresse e-mail pour recevoir le lien.' })
+    if (!email.trim()) return setError({ field: 'email', text: 'Entrez votre adresse e-mail pour recevoir le lien.' })
     try {
       await resetPassword(email)
       setInfo('Si un compte existe pour cette adresse, un e-mail de réinitialisation vient de partir.')

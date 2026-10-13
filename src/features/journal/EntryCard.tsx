@@ -64,7 +64,8 @@ export function MomentChips({ entry, activeTag }: { entry: Moment; activeTag?: s
 
 /** Une carte du Carnet : toute la partie texte est un bouton (chevron) qui ouvre le détail, où se trouve « Modifier ». */
 export function EntryCard({ entry, today, activeTag, onOpenPhoto }: EntryCardProps) {
-  const { photos } = entry
+  // Une carte sans photo n'a pas de zone photo ; une photo sans fichier non plus.
+  const photos = entry.photos.filter((p) => p.thumbFileId)
   const photoButton = 'block w-full border-0 bg-transparent p-0'
   const body = (
     <>
@@ -84,7 +85,7 @@ export function EntryCard({ entry, today, activeTag, onOpenPhoto }: EntryCardPro
     <article className="card overflow-hidden">
       {photos.length === 1 && photos[0] && (
         <button type="button" aria-label="Voir la photo en plein écran" onClick={() => onOpenPhoto(0)} className={photoButton}>
-          <FileImage fileId={photos[0].thumbFileId} alt="" className="h-[200px] w-full" />
+          <FileImage fileId={photos[0].thumbFileId} alt="" className="h-[200px] w-full" hideMissing />
         </button>
       )}
       {photos.length > 1 && (
@@ -99,7 +100,7 @@ export function EntryCard({ entry, today, activeTag, onOpenPhoto }: EntryCardPro
                 onClick={() => onOpenPhoto(i)}
                 className={`${photoButton} relative`}
               >
-                <FileImage fileId={photo.thumbFileId} alt="" className="h-[118px] w-full" />
+                <FileImage fileId={photo.thumbFileId} alt="" className="h-[118px] w-full" hideMissing />
                 {more > 0 && <span className="absolute inset-0 flex items-center justify-center bg-[rgba(24,32,30,0.5)] text-lg font-bold text-white">+{more}</span>}
               </button>
             )

@@ -6,33 +6,35 @@ import { MAX_LEVEL } from '../../content/training'
 import { useData } from '../../firebase/store'
 import { activeSkills } from '../../lib/active'
 import { formatShort } from '../../lib/dates'
-import { programWeek, type DayState } from '../../lib/rhythm'
+import { notedDays, programWeek, type DayState } from '../../lib/rhythm'
 import { currentExercise, LONG_SESSION_MINUTES, longSessionsDate, sessionMinutes } from '../../lib/training-plan'
 import { useToday } from '../../lib/useToday'
 import { dogLevel, nextLevelLabel } from '../../lib/level'
 import { Badge } from './Badge'
 
 const DAY_NAMES = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
-const STATE_WORDS: Record<DayState, string> = { fait: 'noté', repos: 'repos', aujourdhui: "aujourd'hui", attente: 'rien de noté' }
+const STATE_WORDS: Record<DayState, string> = { fait: 'noté', repos: 'repos', attente: 'rien de noté' }
 
-function DayPill({ state }: { state: DayState }) {
+function DayPill({ state, today }: { state: DayState; today: boolean }) {
+  // Aujourd'hui a toujours son contour orange, qu'il soit coché, en repos ou encore vide.
+  const ring = today ? 'outline-[3px] outline-offset-2 outline-milestone outline-solid' : ''
   if (state === 'fait') {
     return (
-      <span className="flex size-[34px] items-center justify-center rounded-full bg-primary text-white">
+      <span className={`flex size-[34px] items-center justify-center rounded-full bg-primary text-white ${ring}`}>
         <CheckIcon size={18} strokeWidth={3} />
       </span>
     )
   }
   if (state === 'repos') {
     return (
-      <span className="flex size-[34px] items-center justify-center rounded-full bg-info-soft text-info">
+      <span className={`flex size-[34px] items-center justify-center rounded-full bg-info-soft text-info ${ring}`}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.500z" />
         </svg>
       </span>
     )
   }
-  return <span className={`size-[34px] rounded-full ${state === 'aujourdhui' ? 'border-[3px] border-solid border-milestone bg-surface' : 'border-2 border-dashed border-[#B9C2BE]'}`} />
+  return <span className={`size-[34px] rounded-full ${today ? 'border-[3px] border-solid border-milestone bg-surface' : 'border-2 border-dashed border-[#B9C2BE]'}`} />
 }
 
 function Floor({ territory, active }: { territory: Territory; active: string[] }) {
@@ -115,14 +117,14 @@ function Floor({ territory, active }: { territory: Territory; active: string[] }
 
 /** Onglet Billy : l'arbre de compétences. Trois étages, dix badges, aucun chiffre. */
 export default function Billy() {
-  const { dog, entries, sessions, bossProgress, xpLog } = useData()
+  const { dog, entries, sessions, exposures, bossProgress, xpLog } = useData()
   const today = useToday()
 
   const level = dogLevel(bossProgress)
   const active = activeSkills(dog.activeSkills, dog.traits ?? [], bossProgress)
   const minutes = sessionMinutes(dog.birthDate, today)
   const rests = xpLog.filter((e) => e.kind === 'repos').map((e) => e.date)
-  const week = programWeek(today, [...entries, ...sessions].map((m) => m.date), rests)
+  const week = programWeek(today, notedDays(entries, sessions, exposures), rests)
 
   return (
     <div className="flex flex-col gap-[22px] px-4">
@@ -154,10 +156,10 @@ export default function Billy() {
               {minutes < LONG_SESSION_MINUTES ? ` (${LONG_SESSION_MINUTES} min dès ses 6 mois, le ${formatShort(longSessionsDate(dog.birthDate))})` : ''}
             </p>
           </div>
-          <div role="img" aria-label={`Cette semaine : ${week.map((d, i) => `${DAY_NAMES[i]} ${STATE_WORDS[d.state]}`).join(', ')}`} className="flex justify-between">
+          <div role="img" aria-label={`Cette semaine : ${week.map((d, i) => `${DAY_NAMES[i]} ${STATE_WORDS[d.state]}${d.today ? " (aujourd'hui)" : ''}`).join(', ')}`} className="flex justify-between">
             {week.map((day) => (
               <span key={day.date} className="flex flex-col items-center gap-1">
-                <DayPill state={day.state} />
+                <DayPill state={day.state} today={day.today} />
                 <span className="text-xs font-bold text-[#3F4946]">{day.letter}</span>
               </span>
             ))}

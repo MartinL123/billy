@@ -38,25 +38,34 @@ export function successesThisWeek(today: ISODate, sessions: (Dated & { bossId: s
   return sessions.filter((s) => bossesOf(s).includes(bossId) && week.has(s.date)).reduce((sum, s) => sum + s.trials.filter(Boolean).length, 0)
 }
 
-export type DayState = 'fait' | 'repos' | 'aujourdhui' | 'attente'
+export type DayState = 'fait' | 'repos' | 'attente'
 
 export interface ProgramDay {
   date: ISODate
   /** L, M, M, J, V, S, D */
   letter: string
   state: DayState
+  /** Aujourd'hui garde toujours son contour, même coché ou en repos. */
+  today: boolean
 }
 
 const LETTERS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
 
 /**
- * La semaine en 7 pastilles : coche = quelque chose a été noté, lune = jour de repos, contour = aujourd'hui,
+ * La semaine en 7 pastilles : coche = au moins un moment noté ce jour-là, lune = jour de repos,
  * pointillé = à venir ou jour sans rien. Rien n'est jamais « raté ».
+ * Les dates sont des jours ISO sans heure : aucun décalage de fuseau possible.
  */
 export function programWeek(today: ISODate, noted: ISODate[], rests: ISODate[]): ProgramDay[] {
   return weekOf(today).map((date, i) => ({
     date,
     letter: LETTERS[i]!,
-    state: rests.includes(date) ? 'repos' : noted.includes(date) ? 'fait' : date === today ? 'aujourdhui' : 'attente',
+    state: noted.includes(date) ? 'fait' : rests.includes(date) ? 'repos' : 'attente',
+    today: date === today,
   }))
+}
+
+/** Les jours où quelque chose a été noté. La carte « Jour de repos » écrite par l'app ne compte pas comme un moment. */
+export function notedDays(...records: { id?: string; date: ISODate }[][]): ISODate[] {
+  return [...new Set(records.flat().filter((r) => !r.id?.startsWith('repos-')).map((r) => r.date))]
 }

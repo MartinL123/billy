@@ -35,7 +35,7 @@ if (isConfigured) {
 } else {
   root.render(
     <Splash title="Bonjour">
-      L'app n'est pas encore reliée à Firebase. Suis <strong>docs/setup/setup-firebase.md</strong>, puis ajoute les variables
+      L'app n'est pas encore reliée à Firebase. Suivez <strong>docs/setup/setup-firebase.md</strong>, puis ajoutez les variables
       <code> VITE_FIREBASE_*</code> dans <code>.env.local</code> et dans les secrets du repo GitHub.
     </Splash>,
   )

@@ -90,9 +90,9 @@ export default function DocumentForm() {
 
   const save = async () => {
     if (progress) return
-    if (!picked) return setError('Choisis un PDF ou des photos de pages.')
-    if (!title.trim()) return setError('Donne un titre à ce document.')
-    if (!isValidISO(date)) return setError('Choisis la date du document.')
+    if (!picked) return setError('Choisissez un PDF ou des photos de pages.')
+    if (!title.trim()) return setError('Donnez un titre à ce document.')
+    if (!isValidISO(date)) return setError('Choisissez la date du document.')
     setSaving(true)
     try {
       const fileIds = picked.kind === 'pdf' ? [savePdf(picked.bytes)] : await Promise.all(picked.pages.map(saveImage))
@@ -166,7 +166,7 @@ export default function DocumentForm() {
 
         <div className="flex items-start gap-2.5 rounded-field bg-info-soft px-3.5 py-3">
           <InfoIcon size={20} className="mt-px shrink-0 text-info" />
-          <p className="text-sm leading-[1.4] text-[#1D3F73]">Pour scanner un papier, utilise l'app Notes ou Fichiers de ton iPhone, puis importe le PDF ici.</p>
+          <p className="text-sm leading-[1.4] text-[#1D3F73]">Pour scanner un papier, utilisez l'app Notes ou Fichiers de votre iPhone, puis importe le PDF ici.</p>
         </div>
 
         <TextField label="Titre" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Carnet de santé, compte rendu…" enterKeyHint="done" />

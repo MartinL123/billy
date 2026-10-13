@@ -31,7 +31,7 @@ export function Meals({ dogName, feeding, today }: { dogName: string; feeding: F
   const installReminders = async () => {
     const ics = buildMealsIcs(dogName, meals, grams, today)
     const outcome = await shareFiles([new File([ics], `Repas de ${dogName}.ics`, { type: 'text/calendar' })], `Repas de ${dogName}`)
-    setMessage(outcome === 'downloaded' ? 'Fichier téléchargé : ouvre-le pour ajouter les rappels au calendrier.' : '')
+    setMessage(outcome === 'downloaded' ? 'Fichier téléchargé : ouvrez-le pour ajouter les rappels au calendrier.' : '')
   }
 
   return (

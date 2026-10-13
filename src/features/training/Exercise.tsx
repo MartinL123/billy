@@ -11,7 +11,7 @@ import { activeSkills } from '../../lib/active'
 import { QUEST_XP, REST_IDEAS } from '../../lib/quest'
 import { currentDifficulty } from '../../lib/session'
 import { formatCountdown, secondsLeft } from '../../lib/timer'
-import { currentExercise, exercisesForStep, sessionMinutes } from '../../lib/training-plan'
+import { currentExercise, exercisesForStep, neededTreats, sessionMinutes } from '../../lib/training-plan'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { SkillPill } from '../billy/SkillPill'
@@ -217,7 +217,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
         <section className="flex flex-col gap-2">
           <h2 className={sectionTitle}>Ce qu'il faut</h2>
           <p className="text-[17px] leading-snug">
-            {dog.treats ? `Ses friandises préférées (${dog.treats})` : 'Ses friandises préférées'}
+            {neededTreats(dog.treats)}
             {exercise.needs ? `. ${exercise.needs}` : ''}.
           </p>
         </section>

@@ -5,7 +5,7 @@ import { CheckIcon, ChevronLeftIcon, TargetIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
 import { Sheet } from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
-import { SKILLS, stepPhrase, stepShort, territoryOf } from '../../content/phrases'
+import { SKILLS, stepPhrase, territoryOf } from '../../content/phrases'
 import { MAX_LEVEL } from '../../content/training'
 import { useData } from '../../firebase/store'
 import { setStepChecked } from '../../firebase/training'
@@ -163,7 +163,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
             const acquired = step <= progress.level
             if (step === current) {
               return (
-                <Stop key={step} index={step - 1} radius={54} label={`En ce moment : ${stepShort(skill.id, step)}. Toucher pour la cocher`} onOpen={() => setOpened(step)} circle={<span className="flex size-[108px] items-center justify-center rounded-full border-[6px] border-solid border-gold bg-surface shadow-[0_6px_16px_rgba(242,181,68,0.45)]">{photo(84)}</span>}>
+                <Stop key={step} index={step - 1} radius={54} label={`En ce moment : ${stepPhrase(skill.id, step)}. Toucher pour la cocher`} onOpen={() => setOpened(step)} circle={<span className="flex size-[108px] items-center justify-center rounded-full border-[6px] border-solid border-gold bg-surface shadow-[0_6px_16px_rgba(242,181,68,0.45)]">{photo(84)}</span>}>
                   <span id="etape-en-cours" className="flex flex-col gap-1.5 rounded-[18px] bg-surface px-3.5 py-3 text-left shadow-[0_2px_8px_rgba(24,32,30,0.1)]">
                     <span className="text-xs font-extrabold tracking-[0.5px] uppercase" style={{ color: territory.color }}>
                       En ce moment
@@ -185,7 +185,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
                   key={step}
                   index={step - 1}
                   radius={46}
-                  label={`${stepShort(skill.id, step)}. ${mastered ? 'Cochée' : 'Pas encore cochée'}`}
+                  label={`${stepPhrase(skill.id, step)}. ${mastered ? 'Cochée' : 'Pas encore cochée'}`}
                   onOpen={() => setOpened(step)}
                   circle={
                     <span className={`flex size-[92px] items-center justify-center rounded-full border-4 text-[#8A6514] ${mastered ? 'border-solid border-gold bg-gold shadow-[0_6px_18px_rgba(242,181,68,0.6)]' : 'border-dashed border-[#E0B45A] bg-gold-soft'}`}>
@@ -193,7 +193,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
                     </span>
                   }
                 >
-                  <span className="rounded-lg bg-bg px-2 text-[15px] font-bold text-[#8A6514]">Maîtrisé : {stepShort(skill.id, step).replace(/^./, (c) => c.toLocaleLowerCase('fr'))}</span>
+                  <span className="rounded-lg bg-bg px-2 text-[15px] font-bold text-[#8A6514]">Maîtrisé : {stepPhrase(skill.id, step).replace(/^./, (c) => c.toLocaleLowerCase('fr'))}</span>
                   {mastered && <span className="text-[13px] text-muted">{whenOf(step)}</span>}
                 </Stop>
               )
@@ -204,7 +204,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
                   key={step}
                   index={step - 1}
                   radius={40}
-                  label={`${stepShort(skill.id, step)}. Cochée`}
+                  label={`${stepPhrase(skill.id, step)}. Cochée`}
                   onOpen={() => setOpened(step)}
                   circle={
                     <span className="flex size-20 items-center justify-center rounded-full border-[5px] border-solid border-white text-white shadow-[0_3px_8px_rgba(0,0,0,0.15)]" style={{ background: territory.color }}>
@@ -212,14 +212,14 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
                     </span>
                   }
                 >
-                  <span className="text-[15px] leading-snug font-bold">{stepShort(skill.id, step)}</span>
+                  <span className="text-[15px] leading-snug font-bold">{stepPhrase(skill.id, step)}</span>
                   <span className="text-[13px] text-muted">{whenOf(step)}</span>
                 </Stop>
               )
             }
             return (
-              <Stop key={step} index={step - 1} radius={40} label={`${stepShort(skill.id, step)}. Pas encore cochée`} onOpen={() => setOpened(step)} circle={<span className="size-20 rounded-full border-4 border-dashed bg-surface" style={{ borderColor: territory.soft === '#DCEBE6' ? '#9CC5BA' : territory.soft === '#E3EAF8' ? '#9DB3DE' : '#E6B08A' }} />}>
-                <span className="text-[15px] leading-snug font-semibold text-[#3F4946]">{stepShort(skill.id, step)}</span>
+              <Stop key={step} index={step - 1} radius={40} label={`${stepPhrase(skill.id, step)}. Pas encore cochée`} onOpen={() => setOpened(step)} circle={<span className="size-20 rounded-full border-4 border-dashed bg-surface" style={{ borderColor: territory.soft === '#DCEBE6' ? '#9CC5BA' : territory.soft === '#E3EAF8' ? '#9DB3DE' : '#E6B08A' }} />}>
+                <span className="text-[15px] leading-snug font-semibold text-[#3F4946]">{stepPhrase(skill.id, step)}</span>
               </Stop>
             )
           })}

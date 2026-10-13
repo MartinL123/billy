@@ -196,7 +196,7 @@ export default function Session() {
             <legend className="mb-1 p-0 text-[17px] font-bold">Pour la prochaine séance</legend>
             <p className="mb-2.5 text-[15px] leading-snug text-muted">
               {ate === false ? 'Il n’a pas pris ses friandises : il était au-dessus de son seuil. ' : ''}
-              Suggestion : <span className="font-semibold text-text">{DECISIONS.find((d) => d.value === suggestion)?.label}</span>. À toi de choisir.
+              Suggestion : <span className="font-semibold text-text">{DECISIONS.find((d) => d.value === suggestion)?.label}</span>. À vous de choisir.
             </p>
             <div className="grid grid-cols-3 gap-2">
               {DECISIONS.map((d) => (

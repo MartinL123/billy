@@ -48,7 +48,7 @@ function PdfPages({ blob }: { blob: Blob }) {
     <>
       <div ref={container} className="flex flex-col gap-3" />
       {state === 'loading' && <p className="py-8 text-center text-muted">Ouverture du PDF…</p>}
-      {state === 'error' && <p className="py-8 text-center text-danger">Ce PDF n'a pas pu être affiché. Tu peux quand même le partager pour l'ouvrir ailleurs.</p>}
+      {state === 'error' && <p className="py-8 text-center text-danger">Ce PDF n'a pas pu être affiché. Vous pouvez quand même le partager pour l'ouvrir ailleurs.</p>}
     </>
   )
 }
@@ -150,7 +150,7 @@ export default function DocumentView() {
 
         {failed && (
           <p className="rounded-field bg-danger-soft px-3.5 py-3 text-sm font-medium text-danger">
-            Ce document n'est pas encore sur cet appareil. Reconnecte-toi à Internet pour le télécharger une première fois.
+            Ce document n'est pas encore sur cet appareil. Reconnectez-vous à Internet pour le télécharger une première fois.
           </p>
         )}
         {!failed && !blobs && <p className="py-8 text-center text-muted">Chargement…</p>}

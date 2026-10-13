@@ -280,7 +280,7 @@ export default function Profile() {
               <div className="h-2 overflow-hidden rounded-full bg-milestone-soft">
                 <div className="h-full rounded-full bg-milestone" style={{ width: `${Math.min(100, usedRatio * 100)}%` }} />
               </div>
-              <p className="text-[13px] leading-snug text-muted">L'espace gratuit se remplit. Pense à supprimer des documents ou des photos en double.</p>
+              <p className="text-[13px] leading-snug text-muted">L'espace gratuit se remplit. Pensez à supprimer des documents ou des photos en double.</p>
             </div>
           )}
         </div>
@@ -304,8 +304,8 @@ export default function Profile() {
           title="Se déconnecter ?"
           message={
             pendingCount > 0
-              ? `Attention : ${pendingCount > 1 ? `${pendingCount} éléments ne sont pas encore envoyés` : "1 élément n'est pas encore envoyé"}. Reconnecte-toi à Internet avant de te déconnecter pour ne rien perdre.`
-              : 'Tes données restent en sécurité dans ton compte. Il faudra ton mot de passe pour revenir.'
+              ? `Attention : ${pendingCount > 1 ? `${pendingCount} éléments ne sont pas encore envoyés` : "1 élément n'est pas encore envoyé"}. Reconnectez-vous à Internet avant de vous déconnecter pour ne rien perdre.`
+              : 'Vos données restent en sécurité dans votre compte. Il faudra votre mot de passe pour revenir.'
           }
           confirmLabel="Se déconnecter"
           onCancel={() => setConfirmLogout(false)}

@@ -15,7 +15,7 @@ export class UnreadableImageError extends Error {
     super(
       heic
         ? "Cette photo est au format HEIC et n'a pas pu être lue. Dans Réglages › Appareil photo › Formats, choisis « Le plus compatible », ou exporte-la en JPEG."
-        : "Cette image n'a pas pu être lue. Essaie avec une photo JPEG ou PNG.",
+        : "Cette image n'a pas pu être lue. Essayez avec une photo JPEG ou PNG.",
     )
   }
 }

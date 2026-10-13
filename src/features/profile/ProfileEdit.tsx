@@ -50,8 +50,8 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
   const save = async () => {
     const found: typeof errors = {}
     if (!name.trim()) found.name = 'Le nom ne peut pas être vide.'
-    if (!isValidISO(birthDate)) found.birthDate = 'Choisis une date.'
-    if (!isValidISO(adoptionDate)) found.adoptionDate = 'Choisis une date.'
+    if (!isValidISO(birthDate)) found.birthDate = 'Choisissez une date.'
+    if (!isValidISO(adoptionDate)) found.adoptionDate = 'Choisissez une date.'
     setErrors(found)
     if (Object.keys(found).length) return
     const gramsPerDay = Math.max(0, Math.round(Number(grams.replace(',', '.')) || 0))

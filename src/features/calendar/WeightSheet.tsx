@@ -30,8 +30,8 @@ export function WeightSheet({ today, weights, editing, onClose }: WeightSheetPro
   const delta = kg !== undefined && previous ? Math.round((kg - previous.kg) * 100) / 100 : undefined
 
   const save = () => {
-    if (kg === undefined) return setError('Entre un poids en kilos, par exemple 11,8.')
-    if (!isValidISO(date)) return setError('Choisis une date.')
+    if (kg === undefined) return setError('Entrez un poids en kilos, par exemple 11,8.')
+    if (!isValidISO(date)) return setError('Choisissez une date.')
     saveWeight(editing?.id ?? newId('weights'), { date, kg })
     onClose()
   }

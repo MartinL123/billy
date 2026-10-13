@@ -7,7 +7,7 @@ import { bossById, BOSSES, type Boss, type Tier } from './training'
 interface SkillText {
   /** Une phrase par étape, de la plus facile à la plus difficile. */
   steps: [string, string, string, string, string]
-  /** Les mêmes étapes en 4 à 6 mots, pour les badges de l'arbre. */
+  /** Les mêmes étapes en plus court, pour les badges de l'arbre : toujours avec les mots de la phrase complète. */
   short: [string, string, string, string, string]
   /** Question du questionnaire de départ, à compléter par « à la maison » ou « même dehors ». */
   question: string
@@ -20,70 +20,70 @@ interface SkillText {
 const TEXTS: Record<string, SkillText> = {
   lien: {
     steps: ['Regarde quand on l’appelle, à la maison au calme', 'Regarde quand on l’appelle, même occupé', 'Regarde quand on l’appelle dans une rue calme', 'Regarde quand on l’appelle malgré des passants', 'Regarde quand on l’appelle, partout'],
-    short: ['Regarde à son nom, au calme', 'Regarde à son nom, même occupé', 'Regarde à son nom, rue calme', 'Regarde à son nom malgré les passants', 'Regarde à son nom, partout'],
+    short: ['Regarde quand on l’appelle, au calme', 'Regarde quand on l’appelle, même occupé', 'Regarde quand on l’appelle, rue calme', 'Regarde quand on l’appelle malgré des passants', 'Regarde quand on l’appelle, partout'],
     question: 'Quand vous dites son nom, {nom} vous regarde…',
     atHome: 'Même quand il est occupé',
     outside: 'Dans une rue calme',
   },
   calme: {
     steps: ['Se pose sur son tapis une demi-minute', 'Reste sur son tapis quand la maison s’active', 'Se pose sur son tapis dehors, au calme', 'Se pose sur un banc malgré le passage', 'Se pose partout où l’on s’arrête'],
-    short: ['Se pose sur son tapis', 'Reste sur son tapis, maison animée', 'Se pose sur son tapis dehors', 'Se pose malgré le passage', 'Se pose partout'],
+    short: ['Se pose sur son tapis', 'Reste sur son tapis, maison qui s’active', 'Se pose sur son tapis dehors', 'Se pose sur un banc malgré le passage', 'Se pose partout'],
     question: '{nom} sait se poser sur son tapis…',
     atHome: 'Même quand ça bouge autour de lui',
     outside: 'Dehors, dans un endroit calme',
   },
   soins: {
     steps: ['Se laisse toucher les pattes et les oreilles', 'Se laisse brosser et essuyer les pattes', 'Se laisse manipuler par une autre personne', 'Reste à l’aise pendant l’examen chez le véto', 'Se laisse soigner partout, par tout le monde'],
-    short: ['Se laisse toucher pattes et oreilles', 'Se laisse brosser et essuyer', 'Se laisse manipuler par un proche', 'À l’aise chez le véto', 'Se laisse soigner partout'],
+    short: ['Se laisse toucher les pattes et les oreilles', 'Se laisse brosser et essuyer', 'Se laisse manipuler par une autre personne', 'Reste à l’aise chez le véto', 'Se laisse soigner partout'],
     question: '{nom} se laisse manipuler…',
     atHome: 'Brossage, pattes, oreilles',
     outside: 'Par une autre personne, ailleurs',
   },
   laisse: {
     steps: ['Marche quelques pas sans tirer, dans le salon', 'Suit les changements de direction au jardin', 'Marche sans tirer dans une rue calme', 'Marche sans tirer malgré les passants et les odeurs', 'Marche sans tirer partout'],
-    short: ['Quelques pas sans tirer', 'Suit les changements de direction', 'Sans tirer dans une rue calme', 'Sans tirer malgré les passants', 'Marche sans tirer partout'],
+    short: ['Marche quelques pas sans tirer', 'Suit les changements de direction', 'Marche sans tirer, rue calme', 'Marche sans tirer malgré les passants', 'Marche sans tirer partout'],
     question: 'En laisse, {nom} marche sans tirer…',
     atHome: 'Au jardin ou dans la cour',
     outside: 'Dans une rue calme',
   },
   rappel: {
     steps: ['Revient quand on l’appelle d’une autre pièce', 'Revient quand on l’appelle, même en laissant un jouet', 'Revient quand on l’appelle dans un parc calme', 'Revient malgré un autre chien au loin', 'Revient quand on l’appelle, partout'],
-    short: ['Revient d’une autre pièce', 'Revient même s’il joue', 'Revient dans un parc calme', 'Revient malgré un chien au loin', 'Revient partout'],
+    short: ['Revient d’une autre pièce', 'Revient même en laissant un jouet', 'Revient dans un parc calme', 'Revient malgré un autre chien', 'Revient partout'],
     question: 'Quand vous l’appelez, {nom} revient…',
     atHome: 'Il revient d’une autre pièce',
     outside: 'Au parc, à quelques mètres',
   },
   manieres: {
     steps: ['S’assoit et se couche à la demande', 'Reste en place et attend à la porte', 'S’assoit, se couche et reste, dehors au calme', 'Ne saute pas sur les gens qui arrivent', 'Garde ses bonnes manières partout'],
-    short: ['S’assoit et se couche', 'Attend à la porte', 'Assis, couché, reste, dehors', 'Ne saute pas sur les gens', 'Bonnes manières partout'],
+    short: ['S’assoit et se couche', 'Reste en place, attend à la porte', 'S’assoit, se couche et reste, dehors', 'Ne saute pas sur les gens', 'Garde ses bonnes manières partout'],
     question: 'Assis, couché, pas bouger : {nom} le fait…',
     atHome: 'Et il attend à la porte',
     outside: 'Dans un endroit calme',
   },
   nouveaute: {
     steps: ['Explore un objet nouveau à la maison', 'Reste détendu devant un son ou un reflet nouveau', 'Explore une nouveauté dehors, au calme', 'Reste à l’aise devant une nouveauté dans un lieu animé', 'Aborde la nouveauté sereinement, partout'],
-    short: ['Explore un objet nouveau', 'Détendu devant un son ou un reflet', 'Explore une nouveauté dehors', 'À l’aise dans un lieu animé', 'Serein devant la nouveauté'],
+    short: ['Explore un objet nouveau', 'Reste détendu devant un son ou un reflet', 'Explore une nouveauté dehors', 'Reste à l’aise dans un lieu animé', 'Aborde la nouveauté sereinement'],
     question: 'Devant un objet ou un bruit nouveau, {nom} reste à l’aise…',
     atHome: 'Objets, sols et sons de la maison',
     outside: 'Dans un endroit calme',
   },
   ville: {
     steps: ['Écoute les bruits de la ville en mangeant', 'Regarde la rue par la fenêtre, détendu', 'Se promène dix minutes dans une rue calme', 'Se promène dans une rue animée ou étroite', 'Se promène en ville, dans tous les quartiers'],
-    short: ['Écoute les bruits de la ville', 'Regarde la rue par la fenêtre', 'Dix minutes dans une rue calme', 'Se promène dans une rue animée', 'Se promène dans toute la ville'],
+    short: ['Écoute les bruits de la ville', 'Regarde la rue par la fenêtre', 'Se promène dans une rue calme', 'Se promène dans une rue animée', 'Se promène en ville, tous les quartiers'],
     question: 'En ville, {nom} est à l’aise…',
     atHome: 'Il regarde la rue par la fenêtre',
     outside: 'Dans une rue calme',
   },
   rencontres: {
     steps: ['Reste détendu quand un proche entre', 'Regarde les passants par la fenêtre, détendu', 'Croise des passants à distance, à l’aise', 'Reste à l’aise quand un inconnu nous parle', 'Reste à l’aise avec les inconnus, partout'],
-    short: ['Détendu quand un proche entre', 'Regarde les passants, détendu', 'Croise des passants à distance', 'À l’aise quand un inconnu parle', 'À l’aise avec les inconnus'],
+    short: ['Reste détendu quand un proche entre', 'Regarde les passants, détendu', 'Croise des passants à distance', 'Reste à l’aise quand un inconnu parle', 'Reste à l’aise avec les inconnus'],
     question: 'Avec les gens qu’il ne connaît pas, {nom} est à l’aise…',
     atHome: 'Quand quelqu’un vient à la maison',
     outside: 'En croisant des passants à distance',
   },
   congeneres: {
     steps: ['Reste détendu en entendant un chien', 'Regarde un chien par la fenêtre sans s’agiter', 'Croise un chien de loin, au calme', 'Croise un chien dans la rue poliment', 'Croise les autres chiens sereinement, partout'],
-    short: ['Détendu en entendant un chien', 'Regarde un chien par la fenêtre', 'Croise un chien de loin', 'Croise un chien poliment', 'Croise les chiens sereinement'],
+    short: ['Reste détendu en entendant un chien', 'Regarde un chien par la fenêtre', 'Croise un chien de loin', 'Croise un chien poliment', 'Croise les chiens sereinement'],
     question: 'Quand il voit un autre chien, {nom} reste calme…',
     atHome: 'Depuis la maison ou le jardin',
     outside: 'En le croisant de loin',

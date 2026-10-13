@@ -1,4 +1,4 @@
-import { addMonths, diffDays, formatLong, isValidISO, parseISO, type ISODate } from './dates'
+import { addMonths, diffDays, isValidISO, parseISO, type ISODate } from './dates'
 
 export interface Age {
   years: number
@@ -60,7 +60,7 @@ export function formatAgeShort(birth: ISODate, today: ISODate): string {
 }
 
 /**
- * Message de célébration les jours d'étape : chaque « mois-anniversaire » jusqu'à 1 an,
+ * Message de célébration, seulement le jour même d'une étape de vie : ses 6 mois,
  * chaque anniversaire, et l'anniversaire d'adoption. `undefined` les autres jours.
  */
 export function milestoneMessage(
@@ -76,12 +76,8 @@ export function milestoneMessage(
     if (age.months === 0) {
       return `Joyeux anniversaire ${name} ! ${years(age.years)} aujourd'hui.`
     }
-    if (age.years === 0) {
-      const nextStep = totalMonths < 6 ? 6 : 12
-      const label = nextStep === 6 ? '6 mois' : '1 an'
-      const date = formatLong(addMonths(birth, nextStep)).replace(/ \d{4}$/, '')
-      return `${name} a ${months(totalMonths)} aujourd'hui. Prochaine étape : ${label}, le ${date}.`
-    }
+    // Les autres mois sont déjà dits dans la carte du chien (« 5 mois · 6 mois le 13 novembre ») : on ne les répète pas.
+    if (totalMonths === 6) return `${name} a 6 mois aujourd'hui !`
   }
   if (adoption && isValidISO(adoption)) {
     const since = ageAt(adoption, today)

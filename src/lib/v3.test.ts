@@ -380,7 +380,7 @@ describe('arbre de compétences : étape → exercices', () => {
   it('a une phrase courte par étape, sans mot banni, et 3 étages', () => {
     for (const boss of BOSSES) for (const step of [1, 2, 3, 4, 5]) {
       const short = stepShort(boss.id, step)
-      expect(short.split(' ').length).toBeLessThanOrEqual(7)
+      expect(short.split(' ').length).toBeLessThanOrEqual(9)
       expect(short).not.toMatch(BANNED)
     }
     expect(TERRITORIES.map((t) => t.name)).toEqual(['La Maison', 'Le Quartier', 'Le Grand Monde'])
@@ -485,18 +485,34 @@ describe('situation de peur', () => {
   })
 })
 
-import { programWeek } from './rhythm'
+import { notedDays, programWeek } from './rhythm'
 
 describe('son programme : la semaine en 7 pastilles', () => {
-  it('coche les jours notés, met une lune aux repos, entoure aujourd’hui, et ne marque jamais un jour comme raté', () => {
-    const week = programWeek('2026-10-15', ['2026-10-12', '2026-10-14'], ['2026-10-13'])
+  it('coche le bon jour : un moment noté le lundi 12 octobre coche lundi, pas un autre jour', () => {
+    const week = programWeek('2026-10-13', notedDays([{ id: 'a', date: '2026-10-12' }]), [])
     expect(week.map((d) => d.letter).join('')).toBe('LMMJVSD')
-    expect(week.map((d) => d.state)).toEqual(['fait', 'repos', 'fait', 'aujourdhui', 'attente', 'attente', 'attente'])
-    // Un jour passé sans rien reste « en attente », comme un jour à venir.
-    expect(programWeek('2026-10-15', [], [])[0]!.state).toBe('attente')
+    expect(week[0]).toMatchObject({ date: '2026-10-12', state: 'fait', today: false })
+    expect(week[1]).toMatchObject({ date: '2026-10-13', state: 'attente', today: true })
+    expect(week.slice(2).every((d) => d.state === 'attente' && !d.today)).toBe(true)
+  })
+
+  it('compte les moments, les exercices et les anciennes situations, sans doublon', () => {
+    expect(notedDays([{ id: 'a', date: '2026-10-12' }], [{ date: '2026-10-12' }], [{ date: '2026-10-14' }]).sort()).toEqual(['2026-10-12', '2026-10-14'])
+  })
+
+  it('jour de repos + aujourd’hui : la lune garde le contour d’aujourd’hui', () => {
+    // La carte « Jour de repos » écrite par l'app ne compte pas comme un moment noté.
+    const noted = notedDays([{ id: 'repos-2026-10-13', date: '2026-10-13' }])
+    const today = programWeek('2026-10-13', noted, ['2026-10-13'])[1]!
+    expect(today).toMatchObject({ state: 'repos', today: true })
+  })
+
+  it('un jour de repos où l’on a aussi noté un moment est coché ; un jour vide n’est jamais « raté »', () => {
+    const week = programWeek('2026-10-15', notedDays([{ id: 'a', date: '2026-10-13' }]), ['2026-10-13', '2026-10-14'])
+    expect(week.map((d) => d.state)).toEqual(['attente', 'fait', 'repos', 'attente', 'attente', 'attente', 'attente'])
+    expect(week[3]!.today).toBe(true)
   })
 })
-
 import { canUncheck, markPreApp, uncheckPreApp, xpWithout } from './bossProgress'
 import { answerForSteps } from './questionnaire'
 import { globalLevel } from './xp'
@@ -590,5 +606,45 @@ describe('cocher ou décocher une étape depuis le chemin', () => {
     checkStep(practiced, 5)
     // Les fonctions ne modifient pas l'état d'origine : annuler, c'est le réécrire tel quel.
     expect(practiced).toEqual(snapshot)
+  })
+})
+
+import { neededTreats } from './training-plan'
+
+describe('une seule formulation par étape', () => {
+  const words = (text: string) => text.toLocaleLowerCase('fr').replace(/[’',.«»]/g, ' ').split(/\s+/).filter((w) => w.length >= 4)
+
+  it('la phrase courte d’un badge n’utilise que des mots de la phrase complète', () => {
+    for (const skill of SKILLS) {
+      for (const step of [1, 2, 3, 4, 5]) {
+        const full = words(stepPhrase(skill.id, step))
+        for (const word of words(stepShort(skill.id, step))) expect(full, `${skill.id} ${step} : « ${word} »`).toContain(word)
+      }
+    }
+  })
+
+  it('la phrase courte commence comme la phrase complète', () => {
+    for (const skill of SKILLS) for (const step of [1, 2, 3, 4, 5]) expect(stepShort(skill.id, step).split(' ')[0]).toBe(stepPhrase(skill.id, step).split(' ')[0])
+  })
+})
+
+describe('vouvoiement dans les exercices', () => {
+  it('aucun texte d’exercice ne tutoie', () => {
+    // Les lettres accentuées ne sont pas des « caractères de mot » pour \\b : on borne avec \\p{L}.
+    const informal = /(?<!\p{L})(tu|ton|ta|tes|toi|te)(?!\p{L})|(?<!\p{L})(Dis|Pose|Présente|Compte|Lance|Mets|Sors|Reviens|Suis|Répète|Reste|Commence|Diffuse|Garde|Ajoute|Allonge|Laisse|Éparpille|Attends) /u
+    for (const exercise of EXERCISES) {
+      for (const text of [...exercise.steps, ...exercise.levels, exercise.caution ?? '', exercise.needs ?? '']) expect(text, exercise.id).not.toMatch(informal)
+    }
+  })
+})
+
+describe('« Ce qu’il faut » : les friandises', () => {
+  it('ne nomme la friandise que si elle est vraiment renseignée', () => {
+    expect(neededTreats(undefined)).toBe('Ses friandises préférées')
+    expect(neededTreats('')).toBe('Ses friandises préférées')
+    expect(neededTreats('Treat')).toBe('Ses friandises préférées')
+    expect(neededTreats('friandises')).toBe('Ses friandises préférées')
+    expect(neededTreats('Fromage, poulet séché…')).toBe('Ses friandises préférées')
+    expect(neededTreats('Comté en dés')).toBe('Ses friandises préférées (Comté en dés)')
   })
 })

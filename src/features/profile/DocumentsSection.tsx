@@ -49,7 +49,7 @@ export function DocumentsSection() {
           })}
         </div>
       ) : (
-        <p className="text-[15px] leading-snug text-muted">Carnet de santé, comptes rendus, ordonnances : garde tous ses papiers ici, même hors ligne.</p>
+        <p className="text-[15px] leading-snug text-muted">Carnet de santé, comptes rendus, ordonnances : gardez tous ses papiers ici, même hors ligne.</p>
       )}
       <Link to="/document/nouveau" className={outlineButton}>
         <ImportIcon size={20} />

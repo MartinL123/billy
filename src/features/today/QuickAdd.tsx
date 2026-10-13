@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FilePicker } from '../../components/FilePicker'
-import { CalendarIcon, DocumentIcon, NoteIcon, PhotoIcon } from '../../components/Icons'
+import { CalendarIcon, DocumentIcon, InfoIcon, NoteIcon, PhotoIcon, TargetIcon } from '../../components/Icons'
 import { Sheet } from '../../components/Sheet'
 import { setDraftPhotos } from '../journal/draft'
 
-const rowClass = 'flex w-full items-center gap-4 rounded-[20px] border-0 bg-bg p-4 text-left text-text'
+const rowClass = 'flex w-full items-center gap-3.5 rounded-[20px] border-0 bg-bg px-4 py-2.5 text-left text-text'
 
 function RowContent({ icon, tone, title, detail }: { icon: ReactNode; tone: string; title: string; detail: string }) {
   return (
     <>
-      <span className={`flex size-[52px] shrink-0 items-center justify-center rounded-2xl ${tone}`}>{icon}</span>
+      <span className={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${tone}`}>{icon}</span>
       <span className="flex flex-col gap-0.5">
         <span className="text-[17px] font-bold">{title}</span>
         <span className="text-sm text-muted">{detail}</span>
@@ -31,6 +31,14 @@ export function QuickAdd({ onClose }: { onClose: () => void }) {
     <Sheet label="Ajouter" onClose={onClose}>
       <h2 className="my-1 font-display text-2xl font-bold">Ajouter</h2>
 
+      <button type="button" onClick={() => go('/seance')} className={rowClass}>
+        <RowContent icon={<TargetIcon size={26} />} tone="bg-primary-soft text-primary-dark" title="Séance" detail="5 essais sur un exercice de dressage" />
+      </button>
+
+      <button type="button" onClick={() => go('/exposition')} className={rowClass}>
+        <RowContent icon={<InfoIcon size={26} />} tone="bg-milestone-soft text-milestone-dark" title="Exposition" detail="Un déclencheur croisé, voulu ou subi" />
+      </button>
+
       {/* « Photos » ouvre directement la photothèque, puis le formulaire d'entrée. */}
       <FilePicker
         accept="image/*"
@@ -44,7 +52,7 @@ export function QuickAdd({ onClose }: { onClose: () => void }) {
       </FilePicker>
 
       <button type="button" onClick={() => go('/souvenir/nouveau')} className={rowClass}>
-        <RowContent icon={<NoteIcon size={26} />} tone="bg-milestone-soft text-milestone-dark" title="Note" detail="Un progrès, une bêtise, un ressenti" />
+        <RowContent icon={<NoteIcon size={26} />} tone="bg-[#EEF0EE] text-[#3F4946]" title="Note" detail="Un progrès, une bêtise, un ressenti" />
       </button>
 
       <button type="button" onClick={() => go('/evenement/nouveau')} className={rowClass}>

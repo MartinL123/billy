@@ -12,6 +12,8 @@ import DocumentForm from './features/profile/DocumentForm'
 import DocumentView from './features/profile/DocumentView'
 import Profile from './features/profile/Profile'
 import Today from './features/today/Today'
+import ExposureForm from './features/training/ExposureForm'
+import Session from './features/training/Session'
 import Training from './features/training/Training'
 import { watchUser, type User } from './firebase/auth'
 import { DataProvider } from './firebase/store'
@@ -58,6 +60,8 @@ export default function App() {
             <Route path="evenement/:id" element={<EventForm />} />
             <Route path="souvenir/nouveau" element={<EntryForm />} />
             <Route path="souvenir/:id" element={<EntryForm />} />
+            <Route path="seance" element={<Session />} />
+            <Route path="exposition" element={<ExposureForm />} />
             <Route path="document/nouveau" element={<DocumentForm />} />
             <Route path="document/:id" element={<DocumentView />} />
             <Route path="*" element={<Navigate to="/" replace />} />

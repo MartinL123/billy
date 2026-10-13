@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { bossById } from '../content/training'
 import { addValidation, EMPTY_PROGRESS, levelsAcquired, linkLit, needsPlace, remaining, softAdvice, starsEarned, validateDirectly, type BossProgress } from './bossProgress'
+import { recommendSession, sessionLink } from './recommend'
 import { applyDecision, canValidate, currentDifficulty, lastSession, suggest } from './session'
 import { exercisesFor, featuredBosses, guards, levelFourUnadvised, suggestedBosses } from './traits'
 import { bossReactions, weather } from './weather'
 import { exposureXp, globalLevel, rank, restXp, sessionXp, totalXp, xpByBoss, xpByStat, xpForLevel } from './xp'
+
+const EXERCISES_FOR_LIEN = exercisesFor('lien', ['chiot', 'craintif']).map((e) => e.id)
 
 const T = true
 const F = false
@@ -261,5 +264,43 @@ describe('traits : le chemin, pas les objectifs', () => {
     expect(levelFourUnadvised(['craintif'], 3, 'averse')).toBe(false)
     expect(levelFourUnadvised(['chiot'], 4, 'averse')).toBe(false)
     expect(levelFourUnadvised(['craintif'], 4, undefined)).toBe(false)
+  })
+})
+
+describe('séance conseillée', () => {
+  const billy = ['chiot', 'craintif'] as const
+  const done = (date: string, exerciseId: string, bossId: string, decision: 'monter' | 'rester' | 'baisser' = 'rester', difficulty = 1) => ({ date, exerciseId, bossId, difficulty, decision })
+
+  it('commence par le premier boss conseillé et son premier exercice', () => {
+    const advice = recommendSession([...billy], [])!
+    expect([advice.bossId, advice.difficulty]).toEqual(['lien', 1])
+    expect(advice.exercise.bossIds).toContain('lien')
+    expect(sessionLink(advice)).toBe(`/seance?boss=lien&exercice=${advice.exercise.id}`)
+  })
+
+  it('tourne entre les boss conseillés après chaque séance', () => {
+    expect(recommendSession([...billy], [done('2026-10-13', 'prenom', 'lien')])!.bossId).toBe('nouveaute')
+    expect(recommendSession([...billy], [done('2026-10-13', 'prenom', 'lien'), done('2026-10-14', 'sons', 'nouveaute')])!.bossId).toBe('ville')
+    expect(recommendSession([...billy], [done('2026-10-15', 'lat', 'ville')])!.bossId).toBe('lien')
+    expect(recommendSession([...billy], [done('2026-10-15', 'tapis', 'calme')])!.bossId).toBe('lien')
+  })
+
+  it('propose l’exercice du boss pratiqué il y a le plus longtemps, les nouveaux d’abord', () => {
+    const first = recommendSession([...billy], [])!.exercise.id
+    const sessions = [done('2026-10-10', first, 'lien'), done('2026-10-12', 'lat', 'ville')]
+    const next = recommendSession([...billy], sessions)!
+    expect(next.bossId).toBe('lien')
+    expect(next.exercise.id).not.toBe(first)
+  })
+
+  it('reprend la difficulté décidée la dernière fois', () => {
+    const first = recommendSession([...billy], [])!.exercise
+    const others = EXERCISES_FOR_LIEN.filter((id) => id !== first.id).map((id, i) => done(`2026-10-0${i + 1}`, id, 'lien'))
+    const advice = recommendSession([...billy], [...others, done('2026-09-01', first.id, 'lien', 'monter', 2), done('2026-10-09', 'lat', 'ville')])!
+    expect([advice.exercise.id, advice.difficulty]).toEqual([first.id, 3])
+  })
+
+  it('fonctionne sans aucun trait', () => {
+    expect(recommendSession([], [])).toBeDefined()
   })
 })

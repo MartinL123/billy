@@ -11,6 +11,7 @@ import { onThisDay } from '../../lib/memories'
 import { useToday } from '../../lib/useToday'
 import { TodayEventRow } from '../calendar/EventRows'
 import { entryDateLabel } from '../journal/EntryCard'
+import { DailyIdeas } from './DailyIdeas'
 import { Meals } from './Meals'
 import { QuickAdd } from './QuickAdd'
 
@@ -106,6 +107,8 @@ export default function Today() {
           </div>
         )}
       </section>
+
+      <DailyIdeas today={today} />
 
       {memories.length > 0 && (
         <section className="flex flex-col gap-3">

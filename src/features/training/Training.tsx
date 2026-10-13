@@ -4,53 +4,17 @@ import { InfoIcon, TargetIcon } from '../../components/Icons'
 import { PageHeader } from '../../components/PageHeader'
 import { Sheet } from '../../components/Sheet'
 import { Fab } from '../../components/TabBar'
-import { CHEW_RULES, CHEWS, GAMES, type Idea } from '../../content/extras'
 import { useData } from '../../firebase/store'
 import { declareRest } from '../../firebase/training'
 import { useToast } from '../../components/Toast'
 import { weekOf } from '../../lib/rhythm'
 import { useToday } from '../../lib/useToday'
 import { restXp } from '../../lib/xp'
-import { Illustration } from './Illustration'
 import { Radar } from './Radar'
+import { SessionAdviceCard } from './SessionAdviceCard'
 import { Tree } from './Tree'
 import { useDressage } from './useDressage'
 import { Firsts, Quests, Rhythm } from './Week'
-
-function Ideas({ title, ideas, note }: { title: string; ideas: Idea[]; note?: string }) {
-  const [open, setOpen] = useState<string | null>(null)
-  return (
-    <section className="flex flex-col gap-3">
-      <h2 className="text-[19px] font-bold">{title}</h2>
-      <div className="card overflow-hidden">
-        {ideas.map((idea, i) => (
-          <div key={idea.id}>
-            <button
-              type="button"
-              aria-expanded={open === idea.id}
-              onClick={() => setOpen(open === idea.id ? null : idea.id)}
-              className={`flex min-h-[56px] w-full flex-col justify-center border-0 bg-transparent px-4 py-2 text-left ${i ? 'border-t border-solid border-divider' : ''}`}
-            >
-              <span className="text-base font-semibold text-text">{idea.name}</span>
-              <span className="text-[13px] text-muted">{idea.detail}</span>
-            </button>
-            {open === idea.id && (
-              <div className="flex flex-col gap-3 bg-bg p-4">
-                <Illustration scene={idea.scene} className="h-[110px] bg-surface" />
-                <ol className="m-0 flex list-decimal flex-col gap-1.5 pl-5 text-[15px] leading-snug">
-                  {idea.steps.map((step) => (
-                    <li key={step}>{step}</li>
-                  ))}
-                </ol>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-      {note && <p className="text-[13px] leading-snug text-muted">{note}</p>}
-    </section>
-  )
-}
 
 export default function Training() {
   const { dog, bossProgress, xpLog } = useData()
@@ -76,6 +40,8 @@ export default function Training() {
   return (
     <div className="flex flex-col gap-6 px-5">
       <PageHeader title="Dressage" />
+
+      <SessionAdviceCard />
 
       <section aria-label={`Rang et niveau de ${dog.name}`} className="flex flex-col gap-2.5 rounded-3xl bg-primary p-5 text-white shadow-card">
         <div className="flex items-end justify-between gap-3">
@@ -125,9 +91,6 @@ export default function Training() {
       </section>
 
       <Firsts />
-
-      <Ideas title="Idées de jeux" ideas={GAMES} />
-      <Ideas title="À mâcher" ideas={CHEWS} note={CHEW_RULES} />
 
       <Fab label="Noter une séance ou une exposition" onClick={() => setAdding(true)} />
       {adding && (

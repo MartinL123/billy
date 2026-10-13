@@ -26,3 +26,6 @@ export const CHEWS: Idea[] = [
 ]
 
 export const CHEW_RULES = 'Toujours sous surveillance, et compté dans sa ration. Jamais de raisin, oignon, ail, avocat, chocolat ni os cuit. À valider avec le vétérinaire en cas de doute.'
+
+/** Une idée par jour, la même toute la journée : elle change le lendemain. */
+export const ideaOfTheDay = (ideas: Idea[], dayNumber: number, shift = 0): Idea => ideas[(((dayNumber + shift) % ideas.length) + ideas.length) % ideas.length]!

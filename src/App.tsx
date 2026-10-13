@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { HashRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { TabLayout } from './components/TabBar'
 import { ToastProvider } from './components/Toast'
 import Login from './features/auth/Login'
@@ -11,6 +11,8 @@ import Journal from './features/journal/Journal'
 import DocumentForm from './features/profile/DocumentForm'
 import DocumentView from './features/profile/DocumentView'
 import Profile from './features/profile/Profile'
+import Opening from './features/start/Opening'
+import Questionnaire from './features/start/Questionnaire'
 import Today from './features/today/Today'
 import BossSheet from './features/training/BossSheet'
 import { DressageAwards } from './features/training/DressageAwards'
@@ -25,6 +27,17 @@ function ScrollToTop() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [pathname])
+  return null
+}
+
+/** À chaque lancement de l'app, on commence par l'écran d'ouverture. */
+function OpenOnLogo() {
+  const navigate = useNavigate()
+  useEffect(() => {
+    navigate('/ouverture', { replace: true })
+    // Une seule fois, au lancement.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   return null
 }
 
@@ -50,6 +63,7 @@ export default function App() {
       <ToastProvider>
         <DressageAwards />
         <HashRouter>
+          <OpenOnLogo />
           <ScrollToTop />
           <Routes>
             <Route element={<TabLayout />}>
@@ -58,6 +72,9 @@ export default function App() {
               <Route path="journal" element={<Journal />} />
               <Route path="dressage" element={<Training />} />
             </Route>
+            <Route path="ouverture" element={<Opening />} />
+            <Route path="questionnaire" element={<Questionnaire />} />
+            <Route path="raconter" element={<EntryForm />} />
             <Route path="profil" element={<Profile />} />
             <Route path="evenement/nouveau" element={<EventForm />} />
             <Route path="evenement/:id" element={<EventForm />} />

@@ -94,6 +94,16 @@ export function saveDog(dog: Dog): void {
   send(setDoc(userDoc('dog', 'billy'), dog as DocumentData))
 }
 
+/** Modifie quelques champs du profil sans toucher au reste. */
+export function updateDog(patch: Partial<Dog>): void {
+  send(updateDoc(userDoc('dog', 'billy'), patch as DocumentData))
+}
+
+/** Enregistre tout de suite une réponse du questionnaire de départ : on peut quitter et reprendre. */
+export function answerQuestion(key: string, value: string, extra: Record<string, unknown> = {}): void {
+  send(updateDoc(userDoc('dog', 'billy'), { [`questionnaire.answers.${key}`]: value, ...extra }))
+}
+
 // ——— Événements ———
 
 export function saveEvent(id: string, event: BillyEvent): void {

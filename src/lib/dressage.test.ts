@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { bossById } from '../content/training'
-import { addValidation, EMPTY_PROGRESS, levelsAcquired, linkLit, needsPlace, remaining, softAdvice, starsEarned, validateDirectly, type BossProgress } from './bossProgress'
+import { addValidation, EMPTY_PROGRESS, levelsAcquired, linkLit, markPreApp, remaining, softAdvice, starsEarned, type BossProgress } from './bossProgress'
 import { recommendSession, sessionLink } from './recommend'
 import { applyDecision, canValidate, currentDifficulty, lastSession, suggest } from './session'
 import { exercisesFor, featuredBosses, guards, levelFourUnadvised, suggestedBosses } from './traits'
@@ -139,10 +139,9 @@ describe('suggestion de fin de séance', () => {
 })
 
 describe('validation des paliers', () => {
-  const validate = (progress: BossProgress, ...days: [string, string?][]) =>
-    days.reduce((p, [date, place]) => addValidation(p, date, place).progress, progress)
+  const validate = (progress: BossProgress, ...days: string[]) => days.reduce((p, date) => addValidation(p, date).progress, progress)
 
-  it('demande 3 validations sur 3 jours différents', () => {
+  it('demande 3 réussites sur 3 jours différents', () => {
     let result = addValidation(EMPTY_PROGRESS, '2026-10-01')
     expect(result.validated).toBe(true)
     expect(result.levelGained).toBeUndefined()
@@ -153,45 +152,43 @@ describe('validation des paliers', () => {
     expect(remaining(result.progress).done).toBe(2)
     result = addValidation(result.progress, '2026-10-05')
     expect(result).toMatchObject({ validated: true, levelGained: 1 })
-    expect(result.progress.level).toBe(1)
     expect(remaining(result.progress)).toEqual({ target: 2, done: 0, needed: 3 })
   })
 
-  it('garde un palier acquis pour toujours', () => {
-    const p = validate(EMPTY_PROGRESS, ['2026-10-01'], ['2026-10-02'], ['2026-10-03'])
-    expect(validateDirectly(p, 0).level).toBe(1)
+  it('garde une étape acquise pour toujours', () => {
+    const p = validate(EMPTY_PROGRESS, '2026-10-01', '2026-10-02', '2026-10-03')
+    expect(markPreApp(p, 0).progress.level).toBe(1)
     expect(addValidation(p, '2026-10-04').progress.level).toBe(1)
   })
 
-  it('valide directement un palier déjà maîtrisé, sans jamais baisser', () => {
-    expect(validateDirectly(EMPTY_PROGRESS, 3).level).toBe(3)
-    expect(validateDirectly({ ...EMPTY_PROGRESS, level: 4 }, 2).level).toBe(4)
-    expect(validateDirectly(EMPTY_PROGRESS, 9).level).toBe(5)
-  })
-
-  it('demande 3 lieux différents pour P5', () => {
-    const p4 = { ...EMPTY_PROGRESS, level: 4 }
-    expect(needsPlace(p4)).toBe(true)
-    expect(needsPlace({ ...EMPTY_PROGRESS, level: 3 })).toBe(false)
-    const sameplace = validate(p4, ['2026-10-01', 'parc'], ['2026-10-02', 'parc'], ['2026-10-03', 'parc'])
-    expect(sameplace.level).toBe(4)
-    expect(remaining(sameplace)).toMatchObject({ target: 5, done: 1, placesDone: 1 })
-    const three = validate(p4, ['2026-10-01', 'parc'], ['2026-10-02', 'quai'], ['2026-10-03', 'place'])
-    expect(three.level).toBe(5)
-  })
-
-  it('ajoute une étoile par nouveau lieu après P5, sans plafond', () => {
-    const p5 = validate({ ...EMPTY_PROGRESS, level: 4 }, ['2026-10-01', 'parc'], ['2026-10-02', 'quai'], ['2026-10-03', 'place'])
-    expect(addValidation(p5, '2026-10-04', 'parc')).toMatchObject({ validated: false })
+  it('valide la cinquième étape comme les autres, puis s’arrête', () => {
+    const p5 = validate({ ...EMPTY_PROGRESS, level: 4 }, '2026-10-01', '2026-10-02', '2026-10-03')
+    expect(p5.level).toBe(5)
     expect(addValidation(p5, '2026-10-04')).toMatchObject({ validated: false })
-    const star = addValidation(p5, '2026-10-04', 'foret')
-    expect(star).toMatchObject({ validated: true, starPlaceId: 'foret' })
-    expect(addValidation(star.progress, '2026-10-05', 'foret').validated).toBe(false)
-    expect(addValidation(star.progress, '2026-10-05', 'plage').progress.masteryPlaces).toEqual(['foret', 'plage'])
     expect(remaining(p5)).toEqual({ done: 0, needed: 0 })
   })
 
-  it('additionne paliers et étoiles pour le rang', () => {
+  it('marque des étapes acquises « avant l’app », sans jamais baisser', () => {
+    const first = markPreApp(EMPTY_PROGRESS, 2)
+    expect(first.gained).toEqual([1, 2])
+    expect(first.progress).toMatchObject({ level: 2, preApp: [1, 2] })
+    const more = markPreApp(first.progress, 3)
+    expect(more.gained).toEqual([3])
+    expect(more.progress.preApp).toEqual([1, 2, 3])
+    const lower = markPreApp(more.progress, 1)
+    expect(lower.gained).toEqual([])
+    expect(lower.progress.level).toBe(3)
+    expect(markPreApp(EMPTY_PROGRESS, 9).progress.level).toBe(5)
+  })
+
+  it('n’efface pas les étapes gagnées par la pratique', () => {
+    const practiced = validate(EMPTY_PROGRESS, '2026-10-01', '2026-10-02', '2026-10-03')
+    const result = markPreApp(practiced, 3)
+    expect(result.gained).toEqual([2, 3])
+    expect(result.progress.preApp).toEqual([2, 3])
+  })
+
+  it('additionne étapes et anciennes étoiles', () => {
     const map = { lien: { level: 3, validations: [], masteryPlaces: [] }, ville: { level: 5, validations: [], masteryPlaces: ['a', 'b'] }, calme: undefined }
     expect(levelsAcquired(map)).toBe(8)
     expect(starsEarned(map)).toBe(2)

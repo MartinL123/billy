@@ -2,6 +2,7 @@ import type { Bytes } from 'firebase/firestore'
 import type { ISODate } from '../lib/dates'
 import type { EventType } from '../lib/events'
 import type { Feeding } from '../lib/feeding'
+import type { Questionnaire } from '../lib/questionnaire'
 import type { Recurrence } from '../lib/recurrence'
 import type { Decision } from '../lib/xp'
 import type { Trait } from '../content/training'
@@ -28,6 +29,11 @@ export interface Dog {
   feeding?: Feeding
   /** Traits du chien : ils adaptent le chemin du dressage, jamais les objectifs. */
   traits?: Trait[]
+  /** Questionnaire de départ : chaque réponse est enregistrée au fur et à mesure. */
+  questionnaire?: Questionnaire
+  /** Ce qui lui fait peur (questionnaire). */
+  fears?: string[]
+  fearsOther?: string
   /** Version des données de départ déjà appliquées (voir seed.ts). */
   seedVersion?: number
 }

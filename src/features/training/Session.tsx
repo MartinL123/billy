@@ -3,9 +3,9 @@ import { useSearchParams } from 'react-router-dom'
 import { CheckIcon } from '../../components/Icons'
 import { Sheet } from '../../components/Sheet'
 import { bossById, EXERCISES, exerciseById, MAX_DIFFICULTY, MAX_LEVEL, type Exercise } from '../../content/training'
-import { addPlace, recordSession, type Outcome } from '../../firebase/training'
+import { recordSession, type Outcome } from '../../firebase/training'
 import { useData } from '../../firebase/store'
-import { EMPTY_PROGRESS, needsPlace, remaining } from '../../lib/bossProgress'
+import { EMPTY_PROGRESS, remaining } from '../../lib/bossProgress'
 import { successesThisWeek } from '../../lib/rhythm'
 import { applyDecision, canValidate, currentDifficulty, DECISIONS, lastSession, REACTIONS, suggest, TRIALS } from '../../lib/session'
 import { exercisesFor, guards, suggestedBosses } from '../../lib/traits'
@@ -14,14 +14,13 @@ import { useToday } from '../../lib/useToday'
 import { sessionXp, type Decision } from '../../lib/xp'
 import { Celebration } from './Celebration'
 import { Illustration } from './Illustration'
-import { placeChosen, PlacePicker, type PlaceChoice } from './PlacePicker'
 
 const bigChoice = (active: boolean) =>
   `min-h-[52px] rounded-field border-[1.5px] px-3 text-base ${active ? 'border-primary bg-primary font-bold text-white' : 'border-border bg-surface font-semibold text-text'}`
 
 export default function Session() {
   const [params] = useSearchParams()
-  const { dog, sessions, bossProgress, places } = useData()
+  const { dog, sessions, bossProgress } = useData()
   const today = useToday()
   const back = useBack('/dressage')
   const traits = dog.traits ?? []
@@ -47,7 +46,6 @@ export default function Session() {
   const [reaction, setReaction] = useState<number | null>(null)
   const [decision, setDecision] = useState<Decision | null>(null)
   const [met, setMet] = useState<Record<string, boolean>>({})
-  const [placeBy, setPlaceBy] = useState<Record<string, PlaceChoice>>({})
   const [outcome, setOutcome] = useState<Outcome | null>(null)
   const [celebrated, setCelebrated] = useState(0)
 
@@ -93,7 +91,6 @@ export default function Session() {
           {outcome.results.map((result) => {
             const left = remaining(result.progress)
             const name = bossById(result.bossId)?.name
-            if (result.starPlaceId) return <p key={result.bossId} className="font-semibold text-primary">{name} : nouveau lieu validé, une étoile de maîtrise de plus.</p>
             if (!result.validated) return <p key={result.bossId} className="text-muted">{name} : critère déjà validé aujourd'hui. La prochaine validation compte un autre jour.</p>
             if (result.levelGained || !left.target) return null
             return (
@@ -130,13 +127,11 @@ export default function Session() {
     const suggestion = ate === null ? null : suggest(trials, ate)
     const allowed = ate !== null && reaction !== null && canValidate(ate, reaction)
     const progressOf = (id: string) => bossProgress[id] ?? EMPTY_PROGRESS
-    const placeNeeded = (id: string) => allowed && met[id] === true && needsPlace(progressOf(id))
     const ready =
       ate !== null &&
       reaction !== null &&
       decision !== null &&
-      (!allowed || bossIds.every((id) => met[id] !== undefined)) &&
-      bossIds.every((id) => !placeNeeded(id) || placeChosen(placeBy[id] ?? {}))
+      (!allowed || bossIds.every((id) => met[id] !== undefined || progressOf(id).level >= MAX_LEVEL))
 
     const save = () => {
       if (ate === null || reaction === null || decision === null || suggestion === null) return
@@ -144,10 +139,7 @@ export default function Session() {
         ? []
         : bossIds
             .filter((id) => met[id])
-            .map((id) => {
-              const place = placeBy[id] ?? {}
-              return { bossId: id, current: bossProgress[id], placeId: placeNeeded(id) ? (place.id ?? addPlace(place.name ?? '', id)) : undefined }
-            })
+            .map((id) => ({ bossId: id, current: bossProgress[id] }))
       setOutcome(
         recordSession(
           { date: today, exerciseId: exercise.id, bossId, bossIds: bossIds.length > 1 ? bossIds : undefined, difficulty, trials, ate, reaction, suggestion, decision, xp: sessionXp(trials, suggestion, decision) },
@@ -222,8 +214,9 @@ export default function Session() {
           bossIds.map((id) => {
             const item = bossById(id)!
             const progress = progressOf(id)
-            const mastery = progress.level >= MAX_LEVEL
-            const target = mastery ? undefined : item.levels[progress.level]
+            if (progress.level >= MAX_LEVEL) return null
+            const mastery = false
+            const target = item.levels[progress.level]
             return (
               <fieldset key={id} className="m-0 flex flex-col gap-2.5 border-0 p-0">
                 <legend className="mb-1 p-0 text-[17px] font-bold">
@@ -240,9 +233,6 @@ export default function Session() {
                     Pas encore
                   </button>
                 </div>
-                {placeNeeded(id) && (
-                  <PlacePicker legend="Dans quel lieu ?" places={places.filter((p) => p.bossId === id)} value={placeBy[id] ?? {}} onChange={(value) => setPlaceBy({ ...placeBy, [id]: value })} />
-                )}
               </fieldset>
             )
           })}

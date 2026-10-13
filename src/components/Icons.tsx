@@ -143,9 +143,9 @@ export const TrashIcon = icon(
   </>,
 )
 
-export function PawIcon({ size = 52 }: { size?: number }) {
+export function PawIcon({ size = 52, color = '#FFFFFF' }: { size?: number; color?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden="true">
       <ellipse cx="7" cy="8" rx="1.8" ry="2.3" />
       <ellipse cx="12" cy="6" rx="1.8" ry="2.3" />
       <ellipse cx="17" cy="8" rx="1.8" ry="2.3" />

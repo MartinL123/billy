@@ -12,8 +12,10 @@ export interface BossProgress {
   /** Paliers acquis, de 0 à 5. Ne baisse jamais. */
   level: number
   validations: Validation[]
-  /** Lieux validés après P5 : une étoile de maîtrise chacun. */
+  /** Donnée de la V2, conservée : lieux validés après la dernière étape. Plus affichée. */
   masteryPlaces: string[]
+  /** Étapes déclarées acquises « avant l'app » (questionnaire de départ, « Billy sait déjà faire ça »). */
+  preApp?: number[]
 }
 
 export const EMPTY_PROGRESS: BossProgress = { level: 0, validations: [], masteryPlaces: [] }
@@ -28,55 +30,46 @@ export interface Remaining {
   target?: number
   done: number
   needed: number
-  /** P5 : il faut aussi 3 lieux différents. */
-  placesDone?: number
 }
 
-/** Où en est la validation du palier visé : « 2/3, il en reste 1 ». */
+/** Où en est la validation de l'étape visée : « encore 1 fois, un autre jour ». */
 export function remaining(progress: BossProgress): Remaining {
   if (progress.level >= MAX_LEVEL) return { done: 0, needed: 0 }
   const target = progress.level + 1
-  const own = progress.validations.filter((v) => v.level === target)
-  const days = distinct(own.map((v) => v.date)).length
-  if (target < MAX_LEVEL) return { target, done: Math.min(days, VALIDATIONS_NEEDED), needed: VALIDATIONS_NEEDED }
-  const places = distinct(own.map((v) => v.placeId).filter(Boolean)).length
-  return { target, done: Math.min(days, places, VALIDATIONS_NEEDED), needed: VALIDATIONS_NEEDED, placesDone: Math.min(places, VALIDATIONS_NEEDED) }
+  const days = distinct(progress.validations.filter((v) => v.level === target).map((v) => v.date)).length
+  return { target, done: Math.min(days, VALIDATIONS_NEEDED), needed: VALIDATIONS_NEEDED }
 }
-
-/** Le palier visé demande un lieu : P5 (3 lieux différents) et la maîtrise (un nouveau lieu = une étoile). */
-export const needsPlace = (progress: BossProgress) => progress.level >= MAX_LEVEL - 1
 
 export interface ValidationResult {
   progress: BossProgress
   /** Une validation a été ajoutée (une seule par jour compte). */
   validated: boolean
-  /** Palier acquis par cette validation. */
+  /** Étape acquise par cette validation. */
   levelGained?: number
-  /** Lieu qui vient d'apporter une étoile de maîtrise. */
-  starPlaceId?: string
 }
 
 /**
- * Ajoute une validation du critère du palier visé. Un palier s'acquiert après 3 validations sur 3 jours
- * différents (et dans 3 lieux différents pour P5). Un palier acquis l'est pour toujours.
+ * Ajoute un « c'est réussi » pour l'étape visée. Une étape s'acquiert après 3 réussites sur 3 jours différents,
+ * la cinquième comme les autres. Une étape acquise l'est pour toujours.
  */
-export function addValidation(progress: BossProgress, date: ISODate, placeId?: string): ValidationResult {
-  if (progress.level >= MAX_LEVEL) {
-    // Maîtrise : chaque nouveau lieu ajoute une étoile, sans plafond.
-    const known = [...progress.validations.filter((v) => v.level === MAX_LEVEL).map((v) => v.placeId), ...progress.masteryPlaces]
-    if (!placeId || known.includes(placeId)) return { progress, validated: false }
-    return { progress: { ...progress, masteryPlaces: [...progress.masteryPlaces, placeId] }, validated: true, starPlaceId: placeId }
-  }
+export function addValidation(progress: BossProgress, date: ISODate): ValidationResult {
+  if (progress.level >= MAX_LEVEL) return { progress, validated: false }
   const target = progress.level + 1
   if (progress.validations.some((v) => v.level === target && v.date === date)) return { progress, validated: false }
-  const next: BossProgress = { ...progress, validations: [...progress.validations, { level: target, date, ...(placeId ? { placeId } : {}) }] }
+  const next: BossProgress = { ...progress, validations: [...progress.validations, { level: target, date }] }
   if (remaining(next).done >= VALIDATIONS_NEEDED) return { progress: { ...next, level: target }, validated: true, levelGained: target }
   return { progress: next, validated: true }
 }
 
-/** « Déjà maîtrisé » : acquiert directement un palier, sans XP. Ne fait jamais baisser. */
-export function validateDirectly(progress: BossProgress, level: number): BossProgress {
-  return { ...progress, level: Math.max(progress.level, Math.min(MAX_LEVEL, level)) }
+/**
+ * « Billy sait déjà faire ça » : acquiert directement les étapes jusqu'à `level`, marquées « avant l'app ».
+ * Ne fait jamais baisser. Renvoie aussi les étapes nouvellement acquises.
+ */
+export function markPreApp(progress: BossProgress, level: number): { progress: BossProgress; gained: number[] } {
+  const target = Math.max(progress.level, Math.min(MAX_LEVEL, level))
+  const gained = Array.from({ length: target - progress.level }, (_, i) => progress.level + 1 + i)
+  if (gained.length === 0) return { progress, gained }
+  return { progress: { ...progress, level: target, preApp: [...new Set([...(progress.preApp ?? []), ...gained])].sort() }, gained }
 }
 
 export type ProgressMap = Record<string, BossProgress | undefined>

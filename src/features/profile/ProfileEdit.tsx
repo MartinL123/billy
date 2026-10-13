@@ -74,6 +74,9 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
       photoThumbFileId,
       feeding: gramsPerDay || meals.length ? { gramsPerDay, meals: sortMeals(meals.filter((m) => m.time)) } : undefined,
       traits: TRAITS.map((t) => t.id).filter((id) => traits.includes(id)),
+      questionnaire: dog.questionnaire,
+      fears: dog.fears,
+      fearsOther: dog.fearsOther,
       seedVersion: dog.seedVersion,
     })
     onClose()

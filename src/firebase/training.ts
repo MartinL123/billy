@@ -3,7 +3,7 @@ import { db } from './app'
 import { newId, send, userDoc } from './paths'
 import type { BossProgress, Entry, Exposure, Place, TrainingSession, XpEntry } from './types'
 import { bossById } from '../content/training'
-import { addValidation, EMPTY_PROGRESS, validateDirectly } from '../lib/bossProgress'
+import { addValidation, EMPTY_PROGRESS, markPreApp } from '../lib/bossProgress'
 import type { ISODate } from '../lib/dates'
 import { XP } from '../lib/xp'
 
@@ -29,7 +29,6 @@ export interface BossOutcome {
   /** Une validation du critère a été comptée. */
   validated: boolean
   levelGained?: number
-  starPlaceId?: string
   progress: BossProgress
 }
 
@@ -45,7 +44,6 @@ export interface Outcome {
 export interface ValidationInput {
   bossId: string
   current: BossProgress | undefined
-  placeId?: string
 }
 
 /**
@@ -66,9 +64,9 @@ export function recordSession(session: TrainingSession, validations: ValidationI
   add(xpRef(sessionId), strip<XpEntry>({ date: session.date, kind: 'seance', xp: session.xp, bossId: session.bossId, bossIds: session.bossIds, createdAt: now() }))
 
   const results: BossOutcome[] = []
-  for (const { bossId, current, placeId } of validations) {
+  for (const { bossId, current } of validations) {
     const before = current ?? EMPTY_PROGRESS
-    const result = addValidation(before, session.date, placeId)
+    const result = addValidation(before, session.date)
     results.push({ bossId, ...result })
     if (!result.validated) continue
     const boss = bossById(bossId)
@@ -77,16 +75,12 @@ export function recordSession(session: TrainingSession, validations: ValidationI
     restore.push(() => (current ? setDoc(progressRef, strip(current)) : deleteDoc(progressRef)))
     const target = result.levelGained ?? Math.min(before.level + 1, 5)
     xp += XP.validation
-    add(xpRef(`validation-${bossId}-${target}-${session.date}${result.starPlaceId ? `-${result.starPlaceId}` : ''}`), strip<XpEntry>({ date: session.date, kind: 'validation', xp: XP.validation, bossId, createdAt: now() }))
+    add(xpRef(`validation-${bossId}-${target}-${session.date}`), strip<XpEntry>({ date: session.date, kind: 'validation', xp: XP.validation, bossId, createdAt: now() }))
     if (result.levelGained && boss) {
       const level = boss.levels[result.levelGained - 1]!
       xp += XP.level
       add(xpRef(`palier-${boss.id}-${result.levelGained}`), strip<XpEntry>({ date: session.date, kind: 'palier', xp: XP.level, bossId: boss.id, label: `${boss.name} · ${level.title}`, createdAt: now() }))
       add(userDoc('entries', `palier-${boss.id}-${result.levelGained}`), levelCard(session.date, boss.name, result.levelGained, level.title, level.criterion))
-    }
-    if (result.starPlaceId) {
-      xp += XP.star
-      add(xpRef(`etoile-${bossId}-${result.starPlaceId}`), strip<XpEntry>({ date: session.date, kind: 'etoile', xp: XP.star, bossId, createdAt: now() }))
     }
   }
   send(batch.commit())
@@ -119,9 +113,21 @@ export function recordExposure(exposure: Exposure): { undo: () => void } {
   }
 }
 
-/** « Déjà maîtrisé » : acquiert un palier sans XP. Ne fait jamais baisser. */
-export function setLevelDirectly(bossId: string, current: BossProgress | undefined, level: number): void {
-  send(setDoc(userDoc('bossProgress', bossId), strip(validateDirectly(current ?? EMPTY_PROGRESS, level))))
+/**
+ * « Billy sait déjà faire ça » (fiche d'une compétence, questionnaire de départ) : les étapes jusqu'à `level`
+ * sont acquises « avant l'app ». Chaque nouvelle étape rapporte l'XP normale, une seule fois. Ne fait jamais baisser.
+ */
+export function declarePreApp(bossId: string, current: BossProgress | undefined, level: number, date: ISODate): number[] {
+  const { progress, gained } = markPreApp(current ?? EMPTY_PROGRESS, level)
+  if (gained.length === 0) return gained
+  const boss = bossById(bossId)
+  const batch = writeBatch(db)
+  batch.set(userDoc('bossProgress', bossId), strip(progress))
+  for (const step of gained) {
+    batch.set(xpRef(`palier-${bossId}-${step}`), strip<XpEntry>({ date, kind: 'palier', xp: XP.level, bossId, key: 'avant', label: `${boss?.name} · avant l'app`, createdAt: now() }))
+  }
+  send(batch.commit())
+  return gained
 }
 
 /** Gain d'XP unique (première fois, quête, repos du jour) : l'identifiant fixe empêche tout doublon. */

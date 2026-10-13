@@ -5,7 +5,8 @@ import { Pending } from '../../components/Pending'
 import { ConfirmSheet, Sheet } from '../../components/Sheet'
 import { bossById, LEVEL_PLACES, MAX_LEVEL, STATS } from '../../content/training'
 import { useData } from '../../firebase/store'
-import { setLevelDirectly } from '../../firebase/training'
+import { declarePreApp } from '../../firebase/training'
+import { todayISO } from '../../lib/dates'
 import { EMPTY_PROGRESS, remaining, softAdvice } from '../../lib/bossProgress'
 import { formatShort } from '../../lib/dates'
 import { currentDifficulty } from '../../lib/session'
@@ -120,7 +121,6 @@ export default function BossSheet() {
                         {left.done === 0
                           ? 'À valider 3 fois, sur 3 jours différents, détendu ou attentif.'
                           : `Validé ${left.done}/${left.needed}, il en reste ${left.needed - left.done}, un autre jour.`}
-                        {n === MAX_LEVEL && ` Lieux différents : ${left.placesDone ?? 0}/3.`}
                       </span>
                     )}
                   </div>
@@ -261,7 +261,7 @@ export default function BossSheet() {
           tone="primary"
           onCancel={() => setDirect(null)}
           onConfirm={() => {
-            setLevelDirectly(boss.id, stored, direct)
+            declarePreApp(boss.id, stored, direct, todayISO())
             setDirect(null)
           }}
         />

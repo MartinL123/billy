@@ -61,6 +61,8 @@ export interface Dog {
   homeMood?: string
   /** Compétences en cours choisies par le maître (3 au plus). Absent : l'app propose les 3 premières non maîtrisées. */
   activeSkills?: string[]
+  /** Calculé à la lecture, jamais enregistré : le nom n'a pas encore été donné (on affiche « Votre chien »). */
+  unnamed?: boolean
   /** Version des données de départ déjà appliquées (voir seed.ts). */
   seedVersion?: number
 }

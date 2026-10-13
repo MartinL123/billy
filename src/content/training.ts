@@ -275,7 +275,7 @@ export const EXERCISES: Exercise[] = [
   {
     id: 'engage-disengage', name: 'Engage-Disengage', bossIds: ['rencontres', 'congeneres'], traits: ['reactif-chiens', 'craintif'], verified: true, scene: 'regard',
     steps: ['Étape 1 : il regarde ce qui l’inquiète, « oui ! », friandise.', 'Étape 2 : il le regarde, attends jusqu’à 3 secondes qu’il revienne vers toi, puis récompense.', 'Reste à une distance où il mange. Tu ne te rapproches pas pour réussir.'],
-    levels: ['Étape 1, très loin', 'Étape 1, plusieurs jours de suite', 'Étape 2, très loin', 'Étape 2, dans un autre lieu', 'Étape 2, à la distance que Billy choisit'],
+    levels: ['Étape 1, très loin', 'Étape 1, plusieurs jours de suite', 'Étape 2, très loin', 'Étape 2, dans un autre lieu', 'Étape 2, à la distance qu’il choisit'],
     source: { name: 'Preventive Vet', url: 'https://www.preventivevet.com/dogs/engage-disengage-dog-training-game' },
   },
   {

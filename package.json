@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "emulators": "firebase emulators:start --project demo-billy",
-    "emulators:user": "node scripts/create-emulator-user.mjs"
+    "emulators:user": "node scripts/create-emulator-user.mjs",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-billy \"vitest run --config vitest.rules.config.ts\""
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
@@ -23,6 +24,7 @@
     "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

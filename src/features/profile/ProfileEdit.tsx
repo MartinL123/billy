@@ -16,7 +16,7 @@ const contact = (name: string, phone: string): Contact | undefined => (name.trim
 
 export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () => void }) {
   const today = useToday()
-  const [name, setName] = useState(dog.name)
+  const [name, setName] = useState(dog.unnamed ? '' : dog.name)
   const [breed, setBreed] = useState(dog.breed)
   const [birthDate, setBirthDate] = useState(dog.birthDate)
   const [adoptionDate, setAdoptionDate] = useState(dog.adoptionDate)

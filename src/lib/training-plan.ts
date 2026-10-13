@@ -1,6 +1,6 @@
 import { exerciseById, MAX_LEVEL, stepExercises, type Exercise } from '../content/training'
 import { ageAt } from './age'
-import { addMonths, type ISODate } from './dates'
+import { addMonths, isValidISO, type ISODate } from './dates'
 
 /** Âge à partir duquel les séances passent de 3 à 5 minutes. */
 export const LONG_SESSIONS_FROM_MONTHS = 6
@@ -9,6 +9,8 @@ export const LONG_SESSION_MINUTES = 5
 
 /** Durée d'une séance : 3 minutes avant 6 mois (depuis la date de naissance), 5 minutes ensuite. */
 export function sessionMinutes(birthDate: ISODate, today: ISODate): number {
+  // Sans date de naissance, on ne suppose pas un chiot.
+  if (!isValidISO(birthDate)) return LONG_SESSION_MINUTES
   const age = ageAt(birthDate, today)
   return age.years === 0 && age.months < LONG_SESSIONS_FROM_MONTHS ? SHORT_SESSION_MINUTES : LONG_SESSION_MINUTES
 }

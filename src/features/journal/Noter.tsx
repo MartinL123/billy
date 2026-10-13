@@ -54,7 +54,7 @@ export default function Noter() {
   const [text, setText] = useState(fromQuest ? today0.note : '')
   const [photos, setPhotos] = useState<Photo[]>([])
   const [when, setWhen] = useState<When>(params.get('quand') === 'autre' ? 'autre' : 'aujourdhui')
-  const [otherDate, setOtherDate] = useState(params.get('quand') === 'autre' ? dog.adoptionDate : today)
+  const [otherDate, setOtherDate] = useState(params.get('quand') === 'autre' && isValidISO(dog.adoptionDate) ? dog.adoptionDate : today)
   const [feeling, setFeeling] = useState<Feeling>()
   // Seule une compétence demandée explicitement (fiche d'une compétence, exercice terminé) arrive cochée.
   const [skills, setSkills] = useState<string[]>(() => asked.filter((id) => SKILLS.some((s) => s.id === id)))

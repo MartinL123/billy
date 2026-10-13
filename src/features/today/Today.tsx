@@ -60,9 +60,11 @@ export default function Today() {
           <span className="text-sm text-white/85">
             Encore {level.needed - level.current} XP avant le niveau {level.level + 1}
           </span>
-          <span className="text-[13px] text-white/75">
-            {formatAgeShort(dog.birthDate, today)} · {life.label} le {formatLong(life.date).replace(/ \d{4}$/, '')}
-          </span>
+          {life && (
+            <span className="text-[13px] text-white/75">
+              {formatAgeShort(dog.birthDate, today)} · {life.label} le {formatLong(life.date).replace(/ \d{4}$/, '')}
+            </span>
+          )}
         </span>
         <ChevronRightIcon size={24} className="shrink-0" />
       </Link>

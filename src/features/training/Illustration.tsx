@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useData } from '../../firebase/store'
 
 // Petites scènes dessinées à partir des mêmes pièces : un chien (debout, assis, couché), un maître, une friandise.
 // Volontairement très simples : elles montrent le geste, le texte donne le détail.
@@ -105,14 +106,14 @@ const Snow = ({ x, y }: { x: number; y: number }) => (
   </g>
 )
 
-const SCENES: Record<string, () => ReactNode> = {
-  nom: () => (
+const SCENES: Record<string, (name: string) => ReactNode> = {
+  nom: (name) => (
     <>
       <Dog pose="debout" x={62} />
       <Person x={152} />
       <rect x="92" y="10" width="52" height="22" rx="11" fill="#FFFFFF" stroke={PERSON} strokeWidth="1.5" />
       <text x="118" y="25" textAnchor="middle" fontSize="12" fontWeight="700" fill={PERSON}>
-        Billy !
+        {name.length > 6 ? 'Viens !' : `${name} !`}
       </text>
       <Gaze from={[98, 48]} to={[144, 22]} />
     </>
@@ -357,6 +358,7 @@ export const hasScene = (scene: string) => scene in SCENES
 
 /** Illustration d'un exercice, d'un jeu ou d'une chose à mâcher. Décorative : le texte dit la même chose. */
 export function Illustration({ scene, className = '' }: { scene: string; className?: string }) {
+  const { dog } = useData()
   const draw = SCENES[scene]
   if (!draw) return null
   return (
@@ -370,7 +372,7 @@ export function Illustration({ scene, className = '' }: { scene: string; classNa
         </marker>
       </defs>
       <line x1="0" y1={GROUND} x2="200" y2={GROUND} stroke="#D3D9D6" strokeWidth="2" />
-      {draw()}
+      {draw(dog.unnamed ? 'Viens' : dog.name)}
     </svg>
   )
 }

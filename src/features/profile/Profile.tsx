@@ -3,14 +3,15 @@ import { Link } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { ChevronLeftIcon, ChevronRightIcon, CloudCheckIcon, CloudPendingIcon, NoteIcon, PhoneIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
-import { ConfirmSheet } from '../../components/Sheet'
+import { ConfirmSheet, Sheet } from '../../components/Sheet'
 import { auth } from '../../firebase/app'
-import { logOut } from '../../firebase/auth'
+import { authErrorMessage, confirmPassword, deleteAccount, logOut } from '../../firebase/auth'
+import { eraseUserData, setClosingAccount } from '../../firebase/erase'
 import { QUOTA_BYTES, storageUsed } from '../../firebase/files'
 import { useData } from '../../firebase/store'
 import type { Contact } from '../../firebase/types'
 import { formatAgeShort } from '../../lib/age'
-import { formatLong, formatShort, formatTime } from '../../lib/dates'
+import { formatLong, formatShort, formatTime, isValidISO } from '../../lib/dates'
 import { levelTitle } from '../../content/phrases'
 import { questionnaireStatus, reactionSentence, reactionsFromFears, statusLabel } from '../../lib/questionnaire'
 import { globalLevel, totalXp } from '../../lib/xp'
@@ -63,12 +64,75 @@ function ContactRow({ role, callLabel, contact, first }: { role: string; callLab
   )
 }
 
-/** Le profil de Billy : on l'ouvre en touchant sa photo dans l'onglet Billy. */
+/**
+ * Supprimer le compte : un panneau dans l'app, jamais de fenêtre système. Il faut retaper son mot de passe.
+ * D'abord toutes les données sous users/{uid}/…, puis le compte.
+ */
+function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; online: boolean; onClose: () => void }) {
+  const [password, setPassword] = useState('')
+  const [shown, setShown] = useState(false)
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  const erase = async () => {
+    if (busy) return
+    if (!online) return setError('Pas de réseau. La suppression a besoin d’Internet.')
+    if (!password) return setError('Entrez votre mot de passe.')
+    setBusy(true)
+    setError('')
+    try {
+      await confirmPassword(password)
+    } catch (err) {
+      setBusy(false)
+      return setError(authErrorMessage(err).text)
+    }
+    try {
+      // Tant que la suppression est en cours, l'app ne recrée pas de profil vide.
+      setClosingAccount(true)
+      await eraseUserData()
+      await deleteAccount()
+    } catch {
+      setClosingAccount(false)
+      setBusy(false)
+      setError('La suppression n’a pas pu se terminer. Réessayez dans un instant.')
+    }
+  }
+
+  return (
+    <Sheet label="Supprimer mon compte" onClose={busy ? () => undefined : onClose}>
+      <h2 className="mt-1 font-display text-[24px] leading-tight font-extrabold">Supprimer mon compte et mes données ?</h2>
+      <p className="text-[17px] leading-snug">Tout ce qui concerne {dogName} sera effacé pour toujours : profil, carnet, photos, documents, calendrier et progression. On ne peut pas revenir en arrière.</p>
+      <label className="flex flex-col gap-1.5">
+        <span className="text-[15px] font-semibold">Votre mot de passe, pour confirmer</span>
+        <span className="flex gap-2">
+          <input type={shown ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} aria-invalid={error ? true : undefined} className={`field min-w-0 flex-1 ${error ? 'border-danger' : ''}`} />
+          <button type="button" aria-pressed={shown} onClick={() => setShown(!shown)} className="btn btn-outline shrink-0 px-4">
+            {shown ? 'Masquer' : 'Afficher'}
+          </button>
+        </span>
+      </label>
+      {error && (
+        <p role="alert" className="text-[15px] font-semibold text-danger">
+          {error}
+        </p>
+      )}
+      <button type="button" onClick={() => void erase()} disabled={busy} className="btn btn-danger mt-1 disabled:opacity-60">
+        {busy ? 'Suppression en cours…' : 'Tout supprimer définitivement'}
+      </button>
+      <button type="button" onClick={onClose} disabled={busy} className="btn btn-on disabled:opacity-60">
+        Garder mon compte
+      </button>
+    </Sheet>
+  )
+}
+
+/** Le profil du chien : on l'ouvre en touchant sa photo dans son onglet. */
 export default function Profile() {
   const { dog, documents, weights, xpLog, pendingCount, online } = useData()
   const today = useToday()
   const back = useBack('/billy')
   const [confirmLogout, setConfirmLogout] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [used, setUsed] = useState<number>()
 
   useEffect(() => {
@@ -106,7 +170,7 @@ export default function Profile() {
         </span>
         <h1 className="mt-1 font-display text-[32px] leading-none font-extrabold">{dog.name}</h1>
         <p className="text-base text-muted">
-          {formatAgeShort(dog.birthDate, today)} · Niveau {level.level} · {levelTitle(level.level)}
+          {[formatAgeShort(dog.birthDate, today), `Niveau ${level.level}`, levelTitle(level.level)].filter(Boolean).join(' · ')}
         </p>
         <Link to="/profil/modifier" className="btn btn-outline mt-1">
           {dog.photoThumbFileId ? 'Changer la photo' : 'Ajouter une photo'}
@@ -117,10 +181,10 @@ export default function Profile() {
         <h2 className="text-xl font-bold">Son identité</h2>
         <Pending show={dog.pending} />
         <div className="card px-4 py-1">
-          <InfoRow first label="Né le" value={`${formatLong(dog.birthDate)} · ${formatAgeShort(dog.birthDate, today)}`} />
+          <InfoRow first label="Né le" value={isValidISO(dog.birthDate) ? `${formatLong(dog.birthDate)} · ${formatAgeShort(dog.birthDate, today)}` : 'Pas encore renseigné'} />
           {(dog.sex || dog.neutered) && <InfoRow label={dog.sex || 'Stérilisé'} value={dog.neutered === 'Oui' ? 'Stérilisé' : dog.neutered === 'Non' ? 'Non stérilisé' : dog.neutered ? 'Stérilisation prévue' : '—'} />}
-          <InfoRow label="Race" value={dog.breed} />
-          <InfoRow label="Adopté le" value={`${formatLong(dog.adoptionDate)}${dog.origin ? ` · ${dog.origin.toLocaleLowerCase('fr')}` : ''}`} />
+          <InfoRow label="Race" value={dog.breed || 'Pas encore renseignée'} />
+          <InfoRow label="Adopté le" value={isValidISO(dog.adoptionDate) ? `${formatLong(dog.adoptionDate)}${dog.origin ? ` · ${dog.origin.toLocaleLowerCase('fr')}` : ''}` : 'Pas encore renseigné'} />
           <InfoRow label="Puce" value={dog.chip || 'Pas encore renseignée'} />
           {lastWeight && <InfoRow label="Poids" value={`${String(lastWeight.kg).replace('.', ',')} kg · ${formatShort(lastWeight.date)}`} />}
         </div>
@@ -220,11 +284,17 @@ export default function Profile() {
         <button type="button" onClick={() => setConfirmLogout(true)} className="btn btn-quiet">
           Se déconnecter
         </button>
+        <button type="button" onClick={() => setDeleting(true)} className="btn border-2 border-solid border-danger bg-surface text-danger">
+          Supprimer mon compte et mes données
+        </button>
+        <p className="text-[13px] leading-snug text-muted">Vos données restent privées. Martin, qui gère l'app, peut techniquement y accéder.</p>
       </section>
 
       <p className="text-center text-[13px] text-muted">
         Version du {new Date(__BUILD_TIME__).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
       </p>
+
+      {deleting && <DeleteAccountSheet dogName={dog.name} online={online} onClose={() => setDeleting(false)} />}
 
       {confirmLogout && (
         <ConfirmSheet

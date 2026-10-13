@@ -23,6 +23,7 @@ import { DressageAwards } from './features/training/DressageAwards'
 import Exercise from './features/training/Exercise'
 import Session from './features/training/Session'
 import { watchUser, type User } from './firebase/auth'
+import { setClosingAccount } from './firebase/erase'
 import { DataProvider } from './firebase/store'
 
 function ScrollToTop() {
@@ -47,7 +48,15 @@ function OpenOnLogo() {
 export default function App() {
   // undefined = session en cours de restauration
   const [user, setUser] = useState<User | null>()
-  useEffect(() => watchUser(setUser), [])
+  useEffect(
+    () =>
+      watchUser((next) => {
+        // Compte supprimé ou déconnecté : le prochain compte repart normalement.
+        if (!next) setClosingAccount(false)
+        setUser(next)
+      }),
+    [],
+  )
 
   if (user === undefined) return <Splash />
   if (!user) return <Login />
@@ -57,7 +66,7 @@ export default function App() {
       key={user.uid}
       fallback={(offline) =>
         offline ? (
-          <Splash title="Pas de réseau">Le tout premier lancement a besoin d'Internet pour préparer le profil de Billy.</Splash>
+          <Splash title="Pas de réseau">Le tout premier lancement a besoin d'Internet pour préparer votre espace.</Splash>
         ) : (
           <Splash />
         )

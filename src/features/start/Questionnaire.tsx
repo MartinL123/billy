@@ -4,7 +4,7 @@ import { FileImage } from '../../components/FileImage'
 import { FilePicker } from '../../components/FilePicker'
 import { CheckIcon, TrashIcon } from '../../components/Icons'
 import { SKILLS } from '../../content/phrases'
-import { answerQuestion, recordCare, saveWeight, updateDog } from '../../firebase/db'
+import { answerQuestion, ensureMilestones, recordCare, saveWeight, updateDog } from '../../firebase/db'
 import { deleteFile, saveImage } from '../../firebase/files'
 import { newId } from '../../firebase/paths'
 import { useData } from '../../firebase/store'
@@ -75,7 +75,7 @@ export default function Questionnaire() {
 
   // Brouillon : ce que l'app sait déjà. Rien n'est enregistré avant « Suivant ».
   const [draft, setDraft] = useState<Record<string, string>>(() => ({
-    nom: dog.name,
+    nom: dog.unnamed ? '' : dog.name,
     naissance: dog.birthDate,
     sexe: dog.sex ?? '',
     sterilise: dog.neutered ?? '',
@@ -160,9 +160,12 @@ export default function Questionnaire() {
       save({ name: text('nom') })
     } else if (id === 'naissance' || id === 'adoption') {
       const date = text(id)
-      if (!isValidISO(date) || date > today) return setError('Choisissez une date, aujourd’hui ou avant.')
+      // Facultatif, comme tout le questionnaire : sans date, l'âge n'est simplement pas affiché.
+      if (date && (!isValidISO(date) || date > today)) return setError('Choisissez une date, aujourd’hui ou avant.')
       if (id === 'adoption') save({ adoptionDate: date })
       else save({ birthDate: date, traits: deriveTraits(dog.traits ?? [], reactions, dog.homeMood, date, today) })
+      // Anniversaire, 6 mois, 1 an, anniversaire d'adoption : ajoutés au calendrier, une seule fois.
+      if (date) ensureMilestones(events, text('nom') || dog.name, id === 'adoption' ? { adoption: date } : { birth: date }, today)
     } else if (id === 'sexe') save({ sex: text(id) })
     else if (id === 'sterilise') save({ neutered: text(id) })
     else if (id === 'race') save({ breed: text(id) })
@@ -220,7 +223,7 @@ export default function Questionnaire() {
     go(index + 1)
   }
 
-  const title = step.title.replace('{nom}', draft.nom || dog.name)
+  const title = step.title.replace('{nom}', draft.nom || (dog.unnamed ? 'votre chien' : dog.name))
   const skill = SKILLS.find((s) => s.id === step.id)
   const choices = (draft[step.id] ?? '').split('|').filter(Boolean)
 

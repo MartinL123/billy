@@ -1,4 +1,4 @@
-import { onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth'
+import { deleteUser, EmailAuthProvider, onAuthStateChanged, reauthenticateWithCredential, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth'
 import { FirebaseError } from 'firebase/app'
 import { auth } from './app'
 
@@ -11,6 +11,21 @@ export const signIn = (email: string, password: string) => signInWithEmailAndPas
 export const resetPassword = (email: string) => sendPasswordResetEmail(auth, email.trim())
 
 export const logOut = () => signOut(auth)
+
+/**
+ * Vérifie le mot de passe avant une action sensible (suppression du compte).
+ * Firebase demande une connexion récente pour supprimer un compte.
+ */
+export async function confirmPassword(password: string): Promise<void> {
+  const user = auth.currentUser
+  if (!user?.email) throw new Error('Aucun compte connecté.')
+  await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password))
+}
+
+/** Supprime le compte lui-même. Les données doivent déjà avoir été supprimées. */
+export async function deleteAccount(): Promise<void> {
+  if (auth.currentUser) await deleteUser(auth.currentUser)
+}
 
 export interface AuthMessage {
   field: 'email' | 'password'

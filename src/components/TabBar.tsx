@@ -1,14 +1,17 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { useData } from '../firebase/store'
 import { HeartIcon, HomeIcon, PawIcon, PhotoIcon, PlusIcon } from './Icons'
 
 const TABS = [
   { to: '/', label: 'Accueil', Icon: HomeIcon },
   { to: '/carnet', label: 'Carnet', Icon: PhotoIcon },
   { to: '/sante', label: 'Santé', Icon: HeartIcon },
-  { to: '/billy', label: 'Billy', Icon: ({ size }: { size?: number }) => <PawIcon size={size ?? 24} color="currentColor" /> },
+  { to: '/billy', label: 'Mon chien', Icon: ({ size }: { size?: number }) => <PawIcon size={size ?? 24} color="currentColor" /> },
 ]
 
 function TabBar() {
+  // Le dernier onglet porte le nom du chien.
+  const { dog } = useData()
   return (
     <nav
       aria-label="Navigation principale"
@@ -28,7 +31,7 @@ function TabBar() {
               <span className={`flex h-8 w-[60px] items-center justify-center rounded-full ${isActive ? 'bg-primary-soft' : ''}`}>
                 <Icon />
               </span>
-              {label}
+              <span className="max-w-full truncate px-1">{to === '/billy' ? (dog.unnamed ? 'Mon chien' : dog.name) : label}</span>
             </>
           )}
         </NavLink>

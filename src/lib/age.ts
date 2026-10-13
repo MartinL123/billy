@@ -1,4 +1,4 @@
-import { addMonths, diffDays, formatLong, parseISO, type ISODate } from './dates'
+import { addMonths, diffDays, formatLong, isValidISO, parseISO, type ISODate } from './dates'
 
 export interface Age {
   years: number
@@ -49,6 +49,8 @@ export function formatAge(birth: ISODate, today: ISODate): string {
 
 /** Version courte pour le profil : « 5 mois », « 1 an et 2 mois » */
 export function formatAgeShort(birth: ISODate, today: ISODate): string {
+  // Date de naissance pas encore donnée (questionnaire de départ) : pas d'âge à afficher.
+  if (!isValidISO(birth)) return ''
   const age = ageAt(birth, today)
   if (age.years === 0 && age.months === 0) return days(age.days)
   const parts: string[] = []
@@ -67,6 +69,7 @@ export function milestoneMessage(
   adoption: ISODate | undefined,
   today: ISODate,
 ): string | undefined {
+  if (!isValidISO(birth)) return undefined
   const age = ageAt(birth, today)
   const totalMonths = age.years * 12 + age.months
   if (age.days === 0 && totalMonths > 0) {
@@ -80,7 +83,7 @@ export function milestoneMessage(
       return `${name} a ${months(totalMonths)} aujourd'hui. Prochaine étape : ${label}, le ${date}.`
     }
   }
-  if (adoption) {
+  if (adoption && isValidISO(adoption)) {
     const since = ageAt(adoption, today)
     if (since.days === 0 && since.months === 0 && since.years > 0) {
       return `Ça fait ${years(since.years)} que ${name} est arrivé à la maison.`
@@ -90,7 +93,8 @@ export function milestoneMessage(
 }
 
 /** Prochaine étape de vie : chaque mois jusqu'à 1 an, puis chaque anniversaire. « 6 mois », le 2026-11-13. */
-export function nextLifeStep(birth: ISODate, today: ISODate): { label: string; date: ISODate } {
+export function nextLifeStep(birth: ISODate, today: ISODate): { label: string; date: ISODate } | undefined {
+  if (!isValidISO(birth)) return undefined
   const age = ageAt(birth, today)
   const total = age.years * 12 + age.months
   if (total < 11) return { label: months(total + 1), date: addMonths(birth, total + 1) }

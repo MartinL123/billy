@@ -16,7 +16,8 @@ import { db } from './app'
 import { newId, send, userCol, userDoc } from './paths'
 import { deleteFile } from './files'
 export { newId } from './paths'
-import { buildSeed, DEFAULT_FEEDING, DEFAULT_TRAITS, healthHistory, SEED_VERSION, VACCINE_REMINDER_DATE, VACCINE_REMINDER_ID } from './seed'
+import { lifeMilestones } from '../lib/milestones'
+import { SEED_VERSION } from './seed'
 import type { BillyDocument, BillyEvent, Dog, Entry, Weight, WithId } from './types'
 import { todayISO, type ISODate } from '../lib/dates'
 import { nextOccurrence } from '../lib/recurrence'
@@ -53,39 +54,31 @@ export function watchDog(onData: (dog: WithId<Dog> | null) => void): () => void 
 
 // ——— Premier lancement ———
 
-/** Crée le profil et les dates clés si le compte est vide. Vérifié sur le serveur pour ne jamais écraser. */
-export async function ensureSeed(): Promise<void> {
+/**
+ * Nouveau compte : un profil vide, rien d'autre. Vérifié sur le serveur pour ne jamais écraser un profil existant.
+ * `seedVersion` est déjà à jour : aucune donnée de départ ne sera ajoutée plus tard.
+ */
+export async function ensureProfile(): Promise<void> {
   const dogRef = userDoc('dog', 'billy')
   const snap = await getDocFromServer(dogRef)
   if (snap.exists()) return
-  const seed = buildSeed(todayISO())
-  const batch = writeBatch(db)
-  batch.set(dogRef, seed.dog)
-  for (const [id, event] of Object.entries(seed.events)) batch.set(userDoc('events', id), event)
-  await batch.commit()
+  await setDoc(dogRef, { name: '', birthDate: '', breed: '', adoptionDate: '', seedVersion: SEED_VERSION } satisfies Dog)
 }
 
 /**
- * Compte créé avant l'ajout de nouvelles données de départ : on les ajoute une seule fois,
- * sans toucher à ce qui a déjà été saisi.
+ * Étapes de vie créées par le questionnaire : anniversaire, 6 mois, 1 an, anniversaire d'adoption.
+ * Identifiants fixes : jamais de doublon, et un compte qui les a déjà n'est pas touché.
  */
-export function upgradeSeed(dog: WithId<Dog>, events: WithId<BillyEvent>[]): void {
-  const version = dog.seedVersion ?? 1
-  if (version >= SEED_VERSION) return
+export function ensureMilestones(events: WithId<BillyEvent>[], name: string, dates: { birth?: ISODate; adoption?: ISODate }, today: ISODate): void {
+  const wanted = lifeMilestones(name, dates, today)
   const batch = writeBatch(db)
-  if (version < 2) {
-    for (const [id, event] of Object.entries(healthHistory())) {
-      if (!events.some((e) => e.id === id)) batch.set(userDoc('events', id), event as DocumentData)
-    }
-    const reminder = events.find((e) => e.id === VACCINE_REMINDER_ID)
-    if (reminder && !reminder.date) batch.update(userDoc('events', VACCINE_REMINDER_ID), { date: VACCINE_REMINDER_DATE })
+  let writes = 0
+  for (const [id, event] of Object.entries(wanted)) {
+    if (events.some((e) => e.id === id)) continue
+    batch.set(userDoc('events', id), event)
+    writes++
   }
-  batch.update(userDoc('dog', 'billy'), {
-    seedVersion: SEED_VERSION,
-    ...(dog.feeding ? {} : { feeding: DEFAULT_FEEDING }),
-    ...(dog.traits ? {} : { traits: DEFAULT_TRAITS }),
-  })
-  send(batch.commit())
+  if (writes) send(batch.commit())
 }
 
 // ——— Profil ———

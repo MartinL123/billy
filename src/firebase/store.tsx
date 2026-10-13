@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { ensureSeed, upgradeSeed, watchAll, watchCollection, watchDog } from './db'
+import { ensureProfile, watchAll, watchCollection, watchDog } from './db'
+import { isClosingAccount } from './erase'
 import { isExposure, isTrainingSession, type BillyDocument, type BillyEvent, type BossProgress, type DailyQuestDoc, type Dog, type Entry, type Exposure, type Place, type QuestWeek, type TrainingSession, type Weight, type WithId, type XpEntry } from './types'
 
 interface Data {
@@ -84,21 +85,19 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
     return () => stops.forEach((stop) => stop())
   }, [])
 
-  // Premier lancement : profil et dates clés, dès que le serveur est joignable.
+  // Premier lancement : un espace vide, dès que le serveur est joignable. Le nom, les dates et la santé
+  // viennent du questionnaire de départ. Aucune donnée de départ n'est plus jamais appliquée d'office.
   useEffect(() => {
-    if (dog === null && online) ensureSeed().catch((error) => console.error('Création du profil impossible', error))
+    if (dog === null && online && !isClosingAccount()) ensureProfile().catch((error) => console.error('Création du profil impossible', error))
   }, [dog, online])
-
-  // Données de départ ajoutées après la création du compte.
-  useEffect(() => {
-    if (dog && events) upgradeSeed(dog, events)
-  }, [dog, events])
 
   const data = useMemo<Data | null>(() => {
     if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures || !bossProgress || !places || !xpLog || !questWeeks || !dailyQuests) return null
     const pendingCount = [dog, ...events, ...weights, ...entries, ...documents, ...sessions, ...exposures, ...bossProgress, ...places].filter((item) => item.pending).length
     const progressById = Object.fromEntries(bossProgress.map((p) => [p.id, p]))
-    return { dog, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, places, xpLog, questWeeks, dailyQuests, pendingCount, online }
+    // Tant que le nom n'est pas donné, l'interface dit « Votre chien ».
+    const named = dog.name?.trim() ? dog : { ...dog, name: 'Votre chien', unnamed: true }
+    return { dog: named, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, places, xpLog, questWeeks, dailyQuests, pendingCount, online }
   }, [dog, events, weights, entries, documents, sessions, exposures, bossProgress, places, xpLog, questWeeks, dailyQuests, online])
 
   if (!data) return <>{fallback(dog === null && !online)}</>

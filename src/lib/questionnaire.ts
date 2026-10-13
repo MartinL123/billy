@@ -1,7 +1,7 @@
 import { SKILLS } from '../content/phrases'
 import type { Trait } from '../content/training'
 import { ageAt } from './age'
-import type { ISODate } from './dates'
+import { isValidISO, type ISODate } from './dates'
 
 // Questionnaire de départ en 5 parties (docs/specs/questionnaire-depart.md).
 // Une question par écran ; une réponse ne compte qu'après « Suivant ».
@@ -205,6 +205,7 @@ const SENIOR_YEARS = 8
 
 /** « C'est un chiot » se déduit de la date de naissance : moins de 6 mois. */
 export const isPuppy = (birthDate: ISODate, today: ISODate) => {
+  if (!isValidISO(birthDate)) return false
   const age = ageAt(birthDate, today)
   return age.years === 0 && age.months < 6
 }
@@ -222,7 +223,7 @@ export function deriveTraits(existing: Trait[], reactions: Reaction[], mood: str
   if (fears.length >= 2) derived.push('craintif')
   if (mood === 'Très excité') derived.push('energique')
   if (fears.some((r) => r.bossId === 'congeneres')) derived.push('reactif-chiens')
-  if (ageAt(birthDate, today).years >= SENIOR_YEARS) derived.push('senior')
+  if (isValidISO(birthDate) && ageAt(birthDate, today).years >= SENIOR_YEARS) derived.push('senior')
   return [...new Set([...derived, ...kept])]
 }
 

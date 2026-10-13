@@ -1,36 +1,35 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { CheckIcon, ChevronRightIcon, NoteIcon, TargetIcon } from '../../components/Icons'
-import { Fab } from '../../components/TabBar'
-import { levelTitle } from '../../content/phrases'
+import { levelTitle, SKILLS } from '../../content/phrases'
 import { useData } from '../../firebase/store'
-import { milestoneMessage } from '../../lib/age'
+import { formatAgeShort, milestoneMessage, nextLifeStep } from '../../lib/age'
 import { challengeProgress, weekChallenge } from '../../lib/challenge'
-import { diffDays, formatDayHeading, formatRelative, formatTime } from '../../lib/dates'
+import { diffDays, formatDayHeading, formatLong, formatRelative, formatTime } from '../../lib/dates'
 import { typeInfo, upcoming } from '../../lib/events'
 import { nextMealIndex, portion, sortMeals } from '../../lib/feeding'
 import { MOMENT_XP } from '../../lib/moment'
-import { recommendSession } from '../../lib/recommend'
+import { questionnaireStatus } from '../../lib/questionnaire'
 import { weekId } from '../../lib/rhythm'
 import { lastSuccess } from '../../lib/skills'
 import { useToday } from '../../lib/useToday'
 import { globalLevel, totalXp } from '../../lib/xp'
+import { Badge } from '../billy/Badge'
 import { DailyIdeas } from './DailyIdeas'
-import { QuickAdd } from './QuickAdd'
+import { QuestCard } from './QuestCard'
 
 const RING = 2 * Math.PI * 46
 
-/** Accueil : la partie. Le niveau de Billy, puis l'action principale : raconter ce qu'on a fait. */
+/** Accueil : la partie. Le niveau de Billy, puis l'action principale : noter ce qu'on a fait. */
 export default function Today() {
   const { dog, events, entries, sessions, bossProgress, xpLog } = useData()
   const today = useToday()
-  const [adding, setAdding] = useState(false)
 
   const level = globalLevel(totalXp(xpLog))
   const ratio = Math.min(1, level.current / level.needed)
-  const advice = recommendSession(dog.traits ?? [], sessions)
-  const challenge = weekChallenge(weekId(today), dog.traits ?? [])
+  const life = nextLifeStep(dog.birthDate, today)
+  const questionnaire = questionnaireStatus(dog.questionnaire, dog.traits ?? [])
+  const challenge = weekChallenge(weekId(today), bossProgress)
   const done = challengeProgress(challenge, today, entries, sessions)
   const success = lastSuccess(bossProgress, xpLog)
   const celebration = milestoneMessage(dog.name, dog.birthDate, dog.adoptionDate, today)
@@ -61,23 +60,51 @@ export default function Today() {
           <span className="text-sm text-white/85">
             Encore {level.needed - level.current} XP avant le niveau {level.level + 1}
           </span>
+          <span className="text-[13px] text-white/75">
+            {formatAgeShort(dog.birthDate, today)} · {life.label} le {formatLong(life.date).replace(/ \d{4}$/, '')}
+          </span>
         </span>
         <ChevronRightIcon size={24} className="shrink-0" />
       </Link>
 
       {celebration && <p className="rounded-[20px] bg-primary-soft px-4 py-3 text-[15px] font-medium text-primary-dark">{celebration}</p>}
 
-      <Link to="/raconter" className="btn btn-main min-h-16 text-[19px] shadow-[0_4px_12px_rgba(194,87,26,0.35)]">
+      {!questionnaire.complete && (
+        <section className="flex flex-col gap-3 rounded-[22px] bg-milestone-soft p-4">
+          <p className="text-[17px] leading-snug font-semibold text-[#5C2A08]">Terminez le questionnaire : {dog.name} gagnera ses premières étapes.</p>
+          <Link to="/questionnaire" className="btn btn-main">
+            Continuer le questionnaire
+          </Link>
+        </section>
+      )}
+
+      <QuestCard />
+
+      <Link to="/noter" className={`btn min-h-[60px] text-[18px] ${questionnaire.complete ? 'btn-main shadow-[0_4px_12px_rgba(194,87,26,0.3)]' : 'btn-outline'}`}>
         <NoteIcon size={24} />
-        Raconter ce qu'on a fait
+        Noter ce qu'on a fait
+      </Link>
+      <Link to="/exercice" className="btn btn-outline min-h-14">
+        <TargetIcon size={22} />
+        Faire un exercice
       </Link>
 
-      {advice && (
-        <Link to={`/exercice?competence=${advice.bossId}&exercice=${advice.exercise.id}`} className="btn btn-outline min-h-14">
-          <TargetIcon size={22} />
-          Faire un exercice · {advice.exercise.name}
-        </Link>
-      )}
+      <section className="flex flex-col gap-2.5">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-display text-xl font-extrabold">Ses badges</h2>
+          <Link to="/billy" className="btn btn-outline min-h-12 px-4 text-[15px]">
+            Son arbre
+          </Link>
+        </div>
+        <div className="-mx-5 flex gap-2.5 overflow-x-auto px-5 pt-0.5 pb-1.5">
+          {SKILLS.map((skill) => (
+            <Link key={skill.id} to={`/competence/${skill.id}`} className="flex w-[92px] shrink-0 flex-col items-center gap-1.5 rounded-2xl border border-solid border-border bg-surface px-1 py-2.5 text-text no-underline">
+              <Badge bossId={skill.id} acquired={bossProgress[skill.id]?.level ?? 0} size={68} />
+              <span className="text-center text-[13px] leading-tight font-bold">{skill.name}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       <section aria-label="Défi de la semaine" className="card flex flex-col gap-3 rounded-[22px] p-4">
         <div className="flex items-center justify-between gap-3">
@@ -90,7 +117,7 @@ export default function Today() {
             <span key={i} className={`h-2.5 rounded-full ${i < done ? 'bg-milestone' : 'bg-placeholder'}`} />
           ))}
         </div>
-        <p className="text-sm text-muted">{done >= challenge.target ? 'Défi réussi, bravo !' : `${done} sur ${challenge.target} · rien n'est perdu si ce n'est pas fini dimanche`}</p>
+        <p className="text-sm text-muted">{done >= challenge.target ? 'Défi réussi, bravo !' : "Rien n'est perdu si ce n'est pas fini dimanche."}</p>
       </section>
 
       {success?.date ? (
@@ -104,15 +131,7 @@ export default function Today() {
           </span>
           <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
         </Link>
-      ) : (
-        <Link to="/billy" className="card-link rounded-[22px]">
-          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="text-[13px] font-bold tracking-[0.6px] text-[#8A6514] uppercase">Ce qu'il sait faire</span>
-            <span className="text-base leading-snug font-semibold">Voir les compétences de {dog.name}</span>
-          </span>
-          <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
-        </Link>
-      )}
+      ) : null}
 
       <section className="flex flex-col gap-2.5">
         <h2 className="mt-1 text-[19px] font-bold">Aujourd'hui</h2>
@@ -146,9 +165,6 @@ export default function Today() {
       </section>
 
       <DailyIdeas today={today} />
-
-      <Fab label="Ajouter" onClick={() => setAdding(true)} />
-      {adding && <QuickAdd onClose={() => setAdding(false)} />}
     </div>
   )
 }

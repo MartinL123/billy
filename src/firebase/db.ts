@@ -17,7 +17,6 @@ import { newId, send, userCol, userDoc } from './paths'
 import { deleteFile } from './files'
 export { newId } from './paths'
 import { lifeMilestones } from '../lib/milestones'
-import { SEED_VERSION } from './seed'
 import type { BillyDocument, BillyEvent, Dog, Entry, Weight, WithId } from './types'
 import { todayISO, type ISODate } from '../lib/dates'
 import { nextOccurrence } from '../lib/recurrence'
@@ -53,6 +52,9 @@ export function watchDog(onData: (dog: WithId<Dog> | null) => void): () => void 
 }
 
 // ——— Premier lancement ———
+
+/** Les comptes n'ont plus de données de départ ; ce numéro marque qu'il n'y a rien à ajouter. */
+const SEED_VERSION = 3
 
 /**
  * Nouveau compte : un profil vide, rien d'autre. Vérifié sur le serveur pour ne jamais écraser un profil existant.

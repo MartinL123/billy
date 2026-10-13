@@ -1,6 +1,40 @@
 import { describe, expect, it } from 'vitest'
-import { healthHistory } from '../firebase/seed'
+import type { BillyEvent } from '../firebase/types'
+import type { ISODate } from './dates'
 import { careStatus } from './health'
+
+// Historique de soins de Billy au 13 octobre 2026, comme jeu d'essai.
+const LAST_PRIMO: ISODate = '2026-09-21'
+
+function healthHistory(): Record<string, BillyEvent> {
+  const done = (event: Omit<BillyEvent, 'done' | 'doneAt'>): BillyEvent => ({ ...event, done: true, doneAt: event.date || undefined })
+  return {
+    'hist-vaccin-1': done({
+      title: 'Primo-vaccination CHPPiL, 1re injection',
+      type: 'vaccin',
+      date: '',
+      recurrence: 'none',
+      notes: 'Juin ou juillet 2026 : date exacte à retrouver dans le carnet de santé.',
+    }),
+    'hist-vaccin-2': done({ title: 'Primo-vaccination CHPPiL, 2e injection', type: 'vaccin', date: '2026-08-01', recurrence: 'none' }),
+    'hist-vaccin-3': done({ title: 'Primo-vaccination CHPPiL, 3e injection', type: 'vaccin', date: LAST_PRIMO, recurrence: 'none' }),
+    'hist-antiparasitaire-chenil': done({
+      title: 'Antiparasitaire (au chenil)',
+      type: 'antiparasitaire',
+      date: '',
+      recurrence: 'none',
+      notes: "Donné au chenil avant l'adoption, date inconnue.",
+    }),
+    'hist-vermifuge': { ...done({ title: 'Vermifuge', type: 'vermifuge', date: '2026-09-27', recurrence: 'quarterly' }), nextId: 'hist-vermifuge-suivant' },
+    'hist-vermifuge-suivant': { title: 'Vermifuge', type: 'vermifuge', date: '2026-12-27', recurrence: 'quarterly', done: false },
+    'hist-puces-tiques': {
+      ...done({ title: 'Antiparasitaire puces et tiques', type: 'antiparasitaire', date: '2026-09-25', recurrence: 'monthly', notes: 'Protection d\'un mois.' }),
+      nextId: 'hist-puces-tiques-suivant',
+    },
+    'hist-puces-tiques-suivant': { title: 'Antiparasitaire puces et tiques', type: 'antiparasitaire', date: '2026-10-25', recurrence: 'monthly', done: false },
+  }
+}
+
 
 describe('suivi des soins', () => {
   const events = Object.entries(healthHistory()).map(([id, event]) => ({ id, ...event }))

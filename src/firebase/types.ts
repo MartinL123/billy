@@ -63,7 +63,7 @@ export interface Dog {
   activeSkills?: string[]
   /** Calculé à la lecture, jamais enregistré : le nom n'a pas encore été donné (on affiche « Votre chien »). */
   unnamed?: boolean
-  /** Version des données de départ déjà appliquées (voir seed.ts). */
+  /** Ancien marqueur des données de départ. Plus aucune n'est appliquée ; conservé pour les comptes existants. */
   seedVersion?: number
 }
 

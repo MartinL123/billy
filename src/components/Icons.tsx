@@ -119,6 +119,22 @@ export const TargetIcon = icon(
   </>,
 )
 export const FlameIcon = icon(<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />)
+export const StarIcon = icon(<path d="M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L12 16.9 6.600 19.800l1.100-6.100L3.200 9.400l6.100-.800z" />)
+export const LockIcon = icon(
+  <>
+    <rect x="5" y="11" width="14" height="9" rx="2" />
+    <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+  </>,
+)
+export const DiceIcon = icon(
+  <>
+    <rect x="4" y="4" width="16" height="16" rx="3" />
+    <circle cx="9" cy="9" r="1" />
+    <circle cx="15" cy="15" r="1" />
+    <circle cx="15" cy="9" r="1" />
+    <circle cx="9" cy="15" r="1" />
+  </>,
+)
 export const TrashIcon = icon(
   <>
     <path d="M4 7h16" />

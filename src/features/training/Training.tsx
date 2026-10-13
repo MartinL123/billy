@@ -1,16 +1,22 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { outlineButton } from '../../components/Form'
-import { ChevronRightIcon, FlameIcon } from '../../components/Icons'
+import { ChevronRightIcon } from '../../components/Icons'
 import { PageHeader } from '../../components/PageHeader'
 import { Pending } from '../../components/Pending'
+import { useToast } from '../../components/Toast'
 import { useData } from '../../firebase/store'
 import { formatRelative, formatShort } from '../../lib/dates'
+import { badges, fearToWork, gameOfTheDay, isGame, levelInfo, missionsDone, recommendExercises, totalXp, weekOf, xpByDay, type Game } from '../../lib/gamification'
 import { sameTag } from '../../lib/tags'
 import { EXERCISES, exerciseStatus, fearLabel, fearSummaries, STATUS_LABEL, streak, THEMES, type Exercise, type Status, type Theme, type Trend } from '../../lib/training'
 import { useToday } from '../../lib/useToday'
 import { entryDateLabel } from '../journal/EntryCard'
+import { Badges } from './Badges'
 import { ExposureSheet } from './ExposureSheet'
+import { Games, GameSheet } from './Games'
+import { Hero } from './Hero'
+import { Missions, type MissionItem } from './Missions'
 import { SessionSheet } from './SessionSheet'
 
 const STATUS_TONE: Record<Status, string> = {
@@ -39,39 +45,92 @@ function FearDots({ level }: { level: number }) {
 export default function Training() {
   const { dog, sessions, exposures, entries } = useData()
   const today = useToday()
+  const toast = useToast()
   const [theme, setTheme] = useState<Theme>('bases')
   const [exercise, setExercise] = useState<Exercise | null>(null)
+  const [game, setGame] = useState<Game | null>(null)
   const [exposureSheet, setExposureSheet] = useState<{ trigger?: string } | null>(null)
 
-  const days = streak([...sessions.map((s) => s.date), ...exposures.map((e) => e.date)], today)
-  const trainedToday = sessions.some((s) => s.date === today) || exposures.some((e) => e.date === today)
-  const acquired = EXERCISES.filter((e) => exerciseStatus(sessions, e.id) === 'acquis').length
+  const progress = useMemo(() => {
+    const byDay = xpByDay(sessions, exposures)
+    const xp = totalXp(byDay)
+    return { byDay, xp, level: levelInfo(xp) }
+  }, [sessions, exposures])
+
+  // Gain d'expérience et passage de niveau annoncés au moment où ils arrivent.
+  const previousXp = useRef(progress.xp)
+  useEffect(() => {
+    const before = previousXp.current
+    previousXp.current = progress.xp
+    if (progress.xp <= before) return
+    const levelBefore = levelInfo(before).level
+    toast(
+      progress.level.level > levelBefore
+        ? `Niveau ${progress.level.level} ! ${dog.name} devient « ${progress.level.title} ».`
+        : `+${progress.xp - before} XP pour ${dog.name}`,
+    )
+  }, [progress, dog.name, toast])
+
+  const exerciseSessions = sessions.filter((s) => !isGame(s))
+  const activeDays = new Set([...sessions.map((s) => s.date), ...exposures.map((e) => e.date)])
+  const done = missionsDone(sessions, exposures, today)
+  const dailyGame = gameOfTheDay(today)
+  const [first, second] = recommendExercises(sessions, today)
+  const fear = fearToWork(exposures.filter((e) => e.date < today))
+
+  const missions: MissionItem[] = []
+  if (first) {
+    missions.push({ key: 'exercise', title: `Séance : ${first.exercise.name}`, detail: first.reason, advice: first.advice, onStart: () => setExercise(first.exercise) })
+  }
+  missions.push({ key: 'game', title: `Jeu : ${dailyGame.name}`, detail: `${dailyGame.minutes} min · ${dailyGame.skill}`, onStart: () => setGame(dailyGame) })
+  if (fear) {
+    missions.push({
+      key: 'challenge',
+      title: `Défi : ${fear}`,
+      detail: 'Une exposition douce, à une distance où il mange encore',
+      onStart: () => setExposureSheet({ trigger: fear }),
+    })
+  } else if (second) {
+    missions.push({ key: 'challenge', title: `Défi : ${second.exercise.name}`, detail: `Un deuxième exercice · ${second.reason.toLowerCase()}`, onStart: () => setExercise(second.exercise) })
+  }
+
+  const plays = new Map<string, number>()
+  for (const session of sessions) if (isGame(session)) plays.set(session.exerciseId, (plays.get(session.exerciseId) ?? 0) + 1)
+  const playedToday = new Set(sessions.filter((s) => s.date === today && isGame(s)).map((s) => s.exerciseId))
+
+  const themeExercises = EXERCISES.filter((e) => e.theme === theme)
+  const themeAcquired = themeExercises.filter((e) => exerciseStatus(exerciseSessions, e.id) === 'acquis').length
   const fears = fearSummaries(exposures)
   const educatorNotes = entries.filter((e) => e.tags.some((t) => sameTag(t, 'Éducateur'))).slice(0, 3)
 
   return (
     <div className="flex flex-col gap-6 px-5">
-      <div className="flex flex-col gap-3">
-        <PageHeader title="Dressage" />
-        <div className="card flex items-center gap-3.5 p-4">
-          <span className={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${days > 0 ? 'bg-milestone-soft text-milestone-dark' : 'bg-placeholder text-muted'}`}>
-            <FlameIcon size={26} />
-          </span>
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <span className="text-[17px] font-bold">{days === 0 ? 'Pas encore de série' : days === 1 ? '1 jour de suite' : `${days} jours de suite`}</span>
-            <span className="text-sm text-muted">
-              {days === 0
-                ? `Note une séance pour lancer la série de ${dog.name}.`
-                : trainedToday
-                  ? `C'est fait pour aujourd'hui. ${acquired} exercice${acquired > 1 ? 's' : ''} acquis sur ${EXERCISES.length}.`
-                  : "Une courte séance aujourd'hui garde la série."}
-            </span>
-          </div>
-        </div>
+      <PageHeader title="Dressage" />
+
+      <Hero
+        dogName={dog.name}
+        level={progress.level}
+        totalXp={progress.xp}
+        todayXp={progress.byDay.get(today) ?? 0}
+        streakDays={streak([...activeDays], today)}
+        week={weekOf(today)}
+        activeDays={activeDays}
+        today={today}
+      />
+
+      <Missions items={missions} done={done} />
+
+      <div className="-mx-5">
+        <Games gameOfDay={dailyGame} playedToday={playedToday} plays={plays} onOpen={setGame} />
       </div>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-[19px] font-bold">Programme</h2>
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="text-[19px] font-bold">Programme</h2>
+          <span className="text-sm font-semibold text-muted">
+            {themeAcquired} sur {themeExercises.length} acquis
+          </span>
+        </div>
         <div role="group" aria-label="Thème" className="grid grid-cols-3 gap-1 rounded-field bg-placeholder p-1">
           {THEMES.map(({ value, label }) => (
             <button
@@ -85,10 +144,13 @@ export default function Training() {
             </button>
           ))}
         </div>
+        <div className="h-2 overflow-hidden rounded-full bg-placeholder" aria-hidden="true">
+          <div className="h-full rounded-full bg-primary transition-[width] duration-500" style={{ width: `${(themeAcquired / Math.max(1, themeExercises.length)) * 100}%` }} />
+        </div>
         <div className="card overflow-hidden">
-          {EXERCISES.filter((e) => e.theme === theme).map((item, i) => {
-            const status = exerciseStatus(sessions, item.id)
-            const last = sessions.find((s) => s.exerciseId === item.id)
+          {themeExercises.map((item, i) => {
+            const status = exerciseStatus(exerciseSessions, item.id)
+            const last = exerciseSessions.find((s) => s.exerciseId === item.id)
             return (
               <button
                 key={item.id}
@@ -112,36 +174,36 @@ export default function Training() {
         <h2 className="text-[19px] font-bold">Peurs</h2>
         {fears.length > 0 ? (
           <div className="card overflow-hidden">
-            {fears.map((fear, i) => (
+            {fears.map((item, i) => (
               <button
-                key={fear.trigger}
+                key={item.trigger}
                 type="button"
-                onClick={() => setExposureSheet({ trigger: fear.trigger })}
+                onClick={() => setExposureSheet({ trigger: item.trigger })}
                 className={`flex min-h-[60px] w-full items-center gap-3 border-0 bg-transparent px-4 py-3 text-left ${i ? 'border-t border-solid border-divider' : ''}`}
               >
                 <span className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="truncate text-base font-semibold text-text">{fear.trigger}</span>
+                  <span className="truncate text-base font-semibold text-text">{item.trigger}</span>
                   <span className="flex items-center gap-2 text-[13px] text-muted">
-                    <FearDots level={fear.latest.fear} />
+                    <FearDots level={item.latest.fear} />
                     <span>
-                      {fear.latest.fear}/5 · {fearLabel(fear.latest.fear)}
-                      {fear.latest.distance !== undefined ? ` · à ${String(fear.latest.distance).replace('.', ',')} m` : ''}
+                      {item.latest.fear}/5 · {fearLabel(item.latest.fear)}
+                      {item.latest.distance !== undefined ? ` · à ${String(item.latest.distance).replace('.', ',')} m` : ''}
                     </span>
                   </span>
                   <span className="text-[13px]">
-                    {fear.exposures.length > 1 ? (
+                    {item.exposures.length > 1 ? (
                       <>
-                        <span className={`font-semibold ${TREND[fear.trend].tone}`}>{TREND[fear.trend].label}</span>
+                        <span className={`font-semibold ${TREND[item.trend].tone}`}>{TREND[item.trend].label}</span>
                         <span className="text-muted">
                           {' '}
-                          · {fear.first.fear}/5 le {formatShort(fear.first.date)} → {fear.latest.fear}/5 · {fear.exposures.length} expositions
+                          · {item.first.fear}/5 le {formatShort(item.first.date)} → {item.latest.fear}/5 · {item.exposures.length} expositions
                         </span>
                       </>
                     ) : (
-                      <span className="text-muted">1 exposition · {formatRelative(fear.latest.date, today)}</span>
+                      <span className="text-muted">1 exposition · {formatRelative(item.latest.date, today)}</span>
                     )}
                   </span>
-                  <Pending show={fear.exposures.some((e) => e.pending)} />
+                  <Pending show={item.exposures.some((e) => e.pending)} />
                 </span>
                 <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
               </button>
@@ -156,6 +218,8 @@ export default function Training() {
           Noter une exposition
         </button>
       </section>
+
+      <Badges badges={badges(sessions, exposures, progress.xp)} />
 
       <section className="flex flex-col gap-3">
         <h2 className="text-[19px] font-bold">Séances avec l'éducateur</h2>
@@ -177,8 +241,9 @@ export default function Training() {
       </section>
 
       {exercise && (
-        <SessionSheet exercise={exercise} today={today} history={sessions.filter((s) => s.exerciseId === exercise.id)} onClose={() => setExercise(null)} />
+        <SessionSheet exercise={exercise} today={today} history={exerciseSessions.filter((s) => s.exerciseId === exercise.id)} onClose={() => setExercise(null)} />
       )}
+      {game && <GameSheet game={game} today={today} onClose={() => setGame(null)} />}
       {exposureSheet && <ExposureSheet today={today} exposures={exposures} trigger={exposureSheet.trigger} onClose={() => setExposureSheet(null)} />}
     </div>
   )

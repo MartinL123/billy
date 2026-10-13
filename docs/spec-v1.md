@@ -182,6 +182,13 @@ users/{uid}/files/{id}/chunks/{n}  { data: Bytes }                              
   Module peurs : exposition = déclencheur, niveau 1 à 5, distance tolérée ; tendance par rapport à la première.
   Série de jours consécutifs. Notes de l'éducateur = entrées du journal taguées « Éducateur ».
 
+- **Dressage gamifié** (demandé le 13/10/2026) : tout est calculé à partir des séances et expositions, rien de plus n'est stocké.
+  - Expérience : séance 10 / 15 / 20 XP (difficile / ça vient / réussi), jeu 15, exposition 15 (+10 si la peur baisse),
+    exercice acquis +50 (une seule fois), mission +10, journée parfaite (3 missions) +20.
+  - Niveaux : 100 XP pour le niveau 2, puis 50 de plus à chaque palier ; 12 titres de « Chiot curieux » à « Légende du quartier ».
+  - Missions du jour : un exercice recommandé, le jeu du jour, un défi (exposition à une peur, ou 2e exercice).
+  - Jeux : 9 jeux guidés, enregistrés comme séances `jeu-<id>`. Succès : 16 badges. Règles dans `src/lib/gamification.ts`.
+
 ```ts
 users/{uid}/sessions/{id}    { date, exerciseId, result: 'difficile' | 'moyen' | 'reussi', note? }
 users/{uid}/exposures/{id}   { date, trigger, fear: 1..5, distance?, note? }

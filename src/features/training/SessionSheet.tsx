@@ -4,6 +4,7 @@ import { Sheet } from '../../components/Sheet'
 import { deleteSession, newId, saveSession } from '../../firebase/db'
 import type { TrainingSession, WithId } from '../../firebase/types'
 import { formatRelative, type ISODate } from '../../lib/dates'
+import { XP } from '../../lib/gamification'
 import { RESULTS, type Exercise, type SessionResult } from '../../lib/training'
 
 const resultLabel = (result: SessionResult) => RESULTS.find((r) => r.value === result)?.label ?? ''
@@ -55,7 +56,10 @@ export function SessionSheet({ exercise, today, history, onClose }: SessionSheet
                 value === 'reussi' ? 'border-0 bg-primary text-white' : 'border-[1.5px] border-primary bg-surface text-primary'
               }`}
             >
-              {label}
+              <span className="flex flex-col leading-tight">
+                {label}
+                <span className="text-[12px] font-semibold opacity-85">+{XP.session[value]} XP</span>
+              </span>
             </button>
           ))}
         </div>

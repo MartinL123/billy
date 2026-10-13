@@ -7,6 +7,7 @@ import { Fab } from '../../components/TabBar'
 import { useData } from '../../firebase/store'
 import { formatAge, milestoneMessage } from '../../lib/age'
 import { upcoming } from '../../lib/events'
+import { levelInfo, missionCount, missionsDone, totalXp, xpByDay } from '../../lib/gamification'
 import { onThisDay } from '../../lib/memories'
 import { useToday } from '../../lib/useToday'
 import { TodayEventRow } from '../calendar/EventRows'
@@ -15,7 +16,7 @@ import { Meals } from './Meals'
 import { QuickAdd } from './QuickAdd'
 
 export default function Today() {
-  const { dog, events, entries } = useData()
+  const { dog, events, entries, sessions, exposures } = useData()
   const today = useToday()
   const [adding, setAdding] = useState(false)
 
@@ -25,6 +26,8 @@ export default function Today() {
   const lastEntry = entries[0]
   const lastPhoto = lastEntry?.photos[0]
   const memories = onThisDay(entries, today)
+  const level = levelInfo(totalXp(xpByDay(sessions, exposures)))
+  const missions = missionCount(missionsDone(sessions, exposures, today))
 
   const sectionLink = 'py-2.5 text-[15px] font-semibold text-primary no-underline'
 
@@ -53,6 +56,19 @@ export default function Today() {
       </section>
 
       {dog.feeding && dog.feeding.meals.length > 0 && <Meals dogName={dog.name} feeding={dog.feeding} today={today} />}
+
+      <Link to="/dressage" className="flex items-center gap-3.5 rounded-[20px] bg-primary p-4 text-white no-underline shadow-card">
+        <span className="flex size-12 shrink-0 flex-col items-center justify-center rounded-full bg-white text-primary-dark">
+          <span className="text-[9px] leading-none font-bold tracking-[0.5px] uppercase">Niv.</span>
+          <span className="font-display text-xl leading-none font-bold">{level.level}</span>
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="text-[17px] font-bold">{missions === 3 ? 'Missions du jour terminées' : `Missions du jour : ${missions} sur 3`}</span>
+          <span className="text-sm text-white/85">
+            {level.title} · encore {level.needed - level.current} XP avant le niveau {level.level + 1}
+          </span>
+        </span>
+      </Link>
 
       <section className="flex flex-col gap-3">
         <div className="flex items-baseline justify-between">

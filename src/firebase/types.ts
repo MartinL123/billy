@@ -6,7 +6,7 @@ import type { Recurrence } from '../lib/recurrence'
 import type { Decision } from '../lib/xp'
 import type { Trait } from '../content/training'
 
-// Modèle de données de docs/spec-v1.md. Tout champ ajouté après coup reste optionnel.
+// Modèle de données de docs/specs/spec-v1.md. Tout champ ajouté après coup reste optionnel.
 
 export interface Contact {
   name: string
@@ -91,7 +91,7 @@ export interface StoredFile {
   chunkCount?: number
 }
 
-// ——— Dressage (docs/spec-v2-dressage.md) ———
+// ——— Dressage (docs/specs/spec-v2-dressage.md) ———
 
 export type { BossProgress } from '../lib/bossProgress'
 

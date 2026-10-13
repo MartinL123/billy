@@ -5,7 +5,7 @@ c'est le **chemin** : les exercices proposés, le palier de départ et les préc
 On ne finit jamais le jeu : on gagne des niveaux, des paliers, puis des étoiles de maîtrise, sans plafond.
 
 Ce document est **autonome** : tout ce qu'il faut pour coder la partie dressage est ici.
-`docs/recherche-dressage.md` sert seulement de contexte (sources, détail des exercices) ; en cas de contradiction,
+`docs/recherche/recherche-dressage.md` sert seulement de contexte (sources, détail des exercices) ; en cas de contradiction,
 **ce document fait foi**. Les boss Ruelle, Enfants et Reflet du rapport sont remplacés par les boss communs (§ 5).
 
 **Règles de sécurité non négociables** (chien craintif) :
@@ -245,11 +245,11 @@ au catalogue : seul le profil (traits) et la progression diffèrent.
 
 **Étape A — Catalogue et profil**
 ```
-Lis CLAUDE.md et docs/spec-v2-dressage.md (ce document fait foi pour le dressage ;
-docs/recherche-dressage.md est seulement du contexte). Analyse d'abord le code existant de l'app
+Lis CLAUDE.md et docs/specs/spec-v2-dressage.md (ce document fait foi pour le dressage ;
+docs/recherche/recherche-dressage.md est seulement du contexte). Analyse d'abord le code existant de l'app
 et dis-moi en 5 lignes comment tu vas intégrer la V2 sans casser la V1.
 Puis crée le catalogue commun (src/content/training.ts) : les 10 boss avec leurs 5 paliers et critères,
-les traits, et une première série d'exercices à partir de docs/recherche-dressage.md
+les traits, et une première série d'exercices à partir de docs/recherche/recherche-dressage.md
 (marque verified: false ceux notés « à vérifier »). Ajoute les traits au profil du chien
 (Billy : chiot + craintif). Écris les tests de la logique pure. Arrête-toi là.
 ```
@@ -257,7 +257,7 @@ Je valide quand : je coche et décoche des traits dans le profil, et les tests p
 
 **Étape B — Séance et exposition**
 ```
-Fais les écrans Séance et Exposition du § 6 de docs/spec-v2-dressage.md, accessibles en 2 taps
+Fais les écrans Séance et Exposition du § 6 de docs/specs/spec-v2-dressage.md, accessibles en 2 taps
 depuis le bouton « + », avec l'enregistrement dans Firestore et les règles d'XP du § 3.
 Logique d'XP, de suggestion et de validation dans src/lib/, avec tests.
 ```
@@ -276,7 +276,7 @@ de Billy sans aucun pourcentage, et rien ne baisse après une mauvaise séance.
 **Étape D — Rythme, quêtes, premières fois**
 ```
 Ajoute le rythme hebdomadaire, les quêtes et les premières fois (§ 3). Puis relis
-docs/spec-v2-dressage.md et liste ce qui n'est pas encore fait.
+docs/specs/spec-v2-dressage.md et liste ce qui n'est pas encore fait.
 ```
 
 ## 11. Écarts validés avec Martin le 13/10/2026

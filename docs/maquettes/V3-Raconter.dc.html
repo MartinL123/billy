@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Raconter un moment</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1E5A50}a:hover{color:#143F38}
+</style>
+</helmet>
+<div style="width: 390px; height: 1260px; position: relative; box-sizing: border-box; background: #F3F5F2; font-family: 'Figtree', sans-serif; color: #18201E">
+
+<div style="height: 60px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between">
+<a href="V3-Accueil.dc.html" style="height: 44px; padding: 0 16px; border-radius: 22px; border: 2px solid #D3D9D6; background: #FFFFFF; display: flex; align-items: center; font-size: 16px; font-weight: 600; text-decoration: none; color: #18201E">Annuler</a>
+<div style="font-size: 18px; font-weight: 700">Raconter un moment</div>
+<div style="width: 92px"></div>
+</div>
+
+<form style="padding: 8px 20px 130px; display: flex; flex-direction: column; gap: 24px">
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="txt" style="font-size: 18px; font-weight: 700">Qu'avez-vous fait ?</label>
+<textarea id="txt" rows="3" style="border-radius: 18px; border: 2px solid #1E5A50; background: #FFFFFF; padding: 14px 16px; font-family: inherit; font-size: 17px; line-height: 1.45; color: #18201E; box-sizing: border-box; resize: none">Balade dans la ruelle, il s'est bloqué au milieu, on a fait demi-tour et il a repris des friandises.</textarea>
+<button type="button" style="height: 52px; border-radius: 26px; border: 2px solid #1E5A50; background: #FFFFFF; color: #1E5A50; font-family: inherit; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="9" cy="10" r="2"></circle><polyline points="21 16 16 11 6 20"></polyline></svg>Ajouter des photos</button>
+</div>
+
+<fieldset style="border: none; margin: 0; padding: 0">
+<legend style="font-size: 18px; font-weight: 700; padding: 0; margin-bottom: 10px">Quand ?</legend>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<button type="button" aria-pressed="true" style="height: 48px; border-radius: 24px; border: 2px solid #1E5A50; background: #1E5A50; color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 700">Aujourd'hui</button>
+<button type="button" aria-pressed="false" style="height: 48px; border-radius: 24px; border: 2px solid #1E5A50; background: #FFFFFF; color: #1E5A50; font-family: inherit; font-size: 16px; font-weight: 700">Hier</button>
+<button type="button" aria-pressed="false" style="height: 48px; border-radius: 24px; border: 2px solid #1E5A50; background: #FFFFFF; color: #1E5A50; font-family: inherit; font-size: 16px; font-weight: 700">Autre date</button>
+</div>
+</fieldset>
+
+<fieldset style="border: none; margin: 0; padding: 0">
+<legend style="font-size: 18px; font-weight: 700; padding: 0; margin-bottom: 10px">Comment ça s'est passé ?</legend>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+<button type="button" aria-pressed="true" style="height: 104px; border-radius: 20px; border: 3px solid #1E5A50; background: #FFF4EC; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-family: inherit; font-size: 16px; font-weight: 700; color: #18201E">
+<svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#F4C9A8"></circle><circle cx="14" cy="16" r="2.2" fill="#3F2A1A"></circle><circle cx="26" cy="16" r="2.2" fill="#3F2A1A"></circle><path d="M13 28c2-3 12-3 14 0" fill="none" stroke="#3F2A1A" stroke-width="2.4" stroke-linecap="round"></path></svg>Difficile</button>
+<button type="button" aria-pressed="false" style="height: 104px; border-radius: 20px; border: 2px solid #D3D9D6; background: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-family: inherit; font-size: 16px; font-weight: 700; color: #18201E">
+<svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#CFE3DC"></circle><circle cx="14" cy="16" r="2.2" fill="#143F38"></circle><circle cx="26" cy="16" r="2.2" fill="#143F38"></circle><path d="M13 25c2 3 12 3 14 0" fill="none" stroke="#143F38" stroke-width="2.4" stroke-linecap="round"></path></svg>Bien</button>
+<button type="button" aria-pressed="false" style="height: 104px; border-radius: 20px; border: 2px solid #D3D9D6; background: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-family: inherit; font-size: 16px; font-weight: 700; color: #18201E">
+<svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#F7D58A"></circle><path d="M11 16c1.5-2 4.5-2 6 0M23 16c1.5-2 4.5-2 6 0" fill="none" stroke="#3D2A00" stroke-width="2.2" stroke-linecap="round"></path><path d="M12 23h16c0 5-3.5 8-8 8s-8-3-8-8z" fill="#3D2A00"></path></svg>Super</button>
+</div>
+</fieldset>
+
+<fieldset style="border: none; margin: 0; padding: 0">
+<legend style="font-size: 18px; font-weight: 700; padding: 0; margin-bottom: 4px">Vous avez travaillé quoi ?</legend>
+<p style="margin: 0 0 10px; font-size: 14px; color: #5A6662">Touchez une ou plusieurs cases. Facultatif.</p>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{skills}}" as="s" hint-placeholder-count="10">
+<button type="button" aria-pressed="{{s.pressed}}" style="{{s.style}}">
+<span style="{{s.boxStyle}}"><sc-if value="{{s.on}}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 12 10 17 19 7"></polyline></svg></sc-if></span>
+<span>{{s.name}}</span>
+</button>
+</sc-for>
+</div>
+</fieldset>
+
+<fieldset style="border: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+<legend style="font-size: 18px; font-weight: 700; padding: 0; margin-bottom: 10px">Il a eu peur ?</legend>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button type="button" aria-pressed="true" style="height: 52px; border-radius: 26px; border: 2px solid #1E5A50; background: #1E5A50; color: #FFFFFF; font-family: inherit; font-size: 17px; font-weight: 700">Oui</button>
+<button type="button" aria-pressed="false" style="height: 52px; border-radius: 26px; border: 2px solid #1E5A50; background: #FFFFFF; color: #1E5A50; font-family: inherit; font-size: 17px; font-weight: 700">Non</button>
+</div>
+<label style="display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 18px; background: #FFFFFF; border: 2px solid #1E5A50">
+<span style="width: 30px; height: 30px; border-radius: 8px; background: #1E5A50; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 12 10 17 19 7"></polyline></svg></span>
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 700">On s'est éloignés pour qu'il se sente mieux</span><span style="font-size: 14px; color: #1E5A50; font-weight: 600">C'est la bonne réaction</span></span>
+</label>
+</fieldset>
+
+<div style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px; border: 1px solid #E6EAE7">
+<div style="font-size: 13px; font-weight: 700; color: #5A6662; text-transform: uppercase; letter-spacing: 0.6px">La Ville · prochaine étape</div>
+<div style="font-size: 17px; font-weight: 600; line-height: 1.4">Faire 10 minutes dans une rue calme, détendu. C'est réussi ?</div>
+<div style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: #5A6662"><span style="width: 12px; height: 12px; border-radius: 6px; background: #F2B544"></span><span style="width: 12px; height: 12px; border-radius: 6px; border: 2px solid #C9D1CD; box-sizing: border-box"></span><span style="width: 12px; height: 12px; border-radius: 6px; border: 2px solid #C9D1CD; box-sizing: border-box"></span><span style="margin-left: 6px">Réussi 1 fois, encore 2 autres jours</span></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button type="button" style="height: 48px; border-radius: 24px; border: 2px solid #1E5A50; background: #FFFFFF; color: #1E5A50; font-family: inherit; font-size: 16px; font-weight: 700">Oui</button>
+<button type="button" aria-pressed="true" style="height: 48px; border-radius: 24px; border: 2px solid #1E5A50; background: #1E5A50; color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 700">Pas encore</button>
+</div>
+</div>
+
+</form>
+
+<div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 30px; background: #F3F5F2; border-top: 1px solid #E6EAE7">
+<a href="V3-Reussite.dc.html" style="height: 60px; border-radius: 30px; background: #C2571A; color: #FFFFFF; font-size: 19px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none">Enregistrer <span style="background: rgba(255,255,255,0.22); padding: 4px 10px; border-radius: 12px; font-size: 16px">+23 XP</span></a>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1260}}'>
+class Component extends DCLogic {
+renderVals() {
+const names = ['La Ville', 'La Laisse', 'Le Lien', 'Le Calme', 'Les Soins', 'Le Rappel', 'Les Bonnes manières', 'La Nouveauté', 'Les Rencontres', 'Les Congénères'];
+const on = { 'La Ville': true, 'La Laisse': true };
+const skills = names.map(name => {
+const isOn = !!on[name];
+return {
+name, on: isOn, pressed: isOn ? 'true' : 'false',
+style: 'min-height: 60px; border-radius: 16px; border: 2px solid ' + (isOn ? '#1E5A50' : '#D3D9D6') + '; background: ' + (isOn ? '#DCEBE6' : '#FFFFFF') + '; display: flex; align-items: center; gap: 10px; padding: 8px 12px; font-family: inherit; font-size: 16px; font-weight: ' + (isOn ? '700' : '600') + '; color: ' + (isOn ? '#143F38' : '#18201E') + '; text-align: left; cursor: pointer',
+boxStyle: 'width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; ' + (isOn ? 'background: #1E5A50' : 'border: 2px solid #9AA39F; box-sizing: border-box')
+};
+});
+return { skills };
+}
+}
+</script>
+</body>
+</html>

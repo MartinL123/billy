@@ -10,7 +10,7 @@ const ADOPTION: ISODate = '2026-09-19'
 /** Version courante des données de départ. À augmenter quand on en ajoute. */
 export const SEED_VERSION = 3
 
-/** Traits de Billy : chiot et craintif (docs/spec-v2-dressage.md, § 5). */
+/** Traits de Billy : chiot et craintif (docs/specs/spec-v2-dressage.md, § 5). */
 export const DEFAULT_TRAITS: Trait[] = ['chiot', 'craintif']
 
 export const DEFAULT_FEEDING: Feeding = {
@@ -28,7 +28,7 @@ export const VACCINE_REMINDER_ID = 'seed-vaccin-chppil'
 export const VACCINE_REMINDER_DATE = addMonths(LAST_PRIMO, 12)
 
 /**
- * Profil et dates clés du premier lancement (docs/spec-v1.md).
+ * Profil et dates clés du premier lancement (docs/specs/spec-v1.md).
  * Les identifiants sont fixes : relancer le seed ne crée jamais de doublon.
  */
 export function buildSeed(today: ISODate): { dog: Dog; events: Record<string, BillyEvent> } {

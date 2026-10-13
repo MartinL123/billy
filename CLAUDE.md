@@ -4,11 +4,12 @@ PWA mobile-first pour suivre Billy, croisé épagneul-labrador né le 13/05/2026
 calendrier santé, journal photos, documents, puis programme d'entraînement.
 Utilisateur unique (moi), sur **iPhone**, app installée sur l'écran d'accueil.
 
-Lire avant toute nouvelle fonctionnalité :
-- `docs/spec-v1.md` : la spec de la version en cours
-- `docs/maquettes/README.md` : tokens visuels et maquettes de référence
-- `docs/prompts.md` : l'étape en cours
-- `docs/spec-v2-dressage.md` : spec du dressage (boss communs, arbre de compétences, XP) — fait foi pour tout ce qui touche à `src/features/training/` ; `docs/recherche-dressage.md` n'est que du contexte
+Lire avant toute nouvelle fonctionnalité (l'index complet est dans `docs/README.md`) :
+- **`docs/specs/spec-v3-simplification.md` : la spec en cours (refonte « Billy, le jeu »). Elle fait foi sur toutes les autres en cas de divergence.**
+- `docs/specs/spec-v1.md` : santé, calendrier, journal, documents, connexion — toujours valable hors des points changés par la V3
+- `docs/specs/spec-v2-dressage.md` : logique interne du dressage (catalogue, paliers, XP) réutilisée par la V3 ; son interface est remplacée
+- `docs/maquettes/README.md` : tokens visuels ; les maquettes `V3-*` font foi pour les écrans refondus
+- Contexte seulement : `docs/recherche/` (audit UX, recherche dressage)
 
 ## Principes UX (non négociables)
 
@@ -83,7 +84,7 @@ src/
     today/      # écran Aujourd'hui
     calendar/   # événements, rappels, poids
     journal/    # entrées, photos, tags
-    training/   # onglet Dressage : boss, séances, expositions (docs/spec-v2-dressage.md)
+    training/   # onglet Dressage : boss, séances, expositions (logique : docs/specs/spec-v2-dressage.md ; interface : docs/specs/spec-v3-simplification.md)
     profile/    # profil de Billy, contacts, documents, compte
   content/      # catalogue commun du dressage (boss, paliers, exercices, traits), le même pour tous
   components/   # composants UI partagés (Button, Sheet, TabBar, EmptyState, Field…)
@@ -120,6 +121,6 @@ sécurité : la protection vient de `firestore.rules`). Ajouter `<user>.github.i
 
 ## Façon de travailler
 
-- Suivre `docs/prompts.md` : une étape à la fois, s'arrêter au critère de fin et me demander de valider.
+- Suivre l'ordre de réalisation de la spec en cours (§ 11 de la V3) : une étape à la fois, s'arrêter au critère de fin et me demander de valider.
 - Une fonctionnalité = un commit clair.
 - Si une décision UX n'est pas couverte par la spec ou les maquettes, prendre l'option la plus simple et me la signaler.

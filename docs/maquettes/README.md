@@ -20,6 +20,19 @@ Ils ne s'ouvrent pas tels quels dans un navigateur.
 | `Profil.dc.html` | Profil, contacts, documents, compte |
 | `Document.dc.html` | Import d'un document (PDF ou photos de pages) |
 
+## Refonte V3 (à jour, fait foi)
+
+| Fichier | Écran |
+| --- | --- |
+| `V3-Ouverture.dc.html` | Ouverture : toucher le logo, accès au questionnaire |
+| `V3-Questionnaire.dc.html` | Questionnaire de départ (une question par écran) |
+| `V3-Accueil.dc.html` | Accueil : la partie |
+| `V3-Raconter.dc.html` | Raconter un moment |
+| `V3-Reussite.dc.html` | « C'est réussi ! » (nouvelle étape) |
+| `V3-Billy.dc.html` | Onglet Billy : ce qu'il sait faire |
+
+Les versions abandonnées `V3-Etoile`, `V3-Rattrapage` et `V3-Competences` (étoiles) ont été supprimées.
+
 ## Tokens
 
 | Rôle | Valeur |

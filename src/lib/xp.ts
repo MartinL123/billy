@@ -1,7 +1,7 @@
 import { bossById, STATS, type Stat } from '../content/training'
 import type { ISODate } from './dates'
 
-// Règles d'XP du § 3 de docs/spec-v2-dressage.md. L'XP ne baisse jamais : chaque gain est une ligne
+// Règles d'XP du § 3 de docs/specs/spec-v2-dressage.md. L'XP ne baisse jamais : chaque gain est une ligne
 // ajoutée au journal d'XP, et tout le reste (total, niveau, stats, radar) se calcule à partir de ce journal.
 
 export const XP = {

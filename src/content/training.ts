@@ -1,4 +1,4 @@
-// Catalogue commun du dressage (docs/spec-v2-dressage.md). Le même pour tous les chiens : il vit dans le code,
+// Catalogue commun du dressage (docs/specs/spec-v2-dressage.md). Le même pour tous les chiens : il vit dans le code,
 // pas dans Firestore. Seuls le profil (traits) et la progression sont propres au chien.
 //
 // Les critères des paliers et les liens conseillés sont des hypothèses de conception,

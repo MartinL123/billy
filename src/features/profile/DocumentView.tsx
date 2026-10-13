@@ -8,6 +8,7 @@ import { loadFile } from '../../firebase/files'
 import { useData } from '../../firebase/store'
 import { formatLong } from '../../lib/dates'
 import { openPdf, renderPdfPage } from '../../lib/pdf'
+import { safeFileName, shareFiles } from '../../lib/share'
 import { useBack } from '../../lib/useBack'
 import { categoryLabel } from './documents'
 
@@ -68,8 +69,6 @@ function ImagePages({ blobs }: { blobs: Blob[] }) {
   )
 }
 
-const safeName = (title: string) => title.replace(/[\\/:*?"<>|]+/g, ' ').trim() || 'document'
-
 export default function DocumentView() {
   const { id } = useParams()
   const { documents, events } = useData()
@@ -113,31 +112,13 @@ export default function DocumentView() {
     (blobs ?? []).map((blob, i) => {
       const extension = document_.kind === 'pdf' ? 'pdf' : 'jpg'
       const suffix = (blobs?.length ?? 0) > 1 ? ` ${i + 1}` : ''
-      return new File([blob], `${safeName(document_.title)}${suffix}.${extension}`, { type: blob.type })
+      return new File([blob], `${safeFileName(document_.title)}${suffix}.${extension}`, { type: blob.type })
     })
 
-  // Menu de partage natif (AirDrop, Mail, Enregistrer dans Fichiers…).
   const share = async () => {
     setMessage('')
-    const toShare = files()
-    try {
-      if (navigator.canShare?.({ files: toShare })) {
-        await navigator.share({ files: toShare, title: document_.title })
-        return
-      }
-    } catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') return
-    }
-    // Navigateur sans partage de fichiers : téléchargement direct.
-    const first = toShare[0]
-    if (!first) return
-    const url = URL.createObjectURL(first)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = first.name
-    link.click()
-    setTimeout(() => URL.revokeObjectURL(url), 10_000)
-    setMessage('Partage indisponible ici : le fichier a été téléchargé.')
+    const outcome = await shareFiles(files(), document_.title)
+    if (outcome === 'downloaded') setMessage('Partage indisponible ici : le fichier a été téléchargé.')
   }
 
   return (

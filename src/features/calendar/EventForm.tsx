@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { FormScreen, Optional, Segmented, TextField } from '../../components/Form'
-import { PaperclipIcon } from '../../components/Icons'
+import { CalendarIcon, PaperclipIcon } from '../../components/Icons'
 import { ConfirmSheet } from '../../components/Sheet'
 import { deleteEvent, newId, saveEvent, setEventDone } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import type { BillyEvent } from '../../firebase/types'
 import { isValidISO } from '../../lib/dates'
 import { EVENT_TYPE_ORDER, EVENT_TYPES, type EventType } from '../../lib/events'
+import { buildIcs } from '../../lib/ics'
 import type { Recurrence } from '../../lib/recurrence'
+import { safeFileName, shareFiles } from '../../lib/share'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 
@@ -92,6 +94,13 @@ export default function EventForm() {
     const eventId = existing?.id ?? newId('events')
     saveEvent(eventId, event)
     navigate(`/document/nouveau?eventId=${eventId}`, { replace: true })
+  }
+
+  // Rappel sur l'iPhone : l'événement part dans l'app Calendrier via le menu de partage.
+  const exportToCalendar = () => {
+    if (!existing?.date) return
+    const ics = buildIcs({ ...existing, date: existing.date })
+    void shareFiles([new File([ics], `${safeFileName(existing.title)}.ics`, { type: 'text/calendar' })], existing.title)
   }
 
   const linked = existing ? documents.filter((d) => existing.documentIds?.includes(d.id) || d.eventId === existing.id) : []
@@ -210,6 +219,12 @@ export default function EventForm() {
                 className="h-12 rounded-full border-[1.5px] border-primary bg-surface text-[15px] font-bold text-primary"
               >
                 {existing.done ? 'Remettre à faire' : 'Marquer comme fait'}
+              </button>
+            )}
+            {existing.date && !existing.done && (
+              <button type="button" onClick={exportToCalendar} className="flex h-12 items-center justify-center gap-2 rounded-full border-0 bg-transparent text-[15px] font-semibold text-primary">
+                <CalendarIcon size={20} />
+                Ajouter au calendrier de l'iPhone
               </button>
             )}
             <button type="button" onClick={() => setConfirmDelete(true)} className="h-12 rounded-full border-0 bg-transparent text-[15px] font-semibold text-danger">

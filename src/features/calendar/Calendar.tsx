@@ -10,6 +10,7 @@ import { upcoming } from '../../lib/events'
 import { useToday } from '../../lib/useToday'
 import { CalendarEventRow } from './EventRows'
 import { MonthGrid } from './MonthGrid'
+import { WeightChart } from './WeightChart'
 import { formatKg, WeightSheet } from './WeightSheet'
 
 const DONE_PREVIEW = 3
@@ -131,6 +132,7 @@ export default function Calendar() {
           )}
         </div>
         {lastWeight && <Pending show={lastWeight.pending} />}
+        <WeightChart weights={weights} />
         {olderWeights.length > 0 && (
           <div className="flex flex-col text-sm text-muted">
             {olderWeights.slice(0, 4).map((weight) => (

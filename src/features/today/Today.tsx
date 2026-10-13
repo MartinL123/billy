@@ -7,6 +7,7 @@ import { useData } from '../../firebase/store'
 import { formatAge, milestoneMessage } from '../../lib/age'
 import { formatDayHeading } from '../../lib/dates'
 import { upcoming } from '../../lib/events'
+import { onThisDay } from '../../lib/memories'
 import { useToday } from '../../lib/useToday'
 import { TodayEventRow } from '../calendar/EventRows'
 import { entryDateLabel } from '../journal/EntryCard'
@@ -22,6 +23,7 @@ export default function Today() {
   const celebration = milestoneMessage(dog.name, dog.birthDate, dog.adoptionDate, today)
   const lastEntry = entries[0]
   const lastPhoto = lastEntry?.photos[0]
+  const memories = onThisDay(entries, today)
 
   const sectionLink = 'py-2.5 text-[15px] font-semibold text-primary no-underline'
 
@@ -113,6 +115,21 @@ export default function Today() {
           </div>
         )}
       </section>
+
+      {memories.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-[19px] font-bold">Ce jour-là</h2>
+          {memories.map(({ label, entry }) => (
+            <Link key={entry.id} to={`/souvenir/${entry.id}`} className="card flex items-center gap-3.5 overflow-hidden p-3 text-text no-underline">
+              {entry.photos[0] && <FileImage fileId={entry.photos[0].thumbFileId} alt="" className="size-24 shrink-0 rounded-field" />}
+              <div className="flex min-w-0 flex-col gap-1.5 py-1">
+                <div className="text-[13px] font-semibold text-milestone-dark">{label}</div>
+                {entry.text && <div className="line-clamp-3 text-[15px] leading-[1.4]">{entry.text}</div>}
+              </div>
+            </Link>
+          ))}
+        </section>
+      )}
 
       <Fab label="Ajouter une photo, une note, un événement ou un document" onClick={() => setAdding(true)} />
       {adding && <QuickAdd onClose={() => setAdding(false)} />}

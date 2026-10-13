@@ -1,0 +1,72 @@
+import { addDays, type ISODate } from './dates'
+import type { Recurrence } from './recurrence'
+
+export interface IcsEvent {
+  id: string
+  title: string
+  date: ISODate
+  time?: string
+  recurrence: Recurrence
+  notes?: string
+}
+
+const RRULE: Record<Recurrence, string | undefined> = {
+  none: undefined,
+  monthly: 'FREQ=MONTHLY',
+  quarterly: 'FREQ=MONTHLY;INTERVAL=3',
+  yearly: 'FREQ=YEARLY',
+}
+
+const compact = (date: ISODate) => date.replace(/-/g, '')
+const escapeText = (text: string) => text.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/([,;])/g, '\\$1')
+
+/** Lignes de 75 octets maximum (RFC 5545), la suite précédée d'une espace. */
+function fold(line: string): string {
+  const parts: string[] = []
+  let rest = line
+  while (new TextEncoder().encode(rest).length > 75) {
+    let cut = 74
+    while (new TextEncoder().encode(rest.slice(0, cut)).length > 74) cut--
+    parts.push(rest.slice(0, cut))
+    rest = ` ${rest.slice(cut)}`
+  }
+  parts.push(rest)
+  return parts.join('\r\n')
+}
+
+/**
+ * Fichier .ics d'un événement, pour l'ajouter au calendrier de l'iPhone avec un rappel.
+ * Sans heure : journée entière, rappel la veille à 18 h. Avec heure : heure locale, rappel 1 h avant.
+ */
+export function buildIcs(event: IcsEvent, now: Date = new Date()): string {
+  const stamp = `${now.toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Billy//App de suivi//FR',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:${event.id}@billy`,
+    `DTSTAMP:${stamp}`,
+    `SUMMARY:${escapeText(event.title)}`,
+  ]
+  if (event.time) {
+    const start = `${compact(event.date)}T${event.time.replace(':', '')}00`
+    lines.push(`DTSTART:${start}`, 'DURATION:PT1H')
+  } else {
+    lines.push(`DTSTART;VALUE=DATE:${compact(event.date)}`, `DTEND;VALUE=DATE:${compact(addDays(event.date, 1))}`)
+  }
+  const rule = RRULE[event.recurrence]
+  if (rule) lines.push(`RRULE:${rule}`)
+  if (event.notes) lines.push(`DESCRIPTION:${escapeText(event.notes)}`)
+  lines.push(
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    `DESCRIPTION:${escapeText(event.title)}`,
+    `TRIGGER:${event.time ? '-PT1H' : '-PT6H'}`,
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  )
+  return `${lines.map(fold).join('\r\n')}\r\n`
+}

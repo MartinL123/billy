@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildIcs } from './ics'
+import { buildIcs, buildMealsIcs } from './ics'
 
 const now = new Date(Date.UTC(2026, 9, 13, 11, 30, 0))
 const base = { id: 'abc', title: 'Vermifuge', date: '2026-10-17', recurrence: 'none' as const }
@@ -39,5 +39,31 @@ describe('export .ics', () => {
     const ics = buildIcs({ ...base, notes: 'é'.repeat(120) }, now)
     for (const line of ics.split('\r\n')) expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75)
     expect(ics.replace(/\r\n /g, '')).toContain(`DESCRIPTION:${'é'.repeat(120)}`)
+  })
+})
+
+describe('rappels de repas', () => {
+  const meals = [
+    { label: 'Réveil', time: '08:00' },
+    { label: 'Après-midi', time: '14:00' },
+    { label: 'Soir', time: '21:00' },
+  ]
+
+  it('crée un rappel quotidien par repas, à l’heure dite', () => {
+    const ics = buildMealsIcs('Billy', meals, 100, '2026-10-13', now)
+    expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(3)
+    expect(ics.match(/RRULE:FREQ=DAILY/g)).toHaveLength(3)
+    expect(ics.match(/TRIGGER:PT0S/g)).toHaveLength(3)
+    expect(ics).toContain('DTSTART:20261013T080000')
+    expect(ics).toContain('DTSTART:20261013T140000')
+    expect(ics).toContain('DTSTART:20261013T210000')
+    expect(ics).toContain('SUMMARY:Repas de Billy (100 g)')
+  })
+
+  it('garde les mêmes identifiants pour ne pas doubler les rappels', () => {
+    const ics = buildMealsIcs('Billy', meals, undefined, '2026-11-01', now)
+    expect(ics).toContain('UID:repas-1@billy')
+    expect(ics).toContain('UID:repas-3@billy')
+    expect(ics).toContain('SUMMARY:Repas de Billy\r\n')
   })
 })

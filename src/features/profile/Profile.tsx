@@ -11,12 +11,21 @@ import { QUOTA_BYTES, storageUsed } from '../../firebase/files'
 import { useData } from '../../firebase/store'
 import type { Contact } from '../../firebase/types'
 import { formatAgeShort } from '../../lib/age'
-import { formatLong, formatShort, parseISO } from '../../lib/dates'
+import type { EventType } from '../../lib/events'
+import { formatLong, formatShort, formatTime, parseISO } from '../../lib/dates'
+import { careStatus } from '../../lib/health'
 import { formatBytes } from '../../lib/image'
+import { sortMeals } from '../../lib/feeding'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { categoryLabel, kindBadge } from './documents'
 import { ProfileEdit } from './ProfileEdit'
+
+const CARE: { type: EventType; label: string }[] = [
+  { type: 'vaccin', label: 'Vaccin CHPPiL' },
+  { type: 'vermifuge', label: 'Vermifuge' },
+  { type: 'antiparasitaire', label: 'Puces et tiques' },
+]
 
 /** Alerte d'espace au-delà de 70 % du quota gratuit. */
 const STORAGE_ALERT = 0.7
@@ -122,6 +131,39 @@ export default function Profile() {
         <InfoRow label="Adoption" value={formatLong(dog.adoptionDate)} />
         <InfoRow label="Puce" value={dog.chip || 'À compléter'} />
       </div>
+
+      <section className="flex flex-col gap-2.5">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-[19px] font-bold">Santé</h2>
+          <Link to="/calendrier" className="py-1 text-[15px] font-semibold text-primary no-underline">
+            Calendrier
+          </Link>
+        </div>
+        <div className="card px-4 py-1">
+          {CARE.map(({ type, label }, i) => {
+            const { last, next } = careStatus(events, type)
+            return (
+              <div key={type} className={`flex flex-col gap-0.5 py-3 ${i ? 'border-t border-divider' : ''}`}>
+                <span className="text-[13px] text-muted">{label}</span>
+                <span className="text-base font-semibold">
+                  {last ? (last.date ? `Fait le ${formatLong(last.date)}` : 'Fait, date inconnue') : 'Rien de noté'}
+                </span>
+                <span className="text-[13px] text-muted">{next?.date ? `Prochain : ${formatLong(next.date)}` : 'Aucun rappel prévu'}</span>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      {dog.feeding && (
+        <section className="flex flex-col gap-2.5">
+          <h2 className="text-[19px] font-bold">Alimentation</h2>
+          <div className="card px-4 py-1">
+            <InfoRow first label="Ration" value={`${dog.feeding.gramsPerDay} g par jour`} />
+            <InfoRow label="Repas" value={sortMeals(dog.feeding.meals).map((m) => formatTime(m.time)).join(' · ') || 'À compléter'} />
+          </div>
+        </section>
+      )}
 
       <section className="flex flex-col gap-2.5">
         <h2 className="text-[19px] font-bold">Contacts</h2>

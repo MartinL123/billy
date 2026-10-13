@@ -1,6 +1,7 @@
 import type { Bytes } from 'firebase/firestore'
 import type { ISODate } from '../lib/dates'
 import type { EventType } from '../lib/events'
+import type { Feeding } from '../lib/feeding'
 import type { Recurrence } from '../lib/recurrence'
 import type { SessionResult } from '../lib/training'
 
@@ -22,6 +23,10 @@ export interface Dog {
   chip?: string
   vet?: Contact
   trainer?: Contact
+  /** Ration quotidienne et heures des repas. */
+  feeding?: Feeding
+  /** Version des données de départ déjà appliquées (voir seed.ts). */
+  seedVersion?: number
 }
 
 /** users/{uid}/events/{id} — `date` vide = date à compléter. */

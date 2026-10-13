@@ -2,15 +2,16 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { outlineButton } from '../../components/Form'
+import { PageHeader } from '../../components/PageHeader'
 import { Fab } from '../../components/TabBar'
 import { useData } from '../../firebase/store'
 import { formatAge, milestoneMessage } from '../../lib/age'
-import { formatDayHeading } from '../../lib/dates'
 import { upcoming } from '../../lib/events'
 import { onThisDay } from '../../lib/memories'
 import { useToday } from '../../lib/useToday'
 import { TodayEventRow } from '../calendar/EventRows'
 import { entryDateLabel } from '../journal/EntryCard'
+import { Meals } from './Meals'
 import { QuickAdd } from './QuickAdd'
 
 export default function Today() {
@@ -29,19 +30,7 @@ export default function Today() {
 
   return (
     <div className="flex flex-col gap-6 px-5">
-      <header className="flex items-start justify-between gap-3">
-        <div className="flex flex-col gap-0.5">
-          <div className="text-[15px] font-medium text-muted">{formatDayHeading(today)}</div>
-          <h1 className="font-display text-[32px] font-bold tracking-[-0.5px]">Aujourd'hui</h1>
-        </div>
-        <Link
-          to="/profil"
-          aria-label={`Profil de ${dog.name}`}
-          className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-milestone-soft font-display text-xl font-bold text-milestone-dark no-underline shadow-[0_1px_3px_rgba(24,32,30,0.15)]"
-        >
-          {dog.photoThumbFileId ? <FileImage fileId={dog.photoThumbFileId} alt="" className="size-full" eager /> : dog.name.charAt(0).toUpperCase()}
-        </Link>
-      </header>
+      <PageHeader title="Aujourd'hui" />
 
       <section aria-label={dog.name} className="card overflow-hidden rounded-3xl">
         <div className="flex items-center gap-4 p-4">
@@ -60,8 +49,10 @@ export default function Today() {
             <div className="text-base text-muted">{formatAge(dog.birthDate, today)}</div>
           </div>
         </div>
-        {celebration && <div className="bg-milestone-soft px-4 py-3 text-[15px] font-medium text-[#5C2A08]">{celebration}</div>}
+        {celebration && <div className="bg-primary-soft px-4 py-3 text-[15px] font-medium text-primary-dark">{celebration}</div>}
       </section>
+
+      {dog.feeding && dog.feeding.meals.length > 0 && <Meals dogName={dog.name} feeding={dog.feeding} today={today} />}
 
       <section className="flex flex-col gap-3">
         <div className="flex items-baseline justify-between">
@@ -85,7 +76,7 @@ export default function Today() {
           </div>
         )}
         {toComplete > 0 && (
-          <Link to="/calendrier" className="flex min-h-11 items-center rounded-field bg-milestone-soft px-4 py-2.5 text-[15px] font-semibold text-[#5C2A08] no-underline">
+          <Link to="/calendrier" className="flex min-h-11 items-center rounded-field bg-info-soft px-4 py-2.5 text-[15px] font-semibold text-[#1D3F73] no-underline">
             {toComplete > 1 ? `${toComplete} dates à compléter` : '1 date à compléter'} dans le calendrier
           </Link>
         )}

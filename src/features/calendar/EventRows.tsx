@@ -121,7 +121,7 @@ export function CalendarEventRow({ event, today, first }: { event: Event; today:
           <span className={`truncate text-base font-semibold ${event.done ? 'text-muted line-through' : ''}`}>{event.title}</span>
           <span className={`flex items-center gap-1.5 text-[13px] ${overdue ? 'font-semibold text-danger' : 'text-muted'}`}>
             <span className="size-2 shrink-0 rounded-full" style={{ background: info.color }} />
-            <span className="truncate">{event.date ? details.join(' · ') : 'Date à compléter'}</span>
+            <span className="truncate">{event.date ? details.join(' · ') : event.done ? 'Date inconnue' : 'Date à compléter'}</span>
           </span>
           <Pending show={event.pending} />
         </span>

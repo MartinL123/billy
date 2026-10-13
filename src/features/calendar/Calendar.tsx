@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { outlineButton } from '../../components/Form'
+import { PageHeader } from '../../components/PageHeader'
 import { Pending } from '../../components/Pending'
 import { Fab } from '../../components/TabBar'
 import { useData } from '../../firebase/store'
@@ -35,7 +36,7 @@ export default function Calendar() {
 
   return (
     <div className="flex flex-col gap-5 px-5">
-      <h1 className="font-display text-[32px] font-bold tracking-[-0.5px]">Calendrier</h1>
+      <PageHeader title="Calendrier" />
 
       <MonthGrid
         month={month}

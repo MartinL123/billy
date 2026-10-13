@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { outlineButton } from '../../components/Form'
 import { ChevronRightIcon, FlameIcon } from '../../components/Icons'
+import { PageHeader } from '../../components/PageHeader'
 import { Pending } from '../../components/Pending'
 import { useData } from '../../firebase/store'
 import { formatRelative, formatShort } from '../../lib/dates'
@@ -50,8 +51,8 @@ export default function Training() {
 
   return (
     <div className="flex flex-col gap-6 px-5">
-      <header className="flex flex-col gap-3">
-        <h1 className="font-display text-[32px] font-bold tracking-[-0.5px]">Dressage</h1>
+      <div className="flex flex-col gap-3">
+        <PageHeader title="Dressage" />
         <div className="card flex items-center gap-3.5 p-4">
           <span className={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${days > 0 ? 'bg-milestone-soft text-milestone-dark' : 'bg-placeholder text-muted'}`}>
             <FlameIcon size={26} />
@@ -67,7 +68,7 @@ export default function Training() {
             </span>
           </div>
         </div>
-      </header>
+      </div>
 
       <section className="flex flex-col gap-3">
         <h2 className="text-[19px] font-bold">Programme</h2>

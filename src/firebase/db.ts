@@ -16,7 +16,7 @@ import { db } from './app'
 import { newId, send, userCol, userDoc } from './paths'
 import { deleteFile } from './files'
 export { newId } from './paths'
-import { buildSeed } from './seed'
+import { buildSeed, DEFAULT_FEEDING, healthHistory, SEED_VERSION, VACCINE_REMINDER_DATE, VACCINE_REMINDER_ID } from './seed'
 import type { BillyDocument, BillyEvent, Dog, Entry, Exposure, TrainingSession, Weight, WithId } from './types'
 import { todayISO } from '../lib/dates'
 import { nextOccurrence } from '../lib/recurrence'
@@ -53,6 +53,22 @@ export async function ensureSeed(): Promise<void> {
   batch.set(dogRef, seed.dog)
   for (const [id, event] of Object.entries(seed.events)) batch.set(userDoc('events', id), event)
   await batch.commit()
+}
+
+/**
+ * Compte créé avant l'ajout de nouvelles données de départ : on les ajoute une seule fois,
+ * sans toucher à ce qui a déjà été saisi.
+ */
+export function upgradeSeed(dog: WithId<Dog>, events: WithId<BillyEvent>[]): void {
+  if ((dog.seedVersion ?? 1) >= SEED_VERSION) return
+  const batch = writeBatch(db)
+  for (const [id, event] of Object.entries(healthHistory())) {
+    if (!events.some((e) => e.id === id)) batch.set(userDoc('events', id), event as DocumentData)
+  }
+  const reminder = events.find((e) => e.id === VACCINE_REMINDER_ID)
+  if (reminder && !reminder.date) batch.update(userDoc('events', VACCINE_REMINDER_ID), { date: VACCINE_REMINDER_DATE })
+  batch.update(userDoc('dog', 'billy'), { seedVersion: SEED_VERSION, ...(dog.feeding ? {} : { feeding: DEFAULT_FEEDING }) })
+  send(batch.commit())
 }
 
 // ——— Profil ———

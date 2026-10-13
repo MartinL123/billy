@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { ensureSeed, watchCollection, watchDog } from './db'
+import { ensureSeed, upgradeSeed, watchCollection, watchDog } from './db'
 import type { BillyDocument, BillyEvent, Dog, Entry, Exposure, TrainingSession, Weight, WithId } from './types'
 
 interface Data {
@@ -69,6 +69,11 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   useEffect(() => {
     if (dog === null && online) ensureSeed().catch((error) => console.error('Création du profil impossible', error))
   }, [dog, online])
+
+  // Données de départ ajoutées après la création du compte.
+  useEffect(() => {
+    if (dog && events) upgradeSeed(dog, events)
+  }, [dog, events])
 
   const data = useMemo<Data | null>(() => {
     if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures) return null

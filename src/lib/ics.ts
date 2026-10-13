@@ -70,3 +70,40 @@ export function buildIcs(event: IcsEvent, now: Date = new Date()): string {
   )
   return `${lines.map(fold).join('\r\n')}\r\n`
 }
+
+export interface MealReminder {
+  label: string
+  /** « HH:MM », heure locale. */
+  time: string
+}
+
+/**
+ * Rappels quotidiens des repas : un événement répété chaque jour par repas, avec une alerte à l'heure dite.
+ * Les identifiants sont fixes : réimporter le fichier met à jour les rappels au lieu de les doubler.
+ */
+export function buildMealsIcs(dogName: string, meals: MealReminder[], gramsPerMeal: number | undefined, start: ISODate, now: Date = new Date()): string {
+  const stamp = `${now.toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`
+  const portion = gramsPerMeal ? ` (${gramsPerMeal} g)` : ''
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Billy//App de suivi//FR', 'CALSCALE:GREGORIAN']
+  meals.forEach((meal, i) => {
+    const summary = escapeText(`Repas de ${dogName}${portion}`)
+    lines.push(
+      'BEGIN:VEVENT',
+      `UID:repas-${i + 1}@billy`,
+      `DTSTAMP:${stamp}`,
+      `SUMMARY:${summary}`,
+      `DESCRIPTION:${escapeText(meal.label)}`,
+      `DTSTART:${compact(start)}T${meal.time.replace(':', '')}00`,
+      'DURATION:PT15M',
+      'RRULE:FREQ=DAILY',
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:${summary}`,
+      'TRIGGER:PT0S',
+      'END:VALARM',
+      'END:VEVENT',
+    )
+  })
+  lines.push('END:VCALENDAR')
+  return `${lines.map(fold).join('\r\n')}\r\n`
+}

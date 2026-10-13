@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { FileImage } from '../../components/FileImage'
 import { FilePicker } from '../../components/FilePicker'
 import { FormScreen, Optional, TextField } from '../../components/Form'
+import { TrashIcon } from '../../components/Icons'
 import { saveDog } from '../../firebase/db'
 import { deleteFile, saveImage } from '../../firebase/files'
 import type { Contact, Dog, WithId } from '../../firebase/types'
 import { isValidISO } from '../../lib/dates'
+import { sortMeals, type Meal } from '../../lib/feeding'
 import { compressImage, PHOTO, type CompressedImage } from '../../lib/image'
 import { useToday } from '../../lib/useToday'
 
@@ -22,6 +24,8 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
   const [vetPhone, setVetPhone] = useState(dog.vet?.phone ?? '')
   const [trainerName, setTrainerName] = useState(dog.trainer?.name ?? '')
   const [trainerPhone, setTrainerPhone] = useState(dog.trainer?.phone ?? '')
+  const [grams, setGrams] = useState(dog.feeding ? String(dog.feeding.gramsPerDay) : '')
+  const [meals, setMeals] = useState<Meal[]>(() => sortMeals(dog.feeding?.meals ?? []))
   const [photo, setPhoto] = useState<(CompressedImage & { previewUrl: string }) | null>(null)
   const [errors, setErrors] = useState<{ name?: string; birthDate?: string; adoptionDate?: string; photo?: string }>({})
   const [saving, setSaving] = useState(false)
@@ -47,6 +51,7 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
     if (!isValidISO(adoptionDate)) found.adoptionDate = 'Choisis une date.'
     setErrors(found)
     if (Object.keys(found).length) return
+    const gramsPerDay = Math.max(0, Math.round(Number(grams.replace(',', '.')) || 0))
     setSaving(true)
     let { photoFileId, photoThumbFileId } = dog
     if (photo) {
@@ -65,6 +70,8 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
       trainer: contact(trainerName, trainerPhone),
       photoFileId,
       photoThumbFileId,
+      feeding: gramsPerDay || meals.length ? { gramsPerDay, meals: sortMeals(meals.filter((m) => m.time)) } : undefined,
+      seedVersion: dog.seedVersion,
     })
     onClose()
   }
@@ -110,6 +117,46 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
         value={chip}
         onChange={(e) => setChip(e.target.value)}
       />
+
+      <fieldset className="m-0 flex flex-col gap-3 border-0 p-0">
+        <legend className="mb-2.5 p-0 text-[19px] font-bold">Alimentation</legend>
+        <TextField label="Ration par jour (grammes)" inputMode="numeric" autoComplete="off" value={grams} onChange={(e) => setGrams(e.target.value.replace(/[^\d]/g, ''))} />
+        {meals.map((meal, i) => (
+          <div key={i} className="grid grid-cols-[minmax(0,1fr)_130px_44px] items-end gap-2">
+            <TextField
+              label={`Repas ${i + 1}`}
+              value={meal.label}
+              autoComplete="off"
+              onChange={(e) => setMeals(meals.map((m, j) => (j === i ? { ...m, label: e.target.value } : m)))}
+            />
+            <TextField
+              label="Heure"
+              type="time"
+              value={meal.time}
+              className="px-3"
+              onChange={(e) => setMeals(meals.map((m, j) => (j === i ? { ...m, time: e.target.value } : m)))}
+            />
+            <button
+              type="button"
+              aria-label={`Retirer le repas ${i + 1}`}
+              onClick={() => setMeals(meals.filter((_, j) => j !== i))}
+              className="flex h-[52px] w-11 items-center justify-center rounded-full border-0 bg-transparent text-muted"
+            >
+              <TrashIcon size={20} />
+            </button>
+          </div>
+        ))}
+        {meals.length < 4 && (
+          <button
+            type="button"
+            onClick={() => setMeals([...meals, { label: 'Repas', time: '12:00' }])}
+            className="h-12 rounded-full border-[1.5px] border-dashed border-[#9AA39F] bg-transparent text-[15px] font-semibold text-primary"
+          >
+            Ajouter un repas
+          </button>
+        )}
+        <p className="text-[13px] leading-snug text-muted">Après un changement d'heure, retouche « Recevoir les rappels sur l'iPhone » sur l'accueil pour mettre les rappels à jour.</p>
+      </fieldset>
 
       <fieldset className="m-0 flex flex-col gap-3 border-0 p-0">
         <legend className="mb-2.5 p-0 text-[19px] font-bold">Vétérinaire</legend>

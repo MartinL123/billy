@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FilePicker } from '../../components/FilePicker'
 import { ImportIcon, PhotoIcon } from '../../components/Icons'
+import { PageHeader } from '../../components/PageHeader'
 import { Fab } from '../../components/TabBar'
 import { useData } from '../../firebase/store'
 import type { EntryPhoto } from '../../firebase/types'
@@ -67,7 +68,7 @@ export default function Journal() {
 
   return (
     <div className="flex flex-col gap-5">
-      <h1 className="px-5 font-display text-[32px] font-bold tracking-[-0.5px]">Journal</h1>
+      <PageHeader title="Journal" className="px-5" />
 
       {entries.length === 0 ? (
         <EmptyJournal onPhotos={importPhotos} />

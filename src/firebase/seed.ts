@@ -1,4 +1,5 @@
 import { addMonths, type ISODate } from '../lib/dates'
+import type { Trait } from '../content/training'
 import type { Feeding } from '../lib/feeding'
 import { nextAnnual } from '../lib/recurrence'
 import type { BillyEvent, Dog } from './types'
@@ -7,7 +8,10 @@ const BIRTH: ISODate = '2026-05-13'
 const ADOPTION: ISODate = '2026-09-19'
 
 /** Version courante des données de départ. À augmenter quand on en ajoute. */
-export const SEED_VERSION = 2
+export const SEED_VERSION = 3
+
+/** Traits de Billy : chiot et craintif (docs/spec-v2-dressage.md, § 5). */
+export const DEFAULT_TRAITS: Trait[] = ['chiot', 'craintif']
 
 export const DEFAULT_FEEDING: Feeding = {
   gramsPerDay: 300,
@@ -42,6 +46,7 @@ export function buildSeed(today: ISODate): { dog: Dog; events: Record<string, Bi
       breed: 'Croisé épagneul × labrador',
       adoptionDate: ADOPTION,
       feeding: DEFAULT_FEEDING,
+      traits: DEFAULT_TRAITS,
       seedVersion: SEED_VERSION,
     },
     events: {

@@ -14,6 +14,8 @@ import { formatAgeShort } from '../../lib/age'
 import type { EventType } from '../../lib/events'
 import { formatLong, formatShort, formatTime, parseISO } from '../../lib/dates'
 import { careStatus } from '../../lib/health'
+import { guards } from '../../lib/traits'
+import { traitInfo } from '../../content/training'
 import { formatBytes } from '../../lib/image'
 import { sortMeals } from '../../lib/feeding'
 import { useBack } from '../../lib/useBack'
@@ -164,6 +166,31 @@ export default function Profile() {
           </div>
         </section>
       )}
+
+      <section className="flex flex-col gap-2.5">
+        <h2 className="text-[19px] font-bold">Traits</h2>
+        {dog.traits?.length ? (
+          <div className="card flex flex-col gap-3 p-4">
+            <div className="flex flex-wrap gap-2">
+              {dog.traits.map((trait) => (
+                <span key={trait} className="rounded-xl bg-primary-soft px-2.5 py-1 text-[13px] font-semibold text-primary-dark">
+                  {traitInfo(trait)?.label}
+                </span>
+              ))}
+            </div>
+            <ul className="m-0 flex list-disc flex-col gap-1 pl-5 text-[15px] leading-snug text-muted">
+              {guards(dog.traits).map((guard) => (
+                <li key={guard}>{guard}</li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <p className="text-[15px] leading-snug text-muted">Les traits adaptent le chemin du dressage (exercices, précautions), jamais les objectifs.</p>
+        )}
+        <button type="button" onClick={() => setEditing(true)} className="h-11 self-start border-0 bg-transparent p-0 text-base font-semibold text-primary">
+          Modifier les traits
+        </button>
+      </section>
 
       <section className="flex flex-col gap-2.5">
         <h2 className="text-[19px] font-bold">Contacts</h2>

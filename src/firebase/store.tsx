@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { ensureSeed, upgradeSeed, watchCollection, watchDog } from './db'
-import type { BillyDocument, BillyEvent, Dog, Entry, Exposure, TrainingSession, Weight, WithId } from './types'
+import { ensureSeed, upgradeSeed, watchAll, watchCollection, watchDog } from './db'
+import { isExposure, isTrainingSession, type BillyDocument, type BillyEvent, type BossProgress, type Dog, type Entry, type Exposure, type Place, type TrainingSession, type Weight, type WithId, type XpEntry } from './types'
 
 interface Data {
   dog: WithId<Dog>
@@ -9,8 +9,13 @@ interface Data {
   /** Les plus récentes d'abord. */
   entries: WithId<Entry>[]
   documents: WithId<BillyDocument>[]
+  /** Séances de dressage, les plus récentes d'abord. */
   sessions: WithId<TrainingSession>[]
   exposures: WithId<Exposure>[]
+  bossProgress: Record<string, WithId<BossProgress> | undefined>
+  places: WithId<Place>[]
+  /** Journal d'XP, en ajout seul. */
+  xpLog: WithId<XpEntry>[]
   /** Nombre d'éléments écrits localement et pas encore envoyés. */
   pendingCount: number
   online: boolean
@@ -51,6 +56,9 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   const [documents, setDocuments] = useState<WithId<BillyDocument>[]>()
   const [sessions, setSessions] = useState<WithId<TrainingSession>[]>()
   const [exposures, setExposures] = useState<WithId<Exposure>[]>()
+  const [bossProgress, setBossProgress] = useState<WithId<BossProgress>[]>()
+  const [places, setPlaces] = useState<WithId<Place>[]>()
+  const [xpLog, setXpLog] = useState<WithId<XpEntry>[]>()
 
   useEffect(() => {
     const stops = [
@@ -59,8 +67,12 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
       watchCollection<Weight>('weights', 'desc', setWeights),
       watchCollection<Entry>('entries', 'desc', (items) => setEntries([...items].sort(byCreation))),
       watchCollection<BillyDocument>('documents', 'desc', (items) => setDocuments([...items].sort(byCreation))),
-      watchCollection<TrainingSession>('sessions', 'desc', (items) => setSessions([...items].sort(byCreation))),
-      watchCollection<Exposure>('exposures', 'desc', (items) => setExposures([...items].sort(byCreation))),
+      // Les documents d'avant la spec V2 du dressage n'ont pas la bonne forme : ils sont ignorés, pas supprimés.
+      watchCollection<TrainingSession>('sessions', 'desc', (items) => setSessions(items.filter(isTrainingSession).sort(byCreation))),
+      watchCollection<Exposure>('exposures', 'desc', (items) => setExposures(items.filter(isExposure).sort(byCreation))),
+      watchAll<BossProgress>('bossProgress', setBossProgress),
+      watchAll<Place>('places', setPlaces),
+      watchCollection<XpEntry>('xpLog', 'desc', setXpLog),
     ]
     return () => stops.forEach((stop) => stop())
   }, [])
@@ -76,10 +88,11 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   }, [dog, events])
 
   const data = useMemo<Data | null>(() => {
-    if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures) return null
-    const pendingCount = [dog, ...events, ...weights, ...entries, ...documents, ...sessions, ...exposures].filter((item) => item.pending).length
-    return { dog, events, weights, entries, documents, sessions, exposures, pendingCount, online }
-  }, [dog, events, weights, entries, documents, sessions, exposures, online])
+    if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures || !bossProgress || !places || !xpLog) return null
+    const pendingCount = [dog, ...events, ...weights, ...entries, ...documents, ...sessions, ...exposures, ...bossProgress, ...places].filter((item) => item.pending).length
+    const progressById = Object.fromEntries(bossProgress.map((p) => [p.id, p]))
+    return { dog, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, places, xpLog, pendingCount, online }
+  }, [dog, events, weights, entries, documents, sessions, exposures, bossProgress, places, xpLog, online])
 
   if (!data) return <>{fallback(dog === null && !online)}</>
   return <DataContext.Provider value={data}>{children}</DataContext.Provider>

@@ -16,8 +16,8 @@ import { db } from './app'
 import { newId, send, userCol, userDoc } from './paths'
 import { deleteFile } from './files'
 export { newId } from './paths'
-import { buildSeed, DEFAULT_FEEDING, healthHistory, SEED_VERSION, VACCINE_REMINDER_DATE, VACCINE_REMINDER_ID } from './seed'
-import type { BillyDocument, BillyEvent, Dog, Entry, Exposure, TrainingSession, Weight, WithId } from './types'
+import { buildSeed, DEFAULT_FEEDING, DEFAULT_TRAITS, healthHistory, SEED_VERSION, VACCINE_REMINDER_DATE, VACCINE_REMINDER_ID } from './seed'
+import type { BillyDocument, BillyEvent, Dog, Entry, Weight, WithId } from './types'
 import { todayISO } from '../lib/dates'
 import { nextOccurrence } from '../lib/recurrence'
 
@@ -26,6 +26,16 @@ import { nextOccurrence } from '../lib/recurrence'
 export function watchCollection<T>(name: string, direction: 'asc' | 'desc', onData: (items: WithId<T>[]) => void): () => void {
   return onSnapshot(
     query(userCol(name), orderBy('date', direction)),
+    { includeMetadataChanges: true },
+    (snap) => onData(snap.docs.map((d) => ({ ...(d.data() as T), id: d.id, pending: d.metadata.hasPendingWrites }))),
+    (error) => console.error(`Lecture de ${name} impossible`, error),
+  )
+}
+
+/** Écoute une collection entière, sans tri (documents sans champ `date`). */
+export function watchAll<T>(name: string, onData: (items: WithId<T>[]) => void): () => void {
+  return onSnapshot(
+    userCol(name),
     { includeMetadataChanges: true },
     (snap) => onData(snap.docs.map((d) => ({ ...(d.data() as T), id: d.id, pending: d.metadata.hasPendingWrites }))),
     (error) => console.error(`Lecture de ${name} impossible`, error),
@@ -60,14 +70,21 @@ export async function ensureSeed(): Promise<void> {
  * sans toucher à ce qui a déjà été saisi.
  */
 export function upgradeSeed(dog: WithId<Dog>, events: WithId<BillyEvent>[]): void {
-  if ((dog.seedVersion ?? 1) >= SEED_VERSION) return
+  const version = dog.seedVersion ?? 1
+  if (version >= SEED_VERSION) return
   const batch = writeBatch(db)
-  for (const [id, event] of Object.entries(healthHistory())) {
-    if (!events.some((e) => e.id === id)) batch.set(userDoc('events', id), event as DocumentData)
+  if (version < 2) {
+    for (const [id, event] of Object.entries(healthHistory())) {
+      if (!events.some((e) => e.id === id)) batch.set(userDoc('events', id), event as DocumentData)
+    }
+    const reminder = events.find((e) => e.id === VACCINE_REMINDER_ID)
+    if (reminder && !reminder.date) batch.update(userDoc('events', VACCINE_REMINDER_ID), { date: VACCINE_REMINDER_DATE })
   }
-  const reminder = events.find((e) => e.id === VACCINE_REMINDER_ID)
-  if (reminder && !reminder.date) batch.update(userDoc('events', VACCINE_REMINDER_ID), { date: VACCINE_REMINDER_DATE })
-  batch.update(userDoc('dog', 'billy'), { seedVersion: SEED_VERSION, ...(dog.feeding ? {} : { feeding: DEFAULT_FEEDING }) })
+  batch.update(userDoc('dog', 'billy'), {
+    seedVersion: SEED_VERSION,
+    ...(dog.feeding ? {} : { feeding: DEFAULT_FEEDING }),
+    ...(dog.traits ? {} : { traits: DEFAULT_TRAITS }),
+  })
   send(batch.commit())
 }
 
@@ -146,24 +163,6 @@ export function saveWeight(id: string, weight: Weight): void {
 
 export function deleteWeight(id: string): void {
   send(deleteDoc(userDoc('weights', id)))
-}
-
-// ——— Dressage ———
-
-export function saveSession(id: string, session: TrainingSession): void {
-  send(setDoc(userDoc('sessions', id), session as DocumentData))
-}
-
-export function deleteSession(id: string): void {
-  send(deleteDoc(userDoc('sessions', id)))
-}
-
-export function saveExposure(id: string, exposure: Exposure): void {
-  send(setDoc(userDoc('exposures', id), exposure as DocumentData))
-}
-
-export function deleteExposure(id: string): void {
-  send(deleteDoc(userDoc('exposures', id)))
 }
 
 // ——— Journal ———

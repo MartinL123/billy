@@ -7,6 +7,7 @@ import { saveDog } from '../../firebase/db'
 import { deleteFile, saveImage } from '../../firebase/files'
 import type { Contact, Dog, WithId } from '../../firebase/types'
 import { isValidISO } from '../../lib/dates'
+import { TRAITS, type Trait } from '../../content/training'
 import { sortMeals, type Meal } from '../../lib/feeding'
 import { compressImage, PHOTO, type CompressedImage } from '../../lib/image'
 import { useToday } from '../../lib/useToday'
@@ -26,6 +27,7 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
   const [trainerPhone, setTrainerPhone] = useState(dog.trainer?.phone ?? '')
   const [grams, setGrams] = useState(dog.feeding ? String(dog.feeding.gramsPerDay) : '')
   const [meals, setMeals] = useState<Meal[]>(() => sortMeals(dog.feeding?.meals ?? []))
+  const [traits, setTraits] = useState<Trait[]>(dog.traits ?? [])
   const [photo, setPhoto] = useState<(CompressedImage & { previewUrl: string }) | null>(null)
   const [errors, setErrors] = useState<{ name?: string; birthDate?: string; adoptionDate?: string; photo?: string }>({})
   const [saving, setSaving] = useState(false)
@@ -71,6 +73,7 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
       photoFileId,
       photoThumbFileId,
       feeding: gramsPerDay || meals.length ? { gramsPerDay, meals: sortMeals(meals.filter((m) => m.time)) } : undefined,
+      traits: TRAITS.map((t) => t.id).filter((id) => traits.includes(id)),
       seedVersion: dog.seedVersion,
     })
     onClose()
@@ -117,6 +120,22 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
         value={chip}
         onChange={(e) => setChip(e.target.value)}
       />
+
+      <fieldset className="m-0 flex flex-col gap-1 border-0 p-0">
+        <legend className="mb-1 p-0 text-[19px] font-bold">Traits</legend>
+        <p className="mb-1 text-[13px] leading-snug text-muted">Ils adaptent le chemin du dressage : boss conseillés, exercices, précautions. Les objectifs restent les mêmes.</p>
+        {TRAITS.map((trait) => (
+          <label key={trait.id} className="flex min-h-11 items-center gap-3 text-base">
+            <input
+              type="checkbox"
+              checked={traits.includes(trait.id)}
+              onChange={(e) => setTraits(e.target.checked ? [...traits, trait.id] : traits.filter((t) => t !== trait.id))}
+              className="size-6 shrink-0 accent-primary"
+            />
+            {trait.label}
+          </label>
+        ))}
+      </fieldset>
 
       <fieldset className="m-0 flex flex-col gap-3 border-0 p-0">
         <legend className="mb-2.5 p-0 text-[19px] font-bold">Alimentation</legend>

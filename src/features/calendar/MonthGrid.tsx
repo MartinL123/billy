@@ -40,7 +40,7 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
     colorsByDay.set(event.date, colors)
   }
 
-  const navButton = 'flex size-11 items-center justify-center rounded-full border-0 bg-transparent p-0 text-text'
+  const navButton = 'flex size-12 items-center justify-center rounded-full border-0 bg-transparent p-0 text-text'
 
   return (
     <section aria-label="Vue du mois" className="card flex flex-col gap-1.5 rounded-3xl px-3 pt-3 pb-2">
@@ -75,7 +75,7 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
               aria-pressed={isSelected}
               aria-label={`${formatLong(day)}${count ? `, ${count} événement${count > 1 ? 's' : ''}` : ''}`}
               onClick={() => onSelect(day)}
-              className="flex h-[46px] flex-col items-center gap-px border-0 bg-transparent p-0 text-[15px]"
+              className="flex h-12 flex-col items-center gap-px border-0 bg-transparent p-0 text-[15px]"
             >
               <span
                 className={`flex size-[34px] items-center justify-center rounded-full ${

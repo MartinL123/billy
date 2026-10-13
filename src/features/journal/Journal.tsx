@@ -7,7 +7,7 @@ import { Fab } from '../../components/TabBar'
 import { useData } from '../../firebase/store'
 import type { EntryPhoto } from '../../firebase/types'
 import { formatMonthYear, monthKey } from '../../lib/dates'
-import { byRecency, exposureAsMoment, sessionAsMoment } from '../../lib/carnet'
+import { byRecency, modernCard, exposureAsMoment, sessionAsMoment } from '../../lib/carnet'
 import { allTags, sameTag } from '../../lib/tags'
 import { useToday } from '../../lib/useToday'
 import { setDraftPhotos } from './draft'
@@ -37,7 +37,7 @@ export default function Journal() {
   const { entries: written, sessions, exposures } = useData()
   // Le Carnet est la seule liste : moments racontés, et anciennes séances et situations en lecture seule.
   const legacy: Moment[] = [...sessions.map(sessionAsMoment), ...exposures.map(exposureAsMoment)].map((m) => ({ ...m, tags: [], photos: [], pending: false, readOnly: true }))
-  const entries: Moment[] = [...written, ...legacy].sort(byRecency)
+  const entries: Moment[] = [...written.map(modernCard), ...legacy].sort(byRecency)
   const today = useToday()
   const navigate = useNavigate()
   const [tag, setTag] = useState<string | null>(null)

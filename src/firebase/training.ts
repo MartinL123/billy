@@ -7,7 +7,7 @@ import { addValidation, EMPTY_PROGRESS, markPreApp } from '../lib/bossProgress'
 import type { ISODate } from '../lib/dates'
 import { MOMENT_XP, previewMoment } from '../lib/moment'
 import { globalLevel, XP } from '../lib/xp'
-import { levelTitle, stepPhraseLower } from '../content/phrases'
+import { levelTitle, stepPhrase, stepPhraseLower } from '../content/phrases'
 
 const now = () => new Date().toISOString()
 
@@ -82,7 +82,7 @@ export function recordSession(session: TrainingSession, validations: ValidationI
       const level = boss.levels[result.levelGained - 1]!
       xp += XP.level
       add(xpRef(`palier-${boss.id}-${result.levelGained}`), strip<XpEntry>({ date: session.date, kind: 'palier', xp: XP.level, bossId: boss.id, label: `${boss.name} · ${level.title}`, createdAt: now() }))
-      add(userDoc('entries', `palier-${boss.id}-${result.levelGained}`), levelCard(session.date, boss.name, result.levelGained, level.title, level.criterion))
+      add(userDoc('entries', `palier-${boss.id}-${result.levelGained}`), levelCard(session.date, boss.id, result.levelGained))
     }
   }
   send(batch.commit())
@@ -96,8 +96,8 @@ export function recordSession(session: TrainingSession, validations: ValidationI
   return { xp, results, undo }
 }
 
-function levelCard(date: ISODate, bossName: string, level: number, title: string, criterion: string): Entry {
-  return { date, text: `Palier acquis : ${bossName}, P${level} « ${title} ».\n${criterion}.`, tags: ['Dressage'], photos: [], createdAt: now() }
+function levelCard(date: ISODate, bossId: string, level: number): Entry {
+  return { date, text: `C'est réussi ! ${stepPhrase(bossId, level)}.`, tags: [], photos: [], createdAt: now() }
 }
 
 /** Enregistre une exposition et son XP. La distance n'entre jamais dans le calcul. */

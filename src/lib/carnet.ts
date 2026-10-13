@@ -1,4 +1,5 @@
-import { exerciseById } from '../content/training'
+import { stepPhrase } from '../content/phrases'
+import { BOSSES, exerciseById } from '../content/training'
 import type { ISODate } from './dates'
 import { feelingOfReaction, type Feeling } from './moment'
 
@@ -62,3 +63,31 @@ export function exposureAsMoment(exposure: LegacyExposure): LegacyMoment {
 /** Le Carnet est la seule liste : les plus récents d'abord. */
 export const byRecency = <T extends { date: ISODate; createdAt?: string }>(a: T, b: T) =>
   b.date.localeCompare(a.date) || (b.createdAt ?? '').localeCompare(a.createdAt ?? '')
+
+const OLD_CARD = /^Palier acquis : (.+), P([1-5]) «/
+
+/** Les « premières fois » de la V2, avec les mots d'aujourd'hui. */
+const OLD_FIRSTS: [string, string][] = [
+  ['Première séance', 'Premier exercice'],
+  ['Première exposition notée', 'Première situation qui lui fait peur racontée'],
+  ['Première retraite stratégique', 'Première fois où on s’est éloignés pour qu’il se sente mieux'],
+  ['Premier palier acquis', 'Première étape acquise'],
+  ['Premier palier « Dehors au calme »', 'Première étape acquise dehors, au calme'],
+  ['Première étoile de maîtrise', 'Première compétence réussie dans un nouveau lieu'],
+  ['Un déclencheur croisé en restant détendu', 'Il a croisé ce qui lui fait peur en restant détendu'],
+  ['Trois boss travaillés', 'Trois compétences travaillées'],
+]
+
+/**
+ * Les cartes de réussite écrites avant la V3 parlaient de « palier » : on les affiche avec les mots d'aujourd'hui.
+ * Rien n'est modifié dans les données.
+ */
+export function modernCard<T extends { text: string; tags: string[] }>(entry: T): T {
+  if (!entry.tags.includes('Dressage')) return entry
+  const tags = entry.tags.map((t) => (t === 'Dressage' ? 'Réussite' : t))
+  const old = OLD_CARD.exec(entry.text)
+  const boss = old && BOSSES.find((b) => b.name === old[1])
+  if (old && boss) return { ...entry, text: `C'est réussi ! ${stepPhrase(boss.id, Number(old[2]))}.`, tags }
+  const text = OLD_FIRSTS.reduce((t, [before, now]) => t.replace(before, now), entry.text)
+  return { ...entry, text, tags }
+}

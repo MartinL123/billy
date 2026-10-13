@@ -227,6 +227,14 @@ const SCENES: Record<string, () => ReactNode> = {
       <Palm x={120} y={54} />
     </>
   ),
+  tourne: () => (
+    <>
+      <Dog pose="debout" x={86} />
+      <Person x={166} hand={[138, 46]} />
+      <Treat x={134} y={46} />
+      <Arrow d="M128,30 a34,20 0 1 0 -8,34" dashed />
+    </>
+  ),
   dehors: () => (
     <>
       <circle cx="170" cy="24" r="12" fill="#F4C27A" />

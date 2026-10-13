@@ -30,11 +30,16 @@ describe('expérience', () => {
     expect(total).toBe(3 * (15 + 10) + 10)
   })
 
-  it('donne le bonus « acquis » une seule fois, à la 3e réussite d’affilée', () => {
+  it('donne un bonus à chaque palier validé par la pratique', () => {
     const three = [session('2026-10-01', 'assis'), session('2026-10-02', 'assis'), session('2026-10-03', 'assis')]
-    expect(xp(three)).toBe(3 * 30 + 50)
-    const relapse = [...three, session('2026-10-04', 'assis', 'difficile'), session('2026-10-05', 'assis'), session('2026-10-06', 'assis'), session('2026-10-07', 'assis')]
-    expect(xp(relapse)).toBe(xp(three) + 20 + 3 * 30)
+    expect(xp(three)).toBe(3 * 30 + 30)
+    const six = [...three, session('2026-10-04', 'assis'), session('2026-10-05', 'assis', 'moyen'), session('2026-10-06', 'assis'), session('2026-10-07', 'assis')]
+    expect(xp(six)).toBe(xp(three) + 3 * 30 + 25 + 30)
+  })
+
+  it('ne donne rien pour « il sait déjà »', () => {
+    expect(xp([session('2026-10-01', 'palier-assis')])).toBe(0)
+    expect(missionsDone([session('2026-10-01', 'palier-assis')], [], '2026-10-01')).toEqual({ exercise: false, game: false, challenge: false })
   })
 
   it('récompense la journée parfaite', () => {
@@ -89,18 +94,13 @@ describe('recommandations', () => {
     expect([first!.exercise.id, first!.reason]).toEqual(['nom', 'Nouveau à découvrir'])
   })
 
-  it('garde les ordres « plus tard » pour après les bases', () => {
+  it('ne propose que les ordres ouverts dans l’arbre', () => {
     const ids = recommendExercises([], '2026-10-13').map((r) => r.exercise.id)
+    expect(ids).toContain('assis')
+    expect(ids).not.toContain('pas-bouger')
     expect(ids).not.toContain('traverse')
-    const ready = ['pas-bouger', 'laisse'].flatMap((id) => [1, 2, 3].map((d) => session(`2026-10-0${d}`, id)))
-    expect(recommendExercises(ready, '2026-10-13').map((r) => r.exercise.id)).toContain('traverse')
-  })
-
-  it('priorise l’exercice en cours le plus délaissé', () => {
-    const sessions = [session('2026-10-05', 'rappel', 'moyen'), session('2026-10-12', 'assis', 'moyen')]
-    const [first, second] = recommendExercises(sessions, '2026-10-13')
-    expect([first!.exercise.id, first!.reason]).toEqual(['rappel', 'Pas travaillé depuis 8 jours'])
-    expect([second!.exercise.id, second!.reason]).toEqual(['assis', 'Travaillé hier'])
+    const knows = [session('2026-10-01', 'palier-assis'), session('2026-10-01', 'palier-assis')]
+    expect(recommendExercises(knows, '2026-10-13').map((r) => r.exercise.id)).toContain('pas-bouger')
   })
 
   it('fait passer en premier un ordre qui se dégrade', () => {
@@ -119,7 +119,7 @@ describe('recommandations', () => {
     const hard = recommendExercises([session('2026-10-10', 'rappel', 'difficile'), session('2026-10-11', 'rappel', 'difficile')], '2026-10-13')[0]!
     expect(hard.advice).toContain('Deux séances difficiles')
     const close = recommendExercises([session('2026-10-10', 'rappel'), session('2026-10-11', 'rappel')], '2026-10-13')[0]!
-    expect(close.advice).toContain('acquis')
+    expect(close.advice).toContain('palier est validé')
   })
 
   it('choisit un jeu du jour stable et une peur prioritaire', () => {
@@ -141,6 +141,6 @@ describe('succès', () => {
   it('débloque au fil des progrès', () => {
     const sessions = [session('2026-10-01', 'assis'), session('2026-10-02', 'assis'), session('2026-10-03', 'assis'), game('2026-10-03')]
     const exposures = [exposure('2026-10-01', 'La ruelle', 5), exposure('2026-10-03', 'La ruelle', 3)]
-    expect(earned(sessions, exposures, 700)).toEqual(['premiere', 'serie-3', 'parfaite', 'acquis-1', 'courage', 'niveau-5'])
+    expect(earned(sessions, exposures, 700)).toEqual(['premiere', 'serie-3', 'parfaite', 'palier-1', 'courage', 'niveau-5'])
   })
 })

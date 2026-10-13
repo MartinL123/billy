@@ -1,4 +1,5 @@
-import type { Mastery, SessionResult, Trend } from '../../lib/training'
+import { CheckIcon } from '../../components/Icons'
+import { SUCCESSES_TO_PASS, type Progress, type SessionResult, type Trend } from '../../lib/training'
 
 const BAR: Record<SessionResult, { height: number; color: string; label: string }> = {
   difficile: { height: 8, color: '#D9661F', label: 'difficile' },
@@ -28,14 +29,35 @@ export function MasteryBars({ recent, className = '' }: { recent: SessionResult[
   )
 }
 
-/** « Maîtrise 60 % · ↗ En progrès » */
-export function MasteryText({ mastery, acquired = false }: { mastery: Mastery; acquired?: boolean }) {
-  if (mastery.percent === undefined) return <>Jamais travaillé</>
-  const trend = mastery.trend ? TREND_LABEL[mastery.trend] : undefined
+/** « Palier 2 sur 5 », ou « Entretien » une fois tous les paliers validés. */
+export const levelLabel = (p: Progress) => (p.maintenance ? 'Entretien' : `Palier ${p.level} sur ${p.total}`)
+
+/** Les réussites du palier en cours : 3 ronds à remplir. */
+export function Pips({ progress }: { progress: Progress }) {
+  if (progress.maintenance) return null
   return (
-    <>
-      {acquired ? 'Acquis · ' : ''}
-      Maîtrise {mastery.percent} %{trend && <span className={`font-semibold ${trend.tone}`}> · {trend.text}</span>}
-    </>
+    <span className="flex items-center gap-1.5" role="img" aria-label={`${progress.successes} réussites sur ${SUCCESSES_TO_PASS} pour valider le palier`}>
+      {Array.from({ length: SUCCESSES_TO_PASS }, (_, i) => (
+        <span
+          key={i}
+          className={`flex size-6 items-center justify-center rounded-full ${i < progress.successes ? 'bg-primary text-white' : 'border-[1.5px] border-dashed border-[#9AA39F]'}`}
+        >
+          {i < progress.successes && <CheckIcon size={14} />}
+        </span>
+      ))}
+    </span>
+  )
+}
+
+/** Tous les paliers d'un ordre : validés, en cours, à venir. */
+export function LevelTrack({ progress }: { progress: Progress }) {
+  return (
+    <span className="flex gap-1" role="img" aria-label={levelLabel(progress)}>
+      {Array.from({ length: progress.total }, (_, i) => {
+        const n = i + 1
+        const tone = n < progress.level ? 'bg-primary' : n === progress.level ? 'bg-[#F4C27A]' : 'bg-placeholder'
+        return <span key={n} className={`h-2.5 flex-1 rounded-full ${tone}`} />
+      })}
+    </span>
   )
 }

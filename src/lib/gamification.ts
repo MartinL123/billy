@@ -1,6 +1,6 @@
 import { addDays, dayNumber, diffDays, type ISODate } from './dates'
 import { isChew } from './chews'
-import { EXERCISES, exerciseStatus, isUnlocked, mastery, type Exercise, type SessionResult, type Theme } from './training'
+import { EXERCISES, exerciseStatus, isMark, isUnlocked, mastery, progress, validatedLevels, type Exercise, type SessionResult, type Theme } from './training'
 
 // Tout est calculé à partir des séances et des expositions enregistrées : rien d'autre n'est stocké,
 // donc l'expérience est la même sur tous les appareils et se recalcule si on supprime une séance.
@@ -97,7 +97,7 @@ const GAME_PREFIX = 'jeu-'
 export const gameSessionId = (game: Game) => `${GAME_PREFIX}${game.id}`
 export const isGame = (session: { exerciseId: string }) => session.exerciseId.startsWith(GAME_PREFIX)
 /** Séance sur un ordre du programme (ni jeu, ni chose à mâcher). */
-export const isExercise = (session: { exerciseId: string }) => !isGame(session) && !isChew(session)
+export const isExercise = (session: { exerciseId: string }) => !isGame(session) && !isChew(session) && !isMark(session)
 
 // ——— Expérience ———
 
@@ -109,8 +109,8 @@ export const XP = {
   exposure: 15,
   /** Peur plus basse que la fois précédente pour le même déclencheur. */
   braver: 10,
-  /** Première fois qu'un exercice atteint 3 séances réussies d'affilée. */
-  acquired: 50,
+  /** Palier d'un ordre validé par la pratique. */
+  level: 30,
   mission: 10,
   perfectDay: 20,
 }
@@ -158,20 +158,14 @@ export function xpByDay(sessions: SessionLike[], exposures: ExposureLike[]): Map
   const days = new Map<ISODate, number>()
   const add = (date: ISODate, xp: number) => days.set(date, (days.get(date) ?? 0) + xp)
 
-  const streaks = new Map<string, number>()
-  const acquired = new Set<string>()
-  for (const session of [...sessions].sort(oldestFirst)) {
-    if (!isExercise(session)) {
-      add(session.date, isGame(session) ? XP.game : XP.chew)
-      continue
-    }
-    add(session.date, XP.session[session.result] ?? XP.session.moyen)
-    const run = session.result === 'reussi' ? (streaks.get(session.exerciseId) ?? 0) + 1 : 0
-    streaks.set(session.exerciseId, run)
-    if (run >= 3 && !acquired.has(session.exerciseId)) {
-      acquired.add(session.exerciseId)
-      add(session.date, XP.acquired)
-    }
+  for (const session of sessions) {
+    if (isMark(session)) continue
+    if (isGame(session)) add(session.date, XP.game)
+    else if (isChew(session)) add(session.date, XP.chew)
+    else add(session.date, XP.session[session.result] ?? XP.session.moyen)
+  }
+  for (const exercise of EXERCISES) {
+    for (const date of progress(sessions, exercise).validations) add(date, XP.level)
   }
 
   const lastFear = new Map<string, number>()
@@ -269,42 +263,41 @@ export interface Recommendation {
   advice?: string
 }
 
-/** Exercices à travailler aujourd'hui, du plus utile au moins utile, d'après ce qui a été fait avant aujourd'hui. */
+/** Ordres à travailler aujourd'hui, du plus utile au moins utile, d'après ce qui a été fait avant aujourd'hui. */
 export function recommendExercises(sessions: SessionLike[], today: ISODate): Recommendation[] {
-  const before = sessions.filter((s) => s.date < today && isExercise(s))
-  const lastOf = (id: string) => before.filter((s) => s.exerciseId === id).sort(oldestFirst).reverse()
+  const before = sessions.filter((s) => s.date < today && (isExercise(s) || isMark(s)))
+  const worked = before.filter(isExercise)
   const since = (id: string) => {
-    const last = lastOf(id)[0]
+    const last = worked.filter((s) => s.exerciseId === id).sort(oldestFirst).pop()
     return last ? diffDays(last.date, today) : Infinity
   }
-  const ago = (days: number) => (days === 1 ? 'Travaillé hier' : `Pas travaillé depuis ${days} jours`)
+  const ago = (days: number) => (days === Infinity ? 'À reprendre' : days === 1 ? 'Travaillé hier' : `Pas travaillé depuis ${days} jours`)
 
-  // Les ordres « plus tard » n'entrent dans les propositions qu'une fois leurs prérequis acquis.
-  const ready = EXERCISES.filter((e) => isUnlocked(before, e))
-  const byStatus = (status: ReturnType<typeof exerciseStatus>) => ready.filter((e) => exerciseStatus(before, e.id) === status)
-  // Un ordre qui se dégrade passe avant tout le reste, puis le plus délaissé.
-  const declining = (id: string) => Number(mastery(before, id).trend === 'moins-bien')
-  const inProgress = byStatus('en-cours').sort((a, b) => declining(b.id) - declining(a.id) || since(b.id) - since(a.id))
-  const fresh = byStatus('a-decouvrir')
-  const known = byStatus('acquis').sort((a, b) => since(b.id) - since(a.id))
+  // Seuls les ordres ouverts dans l'arbre sont proposés.
+  const ready = EXERCISES.filter((e) => isUnlocked(before, e)).map((exercise) => {
+    const state = progress(before, exercise)
+    const declining = state.struggling || mastery(worked, exercise.id).trend === 'moins-bien'
+    return { exercise, state, declining }
+  })
+  const inProgress = ready
+    .filter((r) => r.state.started && !r.state.maintenance)
+    // Un ordre qui se dégrade passe avant tout le reste, puis le plus délaissé.
+    .sort((a, b) => Number(b.declining) - Number(a.declining) || since(b.exercise.id) - since(a.exercise.id))
+  const fresh = ready.filter((r) => !r.state.started)
+  const kept = ready.filter((r) => r.state.maintenance).sort((a, b) => since(b.exercise.id) - since(a.exercise.id))
 
   return [
-    ...inProgress.map((exercise): Recommendation => {
-      const [last, previous] = lastOf(exercise.id)
-      const struggling = last?.result === 'difficile' && previous?.result === 'difficile'
-      const almost = last?.result === 'reussi' && previous?.result === 'reussi'
-      return {
-        exercise,
-        reason: declining(exercise.id) ? 'En baisse ces derniers temps' : ago(since(exercise.id)),
-        advice: struggling
-          ? 'Deux séances difficiles : raccourcis, rapproche-toi, et termine sur une réussite facile.'
-          : almost
-            ? 'Encore une réussite et l’exercice est acquis !'
-            : undefined,
-      }
-    }),
-    ...fresh.map((exercise): Recommendation => ({ exercise, reason: 'Nouveau à découvrir' })),
-    ...known.map((exercise): Recommendation => ({ exercise, reason: 'Révision d’un acquis' })),
+    ...inProgress.map(({ exercise, state, declining }): Recommendation => ({
+      exercise,
+      reason: declining ? 'En baisse ces derniers temps' : ago(since(exercise.id)),
+      advice: state.struggling
+        ? 'Deux séances difficiles : raccourcis, rapproche-toi, et termine sur une réussite facile.'
+        : state.successes === 2
+          ? 'Encore une réussite et le palier est validé !'
+          : undefined,
+    })),
+    ...fresh.map(({ exercise }): Recommendation => ({ exercise, reason: 'Nouveau à découvrir' })),
+    ...kept.map(({ exercise }): Recommendation => ({ exercise, reason: 'Entretien' })),
   ]
 }
 
@@ -328,17 +321,20 @@ export interface Badge {
 }
 
 const THEME_BADGES: { theme: Theme; id: string; name: string; detail: string }[] = [
-  { theme: 'bases', id: 'bases', name: 'Les bases', detail: 'Tous les exercices de base acquis' },
-  { theme: 'proprete', id: 'proprete', name: 'Propre !', detail: 'Toute la propreté acquise' },
-  { theme: 'socialisation', id: 'social', name: 'Sociable', detail: 'Toute la socialisation acquise' },
+  { theme: 'bases', id: 'bases', name: 'Bases solides', detail: 'Tous les ordres au palier 3' },
+  { theme: 'tours', id: 'tours', name: 'Artiste', detail: 'Tous les tours au palier 3' },
+  { theme: 'proprete', id: 'proprete', name: 'Propre !', detail: 'Toute la propreté validée' },
+  { theme: 'socialisation', id: 'social', name: 'Sociable', detail: 'Toute la socialisation au palier 3' },
 ]
 
 export function badges(sessions: SessionLike[], exposures: ExposureLike[], xp: number): Badge[] {
-  const exerciseSessions = sessions.filter(isExercise)
   const gamesPlayed = new Set(sessions.filter(isGame).map((s) => s.exerciseId)).size
-  const acquired = EXERCISES.filter((e) => exerciseStatus(exerciseSessions, e.id) === 'acquis')
-  const best = longestStreak([...sessions.map((s) => s.date), ...exposures.map((e) => e.date)])
-  const perfectDays = [...new Set(sessions.map((s) => s.date))].filter((day) => missionCount(missionsDone(sessions, exposures, day)) === 3).length
+  const levels = new Map(EXERCISES.map((e) => [e.id, validatedLevels(sessions, e)]))
+  const validated = [...levels.values()].reduce((sum, n) => sum + n, 0)
+  const kept = EXERCISES.filter((e) => exerciseStatus(sessions, e.id) === 'entretien').length
+  const real = sessions.filter((s) => !isMark(s))
+  const best = longestStreak([...real.map((s) => s.date), ...exposures.map((e) => e.date)])
+  const perfectDays = [...new Set(real.map((s) => s.date))].filter((day) => missionCount(missionsDone(sessions, exposures, day)) === 3).length
 
   // Courage : une peur redescendue d'au moins 2 niveaux par rapport à son plus haut.
   const peaks = new Map<string, number>()
@@ -353,19 +349,21 @@ export function badges(sessions: SessionLike[], exposures: ExposureLike[], xp: n
   const streakBadge = (days: number, name: string): Badge => ({ id: `serie-${days}`, name, detail: `${days} jours de suite`, earned: best >= days })
 
   return [
-    { id: 'premiere', name: 'Premier pas', detail: 'Première séance notée', earned: sessions.length + exposures.length > 0 },
+    { id: 'premiere', name: 'Premier pas', detail: 'Première séance notée', earned: real.length + exposures.length > 0 },
     streakBadge(3, 'Lancé'),
     streakBadge(7, 'Une semaine'),
     streakBadge(14, 'Régulier'),
     streakBadge(30, 'Inarrêtable'),
     { id: 'parfaite', name: 'Journée parfaite', detail: 'Les 3 missions le même jour', earned: perfectDays >= 1 },
-    { id: 'acquis-1', name: 'Ça rentre', detail: 'Premier exercice acquis', earned: acquired.length >= 1 },
-    { id: 'acquis-5', name: 'Bon élève', detail: '5 exercices acquis', earned: acquired.length >= 5 },
+    { id: 'palier-1', name: 'Ça rentre', detail: 'Premier palier validé', earned: validated >= 1 },
+    { id: 'palier-10', name: 'Bon élève', detail: '10 paliers validés', earned: validated >= 10 },
+    { id: 'palier-30', name: 'Premier de la classe', detail: '30 paliers validés', earned: validated >= 30 },
+    { id: 'entretien', name: 'Au bout', detail: 'Un ordre validé jusqu’au dernier palier', earned: kept >= 1 },
     ...THEME_BADGES.map(({ theme, id, name, detail }) => ({
       id,
       name,
       detail,
-      earned: EXERCISES.filter((e) => e.theme === theme).every((e) => acquired.includes(e)),
+      earned: EXERCISES.filter((e) => e.theme === theme).every((e) => (levels.get(e.id) ?? 0) >= Math.min(3, e.levels.length)),
     })),
     { id: 'joueur', name: 'Joueur', detail: '5 jeux différents essayés', earned: gamesPlayed >= 5 },
     { id: 'courage', name: 'Courageux', detail: 'Une peur redescendue de 2 niveaux', earned: braver },

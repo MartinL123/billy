@@ -3,7 +3,7 @@ import { PageHeader } from '../../components/PageHeader'
 import { useToast } from '../../components/Toast'
 import { useData } from '../../firebase/store'
 import { levelInfo, totalXp, xpByDay } from '../../lib/gamification'
-import { streak } from '../../lib/training'
+import { isMark, streak } from '../../lib/training'
 import { useToday } from '../../lib/useToday'
 import { ExercisesTab } from './ExercisesTab'
 import { ExposureSheet } from './ExposureSheet'
@@ -14,7 +14,7 @@ type Tab = 'jour' | 'exercices' | 'progres'
 
 const TABS: { value: Tab; label: string }[] = [
   { value: 'jour', label: 'Du jour' },
-  { value: 'exercices', label: 'Exercices' },
+  { value: 'exercices', label: 'Arbre' },
   { value: 'progres', label: 'Progrès' },
 ]
 
@@ -45,7 +45,7 @@ export default function Training() {
     )
   }, [progress, dog.name, toast])
 
-  const streakDays = streak([...sessions.map((s) => s.date), ...exposures.map((e) => e.date)], today)
+  const streakDays = streak([...sessions.filter((s) => !isMark(s)).map((s) => s.date), ...exposures.map((e) => e.date)], today)
 
   return (
     <div className="flex flex-col gap-5 px-5">

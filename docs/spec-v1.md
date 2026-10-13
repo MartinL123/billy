@@ -189,6 +189,11 @@ users/{uid}/files/{id}/chunks/{n}  { data: Bytes }                              
   - Missions du jour : un exercice recommandé, le jeu du jour, un défi (exposition à une peur, ou 2e exercice).
   - Écran en 3 parties : **Du jour** (les 3 choses à faire, résultat noté en un tap sur la carte, « Annuler » possible),
     **Exercices** (tout le catalogue, jeux et peurs), **Progrès** (niveau, semaine, acquis, peurs, succès).
+  - **Paliers** (demandé le 13/10/2026) : chaque ordre a 3 à 5 paliers de difficulté (durée, puis distance, puis distractions).
+    Un palier se valide avec 3 réussites sur ses 4 dernières séances, ou d'office avec « Il sait déjà le faire » ;
+    « Trop dur » fait redescendre. Après le dernier palier : entretien, jamais « fini ». +30 XP par palier validé par la pratique.
+  - **Arbre** : un ordre ouvre les suivants (Assis → Pas bouger → Attends → Traverse ; Patte → L'autre patte → Tope là ;
+    Couché → Au panier → Rester au panier…). Définition dans `src/lib/training.ts`.
   - Chaque ordre : un dessin, 2 ou 3 gestes, et sa **maîtrise** (note sur les 5 dernières séances, tendance en
     comparant les 3 dernières aux 3 d'avant). Un ordre en baisse devient l'ordre du jour.
   - Ordres **« plus tard »** (Traverse, Attends, Pas toucher, Au pied…) : proposés une fois leurs prérequis acquis.

@@ -3,7 +3,7 @@ import { FlameIcon } from '../../components/Icons'
 import type { Exposure, TrainingSession, WithId } from '../../firebase/types'
 import { chewOfTheDay } from '../../lib/chews'
 import type { ISODate } from '../../lib/dates'
-import { fearToWork, gameOfTheDay, isExercise, missionCount, missionsDone, recommendExercises, type LevelInfo } from '../../lib/gamification'
+import { fearToWork, gameOfTheDay, missionCount, missionsDone, recommendExercises, type LevelInfo } from '../../lib/gamification'
 import { ChewCard, ExerciseCard, ExpandableRow, FearCard, GameCard } from './Cards'
 
 interface TodayTabProps {
@@ -20,7 +20,6 @@ interface TodayTabProps {
 /** Le programme de la journée : un ordre, un jeu, un défi, une chose à mâcher. On tape le résultat, c'est noté. */
 export function TodayTab({ dogName, today, sessions, exposures, level, streakDays, onFearDetails, onSeeAll }: TodayTabProps) {
   const [open, setOpen] = useState<string | null>(null)
-  const exerciseSessions = sessions.filter(isExercise)
   const recommended = recommendExercises(sessions, today)
   const [first, second] = recommended
   const fear = fearToWork(exposures.filter((e) => e.date < today))
@@ -60,12 +59,12 @@ export function TodayTab({ dogName, today, sessions, exposures, level, streakDay
           <h2 className="text-[19px] font-bold">À faire aujourd'hui</h2>
           <span className="text-sm font-semibold text-muted">{count} sur 3</span>
         </div>
-        {first && <ExerciseCard label="Ordre du jour" exercise={first.exercise} advice={first.advice} today={today} sessions={exerciseSessions} />}
+        {first && <ExerciseCard label="Ordre du jour" exercise={first.exercise} advice={first.advice} today={today} sessions={sessions} />}
         <GameCard label="Jeu du jour" game={gameOfTheDay(today)} today={today} sessions={sessions} />
         {fear ? (
           <FearCard label="Défi · sa plus grande peur" trigger={fear} today={today} exposures={exposures} onDetails={() => onFearDetails(fear)} />
         ) : (
-          challenge && <ExerciseCard label="Défi · un deuxième ordre" exercise={challenge.exercise} advice={challenge.advice} today={today} sessions={exerciseSessions} />
+          challenge && <ExerciseCard label="Défi · un deuxième ordre" exercise={challenge.exercise} advice={challenge.advice} today={today} sessions={sessions} />
         )}
         {count === 3 && (
           <p role="status" className="rounded-[20px] bg-primary px-4 py-3.5 text-center text-base font-bold text-white">
@@ -97,7 +96,7 @@ export function TodayTab({ dogName, today, sessions, exposures, level, streakDay
                 first={i === 0}
                 onToggle={() => setOpen(open === item.exercise.id ? null : item.exercise.id)}
               >
-                <ExerciseCard exercise={item.exercise} advice={item.advice} today={today} sessions={exerciseSessions} />
+                <ExerciseCard exercise={item.exercise} advice={item.advice} today={today} sessions={sessions} />
               </ExpandableRow>
             ))}
           </div>

@@ -26,12 +26,28 @@ Ils ne s'ouvrent pas tels quels dans un navigateur.
 | --- | --- |
 | `V3-Ouverture.dc.html` | Ouverture : toucher le logo, accès au questionnaire |
 | `V3-Questionnaire.dc.html` | Questionnaire de départ (une question par écran) |
+| `V3-QuestionnaireResultat.dc.html` | Fin du questionnaire : ce qu'il sait déjà faire, modifiable (décocher / cocher), souvenir noté |
 | `V3-Accueil.dc.html` | Accueil : la partie |
-| `V3-Raconter.dc.html` | Raconter un moment |
+| `V3-Raconter.dc.html` | Raconter un moment (sans contexte : grille des compétences) |
+| `V3-RaconterQuete.dc.html` | Raconter depuis la quête (compétence connue : pas de grille) |
+| `V3-QueteExercice.dc.html` | Quête du jour : l'écran de l'exercice (comment faire, minuteur, « C'est fait ! ») |
 | `V3-Reussite.dc.html` | « C'est réussi ! » (nouvelle étape) |
-| `V3-Billy.dc.html` | Onglet Billy : ce qu'il sait faire |
+| `V3-Billy.dc.html` | Onglet Billy = l'arbre de compétences (3 étages reliés, badges, liens entre catégories) |
+| `V3-Chemin.dc.html` | Le chemin d'une compétence (étapes, Billy posé dessus, trophée) |
+| `V3-CheminEtape.dc.html` | Chemin : panneau après avoir touché une étape (décocher / cocher) |
+| `V3-Profil.dc.html` | Profil de Billy (s'ouvre en touchant sa photo dans l'onglet Billy) |
+| `V3-EnCours.dc.html` | Choisir ses 3 compétences en cours (depuis « Son programme » dans l'onglet Billy) |
+| `V3-SanteAVenir.dc.html` | Santé : « À venir » filtré par catégorie (pastilles-filtres) |
 
-Les versions abandonnées `V3-Etoile`, `V3-Rattrapage` et `V3-Competences` (étoiles) ont été supprimées.
+Les versions abandonnées 
+## Territoires (V3)
+
+| Territoire | Couleur | Fond | Compétences |
+| --- | --- | --- | --- |
+| La Maison | `#1E5A50` | `#DCEBE6` | Le Lien, Le Calme, Les Soins |
+| Le Quartier | `#2559A8` | `#E3EAF8` | La Laisse, Le Rappel, Les Bonnes manières, La Nouveauté |
+| Le Grand Monde | `#C2571A` | `#FBE6D4` | La Ville, Les Rencontres, Les Congénères |
+| Maîtrisé / niveau | `#F2B544` | `#FCEFD3` | Badges complets, XP, niveau |
 
 ## Tokens
 

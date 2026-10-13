@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<title>Billy, ce qu'il sait faire</title>
+<title>Le monde de Billy</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -14,72 +14,59 @@ body{margin:0}
 a{color:#1E5A50}a:hover{color:#143F38}
 </style>
 </helmet>
-<div style="width: 390px; height: 1500px; position: relative; overflow: hidden; box-sizing: border-box; background: #F3F5F2; font-family: 'Figtree', sans-serif; color: #18201E">
-<div style="padding: 20px 20px 120px; display: flex; flex-direction: column; gap: 26px">
+<div style="width: 390px; height: 2410px; position: relative; overflow: hidden; box-sizing: border-box; background: #F3F5F2; font-family: 'Figtree', sans-serif; color: #18201E">
+<div style="padding: 20px 16px 120px; display: flex; flex-direction: column; gap: 22px">
 
-<div style="display: flex; align-items: center; gap: 14px">
-<div style="width: 64px; height: 64px; border-radius: 32px; background: #FBE6D4; display: flex; align-items: center; justify-content: center; color: #8A3E0C; font-size: 11px; flex-shrink: 0">Photo</div>
+<div style="display: flex; align-items: center; gap: 14px; padding: 0 4px">
+<a href="V3-Profil.dc.html" aria-label="Voir le profil de Billy" style="position: relative; width: 72px; height: 72px; flex-shrink: 0; text-decoration: none"><span style="width: 72px; height: 72px; border-radius: 36px; background: #FBE6D4; display: flex; align-items: center; justify-content: center; color: #8A3E0C; font-size: 11px; border: 3px solid #F2B544; box-sizing: border-box">Photo</span><span style="position: absolute; right: -4px; bottom: -4px; width: 30px; height: 30px; border-radius: 15px; background: #1E5A50; border: 3px solid #F3F5F2; display: flex; align-items: center; justify-content: center; box-sizing: border-box"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg></span></a>
 <div style="flex: 1; display: flex; flex-direction: column; gap: 6px">
-<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 28px; font-weight: 800; line-height: 1">Billy</h1>
-<div style="font-size: 15px; font-weight: 600; color: #3F4946">Niveau 4 · Apprenti</div>
-<div style="height: 10px; border-radius: 5px; background: #E4E8E4; overflow: hidden"><div style="width: 40%; height: 100%; background: #F2B544; border-radius: 5px"></div></div>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 28px; font-weight: 800; line-height: 1">L'arbre de Billy</h1>
+<div style="font-size: 15px; font-weight: 700; color: #3F4946">Niveau 8 · Explorateur</div>
+<div style="height: 10px; border-radius: 5px; background: #E4E8E4; overflow: hidden"><div style="width: 50%; height: 100%; background: #F2B544; border-radius: 5px"></div></div>
 </div>
 </div>
 
-<section style="display: flex; flex-direction: column; gap: 10px">
-<h2 style="margin: 0; font-size: 20px; font-weight: 700">Ses progrès en un mois</h2>
-<sc-for list="{{progress}}" as="p" hint-placeholder-count="2">
-<div style="background: #FFFFFF; border-radius: 20px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; border: 1px solid #E6EAE7">
-<div style="font-size: 17px; font-weight: 700">{{p.title}}</div>
-<div style="display: grid; grid-template-columns: 1fr 28px 1fr; align-items: center; gap: 6px">
-<div style="background: #F3F5F2; border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; font-weight: 700; color: #5A6662; text-transform: uppercase; letter-spacing: 0.4px">Fin septembre</span><span style="font-size: 15px; font-weight: 600; line-height: 1.3">{{p.before}}</span></div>
-<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1E5A50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-label="devient"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="13 6 19 12 13 18"></polyline></svg>
-<div style="background: #DCEBE6; border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; font-weight: 700; color: #143F38; text-transform: uppercase; letter-spacing: 0.4px">Maintenant</span><span style="font-size: 15px; font-weight: 700; line-height: 1.3; color: #143F38">{{p.after}}</span></div>
-</div>
-</div>
-</sc-for>
+
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 15px; color: #3F4946; line-height: 1.4; padding: 0 4px">Ses compétences poussent en 3 étages, de la maison au grand monde. Touchez-en une pour voir son chemin et vous entraîner.</div>
+<section aria-label="Son programme" style="background: #FFFFFF; border-radius: 22px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(24,32,30,0.08)">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 18px; font-weight: 800; font-family: 'Bricolage Grotesque', sans-serif">Son programme</span><span style="font-size: 14px; color: #3F4946; line-height: 1.4">3 compétences en cours · séances de 3 min (5 min dès ses 6 mois, le 13 nov.)</span></div>
+<div role="img" aria-label="Cette semaine : lundi, mardi, mercredi faits ; aujourd'hui jeudi ; dimanche repos" style="display: flex; justify-content: space-between"><span style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 34px; height: 34px; border-radius: 17px; background: #1E5A50; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 12 10 17 19 7"></polyline></svg></span><span style="font-size: 12px; font-weight: 700; color: #3F4946">L</span></span><span style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 34px; height: 34px; border-radius: 17px; background: #1E5A50; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 12 10 17 19 7"></polyline></svg></span><span style="font-size: 12px; font-weight: 700; color: #3F4946">M</span></span><span style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 34px; height: 34px; border-radius: 17px; background: #1E5A50; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 12 10 17 19 7"></polyline></svg></span><span style="font-size: 12px; font-weight: 700; color: #3F4946">M</span></span><span style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 34px; height: 34px; border-radius: 17px; background: #FFFFFF; border: 3px solid #C2571A; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #C2571A">auj.</span><span style="font-size: 12px; font-weight: 700; color: #3F4946">J</span></span><span style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 34px; height: 34px; border-radius: 17px; background: #FFFFFF; border: 2px dashed #C9D1CD; box-sizing: border-box"></span><span style="font-size: 12px; font-weight: 700; color: #3F4946">V</span></span><span style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 34px; height: 34px; border-radius: 17px; background: #FFFFFF; border: 2px dashed #C9D1CD; box-sizing: border-box"></span><span style="font-size: 12px; font-weight: 700; color: #3F4946">S</span></span><span style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="width: 34px; height: 34px; border-radius: 17px; background: #EEF0F5; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5A6662" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"></path></svg></span><span style="font-size: 12px; font-weight: 700; color: #3F4946">D</span></span></div>
+<div style="font-size: 13px; color: #5A6662; line-height: 1.4">Un jour de repos par semaine, et toujours le lendemain d'un moment difficile.</div>
+<a href="V3-EnCours.dc.html" style="height: 48px; border-radius: 24px; border: 2px solid #1E5A50; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; text-decoration: none; color: #1E5A50">Choisir ses compétences en cours</a>
 </section>
+</div>
 
-<section style="display: flex; flex-direction: column; gap: 10px">
-<h2 style="margin: 0; font-size: 20px; font-weight: 700">On travaille en ce moment</h2>
-<sc-for list="{{working}}" as="w" hint-placeholder-count="3">
-<div style="background: #FFFFFF; border-radius: 20px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; border: 1px solid #E6EAE7">
-<div style="font-size: 13px; font-weight: 700; color: #1E5A50; text-transform: uppercase; letter-spacing: 0.6px">{{w.skill}}</div>
-<div style="font-size: 17px; font-weight: 600; line-height: 1.35">{{w.next}}</div>
-<div style="display: flex; align-items: center; gap: 12px">
-<span style="flex: 1; display: flex; align-items: center; gap: 6px; font-size: 14px; color: #5A6662">
-<sc-for list="{{w.dots}}" as="d" hint-placeholder-count="3"><span style="{{d.style}}"></span></sc-for>
-<span style="margin-left: 4px">{{w.hint}}</span>
-</span>
-<a href="V3-Raconter.dc.html" style="height: 44px; padding: 0 16px; border-radius: 22px; border: 2px solid #1E5A50; display: flex; align-items: center; font-size: 15px; font-weight: 700; text-decoration: none; flex-shrink: 0">Raconter</a>
+<sc-for list="{{zones}}" as="z" hint-placeholder-count="3">
+<section id="{{z.id}}" style="{{z.boxStyle}}">
+<div style="display: flex; align-items: center; gap: 12px; padding: 4px 4px 2px">
+<span style="{{z.iconStyle}}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{z.icon}}"></path></svg></span>
+<span style="flex: 1; display: flex; flex-direction: column"><span style="{{z.floorStyle}}">{{z.floor}}</span><span style="{{z.titleStyle}}">{{z.title}}</span><span style="font-size: 14px; color: #3F4946">{{z.subtitle}}</span></span>
 </div>
-</div>
-</sc-for>
-</section>
-
-<section style="display: flex; flex-direction: column; gap: 10px">
-<h2 style="margin: 0; font-size: 20px; font-weight: 700">Ce qu'il sait déjà faire</h2>
-<div style="background: #FFFFFF; border-radius: 20px; padding: 4px 16px; border: 1px solid #E6EAE7">
-<sc-for list="{{known}}" as="k" hint-placeholder-count="5">
-<div style="{{k.rowStyle}}">
-<span style="width: 28px; height: 28px; border-radius: 14px; background: #FCEFD3; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B7841F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 12 10 17 19 7"></polyline></svg></span>
-<span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 600; line-height: 1.35">{{k.text}}</span><span style="font-size: 13px; color: #5A6662">{{k.when}}</span></span>
-</div>
-</sc-for>
-</div>
-<a href="#" style="height: 48px; border-radius: 24px; border: 2px solid #1E5A50; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; text-decoration: none">Voir tout ce qu'il sait faire</a>
-</section>
-
-<section style="display: flex; flex-direction: column; gap: 10px">
-<h2 style="margin: 0; font-size: 20px; font-weight: 700">Toutes ses compétences</h2>
-<sc-for list="{{all}}" as="s" hint-placeholder-count="4">
-<a href="#" style="min-height: 64px; background: #FFFFFF; border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: #18201E; border: 1px solid #E6EAE7">
-<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 700">{{s.name}}</span><span style="font-size: 14px; color: #5A6662; line-height: 1.3">{{s.level}}</span></span>
-<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E5A50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><polyline points="9 5 16 12 9 19"></polyline></svg>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{z.badges}}" as="b" hint-placeholder-count="4">
+<a href="V3-Chemin.dc.html" style="background: #FFFFFF; border-radius: 20px; padding: 14px 10px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; color: #18201E; text-align: center; position: relative; box-shadow: 0 2px 6px rgba(24,32,30,0.08)">
+<sc-if value="{{b.current}}" hint-placeholder-val="{{ false }}"><span style="{{b.pillStyle}}">En cours</span></sc-if>
+<svg width="84" height="84" viewBox="0 0 84 84" role="img" aria-label="{{b.aria}}">
+<sc-for list="{{b.segs}}" as="sg" hint-placeholder-count="5"><circle cx="42" cy="42" r="37" fill="none" stroke="{{sg.color}}" stroke-width="7" stroke-dasharray="40 192.5" stroke-linecap="round" transform="{{sg.t}}"></circle></sc-for>
+<circle cx="42" cy="42" r="28" fill="{{b.fill}}"></circle>
+<path d="{{b.icon}}" transform="translate(30 30)" fill="none" stroke="{{b.ink}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span style="font-size: 16px; font-weight: 800; font-family: 'Bricolage Grotesque', sans-serif">{{b.name}}</span>
+<span style="{{b.stepStyle}}">{{b.step}}</span>
+<sc-if value="{{b.current}}" hint-placeholder-val="{{ false }}"><span style="{{b.chipStyle}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="7 4 20 12 7 20"></polygon></svg>{{b.exercise}}</span></sc-if>
 </a>
 </sc-for>
-<a href="#" style="height: 48px; border-radius: 24px; border: 2px solid #1E5A50; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; text-decoration: none">Voir les 10 compétences</a>
+</div>
+<a href="{{z.linkHref}}" style="{{z.linkStyle}}"><span style="{{z.linkIconStyle}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{z.linkArrow}}"></path></svg></span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="{{z.linkLabelStyle}}">{{z.linkLabel}}</span><span style="font-size: 14px; font-weight: 600; color: #18201E; line-height: 1.3">{{z.linkText}}</span></span></a>
 </section>
+<sc-if value="{{z.hasNext}}" hint-placeholder-val="{{ true }}"><div aria-hidden="true" style="align-self: center; width: 12px; height: 22px; margin: -22px 0; background: #8A6A4A; border-radius: 6px"></div></sc-if>
+</sc-for>
+
+
+
+
 
 </div>
 
@@ -92,33 +79,74 @@ a{color:#1E5A50}a:hover{color:#143F38}
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1500}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2410}}'>
 class Component extends DCLogic {
 renderVals() {
-const dots = (n) => [0,1,2].map(i => ({ style: 'width: 12px; height: 12px; border-radius: 6px; box-sizing: border-box; ' + (i < n ? 'background: #F2B544' : 'border: 2px solid #C9D1CD') }));
-const known = [
-{ text: 'Me regarde quand je l’appelle, même occupé', when: '10 octobre' },
-{ text: 'Se pose sur son tapis à la maison', when: '6 octobre' },
-{ text: 'Monte en voiture sans paniquer', when: '2 octobre · en Bretagne' },
-{ text: 'Revient quand on l’appelle d’une autre pièce', when: 'Avant l’app' },
-{ text: 'Accepte qu’on lui touche les pattes', when: 'Avant l’app' }
-].map((k, i) => ({ ...k, rowStyle: 'display: flex; align-items: flex-start; gap: 12px; padding: 12px 0;' + (i ? ' border-top: 1px solid #E6EAE7' : '') }));
+const I = {
+eye: 'M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z M12 9a3 3 0 1 0 0 6 3 3 0 1 0 0-6z',
+moon: 'M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z',
+care: 'M5 5h14v14H5z M12 9v6 M9 12h6',
+leash: 'M5 19l7-7 M12 12c3-4 6-6 7-5s-1 4-5 7 M5 19a2 2 0 1 0 0-.1',
+recall: 'M20 12a8 8 0 1 1-2.3-5.7 M20 4v5h-5',
+sit: 'M7 20v-6l3-3V6h4v5l3 3v6 M7 14h10',
+spark: 'M12 3v4 M12 17v4 M3 12h4 M17 12h4 M6 6l2.5 2.5 M15.5 15.5L18 18 M6 18l2.5-2.5 M15.5 8.5L18 6',
+city: 'M4 21V9l6-4v16 M10 21V11h10v10 M13 14h4 M13 17h4',
+people: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M3 21c0-4 3-6 6-6s6 2 6 6 M17 11a2.5 2.5 0 1 0 0-5 M16 15c3 0 5 2 5 6',
+dogs: 'M6 10a2 2 0 1 0 0-.1 M12 7a2 2 0 1 0 0-.1 M18 10a2 2 0 1 0 0-.1 M12 13c-3 0-5 3-5 5.2 0 1.6 1.2 2.4 2.5 2.4 1 0 1.6-.5 2.5-.5s1.5.5 2.5.5c1.3 0 2.5-.8 2.5-2.4 0-2.2-2-5.2-5-5.2z'
+};
+const segs = (n, color, pale) => [0,1,2,3,4].map(i => ({ color: i < n ? color : pale, t: 'rotate(' + (-90 + i * 72 + 4) + ' 42 42)' }));
+const badge = (name, n, step, icon, z, exercise) => ({
+name, step, current: !!exercise, exercise: exercise || '', icon: I[icon],
+aria: name + ' : ' + step + (exercise ? ' (en cours : ' + exercise + ')' : ''),
+segs: segs(n, n >= 5 ? '#F2B544' : z.main, z.pale2),
+fill: n === 0 ? z.pale : (n >= 5 ? '#FCEFD3' : z.soft),
+ink: n === 0 ? z.paleInk : z.main,
+stepStyle: 'font-size: 13px; line-height: 1.3; font-weight: 600; color: ' + (n === 0 ? '#5A6662' : (n >= 5 ? '#8A6514' : z.main)),
+pillStyle: 'position: absolute; top: 8px; right: 8px; font-size: 11px; font-weight: 800; color: #FFFFFF; background: ' + z.main + '; padding: 3px 8px; border-radius: 9px',
+chipStyle: 'margin-top: 2px; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: ' + z.main + '; background: ' + z.soft + '; padding: 5px 9px; border-radius: 12px'
+});
+const Z = {
+maison: { main: '#1E5A50', soft: '#DCEBE6', pale: '#EEF4F2', pale2: '#DCE5E1', paleInk: '#7FA59C' },
+quartier: { main: '#2559A8', soft: '#E3EAF8', pale: '#F1F4FB', pale2: '#DCE3F2', paleInk: '#8EA6D0' },
+monde: { main: '#C2571A', soft: '#FBE6D4', pale: '#FDF3EA', pale2: '#F4DCC8', paleInk: '#D69A75' }
+};
+const zone = (key, floor, title, subtitle, icon, link, badges) => {
+const z = Z[key];
+const L = Z[link.to];
 return {
-progress: [
-{ title: 'Dehors en ville', before: 'Souvent difficile, se bloque', after: 'Plutôt bien dans les rues calmes' },
-{ title: 'Le rappel', before: 'Pas encore', after: 'Revient à la maison' }
-],
-working: [
-{ skill: 'La Ville', next: 'Faire 10 minutes dans une rue calme, détendu', dots: dots(1), hint: 'encore 2 fois' },
-{ skill: 'Le Lien', next: 'Me regarder quand je l’appelle, dans une rue calme', dots: dots(0), hint: 'pas encore essayé' },
-{ skill: 'La Nouveauté', next: 'Regarder son reflet à 3 mètres, détendu', dots: dots(2), hint: 'encore 1 fois' }
-],
-known,
-all: [
-{ name: 'Le Lien', level: 'Me regarde à la maison, même occupé' },
-{ name: 'Le Rappel', level: 'Revient à la maison' },
-{ name: 'La Ville', level: 'Écoute les bruits de la rue sans peur' },
-{ name: 'Les Rencontres', level: 'Pas encore commencé' }
+id: key, floor, title, subtitle, icon, hasNext: key !== 'monde',
+floorStyle: 'font-size: 12px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: ' + z.main,
+linkHref: '#' + link.to,
+linkLabel: link.label,
+linkText: link.text,
+linkArrow: link.up ? 'M12 19V5 M6 11l6-6 6 6' : 'M12 5v14 M6 13l6 6 6-6',
+linkStyle: 'min-height: 60px; background: #FFFFFF; border-radius: 18px; padding: 10px 12px; display: flex; align-items: center; gap: 12px; text-decoration: none; border: 2px solid ' + L.main,
+linkIconStyle: 'width: 36px; height: 36px; border-radius: 18px; background: ' + L.main + '; display: flex; align-items: center; justify-content: center; flex-shrink: 0',
+linkLabelStyle: 'font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: ' + L.main,
+boxStyle: 'background: ' + z.soft + '; border-radius: 26px; padding: 14px 12px 12px; display: flex; flex-direction: column; gap: 12px',
+iconStyle: 'width: 44px; height: 44px; border-radius: 14px; background: ' + z.main + '; display: flex; align-items: center; justify-content: center; flex-shrink: 0',
+titleStyle: 'font-family: \'Bricolage Grotesque\', sans-serif; font-size: 21px; font-weight: 800; color: ' + z.main,
+badges: badges.map(b => badge(b[0], b[1], b[2], b[3], z, b[4]))
+};
+};
+return {
+zones: [
+zone('maison', 'Étage 1 · les racines', 'La Maison', 'Là où tout commence', 'M3 11l9-7 9 7v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z', { to: 'quartier', label: 'Mène au Quartier', text: 'Le lien et le calme préparent les balades' }, [
+['Le Lien', 2, 'Regarde quand on l’appelle dans une rue calme', 'eye', 'Jeu du prénom'],
+['Le Calme', 5, 'Maîtrisé · à entretenir', 'moon'],
+['Les Soins', 1, 'Se laisse brosser et essuyer les pattes', 'care']
+]),
+zone('quartier', 'Étage 2 · le tronc', 'Le Quartier', 'Les balades de tous les jours', 'M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z M12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6z', { to: 'monde', label: 'Mène au Grand Monde', text: 'Laisse et rappel ouvrent la ville et les rencontres' }, [
+['La Laisse', 1, 'Suit les changements de direction', 'leash'],
+['Le Rappel', 2, 'Revient dans un parc calme', 'recall', 'Rappel ping-pong'],
+['Les Manières', 1, 'Attend à la porte', 'sit'],
+['La Nouveauté', 1, 'Reste détendu devant un son ou un reflet', 'spark', 'Sons progressifs']
+]),
+zone('monde', 'Étage 3 · les branches', 'Le Grand Monde', 'La ville, les gens, les autres chiens', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M3 12h18 M12 3c3 3 3 15 0 18 M12 3c-3 3-3 15 0 18', { to: 'quartier', label: 'Vient du Quartier', text: 'Un moment difficile ? On revient aux balades calmes', up: true }, [
+['La Ville', 1, 'Regarde la rue par la fenêtre', 'city'],
+['Les Rencontres', 0, 'À découvrir', 'people'],
+['Les Congénères', 0, 'À découvrir', 'dogs']
+])
 ]
 };
 }

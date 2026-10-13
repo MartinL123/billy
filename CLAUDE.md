@@ -6,6 +6,8 @@ Utilisateur unique (moi), sur **iPhone**, app installée sur l'écran d'accueil.
 
 Lire avant toute nouvelle fonctionnalité (l'index complet est dans `docs/README.md`) :
 - **`docs/specs/spec-v3-simplification.md` : la spec en cours (refonte « Billy, le jeu »). Elle fait foi sur toutes les autres en cas de divergence.**
+- `docs/specs/arbre-competences.md` : les 10 compétences, leurs 5 étapes, les exercices de chaque étape et le rythme des séances
+- `docs/specs/questionnaire-depart.md` : le questionnaire de départ, question par question
 - `docs/specs/spec-v1.md` : santé, calendrier, journal, documents, connexion — toujours valable hors des points changés par la V3
 - `docs/specs/spec-v2-dressage.md` : logique interne du dressage (catalogue, paliers, XP) réutilisée par la V3 ; son interface est remplacée
 - `docs/maquettes/README.md` : tokens visuels ; les maquettes `V3-*` font foi pour les écrans refondus

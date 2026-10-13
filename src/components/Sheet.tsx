@@ -62,17 +62,19 @@ interface ConfirmProps {
   title: string
   message?: string
   confirmLabel: string
+  /** `danger` (défaut) pour une action destructrice, `primary` pour une simple confirmation. */
+  tone?: 'danger' | 'primary'
   onConfirm: () => void
   onCancel: () => void
 }
 
 /** Confirmation avant une action destructrice ou la déconnexion. */
-export function ConfirmSheet({ title, message, confirmLabel, onConfirm, onCancel }: ConfirmProps) {
+export function ConfirmSheet({ title, message, confirmLabel, tone = 'danger', onConfirm, onCancel }: ConfirmProps) {
   return (
     <Sheet label={title} onClose={onCancel}>
       <h2 className="mt-1 font-display text-2xl font-bold">{title}</h2>
       {message && <p className="text-[15px] leading-snug text-muted">{message}</p>}
-      <button type="button" onClick={onConfirm} className="mt-2 h-[54px] rounded-full border-0 bg-danger text-[17px] font-bold text-white">
+      <button type="button" onClick={onConfirm} className={`mt-2 h-[54px] rounded-full border-0 text-[17px] font-bold text-white ${tone === 'danger' ? 'bg-danger' : 'bg-primary'}`}>
         {confirmLabel}
       </button>
       <button type="button" onClick={onCancel} className="h-[52px] rounded-full border-[1.5px] border-border bg-surface text-base font-semibold text-text">

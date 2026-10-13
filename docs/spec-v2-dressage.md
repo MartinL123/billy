@@ -289,6 +289,11 @@ Décisions prises avant le code, qui précisent ou remplacent des points ci-dess
 - **Séance** : le champ `tier` s'appelle `difficulty` (1–5) pour ne pas le confondre avec l'étage du boss ;
   `reaction` (0–4) et `decision` sont ajoutés. La réaction est demandée en fin de séance : c'est elle qui permet
   « réaction ≤ 1 ». Une exposition seule ne valide jamais un palier.
+- **Exercice qui nourrit plusieurs boss** (retour UX du 13/10) : l'écran affiche « Compte pour : Le Lien · Le Rappel »
+  en texte, sans choix. La séance garde un boss principal (`bossId`) et liste tous les boss dans `bossIds` : son XP
+  compte pour chacun et pour leurs stats (une seule fois par stat), et le critère du palier est demandé pour chaque boss.
+- **Arbre** (retour UX) : toucher un boss fait ressortir ses liens et affiche son détail sous l'arbre ; la fiche
+  s'ouvre depuis ce détail.
 - **Lieu** : demandé seulement au moment de valider P5 ou une étoile de maîtrise.
 - **Validation directe** d'un palier déjà maîtrisé : acquis tout de suite, sans XP, et ne compte pas pour les premières fois.
 - **Paliers de départ de Billy** : tous à 0, Martin valide lui-même.

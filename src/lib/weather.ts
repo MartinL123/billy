@@ -15,6 +15,7 @@ export const WEATHER_NOTE = 'Les jours de pluie font partie du chemin.'
 interface ReactionLike {
   date: ISODate
   bossId: string
+  bossIds?: string[]
   reaction?: number
   createdAt?: string
 }
@@ -22,7 +23,7 @@ interface ReactionLike {
 /** Les réactions enregistrées pour un boss (séances et expositions), de la plus récente à la plus ancienne. */
 export function bossReactions(records: ReactionLike[], bossId: string): number[] {
   return records
-    .filter((r) => r.bossId === bossId && typeof r.reaction === 'number')
+    .filter((r) => (r.bossIds ?? [r.bossId]).includes(bossId) && typeof r.reaction === 'number')
     .sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
     .map((r) => r.reaction as number)
 }

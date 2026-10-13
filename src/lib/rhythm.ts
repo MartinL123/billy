@@ -1,4 +1,5 @@
 import { addDays, dayNumber, type ISODate } from './dates'
+import { bossesOf } from './xp'
 
 /** Les 7 jours de la semaine en cours, du lundi au dimanche. */
 export function weekOf(today: ISODate): ISODate[] {
@@ -32,7 +33,7 @@ export const sessionsThisWeek = (today: ISODate, sessions: Dated[]) => {
 export const daysTogether = (...records: Dated[][]) => new Set(records.flat().map((r) => r.date)).size
 
 /** Réussites d'un boss cette semaine, pour le message informatif de fin de séance. */
-export function successesThisWeek(today: ISODate, sessions: (Dated & { bossId: string; trials: boolean[] })[], bossId: string): number {
+export function successesThisWeek(today: ISODate, sessions: (Dated & { bossId: string; bossIds?: string[]; trials: boolean[] })[], bossId: string): number {
   const week = new Set(weekOf(today))
-  return sessions.filter((s) => s.bossId === bossId && week.has(s.date)).reduce((sum, s) => sum + s.trials.filter(Boolean).length, 0)
+  return sessions.filter((s) => bossesOf(s).includes(bossId) && week.has(s.date)).reduce((sum, s) => sum + s.trials.filter(Boolean).length, 0)
 }

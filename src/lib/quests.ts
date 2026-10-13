@@ -2,6 +2,7 @@ import { bossById, type Trait } from '../content/training'
 import { dayNumber, type ISODate } from './dates'
 import { weekOf } from './rhythm'
 import { suggestedBosses } from './traits'
+import { bossesOf } from './xp'
 
 export interface Quest {
   key: string
@@ -44,7 +45,7 @@ export function weekQuests(week: ISODate, traits: Trait[], replaced: string[] = 
 }
 
 export interface QuestData {
-  sessions: { date: ISODate; bossId: string }[]
+  sessions: { date: ISODate; bossId: string; bossIds?: string[] }[]
   exposures: { date: ISODate; distance?: string; retreat: boolean }[]
   /** Jours de repos et balades reniflage déclarés. */
   rests: { date: ISODate; sniff: boolean }[]
@@ -57,7 +58,7 @@ export function questProgress(quest: Quest, today: ISODate, data: QuestData): nu
   let done = 0
   if (quest.key.startsWith('seances-')) {
     const bossId = quest.key.slice('seances-'.length)
-    done = inWeek(data.sessions).filter((s) => s.bossId === bossId).length
+    done = inWeek(data.sessions).filter((s) => bossesOf(s).includes(bossId)).length
   } else if (quest.key === 'reniflage') {
     done = inWeek(data.rests).filter((r) => r.sniff).length
   } else if (quest.key === 'repos') {

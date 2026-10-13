@@ -24,29 +24,38 @@ export function addPlace(name: string, bossId: string): string {
   return id
 }
 
-export interface Outcome {
-  /** XP gagnée au total par cette saisie. */
-  xp: number
+export interface BossOutcome {
+  bossId: string
   /** Une validation du critère a été comptée. */
   validated: boolean
   levelGained?: number
   starPlaceId?: string
   progress: BossProgress
+}
+
+export interface Outcome {
+  /** XP gagnée au total par cette saisie. */
+  xp: number
+  /** Un résultat par boss dont le critère a été déclaré atteint. */
+  results: BossOutcome[]
   /** Annule la saisie. À n'offrir que dans les secondes qui suivent : ensuite, rien ne baisse. */
   undo: () => void
 }
 
-interface ValidationInput {
+export interface ValidationInput {
+  bossId: string
+  current: BossProgress | undefined
   placeId?: string
 }
 
 /**
- * Enregistre une séance, son XP, et — si Martin a répondu « oui » — une validation du critère du palier.
- * Un palier acquis ajoute une carte souvenir au Journal.
+ * Enregistre une séance, son XP, et — pour chaque boss où Martin a répondu « oui » — une validation du critère
+ * du palier. Un palier acquis ajoute une carte souvenir au Journal.
  */
-export function recordSession(session: TrainingSession, current: BossProgress | undefined, validation?: ValidationInput): Outcome {
+export function recordSession(session: TrainingSession, validations: ValidationInput[] = []): Outcome {
   const batch = writeBatch(db)
   const created: ReturnType<typeof userDoc>[] = []
+  const restore: (() => Promise<unknown>)[] = []
   const add = (ref: ReturnType<typeof userDoc>, data: DocumentData) => {
     batch.set(ref, data)
     created.push(ref)
@@ -54,28 +63,30 @@ export function recordSession(session: TrainingSession, current: BossProgress | 
   let xp = session.xp
   const sessionId = newId('sessions')
   add(userDoc('sessions', sessionId), strip({ ...session, createdAt: now() }))
-  add(xpRef(sessionId), strip<XpEntry>({ date: session.date, kind: 'seance', xp: session.xp, bossId: session.bossId, createdAt: now() }))
+  add(xpRef(sessionId), strip<XpEntry>({ date: session.date, kind: 'seance', xp: session.xp, bossId: session.bossId, bossIds: session.bossIds, createdAt: now() }))
 
-  const before = current ?? EMPTY_PROGRESS
-  let result = { progress: before, validated: false } as ReturnType<typeof addValidation>
-  if (validation) {
-    result = addValidation(before, session.date, validation.placeId)
-    if (result.validated) {
-      const boss = bossById(session.bossId)
-      batch.set(userDoc('bossProgress', session.bossId), strip(result.progress))
-      const target = result.levelGained ?? Math.min(before.level + 1, 5)
-      xp += XP.validation
-      add(xpRef(`validation-${session.bossId}-${target}-${session.date}${result.starPlaceId ? `-${result.starPlaceId}` : ''}`), strip<XpEntry>({ date: session.date, kind: 'validation', xp: XP.validation, bossId: session.bossId, createdAt: now() }))
-      if (result.levelGained && boss) {
-        const level = boss.levels[result.levelGained - 1]!
-        xp += XP.level
-        add(xpRef(`palier-${boss.id}-${result.levelGained}`), strip<XpEntry>({ date: session.date, kind: 'palier', xp: XP.level, bossId: boss.id, label: `${boss.name} · ${level.title}`, createdAt: now() }))
-        add(userDoc('entries', `palier-${boss.id}-${result.levelGained}`), levelCard(session.date, boss.name, result.levelGained, level.title, level.criterion))
-      }
-      if (result.starPlaceId) {
-        xp += XP.star
-        add(xpRef(`etoile-${session.bossId}-${result.starPlaceId}`), strip<XpEntry>({ date: session.date, kind: 'etoile', xp: XP.star, bossId: session.bossId, createdAt: now() }))
-      }
+  const results: BossOutcome[] = []
+  for (const { bossId, current, placeId } of validations) {
+    const before = current ?? EMPTY_PROGRESS
+    const result = addValidation(before, session.date, placeId)
+    results.push({ bossId, ...result })
+    if (!result.validated) continue
+    const boss = bossById(bossId)
+    const progressRef = userDoc('bossProgress', bossId)
+    batch.set(progressRef, strip(result.progress))
+    restore.push(() => (current ? setDoc(progressRef, strip(current)) : deleteDoc(progressRef)))
+    const target = result.levelGained ?? Math.min(before.level + 1, 5)
+    xp += XP.validation
+    add(xpRef(`validation-${bossId}-${target}-${session.date}${result.starPlaceId ? `-${result.starPlaceId}` : ''}`), strip<XpEntry>({ date: session.date, kind: 'validation', xp: XP.validation, bossId, createdAt: now() }))
+    if (result.levelGained && boss) {
+      const level = boss.levels[result.levelGained - 1]!
+      xp += XP.level
+      add(xpRef(`palier-${boss.id}-${result.levelGained}`), strip<XpEntry>({ date: session.date, kind: 'palier', xp: XP.level, bossId: boss.id, label: `${boss.name} · ${level.title}`, createdAt: now() }))
+      add(userDoc('entries', `palier-${boss.id}-${result.levelGained}`), levelCard(session.date, boss.name, result.levelGained, level.title, level.criterion))
+    }
+    if (result.starPlaceId) {
+      xp += XP.star
+      add(xpRef(`etoile-${bossId}-${result.starPlaceId}`), strip<XpEntry>({ date: session.date, kind: 'etoile', xp: XP.star, bossId, createdAt: now() }))
     }
   }
   send(batch.commit())
@@ -83,13 +94,10 @@ export function recordSession(session: TrainingSession, current: BossProgress | 
   const undo = () => {
     const back = writeBatch(db)
     for (const ref of created) back.delete(ref)
-    if (result.validated) {
-      if (current) back.set(userDoc('bossProgress', session.bossId), strip(current))
-      else back.delete(userDoc('bossProgress', session.bossId))
-    }
     send(back.commit())
+    for (const put of restore) send(put())
   }
-  return { xp, validated: result.validated, levelGained: result.levelGained, starPlaceId: result.starPlaceId, progress: result.progress, undo }
+  return { xp, results, undo }
 }
 
 function levelCard(date: ISODate, bossName: string, level: number, title: string, criterion: string): Entry {

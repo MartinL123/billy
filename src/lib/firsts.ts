@@ -23,7 +23,7 @@ export const FIRSTS: First[] = [
 export const firstByKey = (key: string) => FIRSTS.find((f) => f.key === key)
 
 export interface FirstsData {
-  sessions: { date: ISODate; bossId: string; trials: boolean[] }[]
+  sessions: { date: ISODate; bossId: string; bossIds?: string[]; trials: boolean[] }[]
   exposures: { date: ISODate; reaction: number; retreat: boolean }[]
   /** Journal d'XP : les paliers et étoiles gagnés par la pratique y ont un identifiant fixe. */
   log: { id: string; date: ISODate; kind: string }[]
@@ -51,7 +51,9 @@ export function reachedFirsts(data: FirstsData): { key: string; date: ISODate }[
   add('sans-faute', earliest(data.sessions.filter((s) => s.trials.length >= 5 && s.trials.every(Boolean)).map((s) => s.date)))
   add('detendu', earliest(data.exposures.filter((e) => e.reaction === 0).map((e) => e.date)))
   const bosses = new Map<string, ISODate>()
-  for (const s of [...data.sessions].sort((a, b) => a.date.localeCompare(b.date))) if (!bosses.has(s.bossId)) bosses.set(s.bossId, s.date)
+  for (const s of [...data.sessions].sort((a, b) => a.date.localeCompare(b.date))) {
+    for (const id of s.bossIds ?? [s.bossId]) if (!bosses.has(id)) bosses.set(id, s.date)
+  }
   add('trois-boss', [...bosses.values()].sort()[2])
   return out
 }

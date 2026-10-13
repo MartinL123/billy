@@ -109,7 +109,10 @@ export type DistanceBand = '<2' | '2-5' | '5-10' | '>10'
 export interface TrainingSession {
   date: ISODate
   exerciseId: string
+  /** Boss principal de la séance. */
   bossId: string
+  /** Tous les boss que l'exercice nourrit (le principal compris). Absent : seulement `bossId`. */
+  bossIds?: string[]
   /** Niveau de difficulté N1–N5 de l'exercice pendant la séance. */
   difficulty: number
   trials: boolean[]
@@ -147,6 +150,8 @@ export interface XpEntry {
   kind: XpKind
   xp: number
   bossId?: string
+  /** Séance d'un exercice qui nourrit plusieurs boss : l'XP compte pour chacun. */
+  bossIds?: string[]
   /** Libellé affiché (« Première exposition notée »). */
   label?: string
   /** Précision selon le type : `reniflage` ou `repos` pour un jour de récupération. */

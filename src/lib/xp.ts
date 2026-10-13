@@ -54,8 +54,12 @@ export interface XpLike {
   date: ISODate
   xp: number
   bossId?: string
+  bossIds?: string[]
   kind: string
 }
+
+/** Les boss concernés par un enregistrement : un exercice peut en nourrir plusieurs. */
+export const bossesOf = (record: { bossId?: string; bossIds?: string[] }): string[] => record.bossIds ?? (record.bossId ? [record.bossId] : [])
 
 export const totalXp = (log: XpLike[]) => log.reduce((sum, entry) => sum + Math.max(0, entry.xp), 0)
 
@@ -65,7 +69,7 @@ export function xpByStat(log: XpLike[], upTo?: ISODate): Record<Stat, number> {
   for (const entry of log) {
     if (upTo && entry.date > upTo) continue
     // Le repos nourrit le Calme ; le reste suit les stats du boss concerné.
-    const stats: Stat[] = entry.kind === 'repos' ? ['calme'] : (bossById(entry.bossId ?? '')?.stats ?? [])
+    const stats: Stat[] = entry.kind === 'repos' ? ['calme'] : [...new Set(bossesOf(entry).flatMap((id) => bossById(id)?.stats ?? []))]
     for (const stat of stats) out[stat] += Math.max(0, entry.xp)
   }
   return out
@@ -73,7 +77,7 @@ export function xpByStat(log: XpLike[], upTo?: ISODate): Record<Stat, number> {
 
 export function xpByBoss(log: XpLike[]): Record<string, number> {
   const out: Record<string, number> = {}
-  for (const entry of log) if (entry.bossId) out[entry.bossId] = (out[entry.bossId] ?? 0) + Math.max(0, entry.xp)
+  for (const entry of log) for (const id of bossesOf(entry)) out[id] = (out[id] ?? 0) + Math.max(0, entry.xp)
   return out
 }
 

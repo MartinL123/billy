@@ -32,12 +32,11 @@ export default function Session() {
     const last = exerciseById(lastSession(sessions)?.exerciseId ?? '')
     return exerciseById(params.get('exercice') ?? '') ?? fromBoss ?? last ?? exercisesFor(suggestedBosses(traits)[0]!, traits)[0] ?? EXERCISES[0]!
   })
-  const [bossId, setBossId] = useState(() => {
-    const wanted = params.get('boss')
-    if (wanted && exercise.bossIds.includes(wanted)) return wanted
-    const previous = sessions.find((s) => s.exerciseId === exercise.id)?.bossId
-    return previous && exercise.bossIds.includes(previous) ? previous : exercise.bossIds[0]!
-  })
+  // Boss principal : celui d'où l'on vient (fiche, séance conseillée), sinon le premier de l'exercice.
+  const [wanted, setWanted] = useState(params.get('boss'))
+  const bossId = wanted && exercise.bossIds.includes(wanted) ? wanted : exercise.bossIds[0]!
+  // Une séance compte pour tous les boss que l'exercice nourrit, le principal en tête.
+  const bossIds = [bossId, ...exercise.bossIds.filter((id) => id !== bossId)]
   const [difficulty, setDifficulty] = useState(() => currentDifficulty(sessions, exercise.id))
   const [trials, setTrials] = useState<boolean[]>([])
   const [picking, setPicking] = useState(false)
@@ -47,20 +46,17 @@ export default function Session() {
   const [ate, setAte] = useState<boolean | null>(null)
   const [reaction, setReaction] = useState<number | null>(null)
   const [decision, setDecision] = useState<Decision | null>(null)
-  const [met, setMet] = useState<boolean | null>(null)
-  const [place, setPlace] = useState<PlaceChoice>({})
+  const [met, setMet] = useState<Record<string, boolean>>({})
+  const [placeBy, setPlaceBy] = useState<Record<string, PlaceChoice>>({})
   const [outcome, setOutcome] = useState<Outcome | null>(null)
-  const [celebrating, setCelebrating] = useState(false)
+  const [celebrated, setCelebrated] = useState(0)
 
-  const boss = bossById(bossId)!
-  const progress = bossProgress[bossId] ?? EMPTY_PROGRESS
-  const bossPlaces = places.filter((p) => p.bossId === bossId)
   const successes = trials.filter(Boolean).length
   const finished = trials.length >= TRIALS
 
   const choose = (next: Exercise) => {
     setExercise(next)
-    setBossId(next.bossIds.includes(bossId) ? bossId : next.bossIds[0]!)
+    setWanted(next.bossIds.includes(bossId) ? bossId : null)
     setDifficulty(currentDifficulty(sessions, next.id))
     setTrials([])
     setPicking(false)
@@ -68,8 +64,8 @@ export default function Session() {
 
   // ——— Bilan ———
   if (outcome) {
-    const left = remaining(outcome.progress)
-    const weekSuccesses = successesThisWeek(today, sessions, bossId)
+    const gained = outcome.results.filter((r) => r.levelGained)
+    const celebrating = gained[celebrated]
     return (
       <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col gap-5 px-5 pt-[calc(env(safe-area-inset-top)+32px)] pb-[calc(env(safe-area-inset-bottom)+24px)]">
         <div className="flex flex-col items-center gap-3 text-center">
@@ -80,22 +76,33 @@ export default function Session() {
           <p className="font-display text-2xl font-bold text-primary">+{outcome.xp} XP</p>
         </div>
         <div className="card flex flex-col gap-3 p-4 text-[15px] leading-snug">
-          <p>
-            <span className="font-semibold">
-              {weekSuccesses} réussite{weekSuccesses > 1 ? 's' : ''}
-            </span>{' '}
-            pour {boss.name} cette semaine.
-          </p>
+          {bossIds.map((id) => {
+            const count = successesThisWeek(today, sessions, id)
+            return (
+              <p key={id}>
+                <span className="font-semibold">
+                  {count} réussite{count > 1 ? 's' : ''}
+                </span>{' '}
+                pour {bossById(id)?.name} cette semaine.
+              </p>
+            )
+          })}
           <p>
             Prochaine séance de « {exercise.name} » : <span className="font-semibold">N{applyDecision(difficulty, decision ?? 'rester')}</span>.
           </p>
-          {outcome.validated && left.target && !outcome.levelGained && (
-            <p>
-              Critère du palier P{left.target} validé : <span className="font-semibold">{left.done}/{left.needed}</span>
-              {left.needed - left.done > 0 ? `, il en reste ${left.needed - left.done}, un autre jour.` : '.'}
-            </p>
-          )}
-          {outcome.starPlaceId && <p className="font-semibold text-primary">Nouveau lieu validé : une étoile de maîtrise de plus.</p>}
+          {outcome.results.map((result) => {
+            const left = remaining(result.progress)
+            const name = bossById(result.bossId)?.name
+            if (result.starPlaceId) return <p key={result.bossId} className="font-semibold text-primary">{name} : nouveau lieu validé, une étoile de maîtrise de plus.</p>
+            if (!result.validated) return <p key={result.bossId} className="text-muted">{name} : critère déjà validé aujourd'hui. La prochaine validation compte un autre jour.</p>
+            if (result.levelGained || !left.target) return null
+            return (
+              <p key={result.bossId}>
+                {name}, P{left.target} : critère validé <span className="font-semibold">{left.done}/{left.needed}</span>
+                {left.needed - left.done > 0 ? `, il en reste ${left.needed - left.done}, un autre jour.` : '.'}
+              </p>
+            )
+          })}
           {decision === 'baisser' && <p className="text-muted">Baisser est une bonne décision : on reste sous son seuil.</p>}
         </div>
         <div className="mt-auto flex flex-col gap-2">
@@ -113,7 +120,7 @@ export default function Session() {
             Annuler cette séance (erreur de saisie)
           </button>
         </div>
-        {celebrating && outcome.levelGained && <Celebration boss={boss} level={outcome.levelGained} onClose={() => setCelebrating(false)} />}
+        {celebrating?.levelGained && <Celebration boss={bossById(celebrating.bossId)!} level={celebrating.levelGained} onClose={() => setCelebrated(celebrated + 1)} />}
       </main>
     )
   }
@@ -122,21 +129,31 @@ export default function Session() {
   if (finished) {
     const suggestion = ate === null ? null : suggest(trials, ate)
     const allowed = ate !== null && reaction !== null && canValidate(ate, reaction)
-    const mastery = progress.level >= MAX_LEVEL
-    const target = mastery ? undefined : boss.levels[progress.level]
-    const placeNeeded = allowed && met === true && needsPlace(progress)
-    const ready = ate !== null && reaction !== null && decision !== null && (!allowed || met !== null) && (!placeNeeded || placeChosen(place))
+    const progressOf = (id: string) => bossProgress[id] ?? EMPTY_PROGRESS
+    const placeNeeded = (id: string) => allowed && met[id] === true && needsPlace(progressOf(id))
+    const ready =
+      ate !== null &&
+      reaction !== null &&
+      decision !== null &&
+      (!allowed || bossIds.every((id) => met[id] !== undefined)) &&
+      bossIds.every((id) => !placeNeeded(id) || placeChosen(placeBy[id] ?? {}))
 
     const save = () => {
       if (ate === null || reaction === null || decision === null || suggestion === null) return
-      const placeId = placeNeeded ? (place.id ?? addPlace(place.name ?? '', bossId)) : undefined
-      const result = recordSession(
-        { date: today, exerciseId: exercise.id, bossId, difficulty, trials, ate, reaction, suggestion, decision, xp: sessionXp(trials, suggestion, decision) },
-        bossProgress[bossId],
-        allowed && met ? { placeId } : undefined,
+      const validations = !allowed
+        ? []
+        : bossIds
+            .filter((id) => met[id])
+            .map((id) => {
+              const place = placeBy[id] ?? {}
+              return { bossId: id, current: bossProgress[id], placeId: placeNeeded(id) ? (place.id ?? addPlace(place.name ?? '', id)) : undefined }
+            })
+      setOutcome(
+        recordSession(
+          { date: today, exerciseId: exercise.id, bossId, bossIds: bossIds.length > 1 ? bossIds : undefined, difficulty, trials, ate, reaction, suggestion, decision, xp: sessionXp(trials, suggestion, decision) },
+          validations,
+        ),
       )
-      setOutcome(result)
-      setCelebrating(Boolean(result.levelGained))
     }
 
     return (
@@ -201,24 +218,34 @@ export default function Session() {
           </fieldset>
         )}
 
-        {allowed && (
-          <fieldset className="m-0 border-0 p-0">
-            <legend className="mb-1 p-0 text-[17px] font-bold">{mastery ? 'Réussi dans un nouveau lieu ?' : 'Le critère du palier est-il atteint aujourd’hui ?'}</legend>
-            <p className="mb-2.5 rounded-field bg-milestone-soft px-3 py-2.5 text-[15px] leading-snug font-semibold text-[#5C2A08]">
-              {boss.name} · {mastery ? 'Maîtrise : chaque nouveau lieu ajoute une étoile' : `P${progress.level + 1} ${target?.title} : ${target?.criterion}`}
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <button type="button" aria-pressed={met === true} onClick={() => setMet(true)} className={bigChoice(met === true)}>
-                Oui
-              </button>
-              <button type="button" aria-pressed={met === false} onClick={() => setMet(false)} className={bigChoice(met === false)}>
-                Pas encore
-              </button>
-            </div>
-          </fieldset>
-        )}
-
-        {placeNeeded && <PlacePicker legend="Dans quel lieu ?" places={bossPlaces} value={place} onChange={setPlace} />}
+        {allowed &&
+          bossIds.map((id) => {
+            const item = bossById(id)!
+            const progress = progressOf(id)
+            const mastery = progress.level >= MAX_LEVEL
+            const target = mastery ? undefined : item.levels[progress.level]
+            return (
+              <fieldset key={id} className="m-0 flex flex-col gap-2.5 border-0 p-0">
+                <legend className="mb-1 p-0 text-[17px] font-bold">
+                  {item.name} : {mastery ? 'réussi dans un nouveau lieu ?' : 'critère du palier atteint aujourd’hui ?'}
+                </legend>
+                <p className="rounded-field bg-milestone-soft px-3 py-2.5 text-[15px] leading-snug font-semibold text-[#5C2A08]">
+                  {mastery ? 'Maîtrise : chaque nouveau lieu ajoute une étoile' : `P${progress.level + 1} ${target?.title} : ${target?.criterion}`}
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" aria-pressed={met[id] === true} onClick={() => setMet({ ...met, [id]: true })} className={bigChoice(met[id] === true)}>
+                    Oui
+                  </button>
+                  <button type="button" aria-pressed={met[id] === false} onClick={() => setMet({ ...met, [id]: false })} className={bigChoice(met[id] === false)}>
+                    Pas encore
+                  </button>
+                </div>
+                {placeNeeded(id) && (
+                  <PlacePicker legend="Dans quel lieu ?" places={places.filter((p) => p.bossId === id)} value={placeBy[id] ?? {}} onChange={(value) => setPlaceBy({ ...placeBy, [id]: value })} />
+                )}
+              </fieldset>
+            )
+          })}
 
         <button type="button" disabled={!ready} onClick={save} className="mt-auto h-[54px] shrink-0 rounded-full border-0 bg-primary text-[17px] font-bold text-white disabled:opacity-50">
           Enregistrer la séance
@@ -242,24 +269,7 @@ export default function Session() {
 
       <div className="flex flex-col gap-3">
         <h1 className="font-display text-[28px] leading-tight font-bold">{exercise.name}</h1>
-        {exercise.bossIds.length > 1 ? (
-          <div role="group" aria-label="Boss travaillé" className="flex flex-wrap gap-2">
-            {exercise.bossIds.map((id) => (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={id === bossId}
-                disabled={trials.length > 0}
-                onClick={() => setBossId(id)}
-                className={`min-h-11 rounded-full border-[1.5px] px-3.5 text-[15px] ${id === bossId ? 'border-primary bg-primary-soft font-bold text-primary-dark' : 'border-border bg-surface font-medium text-text'}`}
-              >
-                {bossById(id)?.name}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <p className="text-[15px] font-medium text-muted">Pour {boss.name}</p>
-        )}
+        <p className="text-[15px] font-medium text-muted">Compte pour : {bossIds.map((id) => bossById(id)?.name).join(' · ')}</p>
 
         <div className="card flex items-center gap-3 p-4">
           <div className="flex shrink-0 flex-col items-center">

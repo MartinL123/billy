@@ -45,6 +45,15 @@ describe('XP', () => {
     expect(restXp([rest('2026-10-05'), rest('2026-10-06'), rest('2026-10-07')], week)).toBe(5)
   })
 
+  it('compte une séance pour tous les boss que l’exercice nourrit', () => {
+    const log = [{ date: '2026-10-13', kind: 'seance', xp: 15, bossId: 'lien', bossIds: ['lien', 'rappel'] }]
+    expect(xpByBoss(log)).toEqual({ lien: 15, rappel: 15 })
+    expect(xpByStat(log)).toMatchObject({ focus: 15, rappel: 15, calme: 0 })
+    const twice = [{ date: '2026-10-13', kind: 'seance', xp: 15, bossId: 'calme', bossIds: ['calme', 'manieres'] }]
+    expect(xpByStat(twice).calme).toBe(15)
+    expect(totalXp(log)).toBe(15)
+  })
+
   it('ne compte jamais de valeur négative', () => {
     const log = [
       { date: '2026-10-01', kind: 'seance', xp: 13, bossId: 'lien' },

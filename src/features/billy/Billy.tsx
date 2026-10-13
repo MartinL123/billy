@@ -68,13 +68,12 @@ function Floor({ territory, active }: { territory: Territory; active: string[] }
               key={skill.id}
               to={`/competence/${skill.id}`}
               aria-label={`${skill.name}. ${mastered ? 'Maîtrisé, à entretenir' : `Prochaine étape : ${stepShort(skill.id, acquired + 1)}`}${current ? '. En cours' : ''}`}
-              className="relative flex flex-col items-center gap-1.5 rounded-[20px] bg-surface px-2.5 pt-3.5 pb-3 text-center text-text no-underline shadow-[0_2px_6px_rgba(24,32,30,0.08)]"
+              className="flex flex-col items-center gap-1.5 rounded-[20px] bg-surface px-2.5 pt-2.5 pb-3 text-center text-text no-underline shadow-[0_2px_6px_rgba(24,32,30,0.08)]"
             >
-              {current && (
-                <span className="absolute top-2 right-2 rounded-lg px-2 py-0.5 text-xs font-bold text-white" style={{ background: territory.color }}>
-                  En cours
-                </span>
-              )}
+              {/* L'étiquette a sa propre ligne au-dessus du badge : elle ne recouvre jamais l'anneau. */}
+              <span className={`rounded-lg px-2 py-0.5 text-xs font-bold text-white ${current ? '' : 'invisible'}`} style={{ background: territory.color }}>
+                En cours
+              </span>
               <Badge bossId={skill.id} acquired={acquired} />
               <span className="font-display text-base leading-tight font-extrabold">{skill.name}</span>
               {mastered ? (
@@ -83,7 +82,7 @@ function Floor({ territory, active }: { territory: Territory; active: string[] }
                 <span className={`text-sm leading-snug ${acquired ? 'text-[#3F4946]' : 'text-muted'}`}>{acquired || current ? stepShort(skill.id, acquired + 1) : 'À découvrir'}</span>
               )}
               {exercise && (
-                <span className="mt-0.5 flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] leading-tight font-bold" style={{ background: territory.soft, color: territory.color }}>
+                <span className="mt-0.5 flex max-w-full items-center gap-1 rounded-[14px] px-2.5 py-1 text-left text-[13px] leading-tight font-bold" style={{ background: territory.soft, color: territory.color }}>
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true" className="shrink-0">
                     <path d="M2 1l7 4-7 4z" />
                   </svg>

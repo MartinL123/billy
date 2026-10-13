@@ -82,6 +82,24 @@ export default function Today() {
 
       <QuestCard />
 
+      {/* Le défi suit la quête : les deux choses à faire sont ensemble. Toute la carte ouvre l'exercice du défi. */}
+      <Link to={`/exercice?competence=${challenge.bossId}`} aria-label={`Défi de la semaine : ${challenge.label}. Ouvrir l'exercice`} className="card flex flex-col gap-3 rounded-[22px] p-4 text-text no-underline">
+        <span className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <span className="text-[13px] font-bold tracking-[0.6px] text-milestone-dark uppercase">Défi de la semaine</span>
+          <span className="text-sm font-bold text-primary">▲ {bossById(challenge.bossId)?.name}</span>
+        </span>
+        <span className="flex items-center gap-3">
+          <span className="flex-1 text-[17px] leading-snug font-semibold">{challenge.label}</span>
+          <ChevronRightIcon size={22} className="shrink-0 text-primary" />
+        </span>
+        <span className="grid grid-cols-3 gap-1.5" aria-hidden="true">
+          {[0, 1, 2].map((i) => (
+            <span key={i} className={`h-2.5 rounded-full ${i < done ? 'bg-milestone' : 'bg-placeholder'}`} />
+          ))}
+        </span>
+        <span className="text-sm text-muted">{done >= challenge.target ? 'Défi réussi, bravo !' : "Rien n'est perdu si ce n'est pas fini dimanche."}</span>
+      </Link>
+
       <Link to="/noter" className={`btn min-h-[60px] text-[18px] ${questionnaire.complete ? 'btn-main shadow-[0_4px_12px_rgba(194,87,26,0.3)]' : 'btn-outline'}`}>
         <NoteIcon size={24} />
         Noter ce qu'on a fait
@@ -106,20 +124,6 @@ export default function Today() {
             </Link>
           ))}
         </div>
-      </section>
-
-      <section aria-label="Défi de la semaine" className="card flex flex-col gap-3 rounded-[22px] p-4">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-[13px] font-bold tracking-[0.6px] text-milestone-dark uppercase">Défi de la semaine</h2>
-          <span className="text-sm font-bold text-primary">▲ {bossById(challenge.bossId)?.name}</span>
-        </div>
-        <p className="text-[17px] leading-snug font-semibold">{challenge.label}</p>
-        <div className="grid grid-cols-3 gap-1.5" aria-hidden="true">
-          {[0, 1, 2].map((i) => (
-            <span key={i} className={`h-2.5 rounded-full ${i < done ? 'bg-milestone' : 'bg-placeholder'}`} />
-          ))}
-        </div>
-        <p className="text-sm text-muted">{done >= challenge.target ? 'Défi réussi, bravo !' : "Rien n'est perdu si ce n'est pas fini dimanche."}</p>
       </section>
 
       {success?.date ? (

@@ -22,7 +22,7 @@ export function QuestCard() {
 
   return (
     <section aria-label="Quête du jour" className="overflow-hidden rounded-[26px] border-2 border-solid bg-surface" style={{ borderColor: territory.color, boxShadow: '0 4px 14px rgba(24,32,30,0.12)' }}>
-      <div className="flex items-center justify-between gap-3 px-4 py-2.5 text-white" style={{ background: territory.color }}>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-4 py-2.5 text-white" style={{ background: territory.color }}>
         <h2 className="text-[13px] font-extrabold tracking-[0.8px] uppercase">Quête du jour · {territory.name}</h2>
         {quest.bossId && <span className="rounded-[10px] bg-gold px-2.5 py-[3px] text-[13px] font-extrabold whitespace-nowrap text-gold-dark">▲ {bossById(quest.bossId)?.name}</span>}
       </div>

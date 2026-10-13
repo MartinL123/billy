@@ -88,6 +88,7 @@ export function modernCard<T extends { text: string; tags: string[] }>(entry: T)
   const old = OLD_CARD.exec(entry.text)
   const boss = old && BOSSES.find((b) => b.name === old[1])
   if (old && boss) return { ...entry, text: `C'est réussi ! ${stepPhrase(boss.id, Number(old[2]))}.`, tags }
-  const text = OLD_FIRSTS.reduce((t, [before, now]) => t.replace(before, now), entry.text)
+  // Plus de « Première fois : … » : la phrase seule suffit.
+  const text = OLD_FIRSTS.reduce((t, [before, now]) => t.replace(before, now), entry.text).replace(/^Première fois : /, '')
   return { ...entry, text, tags }
 }

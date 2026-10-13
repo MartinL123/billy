@@ -7,6 +7,7 @@ import { Splash } from './features/auth/Splash'
 import Calendar from './features/calendar/Calendar'
 import EventForm from './features/calendar/EventForm'
 import EntryForm from './features/journal/EntryForm'
+import EntryView from './features/journal/EntryView'
 import Billy from './features/billy/Billy'
 import EnCours from './features/billy/EnCours'
 import Skill from './features/billy/Skill'
@@ -91,7 +92,8 @@ export default function App() {
             <Route path="evenement/nouveau" element={<EventForm />} />
             <Route path="evenement/:id" element={<EventForm />} />
             <Route path="souvenir/nouveau" element={<Navigate to="/noter" replace />} />
-            <Route path="souvenir/:id" element={<EntryForm />} />
+            <Route path="souvenir/:id" element={<EntryView />} />
+            <Route path="souvenir/:id/modifier" element={<EntryForm />} />
             <Route path="exercice" element={<Exercise />} />
             <Route path="seance" element={<Session />} />
             <Route path="document/nouveau" element={<DocumentForm />} />

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { FilePicker } from '../../components/FilePicker'
 import { FormScreen } from '../../components/Form'
@@ -29,6 +29,7 @@ export default function EntryForm() {
   const { entries } = useData()
   const today = useToday()
   const back = useBack('/carnet')
+  const navigate = useNavigate()
   const existing = id ? entries.find((e) => e.id === id) : undefined
 
   const [items, setItems] = useState<Item[]>(() => (existing?.photos ?? []).map((saved) => ({ key: saved.fileId, saved })))
@@ -269,7 +270,8 @@ export default function EntryForm() {
           onConfirm={() => {
             setSaving(true)
             deleteEntry(existing)
-            back()
+            // Le détail n'existe plus : on revient au Carnet.
+            navigate('/carnet', { replace: true })
           }}
         />
       )}

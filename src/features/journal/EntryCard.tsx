@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
+import { ChevronRightIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
+import { territoryOf } from '../../content/phrases'
 import { bossById } from '../../content/training'
 import type { Entry, WithId } from '../../firebase/types'
 import { formatRelative, formatShort, formatWeekdayShort, diffDays, parseISO, type ISODate } from '../../lib/dates'
 import { feelingLabel } from '../../lib/moment'
+import { Face } from './Face'
 
 /** « Hier · 12 oct. », « Lun. 5 oct. » */
 export function entryDateLabel(date: ISODate, today: ISODate): string {
@@ -27,12 +30,55 @@ interface EntryCardProps {
   onOpenPhoto: (index: number) => void
 }
 
-const chip = 'rounded-xl px-2.5 py-1 text-sm font-semibold'
+const chip = 'flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-sm font-semibold'
 
+/** Le visage du ressenti et les compétences travaillées, à la couleur de leur territoire. */
+export function MomentChips({ entry, activeTag }: { entry: Moment; activeTag?: string | null }) {
+  const feeling = feelingLabel(entry.feeling)
+  if (!feeling && !entry.fear && !entry.skills?.length && entry.tags.length === 0) return null
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {feeling && entry.feeling && (
+        <span className={`${chip} bg-gold-soft text-[#5C4508]`}>
+          <Face feeling={entry.feeling} size={20} />
+          {feeling}
+        </span>
+      )}
+      {entry.fear && entry.movedAway && <span className={`${chip} bg-info-soft text-[#1D3F73]`}>On s’est éloignés</span>}
+      {entry.skills?.map((id) => {
+        const territory = territoryOf(id)
+        return (
+          <span key={id} className={chip} style={{ background: territory.soft, color: territory.color }}>
+            {bossById(id)?.name}
+          </span>
+        )
+      })}
+      {entry.tags.map((tag) => (
+        <span key={tag} className={`${chip} ${activeTag === tag ? 'bg-primary text-white' : 'bg-[#EEF0EE] text-[#3F4946]'}`}>
+          {tag}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+/** Une carte du Carnet : toute la partie texte est un bouton (chevron) qui ouvre le détail, où se trouve « Modifier ». */
 export function EntryCard({ entry, today, activeTag, onOpenPhoto }: EntryCardProps) {
   const { photos } = entry
   const photoButton = 'block w-full border-0 bg-transparent p-0'
-  const feeling = feelingLabel(entry.feeling)
+  const body = (
+    <>
+      <span className="flex min-w-0 flex-1 flex-col gap-2.5">
+        <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="text-sm font-semibold text-muted">{entryDateLabel(entry.date, today)}</span>
+          <Pending show={entry.pending} />
+        </span>
+        {entry.text && <span className="text-[17px] leading-[1.45] whitespace-pre-wrap">{entry.text}</span>}
+        <MomentChips entry={entry} activeTag={activeTag} />
+      </span>
+      {!entry.readOnly && <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />}
+    </>
+  )
 
   return (
     <article className="card overflow-hidden">
@@ -60,34 +106,13 @@ export function EntryCard({ entry, today, activeTag, onOpenPhoto }: EntryCardPro
           })}
         </div>
       )}
-      <div className="flex flex-col gap-2.5 px-4 pt-3.5 pb-4">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span className="text-sm font-semibold text-muted">{entryDateLabel(entry.date, today)}</span>
-          <Pending show={entry.pending} />
-        </div>
-        {entry.text && <p className="text-[17px] leading-[1.45] whitespace-pre-wrap">{entry.text}</p>}
-        {(feeling || entry.fear || entry.skills?.length || entry.tags.length > 0) && (
-          <div className="flex flex-wrap gap-1.5">
-            {feeling && <span className={`${chip} bg-gold-soft text-[#5C4508]`}>{feeling}</span>}
-            {entry.fear && <span className={`${chip} bg-info-soft text-[#1D3F73]`}>{entry.movedAway ? 'Il a eu peur · on s’est éloignés' : 'Il a eu peur'}</span>}
-            {entry.skills?.map((id) => (
-              <span key={id} className={`${chip} bg-primary-soft text-primary-dark`}>
-                {bossById(id)?.name}
-              </span>
-            ))}
-            {entry.tags.map((tag) => (
-              <span key={tag} className={`${chip} ${activeTag === tag ? 'bg-primary text-white' : 'bg-[#EEF0EE] text-[#3F4946]'}`}>
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-        {!entry.readOnly && (
-          <Link to={`/souvenir/${entry.id}`} className="btn btn-outline mt-1 min-h-12 self-start px-4">
-            Modifier
-          </Link>
-        )}
-      </div>
+      {entry.readOnly ? (
+        <div className="flex items-center gap-3 px-4 pt-3.5 pb-4">{body}</div>
+      ) : (
+        <Link to={`/souvenir/${entry.id}`} aria-label={`Ouvrir : ${entry.text.slice(0, 60) || 'photos'}`} className="flex min-h-16 items-center gap-3 px-4 pt-3.5 pb-4 text-text no-underline">
+          {body}
+        </Link>
+      )}
     </article>
   )
 }

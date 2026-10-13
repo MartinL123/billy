@@ -19,6 +19,7 @@ import { useQuest } from '../today/useQuest'
 import { BossIcon } from '../training/BossIcon'
 import { LevelUp, StepSuccess } from '../training/Celebration'
 import { takeDraftPhotos } from './draft'
+import { Face } from './Face'
 
 const MAX_PHOTOS = 10
 type When = 'aujourdhui' | 'hier' | 'autre'
@@ -31,19 +32,6 @@ interface Photo {
 
 const legend = 'mb-2.5 p-0 text-lg font-bold'
 const choice = (on: boolean) => `btn px-2 ${on ? 'btn-on' : 'btn-outline'}`
-
-/** Les trois visages : la bouche dit le ressenti, le mot aussi. */
-function Face({ feeling }: { feeling: Feeling }) {
-  const mouth = feeling === 'difficile' ? 'M9 16.5c1.800-1.600 4.200-1.600 6 0' : feeling === 'bien' ? 'M9 15.500h6' : 'M8.500 14.500c2 2.400 5 2.400 7 0'
-  return (
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="9.500" />
-      <circle cx="9" cy="10" r="0.9" fill="currentColor" />
-      <circle cx="15" cy="10" r="0.9" fill="currentColor" />
-      <path d={mouth.replace(/(\.\d)00/g, '$1')} />
-    </svg>
-  )
-}
 
 /**
  * Noter ce qu'on a fait : l'action principale de l'app. Tout est choisi par l'utilisateur, rien n'est deviné.

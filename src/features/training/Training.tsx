@@ -84,9 +84,13 @@ export default function Training() {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-[19px] font-bold">Ses forces</h2>
-        <div className="card rounded-3xl p-4">
-          <Radar now={dressage.statsNow} before={dressage.statsBefore} />
-        </div>
+        {dressage.xp > 0 ? (
+          <div className="card rounded-3xl p-4">
+            <Radar now={dressage.statsNow} before={dressage.statsBefore} />
+          </div>
+        ) : (
+          <p className="text-[15px] leading-snug text-muted">Ses forces se dessinent dès la première séance.</p>
+        )}
       </section>
 
       <Firsts />

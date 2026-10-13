@@ -103,11 +103,15 @@ export function Quests() {
   )
 }
 
+const NEXT_SHOWN = 3
+
 /** Premières fois datées. Les succès cachés n'apparaissent qu'une fois obtenus. */
 export function Firsts() {
   const { xpLog } = useData()
   const earned = new Map(xpLog.filter((e) => e.kind === 'premiere' && e.key).map((e) => [e.key as string, e.date]))
-  const visible = FIRSTS.filter((f) => earned.has(f.key) || !f.hidden)
+  // Les premières fois obtenues, puis seulement les 3 prochaines : le reste se découvre en route.
+  const upcoming = FIRSTS.filter((f) => !earned.has(f.key) && !f.hidden).slice(0, NEXT_SHOWN)
+  const visible = [...FIRSTS.filter((f) => earned.has(f.key)), ...upcoming]
 
   return (
     <section className="flex flex-col gap-3">
@@ -129,7 +133,7 @@ export function Firsts() {
           )
         })}
       </ul>
-      <p className="text-[13px] leading-snug text-muted">Chaque première fois est ajoutée au Journal. Quelques-unes sont des surprises.</p>
+      <p className="text-[15px] leading-snug text-muted">…et quelques surprises. Chaque première fois est ajoutée au Journal.</p>
     </section>
   )
 }

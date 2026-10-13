@@ -456,3 +456,15 @@ describe('situation de peur', () => {
     expect(isFearMoment(undefined, ['ville'])).toBe(false)
   })
 })
+
+import { programWeek } from './rhythm'
+
+describe('son programme : la semaine en 7 pastilles', () => {
+  it('coche les jours notés, met une lune aux repos, entoure aujourd’hui, et ne marque jamais un jour comme raté', () => {
+    const week = programWeek('2026-10-15', ['2026-10-12', '2026-10-14'], ['2026-10-13'])
+    expect(week.map((d) => d.letter).join('')).toBe('LMMJVSD')
+    expect(week.map((d) => d.state)).toEqual(['fait', 'repos', 'fait', 'aujourdhui', 'attente', 'attente', 'attente'])
+    // Un jour passé sans rien reste « en attente », comme un jour à venir.
+    expect(programWeek('2026-10-15', [], [])[0]!.state).toBe('attente')
+  })
+})

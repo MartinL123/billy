@@ -37,3 +37,26 @@ export function successesThisWeek(today: ISODate, sessions: (Dated & { bossId: s
   const week = new Set(weekOf(today))
   return sessions.filter((s) => bossesOf(s).includes(bossId) && week.has(s.date)).reduce((sum, s) => sum + s.trials.filter(Boolean).length, 0)
 }
+
+export type DayState = 'fait' | 'repos' | 'aujourdhui' | 'attente'
+
+export interface ProgramDay {
+  date: ISODate
+  /** L, M, M, J, V, S, D */
+  letter: string
+  state: DayState
+}
+
+const LETTERS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
+
+/**
+ * La semaine en 7 pastilles : coche = quelque chose a été noté, lune = jour de repos, contour = aujourd'hui,
+ * pointillé = à venir ou jour sans rien. Rien n'est jamais « raté ».
+ */
+export function programWeek(today: ISODate, noted: ISODate[], rests: ISODate[]): ProgramDay[] {
+  return weekOf(today).map((date, i) => ({
+    date,
+    letter: LETTERS[i]!,
+    state: rests.includes(date) ? 'repos' : noted.includes(date) ? 'fait' : date === today ? 'aujourdhui' : 'attente',
+  }))
+}

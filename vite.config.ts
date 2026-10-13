@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -32,9 +32,14 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Polices incluses : tout doit s'afficher hors ligne.
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Polices et lecteur PDF inclus : tout doit s'afficher hors ligne.
+        globPatterns: ['**/*.{js,mjs,css,html,svg,png,woff2}'],
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
     }),
   ],
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.ts'],
+  },
 })

@@ -1,6 +1,7 @@
 {
   "version": "0.0.1",
   "configurations": [
+    { "name": "billy-dev-emu", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev:emu"], "port": 5173 },
     { "name": "billy-preview", "runtimeExecutable": "npm", "runtimeArgs": ["run", "preview", "--", "--port", "4173", "--strictPort"], "port": 4173 }
   ]
 }

@@ -64,7 +64,9 @@ npm run dev                # serveur local
 npm run build              # build de production
 npm run preview            # tester le build (et la PWA)
 npm test                   # tests unitaires
-firebase emulators:start   # Auth + Firestore en local
+npm run emulators          # Auth + Firestore en local (demande Java 21+)
+npm run emulators:user     # crée le compte de test de l'émulateur
+npm run dev:emu            # serveur local branché sur les émulateurs
 ```
 
 Configuration Firebase dans `.env.local` (variables `VITE_FIREBASE_*`), jamais commitée.

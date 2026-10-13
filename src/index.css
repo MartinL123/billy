@@ -3,6 +3,7 @@
 /* Tokens repris de docs/maquettes/README.md */
 @theme {
   --color-primary: #1e5a50;
+  --color-primary-dark: #143f38;
   --color-primary-soft: #dcebe6;
   --color-bg: #f3f5f2;
   --color-surface: #ffffff;
@@ -10,8 +11,10 @@
   --color-text: #18201e;
   --color-muted: #5a6662;
   --color-divider: #e6eae7;
+  --color-placeholder: #e4e8e4;
   --color-milestone: #d9661f;
   --color-milestone-soft: #fbe6d4;
+  --color-milestone-dark: #8a3e0c;
   --color-danger: #b3261e;
   --color-danger-soft: #fdf1f0;
   --color-info: #2559a8;
@@ -24,18 +27,52 @@
   --font-sans: 'Figtree Variable', system-ui, sans-serif;
 
   --radius-field: 14px;
-  --radius-card: 22px;
+  --radius-card: 20px;
 
-  --spacing-field: 52px;
-  --spacing-button: 54px;
-  --spacing-chip: 40px;
-  --spacing-tap: 44px;
+  --shadow-card: 0 1px 2px rgba(24, 32, 30, 0.06);
+  --shadow-fab: 0 6px 16px rgba(30, 90, 80, 0.35);
+
+  --animate-sheet: sheet-up 0.22s ease-out;
+  --animate-fade: fade-in 0.2s ease-out;
+
+  @keyframes sheet-up {
+    from {
+      transform: translateY(100%);
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+@utility card {
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+/* Champ de saisie : 52 px de haut, 16 px de texte (sinon Safari zoome au focus) */
+@utility field {
+  width: 100%;
+  min-height: 52px;
+  border-radius: var(--radius-field);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  padding: 0 16px;
+  font-size: 16px;
+  color: var(--color-text);
 }
 
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -45,11 +82,52 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
 }
 
-/* Safari iOS zoome au focus en dessous de 16 px */
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+}
+
 input,
 select,
 textarea {
   font-size: 16px;
+}
+
+button,
+a,
+label {
+  touch-action: manipulation;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Champs date et heure natifs d'iOS : même allure que les champs texte */
+input[type='date'],
+input[type='time'] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  align-items: center;
+}
+input::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
 }

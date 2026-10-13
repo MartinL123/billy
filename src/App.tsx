@@ -1,18 +1,67 @@
+import { useEffect, useState } from 'react'
+import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { TabLayout } from './components/TabBar'
+import { ToastProvider } from './components/Toast'
+import Login from './features/auth/Login'
+import { Splash } from './features/auth/Splash'
+import Calendar from './features/calendar/Calendar'
+import EventForm from './features/calendar/EventForm'
+import EntryForm from './features/journal/EntryForm'
+import Journal from './features/journal/Journal'
+import DocumentForm from './features/profile/DocumentForm'
+import DocumentView from './features/profile/DocumentView'
+import Profile from './features/profile/Profile'
+import Today from './features/today/Today'
+import { watchUser, type User } from './firebase/auth'
+import { DataProvider } from './firebase/store'
+
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
+
 export default function App() {
+  // undefined = session en cours de restauration
+  const [user, setUser] = useState<User | null>()
+  useEffect(() => watchUser(setUser), [])
+
+  if (user === undefined) return <Splash />
+  if (!user) return <Login />
+
   return (
-    <main className="flex min-h-full flex-col items-center justify-center gap-4 px-6 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-center">
-      <div className="flex size-24 items-center justify-center rounded-[28px] bg-primary shadow-[0_8px_20px_rgba(30,90,80,0.28)]">
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true">
-          <ellipse cx="7" cy="8" rx="1.8" ry="2.3" />
-          <ellipse cx="12" cy="6" rx="1.8" ry="2.3" />
-          <ellipse cx="17" cy="8" rx="1.8" ry="2.3" />
-          <ellipse cx="4.6" cy="12.6" rx="1.6" ry="2" />
-          <ellipse cx="19.4" cy="12.6" rx="1.6" ry="2" />
-          <path d="M12 11c-3 0-5.5 3.2-5.5 5.6 0 1.8 1.4 2.6 2.8 2.6 1.1 0 1.8-.6 2.7-.6s1.6.6 2.7.6c1.4 0 2.8-.8 2.8-2.6C17.5 14.2 15 11 12 11z" />
-        </svg>
-      </div>
-      <h1 className="font-display text-[34px] font-bold tracking-[-0.5px]">Bonjour Billy</h1>
-      <p className="text-muted">Son calendrier, ses souvenirs, ses papiers.</p>
-    </main>
+    <DataProvider
+      key={user.uid}
+      fallback={(offline) =>
+        offline ? (
+          <Splash title="Pas de réseau">Le tout premier lancement a besoin d'Internet pour préparer le profil de Billy.</Splash>
+        ) : (
+          <Splash />
+        )
+      }
+    >
+      <ToastProvider>
+        <HashRouter>
+          <ScrollToTop />
+          <Routes>
+            <Route element={<TabLayout />}>
+              <Route index element={<Today />} />
+              <Route path="calendrier" element={<Calendar />} />
+              <Route path="journal" element={<Journal />} />
+            </Route>
+            <Route path="profil" element={<Profile />} />
+            <Route path="evenement/nouveau" element={<EventForm />} />
+            <Route path="evenement/:id" element={<EventForm />} />
+            <Route path="souvenir/nouveau" element={<EntryForm />} />
+            <Route path="souvenir/:id" element={<EntryForm />} />
+            <Route path="document/nouveau" element={<DocumentForm />} />
+            <Route path="document/:id" element={<DocumentView />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </HashRouter>
+      </ToastProvider>
+    </DataProvider>
   )
 }

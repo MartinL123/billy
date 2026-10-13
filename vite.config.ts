@@ -8,6 +8,10 @@ const base = '/billy/'
 
 export default defineConfig({
   base,
+  define: {
+    // Affichée dans le profil, pour savoir quelle version tourne sur l'iPhone.
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     react(),
     tailwindcss(),

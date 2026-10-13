@@ -261,6 +261,10 @@ export default function Profile() {
         </button>
       </section>
 
+      <p className="text-center text-[13px] text-muted">
+        Version du {new Date(__BUILD_TIME__).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+      </p>
+
       {confirmLogout && (
         <ConfirmSheet
           title="Se déconnecter ?"

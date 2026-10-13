@@ -21,6 +21,7 @@ import { BossIcon } from '../training/BossIcon'
 import { LevelUp, StepSuccess } from '../training/Celebration'
 import { takeDraftPhotos } from './draft'
 import { Face } from './Face'
+import { errorText } from '../../firebase/errors'
 
 const MAX_PHOTOS = 10
 type When = 'aujourdhui' | 'hier' | 'autre'
@@ -83,7 +84,7 @@ export default function Noter() {
         const { full, thumb } = await compressImage(file, PHOTO)
         setPhotos((current) => [...current, { key: crypto.randomUUID(), full, thumb, previewUrl: URL.createObjectURL(thumb) }])
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Une photo n’a pas pu être ajoutée.')
+        setError(errorText(err, 'Une photo n’a pas pu être ajoutée.'))
       }
     }
     setProgress('')
@@ -125,7 +126,7 @@ export default function Noter() {
       setOutcome(result)
     } catch (err) {
       setSaving(false)
-      setError(err instanceof Error ? err.message : 'L’enregistrement a échoué.')
+      setError(errorText(err, 'L’enregistrement a échoué.'))
     }
   }
 

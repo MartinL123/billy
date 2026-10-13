@@ -36,6 +36,7 @@ import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { BossIcon } from '../training/BossIcon'
 import { Result } from './Result'
+import { errorText } from '../../firebase/errors'
 
 const label = 'text-[17px] font-bold'
 const input = 'field min-h-14 text-[17px]'
@@ -134,7 +135,7 @@ export default function Questionnaire() {
       deleteFile(dog.photoThumbFileId)
       updateDog({ photoFileId, photoThumbFileId })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Photo illisible.')
+      setError(errorText(err, 'Photo illisible.'))
     }
   }
 

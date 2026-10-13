@@ -648,3 +648,18 @@ describe('« Ce qu’il faut » : les friandises', () => {
     expect(neededTreats('Comté en dés')).toBe('Ses friandises préférées (Comté en dés)')
   })
 })
+
+describe('tout en français', () => {
+  it('aucun nom d’exercice ni d’idée du jour n’est en anglais', () => {
+    const english = /\b(look|that|engage|disengage|treat|retreat|up-down|kong|game|the|and)\b/i
+    for (const exercise of EXERCISES) expect(exercise.name, exercise.id).not.toMatch(english)
+  })
+
+  it('les anciens moments s’affichent avec les noms français, sans être modifiés en base', () => {
+    const old = { text: 'Look At That, 3 minutes. Sur son tapis, objet neutre.', tags: [] }
+    expect(modernCard(old).text).toBe('Regarde ça, 3 minutes. Sur son tapis, objet neutre.')
+    expect(old.text).toContain('Look At That')
+    const plain = { text: 'Balade au parc.', tags: [] }
+    expect(modernCard(plain)).toBe(plain)
+  })
+})

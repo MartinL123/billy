@@ -66,6 +66,14 @@ export const byRecency = <T extends { date: ISODate; createdAt?: string }>(a: T,
 
 const OLD_CARD = /^Palier acquis : (.+), P([1-5]) «/
 
+/** Anciens noms d'exercices en anglais, tels qu'ils ont pu être enregistrés dans le texte d'un moment. */
+const OLD_NAMES: [string, string][] = [
+  ['Up-Down', 'Le regard qui remonte'],
+  ['Engage-Disengage', 'Regarde, puis reviens'],
+  ['Look At That', 'Regarde ça'],
+  ['Treat & Retreat', 'Friandise au loin'],
+]
+
 /** Les « premières fois » de la V2, avec les mots d'aujourd'hui. */
 const OLD_FIRSTS: [string, string][] = [
   ['Première séance', 'Premier exercice'],
@@ -82,7 +90,10 @@ const OLD_FIRSTS: [string, string][] = [
  * Les cartes de réussite écrites avant la V3 parlaient de « palier » : on les affiche avec les mots d'aujourd'hui.
  * Rien n'est modifié dans les données.
  */
-export function modernCard<T extends { text: string; tags: string[] }>(entry: T): T {
+export function modernCard<T extends { text: string; tags: string[] }>(original: T): T {
+  // Les moments notés avant la traduction gardent leur texte en base ; à l'écran, les noms d'exercices sont en français.
+  const translated = OLD_NAMES.reduce((t, [before, now]) => t.replaceAll(before, now), original.text)
+  const entry = translated === original.text ? original : { ...original, text: translated }
   if (!entry.tags.includes('Dressage')) return entry
   const tags = entry.tags.map((t) => (t === 'Dressage' ? 'Réussite' : t))
   const old = OLD_CARD.exec(entry.text)

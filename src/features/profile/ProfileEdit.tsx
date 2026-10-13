@@ -11,6 +11,7 @@ import { TRAITS, type Trait } from '../../content/training'
 import { sortMeals, type Meal } from '../../lib/feeding'
 import { compressImage, PHOTO, type CompressedImage } from '../../lib/image'
 import { useToday } from '../../lib/useToday'
+import { errorText } from '../../firebase/errors'
 
 const contact = (name: string, phone: string): Contact | undefined => (name.trim() || phone.trim() ? { name: name.trim(), phone: phone.trim() } : undefined)
 
@@ -43,7 +44,7 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
       setPhoto({ ...compressed, previewUrl: URL.createObjectURL(compressed.thumb) })
       setErrors((e) => ({ ...e, photo: undefined }))
     } catch (err) {
-      setErrors((e) => ({ ...e, photo: err instanceof Error ? err.message : 'Photo illisible.' }))
+      setErrors((e) => ({ ...e, photo: errorText(err, 'Photo illisible.') }))
     }
   }
 

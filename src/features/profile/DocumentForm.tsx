@@ -16,6 +16,7 @@ import { inspectPdf } from '../../lib/pdf'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { CATEGORIES, kindBadge } from './documents'
+import { errorText } from '../../firebase/errors'
 
 /** Fichier choisi, prêt à être enregistré. */
 type Picked =
@@ -82,7 +83,7 @@ export default function DocumentForm() {
       const fallback = pdf
         ? "Ce PDF n'a pas pu être lu. S'il est protégé par un mot de passe, retire-le avant de l'importer."
         : 'Import impossible.'
-      setError(!pdf && err instanceof Error ? err.message : fallback)
+      setError(!pdf ? errorText(err, fallback) : fallback)
     } finally {
       setProgress('')
     }
@@ -111,7 +112,7 @@ export default function DocumentForm() {
       back()
     } catch (err) {
       setSaving(false)
-      setError(err instanceof Error ? err.message : "L'enregistrement a échoué.")
+      setError(errorText(err, "L'enregistrement a échoué."))
     }
   }
 

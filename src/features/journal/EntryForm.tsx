@@ -15,6 +15,7 @@ import { allTags, cleanTag, sameTag } from '../../lib/tags'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { takeDraftPhotos } from './draft'
+import { errorText } from '../../firebase/errors'
 
 const MAX_PHOTOS = 10
 
@@ -57,7 +58,7 @@ export default function EntryForm() {
         const item: Item = { key: crypto.randomUUID(), full, thumb, previewUrl: URL.createObjectURL(thumb) }
         setItems((current) => [...current, item])
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Une photo n'a pas pu être importée.")
+        setError(errorText(err, "Une photo n'a pas pu être importée."))
       }
     }
     setProgress('')
@@ -124,7 +125,7 @@ export default function EntryForm() {
       back()
     } catch (err) {
       setSaving(false)
-      setError(err instanceof Error ? err.message : "L'enregistrement a échoué.")
+      setError(errorText(err, "L'enregistrement a échoué."))
     }
   }
 

@@ -19,7 +19,7 @@ export const GAMES: Idea[] = [
 
 export const CHEWS: Idea[] = [
   { id: 'carotte', name: 'Carotte congelée', detail: 'À préparer au congélateur', scene: 'macher-froid', steps: ['Lavez une carotte entière et mettez-la 2 h au congélateur.', 'Donnez-la entière : le froid soulage les dents qui poussent.'] },
-  { id: 'kong', name: 'Kong glacé', detail: 'À préparer au congélateur', scene: 'macher-froid', steps: ['Mélangez une part de ses croquettes avec du yaourt nature, sans sucre ni édulcorant.', 'Remplissez le Kong et laissez une nuit au congélateur.'] },
+  { id: 'kong', name: 'Jouet fourré glacé', detail: 'À préparer au congélateur', scene: 'macher-froid', steps: ['Mélangez une part de ses croquettes avec du yaourt nature, sans sucre ni édulcorant.', 'Remplissez un jouet à fourrer et laissez une nuit au congélateur.'] },
   { id: 'concombre', name: 'Bâtonnets de concombre', detail: 'Prêt tout de suite', scene: 'macher', steps: ['Coupez un tronçon de concombre en gros bâtonnets.', 'Deux ou trois suffisent.'] },
   { id: 'haricots', name: 'Haricots verts glacés', detail: 'À préparer au congélateur', scene: 'macher-froid', steps: ['Haricots verts nature, sans sel ni sauce.', 'Une petite poignée, encore congelés.'] },
   { id: 'lecher', name: 'Assiette à lécher', detail: 'À préparer au congélateur', scene: 'macher-froid', steps: ['Étalez du yaourt nature ou de la purée de courgette sur une assiette.', 'Congelez une heure : lécher l’apaise.'] },

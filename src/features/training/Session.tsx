@@ -22,7 +22,7 @@ export default function Session() {
   const [params] = useSearchParams()
   const { dog, sessions, bossProgress } = useData()
   const today = useToday()
-  const back = useBack('/dressage')
+  const back = useBack('/')
   const traits = dog.traits ?? []
 
   // Dernier exercice présélectionné ; depuis la fiche d'un boss, son premier exercice conseillé.

@@ -226,19 +226,19 @@ export const EXERCISES: Exercise[] = [
   {
     id: 'up-down', name: 'Up-Down', bossIds: ['lien'], traits: ['craintif'], verified: true, scene: 'regard',
     steps: ['Pose une friandise au sol devant lui.', 'Il la mange puis relève la tête vers toi : « oui ! », nouvelle friandise au sol.', 'Le regard vient de lui : ne l’appelle pas.'],
-    levels: ['À la maison', 'Porte d’entrée ouverte', 'À un point calme de la balade', 'Dans un nouveau lieu calme', 'Quand un déclencheur est visible très loin, sans s’en approcher'],
+    levels: ['À la maison', 'Porte d’entrée ouverte', 'À un point calme de la balade', 'Dans un nouveau lieu calme', 'Quand ce qui lui fait peur est visible très loin, sans s’en approcher'],
     source: { name: 'Leslie McDevitt, via Wag’n Train', url: 'https://www.wagntrain.com/?p=240' },
   },
   {
     id: 'touche', name: 'Touche-main', bossIds: ['lien', 'rappel'], traits: ['chiot'], verified: true, scene: 'touche',
-    steps: ['Présente ta paume, toujours de la même façon.', 'Il la touche du museau : « oui ! », friandise.', 'Sert aussi à l’éloigner d’un déclencheur.'],
+    steps: ['Présente ta paume, toujours de la même façon.', 'Il la touche du museau : « oui ! », friandise.', 'Sert aussi à l’éloigner de ce qui lui fait peur.'],
     levels: ['Paume près du museau', 'Paume à un pas', 'À plusieurs mètres', 'En balade, dans un lieu calme', 'En balade, avec des distractions'],
     source: { name: 'AKC', url: 'https://www.akc.org/expert-advice/training/teaching-targeting-to-your-dog/' },
   },
   {
     id: 'cherche', name: 'Cherche !', bossIds: ['calme', 'nouveaute', 'ville'], traits: ['chiot', 'craintif'], verified: false, scene: 'flair',
     steps: ['Éparpille quelques croquettes au sol et dis « cherche ».', 'Laisse-le renifler sans l’aider : cela fait baisser le stress.', 'En rue, c’est une sortie de secours : on s’arrête et on cherche.'],
-    levels: ['Entre ses pattes', 'À 1 m', 'Dans l’herbe', 'En balade, lieu calme', 'En balade, déclencheur visible très loin'],
+    levels: ['Entre ses pattes', 'À 1 m', 'Dans l’herbe', 'En balade, lieu calme', 'En balade, ce qui lui fait peur visible très loin'],
     source: { name: 'Fiche décrite de mémoire' },
   },
   {
@@ -267,13 +267,13 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'engage-disengage', name: 'Engage-Disengage', bossIds: ['rencontres', 'congeneres'], traits: ['reactif-chiens', 'craintif'], verified: true, scene: 'regard',
-    steps: ['Étape 1 : il regarde le déclencheur, « oui ! », friandise.', 'Étape 2 : il le regarde, attends jusqu’à 3 secondes qu’il revienne vers toi, puis récompense.', 'Reste à une distance où il mange. Tu ne te rapproches pas pour réussir.'],
+    steps: ['Étape 1 : il regarde ce qui l’inquiète, « oui ! », friandise.', 'Étape 2 : il le regarde, attends jusqu’à 3 secondes qu’il revienne vers toi, puis récompense.', 'Reste à une distance où il mange. Tu ne te rapproches pas pour réussir.'],
     levels: ['Étape 1, très loin', 'Étape 1, plusieurs jours de suite', 'Étape 2, très loin', 'Étape 2, dans un autre lieu', 'Étape 2, à la distance que Billy choisit'],
     source: { name: 'Preventive Vet', url: 'https://www.preventivevet.com/dogs/engage-disengage-dog-training-game' },
   },
   {
     id: 'lat', name: 'Look At That', bossIds: ['ville', 'nouveaute', 'rencontres'], traits: ['craintif', 'reactif-chiens'], verified: true, scene: 'regard',
-    steps: ['Il jette un coup d’œil à la chose : « oui ! », friandise près de toi.', 'Le déclencheur apparaît d’abord, la friandise ensuite.', 'Commence par des objets neutres.'],
+    steps: ['Il jette un coup d’œil à la chose : « oui ! », friandise près de toi.', 'La chose apparaît d’abord, la friandise ensuite.', 'Commence par des objets neutres.'],
     levels: ['Sur son tapis, objet neutre', 'L’objet apparaît : friandises ; il disparaît : plus rien', 'Tu marques son coup d’œil', 'Sur un signal : « Où est… ? »', 'Dans la vraie vie, de loin'],
     source: { name: 'Cattledog Publishing', url: 'https://cattledogpublishing.com/blog/a-game-changer-for-reactive-dogs-look-at-that-lat/' },
   },

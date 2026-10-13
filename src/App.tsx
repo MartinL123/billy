@@ -7,6 +7,8 @@ import { Splash } from './features/auth/Splash'
 import Calendar from './features/calendar/Calendar'
 import EventForm from './features/calendar/EventForm'
 import EntryForm from './features/journal/EntryForm'
+import Billy from './features/billy/Billy'
+import Skill from './features/billy/Skill'
 import Journal from './features/journal/Journal'
 import Raconter from './features/journal/Raconter'
 import DocumentForm from './features/profile/DocumentForm'
@@ -15,12 +17,9 @@ import Profile from './features/profile/Profile'
 import Opening from './features/start/Opening'
 import Questionnaire from './features/start/Questionnaire'
 import Today from './features/today/Today'
-import BossSheet from './features/training/BossSheet'
 import { DressageAwards } from './features/training/DressageAwards'
 import Exercise from './features/training/Exercise'
-import ExposureForm from './features/training/ExposureForm'
 import Session from './features/training/Session'
-import Training from './features/training/Training'
 import { watchUser, type User } from './firebase/auth'
 import { DataProvider } from './firebase/store'
 
@@ -70,23 +69,28 @@ export default function App() {
           <Routes>
             <Route element={<TabLayout />}>
               <Route index element={<Today />} />
-              <Route path="calendrier" element={<Calendar />} />
+              <Route path="sante" element={<Calendar />} />
+              <Route path="billy" element={<Billy />} />
               <Route path="carnet" element={<Journal />} />
               <Route path="journal" element={<Navigate to="/carnet" replace />} />
-              <Route path="dressage" element={<Training />} />
             </Route>
             <Route path="ouverture" element={<Opening />} />
             <Route path="questionnaire" element={<Questionnaire />} />
             <Route path="raconter" element={<Raconter />} />
-            <Route path="profil" element={<Profile />} />
+            <Route path="competence/:id" element={<Skill />} />
+            <Route path="profil/modifier" element={<Profile />} />
+            {/* Anciennes adresses : rien n'est perdu, tout a une nouvelle place. */}
+            <Route path="calendrier" element={<Navigate to="/sante" replace />} />
+            <Route path="profil" element={<Navigate to="/billy" replace />} />
+            <Route path="dressage" element={<Navigate to="/billy" replace />} />
+            <Route path="boss/:id" element={<Navigate to="/billy" replace />} />
+            <Route path="exposition" element={<Navigate to="/raconter" replace />} />
             <Route path="evenement/nouveau" element={<EventForm />} />
             <Route path="evenement/:id" element={<EventForm />} />
             <Route path="souvenir/nouveau" element={<Navigate to="/raconter" replace />} />
             <Route path="souvenir/:id" element={<EntryForm />} />
-            <Route path="boss/:id" element={<BossSheet />} />
             <Route path="exercice" element={<Exercise />} />
             <Route path="seance" element={<Session />} />
-            <Route path="exposition" element={<ExposureForm />} />
             <Route path="document/nouveau" element={<DocumentForm />} />
             <Route path="document/:id" element={<DocumentView />} />
             <Route path="*" element={<Navigate to="/" replace />} />

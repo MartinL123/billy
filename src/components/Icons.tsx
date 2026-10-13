@@ -24,6 +24,14 @@ function icon(children: ReactNode, defaults: SVGProps<SVGSVGElement> = {}) {
   }
 }
 
+export const HomeIcon = icon(
+  <>
+    <path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z" />
+  </>,
+)
+
+export const HeartIcon = icon(<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.600A4 4 0 0 1 19 10c0 5.600-7 10-7 10z" />)
+
 export const SunIcon = icon(
   <>
     <circle cx="12" cy="12" r="4" />

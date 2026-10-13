@@ -33,7 +33,7 @@ export default function EventForm() {
   const { events, documents } = useData()
   const today = useToday()
   const navigate = useNavigate()
-  const back = useBack('/calendrier')
+  const back = useBack('/sante')
   const existing = id ? events.find((e) => e.id === id) : undefined
 
   const [type, setType] = useState<EventType>(existing?.type ?? 'veto')

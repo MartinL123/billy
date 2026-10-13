@@ -31,7 +31,7 @@ const continueButton = 'mt-auto flex min-h-[60px] w-full shrink-0 items-center j
 const pill = 'rounded-2xl bg-white/15 px-3.5 py-2 text-base font-bold'
 
 /** Nouvelle étape : « C'est réussi ! », la phrase de l'étape en grand, la suivante. Ni étoile ni compteur. */
-export function StepSuccess({ dogName, bossId, level, onClose }: { dogName: string; bossId: string; level: number; onClose: () => void }) {
+export function StepSuccess({ dogName, bossId, level, inCarnet = true, onClose }: { dogName: string; bossId: string; level: number; inCarnet?: boolean; onClose: () => void }) {
   const boss = bossById(bossId)
   return (
     <FullScreen label="C'est réussi">
@@ -52,7 +52,7 @@ export function StepSuccess({ dogName, bossId, level, onClose }: { dogName: stri
       )}
       <div className="mt-4 mb-6 flex flex-wrap justify-center gap-2.5">
         <span className={pill}>+{MOMENT_XP.step} XP</span>
-        <span className={pill}>Ajouté au Carnet</span>
+        {inCarnet && <span className={pill}>Ajouté au Carnet</span>}
       </div>
       <button type="button" onClick={onClose} className={continueButton}>
         Continuer

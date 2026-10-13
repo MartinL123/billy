@@ -73,7 +73,7 @@ export default function DocumentView() {
   const { id } = useParams()
   const { documents, events } = useData()
   const navigate = useNavigate()
-  const back = useBack('/profil')
+  const back = useBack('/sante')
   const document_ = documents.find((d) => d.id === id)
 
   const [blobs, setBlobs] = useState<Blob[] | null>(null)

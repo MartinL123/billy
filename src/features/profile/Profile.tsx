@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { FileImage } from '../../components/FileImage'
-import { outlineButton } from '../../components/Form'
-import { ChevronLeftIcon, ChevronRightIcon, CloudCheckIcon, CloudPendingIcon, ImportIcon, PhoneIcon } from '../../components/Icons'
+import { Link, useNavigate } from 'react-router-dom'
+import { CloudCheckIcon, CloudPendingIcon, PhoneIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
 import { ConfirmSheet } from '../../components/Sheet'
 import { auth } from '../../firebase/app'
@@ -11,23 +9,13 @@ import { QUOTA_BYTES, storageUsed } from '../../firebase/files'
 import { useData } from '../../firebase/store'
 import type { Contact } from '../../firebase/types'
 import { formatAgeShort } from '../../lib/age'
-import type { EventType } from '../../lib/events'
-import { formatLong, formatShort, formatTime, parseISO } from '../../lib/dates'
-import { careStatus } from '../../lib/health'
-import { guards } from '../../lib/traits'
-import { traitInfo } from '../../content/training'
+import { formatLong, formatTime } from '../../lib/dates'
+import { CHARACTER } from '../../content/phrases'
 import { formatBytes } from '../../lib/image'
 import { sortMeals } from '../../lib/feeding'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
-import { categoryLabel, kindBadge } from './documents'
 import { ProfileEdit } from './ProfileEdit'
-
-const CARE: { type: EventType; label: string }[] = [
-  { type: 'vaccin', label: 'Vaccin CHPPiL' },
-  { type: 'vermifuge', label: 'Vermifuge' },
-  { type: 'antiparasitaire', label: 'Puces et tiques' },
-]
 
 /** Alerte d'espace au-delà de 70 % du quota gratuit. */
 const STORAGE_ALERT = 0.7
@@ -68,11 +56,12 @@ function ContactRow({ role, callLabel, contact, first, onAdd }: { role: string; 
   )
 }
 
-export default function Profile() {
-  const { dog, documents, events, pendingCount, online } = useData()
+/** Le profil, sous les compétences dans l'onglet Billy : identité, alimentation, caractère, contacts, compte. */
+export function ProfileSections() {
+  const { dog, documents, pendingCount, online } = useData()
   const today = useToday()
-  const back = useBack('/')
-  const [editing, setEditing] = useState(false)
+  const navigate = useNavigate()
+  const edit = () => navigate('/profil/modifier')
   const [confirmLogout, setConfirmLogout] = useState(false)
   const [used, setUsed] = useState<number>()
 
@@ -87,80 +76,29 @@ export default function Profile() {
     }
   }, [online, documents.length])
 
-  if (editing) return <ProfileEdit dog={dog} onClose={() => setEditing(false)} />
-
   const email = auth.currentUser?.email ?? ''
-  const year = parseISO(today).y
   const usedRatio = used === undefined ? 0 : used / QUOTA_BYTES
+  const character = CHARACTER.filter((c) => dog.traits?.includes(c.trait))
 
   return (
-    <div className="mx-auto flex max-w-[430px] flex-col gap-5 px-5 pt-[calc(env(safe-area-inset-top)+4px)] pb-[calc(env(safe-area-inset-bottom)+40px)]">
-      <div className="flex items-center justify-between">
-        <button type="button" onClick={back} className="btn btn-outline">
-          <ChevronLeftIcon />
-          Retour
-        </button>
-        <button type="button" onClick={() => setEditing(true)} className="btn btn-outline">
-          Modifier
-        </button>
-      </div>
-
-      <div className="flex flex-col items-center gap-2 text-center">
-        {dog.photoThumbFileId ? (
-          <FileImage
-            fileId={dog.photoThumbFileId}
-            alt={`Photo de ${dog.name}`}
-            className="size-[120px] rounded-full border-4 border-white shadow-[0_2px_8px_rgba(24,32,30,0.12)]"
-            eager
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            className="flex size-[120px] items-center justify-center rounded-full border-4 border-solid border-white bg-milestone-soft p-3 text-[13px] font-semibold text-milestone-dark shadow-[0_2px_8px_rgba(24,32,30,0.12)]"
-          >
-            Ajouter une photo
-          </button>
-        )}
-        <h1 className="mt-1 font-display text-[32px] font-bold">{dog.name}</h1>
-        <div className="text-base text-muted">
-          {dog.breed} · {formatAgeShort(dog.birthDate, today)}
-        </div>
-        <Pending show={dog.pending} />
-      </div>
-
-      <div className="card px-4 py-1">
-        <InfoRow first label="Naissance" value={formatLong(dog.birthDate)} />
-        <InfoRow label="Adoption" value={formatLong(dog.adoptionDate)} />
-        <InfoRow label="Puce" value={dog.chip || 'À compléter'} />
-      </div>
-
+    <>
       <section className="flex flex-col gap-2.5">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-[19px] font-bold">Santé</h2>
-          <Link to="/calendrier" className="btn btn-outline py-1">
-            Calendrier
-          </Link>
-        </div>
+        <h2 className="text-xl font-bold">Son profil</h2>
+        <Pending show={dog.pending} />
         <div className="card px-4 py-1">
-          {CARE.map(({ type, label }, i) => {
-            const { last, next } = careStatus(events, type)
-            return (
-              <div key={type} className={`flex flex-col gap-0.5 py-3 ${i ? 'border-t border-divider' : ''}`}>
-                <span className="text-[13px] text-muted">{label}</span>
-                <span className="text-base font-semibold">
-                  {last ? (last.date ? `Fait le ${formatLong(last.date)}` : 'Fait, date inconnue') : 'Rien de noté'}
-                </span>
-                <span className="text-[13px] text-muted">{next?.date ? `Prochain : ${formatLong(next.date)}` : 'Aucun rappel prévu'}</span>
-              </div>
-            )
-          })}
+          <InfoRow first label="Naissance" value={formatLong(dog.birthDate)} />
+          <InfoRow label="Adoption" value={formatLong(dog.adoptionDate)} />
+          <InfoRow label="Race" value={`${dog.breed} · ${formatAgeShort(dog.birthDate, today)}`} />
+          <InfoRow label="Puce" value={dog.chip || 'À compléter'} />
         </div>
+        <Link to="/profil/modifier" className="btn btn-outline">
+          Modifier le profil
+        </Link>
       </section>
 
       {dog.feeding && (
         <section className="flex flex-col gap-2.5">
-          <h2 className="text-[19px] font-bold">Alimentation</h2>
+          <h2 className="text-xl font-bold">Alimentation</h2>
           <div className="card px-4 py-1">
             <InfoRow first label="Ration" value={`${dog.feeding.gramsPerDay} g par jour`} />
             <InfoRow label="Repas" value={sortMeals(dog.feeding.meals).map((m) => formatTime(m.time)).join(' · ') || 'À compléter'} />
@@ -169,85 +107,34 @@ export default function Profile() {
       )}
 
       <section className="flex flex-col gap-2.5">
-        <h2 className="text-[19px] font-bold">Traits</h2>
-        {dog.traits?.length ? (
-          <div className="card flex flex-col gap-3 p-4">
-            <div className="flex flex-wrap gap-2">
-              {dog.traits.map((trait) => (
-                <span key={trait} className="rounded-xl bg-primary-soft px-2.5 py-1 text-[13px] font-semibold text-primary-dark">
-                  {traitInfo(trait)?.label}
-                </span>
-              ))}
-            </div>
-            <ul className="m-0 flex list-disc flex-col gap-1 pl-5 text-[15px] leading-snug text-muted">
-              {guards(dog.traits).map((guard) => (
-                <li key={guard}>{guard}</li>
+        <h2 className="text-xl font-bold">Son caractère</h2>
+        <div className="card flex flex-col gap-3 p-4">
+          {character.length > 0 ? (
+            <ul className="m-0 flex list-none flex-col gap-1.5 p-0 text-[17px] leading-snug">
+              {character.map((c) => (
+                <li key={c.trait}>{c.label}</li>
               ))}
             </ul>
-          </div>
-        ) : (
-          <p className="text-[15px] leading-snug text-muted">Les traits adaptent le chemin du dressage (exercices, précautions), jamais les objectifs.</p>
-        )}
-        <button type="button" onClick={() => setEditing(true)} className="btn btn-outline self-start">
-          Modifier les traits
-        </button>
-      </section>
-
-      <section className="flex flex-col gap-2.5">
-        <h2 className="text-[19px] font-bold">Contacts</h2>
-        <div className="card px-4 py-1">
-          <ContactRow first role="Vétérinaire" callLabel="Appeler le vétérinaire" contact={dog.vet} onAdd={() => setEditing(true)} />
-          <ContactRow role="Éducateur" callLabel="Appeler l'éducateur" contact={dog.trainer} onAdd={() => setEditing(true)} />
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-2.5">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-[19px] font-bold">Documents</h2>
-          {documents.length > 0 && (
-            <span className="text-sm text-muted">
-              {documents.length} document{documents.length > 1 ? 's' : ''}
-            </span>
+          ) : (
+            <p className="text-[17px] leading-snug text-muted">Rien de noté pour l'instant.</p>
           )}
+          {dog.fears?.length || dog.fearsOther ? <p className="text-[15px] leading-snug text-muted">Ce qui lui fait peur : {[...(dog.fears ?? []), dog.fearsOther].filter(Boolean).join(', ').toLocaleLowerCase('fr')}.</p> : null}
+          <Link to="/profil/modifier" className="btn btn-outline">
+            Modifier son caractère
+          </Link>
         </div>
-        {documents.length > 0 ? (
-          <div className="card px-4 py-1">
-            {documents.map((document, i) => {
-              const badge = kindBadge(document.kind)
-              const event = events.find((e) => e.id === document.eventId)
-              const detail = event?.date
-                ? `lié à « ${event.title} » du ${formatShort(event.date, year)}`
-                : `ajouté le ${formatShort(document.date, year)}`
-              return (
-                <Link
-                  key={document.id}
-                  to={`/document/${document.id}`}
-                  className={`flex items-center gap-3 py-3 text-text no-underline ${i ? 'border-t border-divider' : ''}`}
-                >
-                  <span className={`flex h-[54px] w-11 shrink-0 items-center justify-center rounded-lg border text-[10px] font-bold ${badge.className}`}>{badge.label}</span>
-                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="truncate text-base font-semibold">{document.title}</span>
-                    <span className="truncate text-[13px] text-muted">
-                      {categoryLabel(document.category)} · {detail}
-                    </span>
-                    <Pending show={document.pending} />
-                  </span>
-                  <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
-                </Link>
-              )
-            })}
-          </div>
-        ) : (
-          <p className="text-[15px] leading-snug text-muted">Carnet de santé, comptes rendus, ordonnances : garde tous ses papiers ici, même hors ligne.</p>
-        )}
-        <Link to="/document/nouveau" className={outlineButton}>
-          <ImportIcon size={20} />
-          Importer un document
-        </Link>
       </section>
 
       <section className="flex flex-col gap-2.5">
-        <h2 className="text-[19px] font-bold">Compte</h2>
+        <h2 className="text-xl font-bold">Contacts</h2>
+        <div className="card px-4 py-1">
+          <ContactRow first role="Vétérinaire" callLabel="Appeler le vétérinaire" contact={dog.vet} onAdd={edit} />
+          <ContactRow role="Éducateur" callLabel="Appeler l'éducateur" contact={dog.trainer} onAdd={edit} />
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-2.5">
+        <h2 className="text-xl font-bold">Compte</h2>
         <div className="card px-4 py-1">
           <div className="flex items-center gap-3 py-3.5">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-placeholder font-bold text-[#3F4946]">{email.charAt(0).toUpperCase()}</div>
@@ -289,10 +176,6 @@ export default function Profile() {
         </button>
       </section>
 
-      <p className="text-center text-[13px] text-muted">
-        Version du {new Date(__BUILD_TIME__).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
-      </p>
-
       {confirmLogout && (
         <ConfirmSheet
           title="Se déconnecter ?"
@@ -306,6 +189,13 @@ export default function Profile() {
           onConfirm={() => void logOut()}
         />
       )}
-    </div>
+    </>
   )
+}
+
+/** Modifier le profil : plein écran, hors des onglets. */
+export default function ProfileEditScreen() {
+  const { dog } = useData()
+  const back = useBack('/billy')
+  return <ProfileEdit dog={dog} onClose={back} />
 }

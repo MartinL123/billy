@@ -8,8 +8,11 @@ import { Fab } from '../../components/TabBar'
 import { useData } from '../../firebase/store'
 import type { Weight, WithId } from '../../firebase/types'
 import { formatLong, formatShort, parseISO, toISO, type ISODate } from '../../lib/dates'
-import { upcoming } from '../../lib/events'
+import { upcoming, type EventType } from '../../lib/events'
+import { careStatus } from '../../lib/health'
 import { useToday } from '../../lib/useToday'
+import { DocumentsSection } from '../profile/DocumentsSection'
+import { Meals } from '../today/Meals'
 import { CalendarEventRow } from './EventRows'
 import { MonthGrid } from './MonthGrid'
 import { WeightChart } from './WeightChart'
@@ -17,8 +20,14 @@ import { formatKg, WeightSheet } from './WeightSheet'
 
 const DONE_PREVIEW = 3
 
+const CARE: { type: EventType; label: string }[] = [
+  { type: 'vaccin', label: 'Vaccin CHPPiL' },
+  { type: 'vermifuge', label: 'Vermifuge' },
+  { type: 'antiparasitaire', label: 'Puces et tiques' },
+]
+
 export default function Calendar() {
-  const { events, weights } = useData()
+  const { dog, events, weights } = useData()
   const today = useToday()
   const navigate = useNavigate()
   const [month, setMonth] = useState(() => toISO({ ...parseISO(today), d: 1 }))
@@ -37,7 +46,20 @@ export default function Calendar() {
 
   return (
     <div className="flex flex-col gap-5 px-5">
-      <PageHeader title="Calendrier" />
+      <PageHeader title="Santé" />
+
+      <section aria-label="Soins" className="card px-4 py-1">
+        {CARE.map(({ type, label }, i) => {
+          const { last, next: due } = careStatus(events, type)
+          return (
+            <div key={type} className={`flex flex-col gap-0.5 py-3 ${i ? 'border-t border-divider' : ''}`}>
+              <span className="text-[13px] text-muted">{label}</span>
+              <span className="text-base font-semibold">{last ? (last.date ? `Fait le ${formatLong(last.date)}` : 'Fait, date inconnue') : 'Rien de noté'}</span>
+              <span className="text-[13px] text-muted">{due?.date ? `Prochain : ${formatLong(due.date)}` : 'Aucun rappel prévu'}</span>
+            </div>
+          )
+        })}
+      </section>
 
       <MonthGrid
         month={month}
@@ -152,7 +174,11 @@ export default function Calendar() {
         </button>
       </section>
 
-      <Fab label="Ajouter un événement" onClick={newEvent} />
+      {dog.feeding && dog.feeding.meals.length > 0 && <Meals dogName={dog.name} feeding={dog.feeding} today={today} />}
+
+      <DocumentsSection />
+
+      <Fab label="Ajouter un rendez-vous ou un soin" onClick={newEvent} />
       {weightSheet && <WeightSheet today={today} weights={weights} editing={weightSheet.editing} onClose={() => setWeightSheet(null)} />}
     </div>
   )

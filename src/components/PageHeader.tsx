@@ -15,7 +15,7 @@ export function PageHeader({ title, className = '' }: { title: string; className
         <h1 className="font-display text-[32px] font-bold tracking-[-0.5px]">{title}</h1>
       </div>
       <Link
-        to="/profil"
+        to="/billy"
         aria-label={`Profil de ${dog.name}`}
         className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-primary-soft font-display text-xl font-bold text-primary-dark no-underline shadow-[0_1px_3px_rgba(24,32,30,0.15)]"
       >

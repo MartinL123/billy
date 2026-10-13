@@ -7,6 +7,7 @@ import { saveDog } from '../../firebase/db'
 import { deleteFile, saveImage } from '../../firebase/files'
 import type { Contact, Dog, WithId } from '../../firebase/types'
 import { isValidISO } from '../../lib/dates'
+import { CHARACTER } from '../../content/phrases'
 import { TRAITS, type Trait } from '../../content/training'
 import { sortMeals, type Meal } from '../../lib/feeding'
 import { compressImage, PHOTO, type CompressedImage } from '../../lib/image'
@@ -125,17 +126,16 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
       />
 
       <fieldset className="m-0 flex flex-col gap-1 border-0 p-0">
-        <legend className="mb-1 p-0 text-[19px] font-bold">Traits</legend>
-        <p className="mb-1 text-[13px] leading-snug text-muted">Ils adaptent le chemin du dressage : boss conseillés, exercices, précautions. Les objectifs restent les mêmes.</p>
-        {TRAITS.map((trait) => (
-          <label key={trait.id} className="flex min-h-11 items-center gap-3 text-base">
+        <legend className="mb-1 p-0 text-[19px] font-bold">Son caractère</legend>
+        {CHARACTER.map(({ trait, label }) => (
+          <label key={trait} className="flex min-h-12 items-center gap-3 text-[17px]">
             <input
               type="checkbox"
-              checked={traits.includes(trait.id)}
-              onChange={(e) => setTraits(e.target.checked ? [...traits, trait.id] : traits.filter((t) => t !== trait.id))}
+              checked={traits.includes(trait)}
+              onChange={(e) => setTraits(e.target.checked ? [...traits, trait] : traits.filter((t) => t !== trait))}
               className="size-6 shrink-0 accent-primary"
             />
-            {trait.label}
+            {label}
           </label>
         ))}
       </fieldset>

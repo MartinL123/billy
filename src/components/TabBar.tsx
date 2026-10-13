@@ -1,11 +1,11 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { CalendarIcon, PhotoIcon, PlusIcon, SunIcon, TargetIcon } from './Icons'
+import { HeartIcon, HomeIcon, PawIcon, PhotoIcon, PlusIcon } from './Icons'
 
 const TABS = [
-  { to: '/', label: "Aujourd'hui", Icon: SunIcon },
-  { to: '/calendrier', label: 'Calendrier', Icon: CalendarIcon },
+  { to: '/', label: 'Accueil', Icon: HomeIcon },
   { to: '/carnet', label: 'Carnet', Icon: PhotoIcon },
-  { to: '/dressage', label: 'Dressage', Icon: TargetIcon },
+  { to: '/sante', label: 'Santé', Icon: HeartIcon },
+  { to: '/billy', label: 'Billy', Icon: ({ size }: { size?: number }) => <PawIcon size={size ?? 24} color="currentColor" /> },
 ]
 
 function TabBar() {
@@ -20,12 +20,12 @@ function TabBar() {
           to={to}
           end
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center gap-1 text-[12px] no-underline ${isActive ? 'font-bold text-primary' : 'font-medium text-muted'}`
+            `flex flex-col items-center justify-center gap-1 text-sm no-underline ${isActive ? 'font-bold text-primary' : 'font-semibold text-[#3F4946]'}`
           }
         >
           {({ isActive }) => (
             <>
-              <span className={`flex h-[30px] w-14 items-center justify-center rounded-full ${isActive ? 'bg-primary-soft' : ''}`}>
+              <span className={`flex h-8 w-[60px] items-center justify-center rounded-full ${isActive ? 'bg-primary-soft' : ''}`}>
                 <Icon />
               </span>
               {label}

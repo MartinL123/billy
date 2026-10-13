@@ -29,7 +29,7 @@ export default function DocumentForm() {
   const [params] = useSearchParams()
   const { events } = useData()
   const today = useToday()
-  const back = useBack('/profil')
+  const back = useBack('/sante')
 
   const [picked, setPicked] = useState<Picked | null>(null)
   const [title, setTitle] = useState('')

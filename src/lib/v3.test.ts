@@ -222,3 +222,67 @@ describe('défi de la semaine', () => {
     expect(challengeProgress(challenge, '2026-10-13', [...moments, ...moments], [])).toBe(3)
   })
 })
+
+import { dominantFeeling, periodLabel, progressStory, workingOn } from './story'
+
+describe('ses progrès en un mois', () => {
+  const felt = (date: string, feeling: 'difficile' | 'bien' | 'super', skill = 'ville') => ({ date, feeling, skills: [skill] })
+
+  it('nomme la période en mots', () => {
+    expect(periodLabel('2026-09-27')).toBe('fin septembre')
+    expect(periodLabel('2026-10-03')).toBe('début octobre')
+    expect(periodLabel('2026-10-15')).toBe('mi-octobre')
+  })
+
+  it('prend le ressenti le plus fréquent', () => {
+    expect(dominantFeeling(['difficile', 'difficile', 'bien'])).toBe('difficile')
+    expect(dominantFeeling(['difficile', 'bien', 'super'])).toBe('bien')
+  })
+
+  it('compare les premiers moments aux derniers', () => {
+    const moments = [felt('2026-09-25', 'difficile'), felt('2026-09-27', 'difficile'), felt('2026-10-08', 'bien'), felt('2026-10-12', 'bien')]
+    const [story] = progressStory(moments, {}, [], '2026-10-13')
+    expect(story).toMatchObject({ bossId: 'ville', since: 'fin septembre', before: 'souvent difficile', now: 'plutôt bien', better: true })
+  })
+
+  it('ne met jamais en avant un « moins bien », et attend assez de moments', () => {
+    const worse = [felt('2026-09-25', 'super'), felt('2026-09-27', 'super'), felt('2026-10-08', 'difficile'), felt('2026-10-12', 'difficile')]
+    expect(progressStory(worse, {}, [], '2026-10-13')).toEqual([])
+    expect(progressStory(worse.slice(0, 3), {}, [], '2026-10-13')).toEqual([])
+  })
+
+  it('montre une étape gagnée depuis un mois, sans compter celles d’avant l’app', () => {
+    const progress = { rappel: { level: 3, validations: [], masteryPlaces: [], preApp: [1, 2] } }
+    const log = [
+      { id: 'palier-rappel-1', date: '2026-10-01', kind: 'palier' },
+      { id: 'palier-rappel-2', date: '2026-10-01', kind: 'palier' },
+      { id: 'palier-rappel-3', date: '2026-10-10', kind: 'palier' },
+    ]
+    const [story] = progressStory([], progress, log, '2026-10-13')
+    expect(story).toMatchObject({ bossId: 'rappel', before: stepPhraseLower('rappel', 2), now: stepPhraseLower('rappel', 3), better: true })
+    expect(progressStory([], { rappel: { ...progress.rappel, preApp: [1, 2, 3] } }, log, '2026-10-13')).toEqual([])
+  })
+
+  it('n’utilise aucun mot banni et au plus 3 comparaisons', () => {
+    const moments = SKILLS.flatMap((s) => [felt('2026-09-25', 'bien', s.id), felt('2026-09-26', 'bien', s.id), felt('2026-10-10', 'super', s.id), felt('2026-10-11', 'super', s.id)])
+    const stories = progressStory(moments, {}, [], '2026-10-13')
+    expect(stories).toHaveLength(3)
+    for (const s of stories) expect(`${s.name} ${s.before} ${s.now}`).not.toMatch(BANNED)
+  })
+
+  it('« on travaille en ce moment » : les plus récentes, puis les conseillées, 3 au plus, jamais une compétence finie', () => {
+    const moments = [{ date: '2026-10-12', skills: ['ville'] }, { date: '2026-10-13', skills: ['rappel'] }]
+    expect(workingOn(moments, ['lien', 'calme', 'soins'], {}, 5)).toEqual(['rappel', 'ville', 'lien'])
+    expect(workingOn(moments, ['lien', 'calme'], { rappel: { level: 5, validations: [], masteryPlaces: [] } }, 5)).toEqual(['ville', 'lien', 'calme'])
+  })
+})
+
+import { EXERCISES } from '../content/training'
+
+describe('textes des exercices', () => {
+  it('n’utilisent aucun mot banni', () => {
+    for (const exercise of EXERCISES) {
+      expect([exercise.name, ...exercise.steps, ...exercise.levels, exercise.caution ?? ''].join(' ')).not.toMatch(BANNED)
+    }
+  })
+})

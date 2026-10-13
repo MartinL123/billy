@@ -38,6 +38,8 @@ function ScrollToTop() {
 function OpenOnLogo() {
   const navigate = useNavigate()
   useEffect(() => {
+    // Ouverte depuis la notification du soir : on arrive directement sur « Noter ce qu'on a fait ».
+    if (window.location.hash.includes('depuis=rappel')) return
     navigate('/ouverture', { replace: true })
     // Une seule fois, au lancement.
     // eslint-disable-next-line react-hooks/exhaustive-deps

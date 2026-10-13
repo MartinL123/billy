@@ -44,6 +44,9 @@ describe('firestore.rules : deux comptes', () => {
     await assertFails(getDoc(doc(alice, 'users/bob/dog/billy')))
     await assertFails(getDocs(collection(alice, 'users/bob/entries')))
     await assertFails(getDoc(doc(alice, 'users/bob/files/f1/chunks/0')))
+    // L'abonnement aux notifications d'un autre compte reste invisible.
+    await assertFails(getDoc(doc(alice, 'users/bob/push/iphone')))
+    await assertSucceeds(setDoc(doc(alice, 'users/alice/push/iphone'), { time: '21:00' }))
   })
 
   it('un compte n’écrit et ne supprime rien chez un autre', async () => {

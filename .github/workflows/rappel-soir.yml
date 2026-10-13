@@ -1,0 +1,33 @@
+name: Rappel du soir
+
+# Envoie la notification « carnet du soir » aux appareils qui l'ont activée (Profil › Rappel du soir).
+# Les tâches planifiées GitHub peuvent avoir plusieurs minutes de retard : le script envoie encore jusqu'à 3 h après
+# l'heure choisie, jamais avant. Secrets du repo : FIREBASE_SERVICE_ACCOUNT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY.
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rappel-soir
+  cancel-in-progress: false
+
+jobs:
+  envoyer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # Ces deux paquets ne servent qu'ici : ils ne font pas partie de l'app.
+      - run: npm install --no-save --no-package-lock firebase-admin web-push
+      - run: node scripts/rappel-soir.mjs
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}

@@ -4,7 +4,7 @@ import { db } from './app'
 import { userCol } from './paths'
 
 /** Toutes les collections d'un compte, sous users/{uid}/… */
-export const USER_COLLECTIONS = ['dog', 'events', 'weights', 'entries', 'documents', 'sessions', 'exposures', 'bossProgress', 'places', 'xpLog', 'quests', 'dailyQuest', 'files']
+export const USER_COLLECTIONS = ['dog', 'events', 'weights', 'entries', 'documents', 'sessions', 'exposures', 'bossProgress', 'places', 'xpLog', 'quests', 'dailyQuest', 'push', 'files']
 
 // Pendant la suppression du compte, l'app ne doit pas recréer un profil vide en voyant le sien disparaître.
 let closing = false

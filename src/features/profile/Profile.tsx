@@ -19,6 +19,7 @@ import { formatBytes } from '../../lib/image'
 import { sortMeals } from '../../lib/feeding'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
+import { EveningReminder } from './EveningReminder'
 import { ProfileEdit } from './ProfileEdit'
 
 /** Alerte d'espace au-delà de 70 % du quota gratuit. */
@@ -232,6 +233,8 @@ export default function Profile() {
           <ContactRow role="Éducateur" callLabel="Appeler l'éducateur" contact={dog.trainer} />
         </div>
       </section>
+
+      <EveningReminder dogName={dog.name} />
 
       {/* Une fois terminé, on arrive sur le résultat : c'est là qu'on corrige ce qu'il savait déjà faire. */}
       <Link to={status.complete ? '/questionnaire?etape=fin' : '/questionnaire'} className="card-link min-h-16">

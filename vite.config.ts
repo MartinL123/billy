@@ -36,6 +36,8 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Rappel du soir : réception du push et ouverture de l'app au toucher (public/push-sw.js).
+        importScripts: ['push-sw.js'],
         // Polices et lecteur PDF inclus : tout doit s'afficher hors ligne.
         globPatterns: ['**/*.{js,mjs,css,html,svg,png,woff2}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,

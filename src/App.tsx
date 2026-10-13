@@ -13,6 +13,7 @@ import DocumentView from './features/profile/DocumentView'
 import Profile from './features/profile/Profile'
 import Today from './features/today/Today'
 import BossSheet from './features/training/BossSheet'
+import { DressageAwards } from './features/training/DressageAwards'
 import ExposureForm from './features/training/ExposureForm'
 import Session from './features/training/Session'
 import Training from './features/training/Training'
@@ -47,6 +48,7 @@ export default function App() {
       }
     >
       <ToastProvider>
+        <DressageAwards />
         <HashRouter>
           <ScrollToTop />
           <Routes>

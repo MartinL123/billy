@@ -177,7 +177,8 @@ users/{uid}/files/{id}/chunks/{n}  { data: Bytes }                              
 
 - **V3** : courbe de poids dans le calendrier, « Ce jour-là » sur l'accueil (souvenirs d'il y a 1 semaine,
   1, 3, 6 mois, N ans), bouton « Ajouter au calendrier de l'iPhone » (fichier .ics) sur un événement.
-- **V2** : onglet **Dressage**. Programme par thèmes (Bases · Propreté · Socialisation), une séance se note en
+- **V2 (remplacée)** : la partie Dressage décrite ci-dessous a été remplacée par `docs/spec-v2-dressage.md`, qui fait foi.
+- **Ancienne V2** : onglet **Dressage**. Programme par thèmes (Bases · Propreté · Socialisation), une séance se note en
   un tap (Difficile · Ça vient · Réussi) ; un exercice est « Acquis » après 3 séances réussies d'affilée.
   Module peurs : exposition = déclencheur, niveau 1 à 5, distance tolérée ; tendance par rapport à la première.
   Série de jours consécutifs. Notes de l'éducateur = entrées du journal taguées « Éducateur ».

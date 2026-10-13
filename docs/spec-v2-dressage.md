@@ -279,6 +279,27 @@ Ajoute le rythme hebdomadaire, les quêtes et les premières fois (§ 3). Puis r
 docs/spec-v2-dressage.md et liste ce qui n'est pas encore fait.
 ```
 
+## 11. Écarts validés avec Martin le 13/10/2026
+
+Décisions prises avant le code, qui précisent ou remplacent des points ci-dessus :
+
+- **Journal d'XP** : `users/{uid}/xpLog/{id} { date, kind, xp, bossId?, key?, label? }`, en ajout seul, remplace
+  `stats/summary`. Total, niveau, stats et radar « il y a 30 jours » en sont calculés. Les gains uniques (palier,
+  étoile, première fois, quête, repos du jour) ont un identifiant fixe : ils ne peuvent pas être comptés deux fois.
+- **Séance** : le champ `tier` s'appelle `difficulty` (1–5) pour ne pas le confondre avec l'étage du boss ;
+  `reaction` (0–4) et `decision` sont ajoutés. La réaction est demandée en fin de séance : c'est elle qui permet
+  « réaction ≤ 1 ». Une exposition seule ne valide jamais un palier.
+- **Lieu** : demandé seulement au moment de valider P5 ou une étoile de maîtrise.
+- **Validation directe** d'un palier déjà maîtrisé : acquis tout de suite, sans XP, et ne compte pas pour les premières fois.
+- **Paliers de départ de Billy** : tous à 0, Martin valide lui-même.
+- **Niveau global** : départ au niveau 0, niveau 1 à 50 XP.
+- **Météo** : affichée pour Les Rencontres, Les Congénères, La Ville, La Nouveauté et Les Soins.
+- **Garde-fou « P4 par beau temps »** : un conseil affiché, P4 reste accessible.
+- **Annulation** : possible juste après la saisie (bilan de séance, message d'exposition), ensuite définitive.
+- **Quêtes** : calculées (les mêmes sur tous les appareils) ; seules celles remplacées sont stockées dans `quests/{lundi}`.
+- **Ancien dressage** (paliers par ordre, série quotidienne, cadenas) : retiré. Ses documents dans `sessions` et
+  `exposures` sont ignorés, pas supprimés. Jeux et idées à mâcher gardés en bas de l'onglet, hors XP.
+
 ---
 
 Source des 10 épreuves de référence : [AKC Canine Good Citizen — Test Items](https://www.akc.org/products-services/training-programs/canine-good-citizen/canine-good-citizen-test-items/).

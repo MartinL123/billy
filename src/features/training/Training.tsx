@@ -6,10 +6,16 @@ import { Sheet } from '../../components/Sheet'
 import { Fab } from '../../components/TabBar'
 import { CHEW_RULES, CHEWS, GAMES, type Idea } from '../../content/extras'
 import { useData } from '../../firebase/store'
+import { declareRest } from '../../firebase/training'
+import { useToast } from '../../components/Toast'
+import { weekOf } from '../../lib/rhythm'
+import { useToday } from '../../lib/useToday'
+import { restXp } from '../../lib/xp'
 import { Illustration } from './Illustration'
 import { Radar } from './Radar'
 import { Tree } from './Tree'
 import { useDressage } from './useDressage'
+import { Firsts, Quests, Rhythm } from './Week'
 
 function Ideas({ title, ideas, note }: { title: string; ideas: Idea[]; note?: string }) {
   const [open, setOpen] = useState<string | null>(null)
@@ -47,7 +53,9 @@ function Ideas({ title, ideas, note }: { title: string; ideas: Idea[]; note?: st
 }
 
 export default function Training() {
-  const { dog, bossProgress } = useData()
+  const { dog, bossProgress, xpLog } = useData()
+  const today = useToday()
+  const toast = useToast()
   const navigate = useNavigate()
   const dressage = useDressage()
   const [adding, setAdding] = useState(false)
@@ -55,6 +63,13 @@ export default function Training() {
   const go = (to: string) => {
     setAdding(false)
     navigate(to)
+  }
+  const restedToday = xpLog.some((e) => e.id === `repos-${today}`)
+  const rest = (sniff: boolean) => {
+    const xp = restXp(xpLog, weekOf(today))
+    const { undo } = declareRest(today, sniff, xp)
+    setAdding(false)
+    toast(`${sniff ? 'Balade reniflage' : 'Jour de repos'} noté${xp ? ` · +${xp} XP` : ''}`, { label: 'Annuler', run: undo })
   }
   const rowClass = 'flex w-full items-center gap-3.5 rounded-[20px] border-0 bg-bg px-4 py-3 text-left text-text'
 
@@ -98,12 +113,18 @@ export default function Training() {
         <p className="text-[13px] leading-snug text-muted">Tous les boss sont ouverts. Un trait plein relie deux boss quand le premier facilite déjà le second ; en pointillé, il aidera plus tard.</p>
       </section>
 
+      <Rhythm />
+
+      <Quests />
+
       <section className="flex flex-col gap-3">
         <h2 className="text-[19px] font-bold">Ses forces</h2>
         <div className="card rounded-3xl p-4">
           <Radar now={dressage.statsNow} before={dressage.statsBefore} />
         </div>
       </section>
+
+      <Firsts />
 
       <Ideas title="Idées de jeux" ideas={GAMES} />
       <Ideas title="À mâcher" ideas={CHEWS} note={CHEW_RULES} />
@@ -130,6 +151,17 @@ export default function Training() {
               <span className="text-sm text-muted">Un déclencheur croisé, voulu ou subi</span>
             </span>
           </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button type="button" disabled={restedToday} onClick={() => rest(false)} className="min-h-[56px] rounded-[20px] border-0 bg-bg px-3 text-base font-bold text-text disabled:opacity-50">
+              Jour de repos
+            </button>
+            <button type="button" disabled={restedToday} onClick={() => rest(true)} className="min-h-[56px] rounded-[20px] border-0 bg-bg px-3 text-base font-bold text-text disabled:opacity-50">
+              Balade reniflage
+            </button>
+          </div>
+          <p className="text-[13px] leading-snug text-muted">
+            {restedToday ? 'Récupération déjà notée pour aujourd’hui.' : 'Après une frayeur, une journée calme fait partie de l’entraînement.'}
+          </p>
         </Sheet>
       )}
     </div>

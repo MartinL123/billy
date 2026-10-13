@@ -4,7 +4,7 @@ import { addValidation, EMPTY_PROGRESS, levelsAcquired, linkLit, needsPlace, rem
 import { applyDecision, canValidate, currentDifficulty, lastSession, suggest } from './session'
 import { exercisesFor, featuredBosses, guards, levelFourUnadvised, suggestedBosses } from './traits'
 import { bossReactions, weather } from './weather'
-import { exposureXp, globalLevel, rank, sessionXp, totalXp, xpByBoss, xpByStat, xpForLevel } from './xp'
+import { exposureXp, globalLevel, rank, restXp, sessionXp, totalXp, xpByBoss, xpByStat, xpForLevel } from './xp'
 
 const T = true
 const F = false
@@ -31,6 +31,15 @@ describe('XP', () => {
     expect(exposureXp(1, false)).toBe(8)
     expect(exposureXp(3, true)).toBe(13)
     expect(exposureXp(0, true)).toBe(16)
+  })
+
+  it('compte le repos au plus 3 fois par semaine', () => {
+    const week = ['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15', '2026-10-16', '2026-10-17', '2026-10-18']
+    const rest = (date: string, xp = 5) => ({ date, kind: 'repos', xp })
+    expect(restXp([], week)).toBe(5)
+    expect(restXp([rest('2026-10-12'), rest('2026-10-13')], week)).toBe(5)
+    expect(restXp([rest('2026-10-12'), rest('2026-10-13'), rest('2026-10-14')], week)).toBe(0)
+    expect(restXp([rest('2026-10-05'), rest('2026-10-06'), rest('2026-10-07')], week)).toBe(5)
   })
 
   it('ne compte jamais de valeur négative', () => {

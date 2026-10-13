@@ -149,7 +149,16 @@ export interface XpEntry {
   bossId?: string
   /** Libellé affiché (« Première exposition notée »). */
   label?: string
+  /** Précision selon le type : `reniflage` ou `repos` pour un jour de récupération. */
+  key?: string
   createdAt?: string
+}
+
+/** users/{uid}/quests/{lundi} — les quêtes de la semaine sont calculées ; seules celles remplacées sont notées. */
+export interface QuestWeek {
+  /** Lundi de la semaine. */
+  date: ISODate
+  replaced: string[]
 }
 
 /** Les anciens documents de `sessions` et `exposures` (avant la spec V2) n'ont pas ces champs : ils sont ignorés. */

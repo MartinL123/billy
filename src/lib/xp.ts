@@ -77,6 +77,12 @@ export function xpByBoss(log: XpLike[]): Record<string, number> {
   return out
 }
 
+/** XP d'un jour de repos ou d'une balade reniflage : +5, au plus 3 fois par semaine (les suivants sont notés, sans XP). */
+export function restXp(log: XpLike[], week: ISODate[]): number {
+  const already = log.filter((e) => e.kind === 'repos' && week.includes(e.date) && e.xp > 0).length
+  return already < XP.restPerWeek ? XP.rest : 0
+}
+
 // ——— Niveau global : l'effort fourni ———
 
 /** XP cumulée demandée par le niveau L : 50 pour N1, 300 pour N3, 2 750 pour N10. Pas de niveau max. */

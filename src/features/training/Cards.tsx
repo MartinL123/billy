@@ -3,9 +3,12 @@ import { CheckIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
 import { deleteExposure, deleteSession, newId, saveExposure, saveSession } from '../../firebase/db'
 import type { Exposure, TrainingSession, WithId } from '../../firebase/types'
+import { CHEW_RULES, chewSessionId, type Chew } from '../../lib/chews'
 import type { ISODate } from '../../lib/dates'
 import { gameSessionId, type Game } from '../../lib/gamification'
-import { FEAR_LEVELS, fearLabel, RESULTS, type Exercise, type SessionResult } from '../../lib/training'
+import { FEAR_LEVELS, fearLabel, mastery, RESULTS, type Exercise, type SessionResult } from '../../lib/training'
+import { Illustration } from './Illustration'
+import { MasteryBars, MasteryText } from './Mastery'
 
 const resultLabel = (result: SessionResult) => RESULTS.find((r) => r.value === result)?.label ?? ''
 const now = () => new Date().toISOString()
@@ -29,18 +32,34 @@ function DoneCard({ title, result, pending, onUndo }: { title: string; result: s
   )
 }
 
-function TodoCard({ label, title, detail, children }: { label?: string; title: string; detail?: ReactNode; children: ReactNode }) {
+function Steps({ steps }: { steps: string[] }) {
+  return (
+    <ol className="m-0 flex list-none flex-col gap-2 p-0">
+      {steps.map((step, i) => (
+        <li key={i} className="flex gap-2.5">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary-soft text-[13px] font-bold text-primary-dark">{i + 1}</span>
+          <span className="text-[15px] leading-snug">{step}</span>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+function TodoCard({ label, title, scene, children }: { label?: string; title: string; scene?: string; children: ReactNode }) {
   return (
     <div className="card flex flex-col gap-3 p-4">
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-0.5">
         {label && <span className="text-[12px] font-bold tracking-[0.5px] text-muted uppercase">{label}</span>}
-        <span className="text-[17px] leading-tight font-bold">{title}</span>
-        {detail && <span className="text-[15px] leading-snug text-muted">{detail}</span>}
+        <span className="text-[19px] leading-tight font-bold">{title}</span>
       </div>
+      {scene && <Illustration scene={scene} className="h-[124px]" />}
       {children}
     </div>
   )
 }
+
+const primaryButton = 'h-12 rounded-full border-0 bg-primary text-[15px] font-bold text-white'
+const outline = 'h-12 rounded-full border-[1.5px] border-primary bg-surface text-[15px] font-bold text-primary'
 
 interface ExerciseCardProps {
   exercise: Exercise
@@ -50,32 +69,29 @@ interface ExerciseCardProps {
   advice?: string
 }
 
-/** Un exercice à faire : la consigne, puis un tap sur le résultat. */
+/** Un ordre à travailler : le dessin, 2 ou 3 gestes, puis un tap sur le résultat. */
 export function ExerciseCard({ exercise, today, sessions, label, advice }: ExerciseCardProps) {
   const done = sessions.find((s) => s.exerciseId === exercise.id && s.date === today)
   if (done) {
     return <DoneCard title={exercise.name} result={`${resultLabel(done.result)} aujourd'hui`} pending={done.pending} onUndo={() => deleteSession(done.id)} />
   }
+  const level = mastery(sessions, exercise.id)
   const save = (result: SessionResult) => saveSession(newId('sessions'), { date: today, exerciseId: exercise.id, result, createdAt: now() })
   return (
-    <TodoCard
-      label={label}
-      title={exercise.name}
-      detail={
-        <>
-          {exercise.tip}
-          {advice && <span className="mt-1 block font-medium text-info">{advice}</span>}
-        </>
-      }
-    >
+    <TodoCard label={label} title={exercise.name} scene={exercise.scene}>
+      <Steps steps={exercise.steps} />
+      {advice && <p className="rounded-field bg-info-soft px-3 py-2.5 text-sm leading-snug font-medium text-[#1D3F73]">{advice}</p>}
+      {level.count > 0 && (
+        <div className="flex items-center justify-between gap-3 text-[13px] text-muted">
+          <span>
+            <MasteryText mastery={level} />
+          </span>
+          <MasteryBars recent={level.recent} />
+        </div>
+      )}
       <div role="group" aria-label={`Résultat de la séance « ${exercise.name} »`} className="grid grid-cols-3 gap-2">
         {RESULTS.map(({ value, label: text }) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => save(value)}
-            className={`h-12 rounded-full text-[15px] font-bold ${value === 'reussi' ? 'border-0 bg-primary text-white' : 'border-[1.5px] border-primary bg-surface text-primary'}`}
-          >
+          <button key={value} type="button" onClick={() => save(value)} className={value === 'reussi' ? primaryButton : outline}>
             {text}
           </button>
         ))}
@@ -91,29 +107,35 @@ export function GameCard({ game, today, sessions, label }: { game: Game; today: 
   const done = sessions.find((s) => s.exerciseId === id && s.date === today)
   if (done) return <DoneCard title={game.name} result="Joué aujourd'hui" pending={done.pending} onUndo={() => deleteSession(done.id)} />
   return (
-    <TodoCard label={label} title={game.name} detail={`${game.minutes} min · fait travailler : ${game.skill}`}>
-      {open && (
-        <ol className="m-0 flex list-none flex-col gap-2 p-0">
-          {game.steps.map((step, i) => (
-            <li key={i} className="flex gap-3">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-bold text-primary-dark">{i + 1}</span>
-              <span className="pt-0.5 text-[15px] leading-snug">{step}</span>
-            </li>
-          ))}
-        </ol>
-      )}
+    <TodoCard label={label} title={game.name} scene={game.scene}>
+      <span className="text-[15px] text-muted">
+        {game.minutes} min · fait travailler : {game.skill}
+      </span>
+      {open && <Steps steps={game.steps} />}
       <div className="grid grid-cols-2 gap-2">
-        <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className="h-12 rounded-full border-[1.5px] border-primary bg-surface text-[15px] font-bold text-primary">
+        <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className={outline}>
           {open ? 'Masquer les règles' : 'Voir les règles'}
         </button>
-        <button
-          type="button"
-          onClick={() => saveSession(newId('sessions'), { date: today, exerciseId: id, result: 'reussi', createdAt: now() })}
-          className="h-12 rounded-full border-0 bg-primary text-[15px] font-bold text-white"
-        >
+        <button type="button" onClick={() => saveSession(newId('sessions'), { date: today, exerciseId: id, result: 'reussi', createdAt: now() })} className={primaryButton}>
           C'est joué
         </button>
       </div>
+    </TodoCard>
+  )
+}
+
+/** Une chose à mâcher : la préparation, puis un tap quand c'est donné. */
+export function ChewCard({ chew, today, sessions, label }: { chew: Chew; today: ISODate; sessions: WithId<TrainingSession>[]; label?: string }) {
+  const id = chewSessionId(chew)
+  const done = sessions.find((s) => s.exerciseId === id && s.date === today)
+  if (done) return <DoneCard title={chew.name} result="Donné aujourd'hui" pending={done.pending} onUndo={() => deleteSession(done.id)} />
+  return (
+    <TodoCard label={label} title={chew.name} scene={chew.frozen ? 'macher-froid' : 'macher'}>
+      <Steps steps={chew.steps} />
+      <p className="text-[13px] leading-snug text-muted">{CHEW_RULES}</p>
+      <button type="button" onClick={() => saveSession(newId('sessions'), { date: today, exerciseId: id, result: 'reussi', createdAt: now() })} className={primaryButton}>
+        C'est donné
+      </button>
     </TodoCard>
   )
 }
@@ -135,8 +157,10 @@ export function FearCard({ trigger, today, exposures, label, onDetails }: FearCa
     return <DoneCard title={trigger} result={`Noté ${done.fear}/5 · ${fearLabel(done.fear)}`} pending={done.pending} onUndo={() => deleteExposure(done.id)} />
   }
   return (
-    <TodoCard label={label} title={trigger} detail="Approche-toi doucement, en restant à une distance où il mange encore ses friandises. Comment a-t-il réagi ?">
+    <TodoCard label={label} title={trigger} scene="bruits">
+      <Steps steps={['Approche doucement, en restant à une distance où il mange encore.', 'Une friandise à chaque regard calme, puis repars.']} />
       <div role="group" aria-label={`Niveau de peur face à « ${trigger} »`} className="flex flex-col gap-1.5">
+        <span className="text-[15px] font-semibold">Comment a-t-il réagi ?</span>
         <div className="grid grid-cols-5 gap-1.5">
           {FEAR_LEVELS.map(({ value, label: text }) => (
             <button
@@ -159,5 +183,36 @@ export function FearCard({ trigger, today, exposures, label, onDetails }: FearCa
         Ajouter la distance ou une note
       </button>
     </TodoCard>
+  )
+}
+
+interface RowProps {
+  name: string
+  detail: ReactNode
+  right?: ReactNode
+  open: boolean
+  first: boolean
+  onToggle: () => void
+  children: ReactNode
+}
+
+/** Ligne de catalogue : un tap la déplie sur sa carte. */
+export function ExpandableRow({ name, detail, right, open, first, onToggle, children }: RowProps) {
+  return (
+    <div>
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={onToggle}
+        className={`flex min-h-[60px] w-full items-center gap-3 border-0 bg-transparent px-4 py-2.5 text-left ${first ? '' : 'border-t border-solid border-divider'}`}
+      >
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="truncate text-base font-semibold text-text">{name}</span>
+          <span className="text-[13px] text-muted">{detail}</span>
+        </span>
+        {right}
+      </button>
+      {open && <div className="bg-bg p-2">{children}</div>}
+    </div>
   )
 }

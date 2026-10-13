@@ -15,6 +15,11 @@ describe('expérience', () => {
     expect(xp([session('2026-10-13', 'assis', 'reussi')])).toBe(20 + 10)
   })
 
+  it('compte une chose à mâcher sans en faire une mission', () => {
+    expect(xp([session('2026-10-13', 'macher-carotte')])).toBe(10)
+    expect(missionsDone([session('2026-10-13', 'macher-carotte')], [], '2026-10-13')).toEqual({ exercise: false, game: false, challenge: false })
+  })
+
   it('compte les jeux et les expositions', () => {
     expect(xp([game('2026-10-13')])).toBe(15 + 10)
     expect(xp([], [exposure('2026-10-13', 'La ruelle', 4)])).toBe(15 + 10)
@@ -84,11 +89,24 @@ describe('recommandations', () => {
     expect([first!.exercise.id, first!.reason]).toEqual(['nom', 'Nouveau à découvrir'])
   })
 
+  it('garde les ordres « plus tard » pour après les bases', () => {
+    const ids = recommendExercises([], '2026-10-13').map((r) => r.exercise.id)
+    expect(ids).not.toContain('traverse')
+    const ready = ['pas-bouger', 'laisse'].flatMap((id) => [1, 2, 3].map((d) => session(`2026-10-0${d}`, id)))
+    expect(recommendExercises(ready, '2026-10-13').map((r) => r.exercise.id)).toContain('traverse')
+  })
+
   it('priorise l’exercice en cours le plus délaissé', () => {
     const sessions = [session('2026-10-05', 'rappel', 'moyen'), session('2026-10-12', 'assis', 'moyen')]
     const [first, second] = recommendExercises(sessions, '2026-10-13')
     expect([first!.exercise.id, first!.reason]).toEqual(['rappel', 'Pas travaillé depuis 8 jours'])
     expect([second!.exercise.id, second!.reason]).toEqual(['assis', 'Travaillé hier'])
+  })
+
+  it('fait passer en premier un ordre qui se dégrade', () => {
+    const declining = (['reussi', 'reussi', 'reussi', 'moyen', 'difficile', 'moyen'] as const).map((r, i) => session(`2026-10-0${i + 4}`, 'rappel', r))
+    const [first] = recommendExercises([session('2026-09-20', 'assis', 'moyen'), ...declining], '2026-10-13')
+    expect([first!.exercise.id, first!.reason]).toEqual(['rappel', 'En baisse ces derniers temps'])
   })
 
   it('ne change pas pendant la journée', () => {

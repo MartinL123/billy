@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { allTriggers, EXERCISES, exerciseStatus, fearSummaries, streak } from './training'
+import { allTriggers, EXERCISES, exerciseById, exerciseStatus, fearSummaries, isUnlocked, mastery, streak } from './training'
 
 const session = (date: string, result: 'difficile' | 'moyen' | 'reussi', exerciseId = 'assis') => ({ date, exerciseId, result })
 
@@ -68,5 +68,53 @@ describe('peurs', () => {
 
   it('propose les déclencheurs connus sans doublon', () => {
     expect(allTriggers(['la ruelle', 'Le skate', ''])).toEqual(['La ruelle', 'Les enfants', 'Le reflet la nuit', 'Le skate'])
+  })
+})
+
+describe('maîtrise d’un ordre', () => {
+  const run = (...results: ('difficile' | 'moyen' | 'reussi')[]) => results.map((result, i) => session(`2026-10-${String(i + 1).padStart(2, '0')}`, result))
+
+  it('ne dit rien sans séance', () => {
+    expect(mastery([], 'assis')).toEqual({ count: 0, recent: [] })
+  })
+
+  it('note sur les 5 dernières séances', () => {
+    expect(mastery(run('reussi'), 'assis')).toMatchObject({ count: 1, percent: 100, trend: undefined })
+    expect(mastery(run('difficile', 'moyen'), 'assis').percent).toBe(25)
+    expect(mastery(run('difficile', 'difficile', 'reussi', 'reussi', 'reussi', 'reussi', 'reussi'), 'assis').percent).toBe(100)
+  })
+
+  it('voit une amélioration', () => {
+    expect(mastery(run('difficile', 'difficile', 'moyen', 'moyen', 'reussi', 'reussi'), 'assis').trend).toBe('mieux')
+  })
+
+  it('voit une dégradation', () => {
+    const m = mastery(run('reussi', 'reussi', 'reussi', 'moyen', 'difficile', 'difficile'), 'assis')
+    expect(m.trend).toBe('moins-bien')
+    expect(m.recent).toEqual(['reussi', 'reussi', 'reussi', 'moyen', 'difficile', 'difficile'])
+  })
+
+  it('reste stable quand ça ne bouge pas', () => {
+    expect(mastery(run('moyen', 'moyen', 'moyen', 'moyen'), 'assis').trend).toBe('stable')
+  })
+})
+
+describe('ordres « plus tard »', () => {
+  const traverse = exerciseById('traverse')!
+  const acquired = (id: string) => [1, 2, 3].map((d) => session(`2026-10-0${d}`, 'reussi', id))
+
+  it('ont des prérequis qui existent', () => {
+    for (const exercise of EXERCISES) for (const id of exercise.requires ?? []) expect(exerciseById(id)).toBeDefined()
+  })
+
+  it('se débloquent quand les prérequis sont acquis', () => {
+    expect(isUnlocked([], traverse)).toBe(false)
+    expect(isUnlocked(acquired('pas-bouger'), traverse)).toBe(false)
+    expect(isUnlocked([...acquired('pas-bouger'), ...acquired('laisse')], traverse)).toBe(true)
+  })
+
+  it('restent ouverts une fois commencés', () => {
+    expect(isUnlocked([session('2026-10-01', 'difficile', 'traverse')], traverse)).toBe(true)
+    expect(isUnlocked([], exerciseById('assis')!)).toBe(true)
   })
 })

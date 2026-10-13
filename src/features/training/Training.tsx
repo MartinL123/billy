@@ -75,6 +75,7 @@ export default function Training() {
           level={progress.level}
           streakDays={streakDays}
           onFearDetails={(trigger) => setExposureSheet({ trigger })}
+          onSeeAll={() => setTab('exercices')}
         />
       )}
       {tab === 'exercices' && <ExercisesTab today={today} sessions={sessions} exposures={exposures} onExposure={(trigger) => setExposureSheet({ trigger })} />}

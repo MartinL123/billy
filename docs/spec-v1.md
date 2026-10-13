@@ -189,6 +189,10 @@ users/{uid}/files/{id}/chunks/{n}  { data: Bytes }                              
   - Missions du jour : un exercice recommandé, le jeu du jour, un défi (exposition à une peur, ou 2e exercice).
   - Écran en 3 parties : **Du jour** (les 3 choses à faire, résultat noté en un tap sur la carte, « Annuler » possible),
     **Exercices** (tout le catalogue, jeux et peurs), **Progrès** (niveau, semaine, acquis, peurs, succès).
+  - Chaque ordre : un dessin, 2 ou 3 gestes, et sa **maîtrise** (note sur les 5 dernières séances, tendance en
+    comparant les 3 dernières aux 3 d'avant). Un ordre en baisse devient l'ordre du jour.
+  - Ordres **« plus tard »** (Traverse, Attends, Pas toucher, Au pied…) : proposés une fois leurs prérequis acquis.
+  - **À mâcher** : une idée par jour (légumes congelés, Kong glacé…), +10 XP, hors missions. Liste dans `src/lib/chews.ts`.
   - Jeux : 9 jeux guidés, enregistrés comme séances `jeu-<id>`. Succès : 16 badges. Règles dans `src/lib/gamification.ts`.
 
 ```ts

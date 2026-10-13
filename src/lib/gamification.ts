@@ -1,5 +1,6 @@
 import { addDays, dayNumber, diffDays, type ISODate } from './dates'
-import { EXERCISES, exerciseStatus, type Exercise, type SessionResult, type Theme } from './training'
+import { isChew } from './chews'
+import { EXERCISES, exerciseStatus, isUnlocked, mastery, type Exercise, type SessionResult, type Theme } from './training'
 
 // Tout est calculé à partir des séances et des expositions enregistrées : rien d'autre n'est stocké,
 // donc l'expérience est la même sur tous les appareils et se recalcule si on supprime une séance.
@@ -12,12 +13,15 @@ export interface Game {
   minutes: number
   /** Ce que le jeu fait travailler. */
   skill: string
+  /** Illustration (voir Illustration.tsx). */
+  scene: string
   steps: string[]
 }
 
 export const GAMES: Game[] = [
   {
     id: 'cache-cache',
+    scene: 'rappel',
     name: 'Cache-cache',
     minutes: 5,
     skill: 'Rappel',
@@ -25,6 +29,7 @@ export const GAMES: Game[] = [
   },
   {
     id: 'fouille',
+    scene: 'flair',
     name: 'Tapis de fouille',
     minutes: 5,
     skill: 'Flair et calme',
@@ -32,6 +37,7 @@ export const GAMES: Game[] = [
   },
   {
     id: 'gobelets',
+    scene: 'gobelets',
     name: 'Les trois gobelets',
     minutes: 5,
     skill: 'Concentration',
@@ -39,6 +45,7 @@ export const GAMES: Game[] = [
   },
   {
     id: 'tresor',
+    scene: 'flair',
     name: 'Chasse au trésor',
     minutes: 10,
     skill: 'Flair',
@@ -46,6 +53,7 @@ export const GAMES: Game[] = [
   },
   {
     id: 'ping-pong',
+    scene: 'ping-pong',
     name: 'Rappel ping-pong',
     minutes: 5,
     skill: 'Rappel',
@@ -53,6 +61,7 @@ export const GAMES: Game[] = [
   },
   {
     id: 'soleil',
+    scene: 'pas-bouger',
     name: '1, 2, 3, soleil',
     minutes: 5,
     skill: 'Pas bouger',
@@ -60,6 +69,7 @@ export const GAMES: Game[] = [
   },
   {
     id: 'tire-lache',
+    scene: 'lache',
     name: 'Tire et lâche',
     minutes: 5,
     skill: 'Lâche / Donne',
@@ -67,6 +77,7 @@ export const GAMES: Game[] = [
   },
   {
     id: 'parcours',
+    scene: 'parcours',
     name: 'Parcours maison',
     minutes: 10,
     skill: 'Confiance',
@@ -74,6 +85,7 @@ export const GAMES: Game[] = [
   },
   {
     id: 'touche',
+    scene: 'touche',
     name: 'Touche la main',
     minutes: 3,
     skill: 'Attention',
@@ -84,12 +96,16 @@ export const GAMES: Game[] = [
 const GAME_PREFIX = 'jeu-'
 export const gameSessionId = (game: Game) => `${GAME_PREFIX}${game.id}`
 export const isGame = (session: { exerciseId: string }) => session.exerciseId.startsWith(GAME_PREFIX)
+/** Séance sur un ordre du programme (ni jeu, ni chose à mâcher). */
+export const isExercise = (session: { exerciseId: string }) => !isGame(session) && !isChew(session)
 
 // ——— Expérience ———
 
 export const XP = {
   session: { difficile: 10, moyen: 15, reussi: 20 } satisfies Record<SessionResult, number>,
   game: 15,
+  /** Chose à mâcher donnée. */
+  chew: 10,
   exposure: 15,
   /** Peur plus basse que la fois précédente pour le même déclencheur. */
   braver: 10,
@@ -127,7 +143,7 @@ export interface DayMissions {
 /** Missions remplies un jour donné. */
 export function missionsDone(sessions: SessionLike[], exposures: ExposureLike[], day: ISODate): DayMissions {
   const ofDay = sessions.filter((s) => s.date === day)
-  const exercises = new Set(ofDay.filter((s) => !isGame(s)).map((s) => s.exerciseId))
+  const exercises = new Set(ofDay.filter(isExercise).map((s) => s.exerciseId))
   return {
     exercise: exercises.size >= 1,
     game: ofDay.some(isGame),
@@ -145,8 +161,8 @@ export function xpByDay(sessions: SessionLike[], exposures: ExposureLike[]): Map
   const streaks = new Map<string, number>()
   const acquired = new Set<string>()
   for (const session of [...sessions].sort(oldestFirst)) {
-    if (isGame(session)) {
-      add(session.date, XP.game)
+    if (!isExercise(session)) {
+      add(session.date, isGame(session) ? XP.game : XP.chew)
       continue
     }
     add(session.date, XP.session[session.result] ?? XP.session.moyen)
@@ -255,7 +271,7 @@ export interface Recommendation {
 
 /** Exercices à travailler aujourd'hui, du plus utile au moins utile, d'après ce qui a été fait avant aujourd'hui. */
 export function recommendExercises(sessions: SessionLike[], today: ISODate): Recommendation[] {
-  const before = sessions.filter((s) => s.date < today && !isGame(s))
+  const before = sessions.filter((s) => s.date < today && isExercise(s))
   const lastOf = (id: string) => before.filter((s) => s.exerciseId === id).sort(oldestFirst).reverse()
   const since = (id: string) => {
     const last = lastOf(id)[0]
@@ -263,8 +279,12 @@ export function recommendExercises(sessions: SessionLike[], today: ISODate): Rec
   }
   const ago = (days: number) => (days === 1 ? 'Travaillé hier' : `Pas travaillé depuis ${days} jours`)
 
-  const byStatus = (status: ReturnType<typeof exerciseStatus>) => EXERCISES.filter((e) => exerciseStatus(before, e.id) === status)
-  const inProgress = byStatus('en-cours').sort((a, b) => since(b.id) - since(a.id))
+  // Les ordres « plus tard » n'entrent dans les propositions qu'une fois leurs prérequis acquis.
+  const ready = EXERCISES.filter((e) => isUnlocked(before, e))
+  const byStatus = (status: ReturnType<typeof exerciseStatus>) => ready.filter((e) => exerciseStatus(before, e.id) === status)
+  // Un ordre qui se dégrade passe avant tout le reste, puis le plus délaissé.
+  const declining = (id: string) => Number(mastery(before, id).trend === 'moins-bien')
+  const inProgress = byStatus('en-cours').sort((a, b) => declining(b.id) - declining(a.id) || since(b.id) - since(a.id))
   const fresh = byStatus('a-decouvrir')
   const known = byStatus('acquis').sort((a, b) => since(b.id) - since(a.id))
 
@@ -275,7 +295,7 @@ export function recommendExercises(sessions: SessionLike[], today: ISODate): Rec
       const almost = last?.result === 'reussi' && previous?.result === 'reussi'
       return {
         exercise,
-        reason: ago(since(exercise.id)),
+        reason: declining(exercise.id) ? 'En baisse ces derniers temps' : ago(since(exercise.id)),
         advice: struggling
           ? 'Deux séances difficiles : raccourcis, rapproche-toi, et termine sur une réussite facile.'
           : almost
@@ -314,7 +334,7 @@ const THEME_BADGES: { theme: Theme; id: string; name: string; detail: string }[]
 ]
 
 export function badges(sessions: SessionLike[], exposures: ExposureLike[], xp: number): Badge[] {
-  const exerciseSessions = sessions.filter((s) => !isGame(s))
+  const exerciseSessions = sessions.filter(isExercise)
   const gamesPlayed = new Set(sessions.filter(isGame).map((s) => s.exerciseId)).size
   const acquired = EXERCISES.filter((e) => exerciseStatus(exerciseSessions, e.id) === 'acquis')
   const best = longestStreak([...sessions.map((s) => s.date), ...exposures.map((e) => e.date)])

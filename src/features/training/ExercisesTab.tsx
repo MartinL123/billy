@@ -1,23 +1,22 @@
 import { useState } from 'react'
 import { outlineButton } from '../../components/Form'
-import { ChevronRightIcon } from '../../components/Icons'
+import { ChevronRightIcon, LockIcon } from '../../components/Icons'
 import type { Exposure, TrainingSession, WithId } from '../../firebase/types'
+import { CHEWS, chewSessionId } from '../../lib/chews'
 import { formatRelative, type ISODate } from '../../lib/dates'
-import { GAMES, gameSessionId, isGame } from '../../lib/gamification'
-import { EXERCISES, exerciseStatus, fearLabel, fearSummaries, STATUS_LABEL, type Status, type Theme } from '../../lib/training'
-import { ExerciseCard, GameCard } from './Cards'
-
-const STATUS_TONE: Record<Status, string> = {
-  'a-decouvrir': 'bg-[#EEF0EE] text-[#3F4946]',
-  'en-cours': 'bg-info-soft text-info',
-  acquis: 'bg-primary-soft text-primary-dark',
-}
+import { GAMES, gameSessionId, isExercise } from '../../lib/gamification'
+import { EXERCISES, exerciseById, exerciseStatus, fearLabel, fearSummaries, isUnlocked, mastery, type Theme } from '../../lib/training'
+import { ChewCard, ExerciseCard, ExpandableRow, GameCard } from './Cards'
+import { MasteryBars, MasteryText } from './Mastery'
 
 const SECTIONS: { theme: Theme; title: string }[] = [
   { theme: 'bases', title: 'Bases' },
   { theme: 'proprete', title: 'Propreté' },
   { theme: 'socialisation', title: 'Socialisation' },
+  { theme: 'avance', title: 'Plus tard' },
 ]
+
+const pill = 'shrink-0 rounded-xl bg-[#EEF0EE] px-2.5 py-1 text-[13px] font-semibold text-[#3F4946]'
 
 interface ExercisesTabProps {
   today: ISODate
@@ -26,27 +25,13 @@ interface ExercisesTabProps {
   onExposure: (trigger?: string) => void
 }
 
-/** Tous les exercices, les jeux et les peurs. Un tap ouvre la carte pour noter. */
+/** Tout le catalogue : ordres, jeux, choses à mâcher, peurs. Un tap déplie la carte pour noter. */
 export function ExercisesTab({ today, sessions, exposures, onExposure }: ExercisesTabProps) {
   const [open, setOpen] = useState<string | null>(null)
-  const exerciseSessions = sessions.filter((s) => !isGame(s))
+  const exerciseSessions = sessions.filter(isExercise)
   const fears = fearSummaries(exposures)
   const toggle = (id: string) => setOpen(open === id ? null : id)
-
-  const row = (id: string, name: string, detail: string, pill: { text: string; tone: string } | null, first: boolean) => (
-    <button
-      type="button"
-      aria-expanded={open === id}
-      onClick={() => toggle(id)}
-      className={`flex min-h-[60px] w-full items-center gap-3 border-0 bg-transparent px-4 py-2.5 text-left ${first ? '' : 'border-t border-solid border-divider'}`}
-    >
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate text-base font-semibold text-text">{name}</span>
-        <span className="text-[13px] text-muted">{detail}</span>
-      </span>
-      {pill && <span className={`shrink-0 rounded-xl px-2.5 py-1 text-[13px] font-semibold ${pill.tone}`}>{pill.text}</span>}
-    </button>
-  )
+  const count = (id: string) => sessions.filter((s) => s.exerciseId === id).length
 
   return (
     <div className="flex flex-col gap-6">
@@ -61,19 +46,32 @@ export function ExercisesTab({ today, sessions, exposures, onExposure }: Exercis
                 {acquired} sur {items.length} acquis
               </span>
             </div>
+            {theme === 'avance' && <p className="text-[15px] leading-snug text-muted">Des ordres pour la suite. Ils entrent dans le programme du jour quand leurs bases sont acquises, mais tu peux les essayer avant.</p>}
             <div className="card overflow-hidden">
               {items.map((item, i) => {
-                const status = exerciseStatus(exerciseSessions, item.id)
-                const last = exerciseSessions.find((s) => s.exerciseId === item.id)
+                const level = mastery(exerciseSessions, item.id)
+                const locked = !isUnlocked(exerciseSessions, item)
+                const isAcquired = exerciseStatus(exerciseSessions, item.id) === 'acquis'
                 return (
-                  <div key={item.id}>
-                    {row(item.id, item.name, last ? `Dernière séance ${formatRelative(last.date, today)}` : 'Jamais travaillé', { text: STATUS_LABEL[status], tone: STATUS_TONE[status] }, i === 0)}
-                    {open === item.id && (
-                      <div className="bg-bg p-2">
-                        <ExerciseCard exercise={item} today={today} sessions={exerciseSessions} />
-                      </div>
-                    )}
-                  </div>
+                  <ExpandableRow
+                    key={item.id}
+                    name={item.name}
+                    detail={locked ? `Après : ${(item.requires ?? []).map((id) => exerciseById(id)?.name).join(', ')}` : <MasteryText mastery={level} acquired={isAcquired} />}
+                    right={
+                      locked ? (
+                        <LockIcon size={18} className="shrink-0 text-muted" />
+                      ) : level.count > 0 ? (
+                        <MasteryBars recent={level.recent} />
+                      ) : (
+                        <span className={pill}>À découvrir</span>
+                      )
+                    }
+                    open={open === item.id}
+                    first={i === 0}
+                    onToggle={() => toggle(item.id)}
+                  >
+                    <ExerciseCard exercise={item} today={today} sessions={exerciseSessions} />
+                  </ExpandableRow>
                 )
               })}
             </div>
@@ -86,16 +84,42 @@ export function ExercisesTab({ today, sessions, exposures, onExposure }: Exercis
         <div className="card overflow-hidden">
           {GAMES.map((game, i) => {
             const id = gameSessionId(game)
-            const plays = sessions.filter((s) => s.exerciseId === id).length
+            const plays = count(id)
             return (
-              <div key={game.id}>
-                {row(id, game.name, `${game.minutes} min · ${game.skill}`, plays ? { text: `Joué ${plays} fois`, tone: STATUS_TONE.acquis } : null, i === 0)}
-                {open === id && (
-                  <div className="bg-bg p-2">
-                    <GameCard game={game} today={today} sessions={sessions} />
-                  </div>
-                )}
-              </div>
+              <ExpandableRow
+                key={id}
+                name={game.name}
+                detail={`${game.minutes} min · ${game.skill}`}
+                right={plays > 0 ? <span className={pill}>Joué {plays} fois</span> : undefined}
+                open={open === id}
+                first={i === 0}
+                onToggle={() => toggle(id)}
+              >
+                <GameCard game={game} today={today} sessions={sessions} />
+              </ExpandableRow>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-[19px] font-bold">À mâcher</h2>
+        <div className="card overflow-hidden">
+          {CHEWS.map((chew, i) => {
+            const id = chewSessionId(chew)
+            const given = count(id)
+            return (
+              <ExpandableRow
+                key={id}
+                name={chew.name}
+                detail={chew.frozen ? 'À préparer au congélateur' : 'Prêt tout de suite'}
+                right={given > 0 ? <span className={pill}>Donné {given} fois</span> : undefined}
+                open={open === id}
+                first={i === 0}
+                onToggle={() => toggle(id)}
+              >
+                <ChewCard chew={chew} today={today} sessions={sessions} />
+              </ExpandableRow>
             )
           })}
         </div>
@@ -123,7 +147,7 @@ export function ExercisesTab({ today, sessions, exposures, onExposure }: Exercis
             ))}
           </div>
         ) : (
-          <p className="text-[15px] leading-snug text-muted">La ruelle, les enfants, un reflet la nuit : note ce qui lui fait peur pour suivre ses progrès. Sa plus grande peur devient le défi du jour.</p>
+          <p className="text-[15px] leading-snug text-muted">La ruelle, les enfants, un reflet la nuit : note ce qui lui fait peur. Sa plus grande peur devient le défi du jour.</p>
         )}
         <button type="button" onClick={() => onExposure()} className={outlineButton}>
           Noter une exposition

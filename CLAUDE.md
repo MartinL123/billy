@@ -82,9 +82,10 @@ src/
     today/      # écran Aujourd'hui
     calendar/   # événements, rappels, poids
     journal/    # entrées, photos, tags
+    training/   # onglet Dressage : programme, séances, peurs (V2)
     profile/    # profil de Billy, contacts, documents, compte
   components/   # composants UI partagés (Button, Sheet, TabBar, EmptyState, Field…)
-  lib/          # utilitaires (âge, récurrences, compression d'image, découpage de fichiers)
+  lib/          # utilitaires (âge, récurrences, compression d'image, découpage de fichiers, export .ics, dressage)
 firestore.rules
 firebase.json
 docs/

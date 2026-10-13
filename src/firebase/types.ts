@@ -2,6 +2,7 @@ import type { Bytes } from 'firebase/firestore'
 import type { ISODate } from '../lib/dates'
 import type { EventType } from '../lib/events'
 import type { Recurrence } from '../lib/recurrence'
+import type { SessionResult } from '../lib/training'
 
 // Modèle de données de docs/spec-v1.md. Tout champ ajouté après coup reste optionnel.
 
@@ -80,6 +81,27 @@ export interface StoredFile {
   size: number
   data?: Bytes
   chunkCount?: number
+}
+
+/** users/{uid}/sessions/{id} — une séance d'entraînement sur un exercice du programme. */
+export interface TrainingSession {
+  date: ISODate
+  exerciseId: string
+  result: SessionResult
+  note?: string
+  createdAt?: string
+}
+
+/** users/{uid}/exposures/{id} — une exposition à quelque chose qui fait peur à Billy. */
+export interface Exposure {
+  date: ISODate
+  trigger: string
+  /** 1 (serein) à 5 (panique). */
+  fear: number
+  /** Distance tolérée, en mètres. */
+  distance?: number
+  note?: string
+  createdAt?: string
 }
 
 export type WithId<T> = T & {

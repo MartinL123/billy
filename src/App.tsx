@@ -12,6 +12,7 @@ import DocumentForm from './features/profile/DocumentForm'
 import DocumentView from './features/profile/DocumentView'
 import Profile from './features/profile/Profile'
 import Today from './features/today/Today'
+import Training from './features/training/Training'
 import { watchUser, type User } from './firebase/auth'
 import { DataProvider } from './firebase/store'
 
@@ -50,6 +51,7 @@ export default function App() {
               <Route index element={<Today />} />
               <Route path="calendrier" element={<Calendar />} />
               <Route path="journal" element={<Journal />} />
+              <Route path="dressage" element={<Training />} />
             </Route>
             <Route path="profil" element={<Profile />} />
             <Route path="evenement/nouveau" element={<EventForm />} />

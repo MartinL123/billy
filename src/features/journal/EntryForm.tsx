@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { FilePicker } from '../../components/FilePicker'
 import { FormScreen } from '../../components/Form'
@@ -25,6 +25,7 @@ type Item =
 
 export default function EntryForm() {
   const { id } = useParams()
+  const [params] = useSearchParams()
   const { entries } = useData()
   const today = useToday()
   const back = useBack('/journal')
@@ -32,7 +33,7 @@ export default function EntryForm() {
 
   const [items, setItems] = useState<Item[]>(() => (existing?.photos ?? []).map((saved) => ({ key: saved.fileId, saved })))
   const [text, setText] = useState(existing?.text ?? '')
-  const [tags, setTags] = useState<string[]>(existing?.tags ?? [])
+  const [tags, setTags] = useState<string[]>(existing?.tags ?? params.getAll('tag'))
   const [date, setDate] = useState(existing?.date ?? today)
   const [newTag, setNewTag] = useState<string | null>(null)
   const [progress, setProgress] = useState('')

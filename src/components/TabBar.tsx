@@ -1,17 +1,18 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { CalendarIcon, PhotoIcon, PlusIcon, SunIcon } from './Icons'
+import { CalendarIcon, PhotoIcon, PlusIcon, SunIcon, TargetIcon } from './Icons'
 
 const TABS = [
   { to: '/', label: "Aujourd'hui", Icon: SunIcon },
   { to: '/calendrier', label: 'Calendrier', Icon: CalendarIcon },
   { to: '/journal', label: 'Journal', Icon: PhotoIcon },
+  { to: '/dressage', label: 'Dressage', Icon: TargetIcon },
 ]
 
 function TabBar() {
   return (
     <nav
       aria-label="Navigation principale"
-      className="fixed inset-x-0 bottom-0 z-20 grid h-[calc(72px+env(safe-area-inset-bottom))] grid-cols-3 border-t border-divider bg-surface pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-x-0 bottom-0 z-20 grid h-[calc(72px+env(safe-area-inset-bottom))] grid-cols-4 border-t border-divider bg-surface pb-[env(safe-area-inset-bottom)]"
     >
       {TABS.map(({ to, label, Icon }) => (
         <NavLink
@@ -19,7 +20,7 @@ function TabBar() {
           to={to}
           end
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center gap-1 text-[13px] no-underline ${isActive ? 'font-bold text-primary' : 'font-medium text-muted'}`
+            `flex flex-col items-center justify-center gap-1 text-[12px] no-underline ${isActive ? 'font-bold text-primary' : 'font-medium text-muted'}`
           }
         >
           {({ isActive }) => (

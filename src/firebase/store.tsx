@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ensureSeed, watchCollection, watchDog } from './db'
-import type { BillyDocument, BillyEvent, Dog, Entry, Weight, WithId } from './types'
+import type { BillyDocument, BillyEvent, Dog, Entry, Exposure, TrainingSession, Weight, WithId } from './types'
 
 interface Data {
   dog: WithId<Dog>
@@ -9,6 +9,8 @@ interface Data {
   /** Les plus récentes d'abord. */
   entries: WithId<Entry>[]
   documents: WithId<BillyDocument>[]
+  sessions: WithId<TrainingSession>[]
+  exposures: WithId<Exposure>[]
   /** Nombre d'éléments écrits localement et pas encore envoyés. */
   pendingCount: number
   online: boolean
@@ -47,6 +49,8 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   const [weights, setWeights] = useState<WithId<Weight>[]>()
   const [entries, setEntries] = useState<WithId<Entry>[]>()
   const [documents, setDocuments] = useState<WithId<BillyDocument>[]>()
+  const [sessions, setSessions] = useState<WithId<TrainingSession>[]>()
+  const [exposures, setExposures] = useState<WithId<Exposure>[]>()
 
   useEffect(() => {
     const stops = [
@@ -55,6 +59,8 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
       watchCollection<Weight>('weights', 'desc', setWeights),
       watchCollection<Entry>('entries', 'desc', (items) => setEntries([...items].sort(byCreation))),
       watchCollection<BillyDocument>('documents', 'desc', (items) => setDocuments([...items].sort(byCreation))),
+      watchCollection<TrainingSession>('sessions', 'desc', (items) => setSessions([...items].sort(byCreation))),
+      watchCollection<Exposure>('exposures', 'desc', (items) => setExposures([...items].sort(byCreation))),
     ]
     return () => stops.forEach((stop) => stop())
   }, [])
@@ -65,10 +71,10 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   }, [dog, online])
 
   const data = useMemo<Data | null>(() => {
-    if (!dog || !events || !weights || !entries || !documents) return null
-    const pendingCount = [dog, ...events, ...weights, ...entries, ...documents].filter((item) => item.pending).length
-    return { dog, events, weights, entries, documents, pendingCount, online }
-  }, [dog, events, weights, entries, documents, online])
+    if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures) return null
+    const pendingCount = [dog, ...events, ...weights, ...entries, ...documents, ...sessions, ...exposures].filter((item) => item.pending).length
+    return { dog, events, weights, entries, documents, sessions, exposures, pendingCount, online }
+  }, [dog, events, weights, entries, documents, sessions, exposures, online])
 
   if (!data) return <>{fallback(dog === null && !online)}</>
   return <DataContext.Provider value={data}>{children}</DataContext.Provider>

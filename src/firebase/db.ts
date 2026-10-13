@@ -17,7 +17,7 @@ import { newId, send, userCol, userDoc } from './paths'
 import { deleteFile } from './files'
 export { newId } from './paths'
 import { buildSeed } from './seed'
-import type { BillyDocument, BillyEvent, Dog, Entry, Weight, WithId } from './types'
+import type { BillyDocument, BillyEvent, Dog, Entry, Exposure, TrainingSession, Weight, WithId } from './types'
 import { todayISO } from '../lib/dates'
 import { nextOccurrence } from '../lib/recurrence'
 
@@ -130,6 +130,24 @@ export function saveWeight(id: string, weight: Weight): void {
 
 export function deleteWeight(id: string): void {
   send(deleteDoc(userDoc('weights', id)))
+}
+
+// ——— Dressage ———
+
+export function saveSession(id: string, session: TrainingSession): void {
+  send(setDoc(userDoc('sessions', id), session as DocumentData))
+}
+
+export function deleteSession(id: string): void {
+  send(deleteDoc(userDoc('sessions', id)))
+}
+
+export function saveExposure(id: string, exposure: Exposure): void {
+  send(setDoc(userDoc('exposures', id), exposure as DocumentData))
+}
+
+export function deleteExposure(id: string): void {
+  send(deleteDoc(userDoc('exposures', id)))
 }
 
 // ——— Journal ———

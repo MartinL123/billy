@@ -122,3 +122,21 @@ export function xpWithout<T extends { id: string; xp: number }>(log: T[], bossId
   const ids = new Set(steps.map((s) => `palier-${bossId}-${s}`))
   return log.filter((e) => !ids.has(e.id)).reduce((sum, e) => sum + e.xp, 0)
 }
+
+// ——— Corriger une étape depuis le chemin d'une compétence (spec V3 § 5.5) ———
+
+/**
+ * Décoche une étape et toutes les plus difficiles : elle redevient l'étape en cours, à refaire 3 fois.
+ * C'est une correction, pas une baisse : l'XP et le niveau déjà gagnés ne sont pas touchés (rien ici ne lit le journal d'XP).
+ */
+export function uncheckStep(progress: BossProgress, step: number): { progress: BossProgress; removed: number[] } {
+  if (step < 1 || step > progress.level) return { progress, removed: [] }
+  const removed = Array.from({ length: progress.level - step + 1 }, (_, i) => step + i)
+  return {
+    progress: { ...progress, level: step - 1, validations: progress.validations.filter((v) => v.level < step), preApp: (progress.preApp ?? []).filter((s) => s < step) },
+    removed,
+  }
+}
+
+/** Coche une étape et toutes les plus faciles, marquées « il savait déjà le faire ». Aucune XP : elle se gagne en notant des moments. */
+export const checkStep = (progress: BossProgress, step: number) => markPreApp(progress, step)

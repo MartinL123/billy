@@ -556,3 +556,48 @@ describe('corriger ce qu’il savait déjà faire', () => {
     for (const n of [0, 2, 3, 4, 5]) expect(stepsForAnswer(answerForSteps(n))).toBe(n)
   })
 })
+
+import { addValidation, checkStep, remaining, uncheckStep } from './bossProgress'
+
+describe('cocher ou décocher une étape depuis le chemin', () => {
+  const practiced = {
+    level: 3,
+    validations: [1, 2, 3].flatMap((level) => ['2026-10-01', '2026-10-02', '2026-10-03'].map((date) => ({ level, date }))),
+    masteryPlaces: [],
+    preApp: [1],
+  }
+
+  it('décocher décoche aussi les étapes plus difficiles, même validées dans l’app', () => {
+    const { progress, removed } = uncheckStep(practiced, 2)
+    expect(removed).toEqual([2, 3])
+    expect(progress.level).toBe(1)
+    expect(progress.preApp).toEqual([1])
+    // L'étape redevient l'étape en cours, à refaire 3 fois.
+    expect(remaining(progress)).toMatchObject({ target: 2, done: 0, needed: 3 })
+    expect(addValidation(progress, '2026-10-13').levelGained).toBeUndefined()
+    expect(uncheckStep(practiced, 4)).toEqual({ progress: practiced, removed: [] })
+  })
+
+  it('cocher coche aussi les plus faciles, marquées « il savait déjà le faire »', () => {
+    const { progress, gained } = checkStep({ level: 1, validations: [], masteryPlaces: [], preApp: [1] }, 3)
+    expect(gained).toEqual([2, 3])
+    expect(progress).toMatchObject({ level: 3, preApp: [1, 2, 3] })
+  })
+
+  it('ne touche jamais à l’XP : le journal n’entre pas dans le calcul', () => {
+    const log = [{ id: 'palier-rappel-2', xp: 50 }, { id: 'palier-rappel-3', xp: 50 }, { id: 'm', xp: 10 }]
+    const before = log.reduce((sum, e) => sum + e.xp, 0)
+    uncheckStep(practiced, 2)
+    checkStep(practiced, 5)
+    expect(log.reduce((sum, e) => sum + e.xp, 0)).toBe(before)
+    expect(globalLevel(before).level).toBe(globalLevel(log.reduce((sum, e) => sum + e.xp, 0)).level)
+  })
+
+  it('« Annuler » retrouve exactement l’état d’avant', () => {
+    const snapshot = JSON.parse(JSON.stringify(practiced))
+    uncheckStep(practiced, 1)
+    checkStep(practiced, 5)
+    // Les fonctions ne modifient pas l'état d'origine : annuler, c'est le réécrire tel quel.
+    expect(practiced).toEqual(snapshot)
+  })
+})

@@ -3,18 +3,18 @@ import { Link, useParams } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { CheckIcon, ChevronLeftIcon, TargetIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
-import { ConfirmSheet } from '../../components/Sheet'
+import { Sheet } from '../../components/Sheet'
+import { useToast } from '../../components/Toast'
 import { SKILLS, stepPhrase, stepShort, territoryOf } from '../../content/phrases'
 import { MAX_LEVEL } from '../../content/training'
 import { useData } from '../../firebase/store'
-import { declarePreApp } from '../../firebase/training'
+import { setStepChecked } from '../../firebase/training'
 import { EMPTY_PROGRESS, remaining } from '../../lib/bossProgress'
 import { formatLong } from '../../lib/dates'
 import { sessionMinutes } from '../../lib/training-plan'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { BossIcon } from '../training/BossIcon'
-import { StepSuccess } from '../training/Celebration'
 
 // Le sentier, dans un repère de 390 × 760 : l'étape 1 en bas, le trophée en haut.
 const W = 390
@@ -38,7 +38,7 @@ function Trophy({ size = 40 }: { size?: number }) {
 }
 
 /** Un point du sentier : le cercle est centré sur (x, y), le texte part du côté libre. */
-function Stop({ index, circle, radius, children }: { index: number; circle: ReactNode; radius: number; children: ReactNode }) {
+function Stop({ index, circle, radius, label: name, onOpen, children }: { index: number; circle: ReactNode; radius: number; label: string; onOpen: () => void; children: ReactNode }) {
   const { x, y } = NODES[index]!
   const top = index === MAX_LEVEL - 1
   const left = x < W / 2
@@ -49,9 +49,15 @@ function Stop({ index, circle, radius, children }: { index: number; circle: Reac
       : { right: `calc(${pct(W - x, W)} + ${radius + 12}px)`, left: 10, top: pct(y, H), transform: 'translateY(-50%)', textAlign: 'right', alignItems: 'flex-end' }
   return (
     <li className="contents">
-      <span className="absolute flex items-center justify-center" style={{ left: pct(x, W), top: pct(y, H), width: radius * 2, height: radius * 2, transform: 'translate(-50%, -50%)' }}>
+      <button
+        type="button"
+        aria-label={name}
+        onClick={onOpen}
+        className="absolute flex items-center justify-center rounded-full border-0 bg-transparent p-0"
+        style={{ left: pct(x, W), top: pct(y, H), width: radius * 2, height: radius * 2, transform: 'translate(-50%, -50%)' }}
+      >
         {circle}
-      </span>
+      </button>
       <span className="absolute flex flex-col gap-0.5" style={label}>
         {children}
       </span>
@@ -59,14 +65,22 @@ function Stop({ index, circle, radius, children }: { index: number; circle: Reac
   )
 }
 
-/** Le chemin d'une compétence : un sentier de jeu, Billy posé sur l'étape en cours, un trophée au bout. Aucun numéro. */
 export default function Skill() {
   const { id } = useParams()
+  const back = useBack('/billy')
+  return <SkillPath id={id ?? ''} onBack={back} />
+}
+
+/**
+ * Le chemin d'une compétence : un sentier de jeu, le chien posé sur l'étape en cours, un trophée au bout. Aucun numéro.
+ * `overlay` : ouvert par-dessus un autre écran (pastille « Pour : … ») pour voir où il en est, sans quitter la saisie.
+ */
+export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack: () => void; overlay?: boolean }) {
   const { dog, bossProgress, xpLog } = useData()
   const today = useToday()
-  const back = useBack('/billy')
-  const [confirming, setConfirming] = useState(false)
-  const [celebrate, setCelebrate] = useState<number | null>(null)
+  const toast = useToast()
+  const back = onBack
+  const [opened, setOpened] = useState<number | null>(null)
 
   // On arrive sur l'étape en cours, là où Billy est posé.
   useEffect(() => {
@@ -98,9 +112,13 @@ export default function Skill() {
     return date ? formatLong(date).replace(/ \d{4}$/, '') : 'Il savait déjà le faire'
   }
 
-  const alreadyKnows = () => {
-    setConfirming(false)
-    if (declarePreApp(skill.id, stored, current, today).length) setCelebrate(current)
+  // Cocher ou décocher : seule la progression change, jamais l'XP. « Annuler » remet l'état d'avant.
+  const setChecked = (step: number, checked: boolean) => {
+    setOpened(null)
+    const { changed, undo } = setStepChecked(skill.id, stored, step, checked)
+    if (changed.length === 0) return
+    const many = changed.length > 1
+    toast(checked ? (many ? `${changed.length} étapes cochées` : 'Étape cochée') : many ? `${changed.length} étapes décochées` : 'Étape décochée', { label: 'Annuler', run: undo })
   }
 
   const photo = (size: number) => (
@@ -110,11 +128,11 @@ export default function Skill() {
   )
 
   return (
-    <div className="mx-auto min-h-dvh max-w-[430px]">
+    <div className="mx-auto min-h-dvh max-w-[430px] bg-bg">
       <header className="flex flex-col gap-3 rounded-b-[28px] px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white" style={{ background: territory.color }}>
         <button type="button" onClick={back} className="flex min-h-12 items-center gap-1.5 self-start rounded-full border-2 border-solid border-white/60 bg-transparent px-4 text-[17px] font-semibold text-white">
           <ChevronLeftIcon size={20} />
-          {territory.name}
+          {overlay ? 'Retour' : territory.name}
         </button>
         <div className="flex items-center gap-3.5">
           <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-white" style={{ color: territory.color }}>
@@ -127,8 +145,9 @@ export default function Skill() {
         </div>
       </header>
 
-      <main className="flex flex-col gap-3 px-0 pt-2 pb-[calc(env(safe-area-inset-bottom)+170px)]">
+      <main className={`flex flex-col gap-3 px-0 pt-2 ${overlay ? 'pb-[calc(env(safe-area-inset-bottom)+40px)]' : 'pb-[calc(env(safe-area-inset-bottom)+170px)]'}`}>
         <Pending show={Boolean(stored?.pending)} />
+        <p className="px-5 text-center text-[15px] text-muted">Touchez une étape pour la cocher ou la décocher.</p>
         <ol className="relative m-0 w-full list-none p-0" style={{ aspectRatio: `${W} / ${H}` }}>
           <li className="contents" aria-hidden="true">
             <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 size-full">
@@ -141,7 +160,7 @@ export default function Skill() {
             const acquired = step <= progress.level
             if (step === current) {
               return (
-                <Stop key={step} index={step - 1} radius={54} circle={<span className="flex size-[108px] items-center justify-center rounded-full border-[6px] border-solid border-gold bg-surface shadow-[0_6px_16px_rgba(242,181,68,0.45)]">{photo(84)}</span>}>
+                <Stop key={step} index={step - 1} radius={54} label={`En ce moment : ${stepShort(skill.id, step)}. Toucher pour la cocher`} onOpen={() => setOpened(step)} circle={<span className="flex size-[108px] items-center justify-center rounded-full border-[6px] border-solid border-gold bg-surface shadow-[0_6px_16px_rgba(242,181,68,0.45)]">{photo(84)}</span>}>
                   <span id="etape-en-cours" className="flex flex-col gap-1.5 rounded-[18px] bg-surface px-3.5 py-3 text-left shadow-[0_2px_8px_rgba(24,32,30,0.1)]">
                     <span className="text-xs font-extrabold tracking-[0.5px] uppercase" style={{ color: territory.color }}>
                       En ce moment
@@ -163,6 +182,8 @@ export default function Skill() {
                   key={step}
                   index={step - 1}
                   radius={46}
+                  label={`${stepShort(skill.id, step)}. ${mastered ? 'Cochée' : 'Pas encore cochée'}`}
+                  onOpen={() => setOpened(step)}
                   circle={
                     <span className={`flex size-[92px] items-center justify-center rounded-full border-4 text-[#8A6514] ${mastered ? 'border-solid border-gold bg-gold shadow-[0_6px_18px_rgba(242,181,68,0.6)]' : 'border-dashed border-[#E0B45A] bg-gold-soft'}`}>
                       <Trophy />
@@ -180,6 +201,8 @@ export default function Skill() {
                   key={step}
                   index={step - 1}
                   radius={40}
+                  label={`${stepShort(skill.id, step)}. Cochée`}
+                  onOpen={() => setOpened(step)}
                   circle={
                     <span className="flex size-20 items-center justify-center rounded-full border-[5px] border-solid border-white text-white shadow-[0_3px_8px_rgba(0,0,0,0.15)]" style={{ background: territory.color }}>
                       <CheckIcon size={32} strokeWidth={3} />
@@ -192,24 +215,17 @@ export default function Skill() {
               )
             }
             return (
-              <Stop key={step} index={step - 1} radius={36} circle={<span className="size-[72px] rounded-full border-4 border-dashed bg-surface" style={{ borderColor: territory.soft === '#DCEBE6' ? '#9CC5BA' : territory.soft === '#E3EAF8' ? '#9DB3DE' : '#E6B08A' }} />}>
+              <Stop key={step} index={step - 1} radius={40} label={`${stepShort(skill.id, step)}. Pas encore cochée`} onOpen={() => setOpened(step)} circle={<span className="size-20 rounded-full border-4 border-dashed bg-surface" style={{ borderColor: territory.soft === '#DCEBE6' ? '#9CC5BA' : territory.soft === '#E3EAF8' ? '#9DB3DE' : '#E6B08A' }} />}>
                 <span className="text-[15px] leading-snug font-semibold text-[#3F4946]">{stepShort(skill.id, step)}</span>
               </Stop>
             )
           })}
         </ol>
 
-        <div className="flex flex-col gap-3 px-5">
-          {mastered ? (
-            <p className="rounded-[20px] bg-gold-soft px-4 py-3 text-[17px] leading-snug font-semibold text-[#5C4410]">À entretenir : elle revient de temps en temps dans la quête du jour.</p>
-          ) : (
-            <button type="button" onClick={() => setConfirming(true)} className="btn btn-outline">
-              {dog.name} sait déjà faire ça
-            </button>
-          )}
-        </div>
+        {mastered && <p className="mx-5 rounded-[20px] bg-gold-soft px-4 py-3 text-[17px] leading-snug font-semibold text-[#5C4410]">À entretenir : elle revient de temps en temps dans la quête du jour.</p>}
       </main>
 
+      {!overlay && (
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto flex max-w-[430px] flex-col gap-2 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           <Link to={`/exercice?competence=${skill.id}`} className="btn btn-main min-h-[58px] text-[18px]">
@@ -222,17 +238,42 @@ export default function Skill() {
         </div>
       </div>
 
-      {confirming && (
-        <ConfirmSheet
-          title={`${dog.name} sait déjà faire ça ?`}
-          message={`« ${stepPhrase(skill.id, current)} » sera notée comme acquise : il savait déjà le faire.`}
-          confirmLabel="Oui, il sait le faire"
-          tone="primary"
-          onCancel={() => setConfirming(false)}
-          onConfirm={alreadyKnows}
-        />
       )}
-      {celebrate !== null && <StepSuccess dogName={dog.name} bossId={skill.id} level={celebrate} inCarnet={false} onClose={() => setCelebrate(null)} />}
+
+      {opened !== null &&
+        (opened <= progress.level ? (
+          <Sheet label="Étape cochée" onClose={() => setOpened(null)}>
+            <p className="text-[13px] font-extrabold tracking-[0.5px] uppercase" style={{ color: territory.color }}>
+              {skill.name} · {whenOf(opened) === 'Il savait déjà le faire' ? 'il savait déjà le faire' : `acquise le ${whenOf(opened)}`}
+            </p>
+            <h2 className="font-display text-[22px] leading-tight font-extrabold">{stepPhrase(skill.id, opened)}</h2>
+            <p className="text-[17px] leading-snug">Il ne le fait plus vraiment, ou c'était une erreur ? Décochez l'étape : elle redevient l'étape en cours. Son XP reste acquise.</p>
+            {opened < progress.level && <p className="rounded-[14px] bg-[#FFF8E6] px-3.5 py-2.5 text-[15px] leading-snug text-gold-dark">Les étapes plus difficiles déjà cochées seront décochées aussi.</p>}
+            <button type="button" onClick={() => setChecked(opened, false)} className="btn mt-1 border-2 border-solid border-danger bg-surface text-danger">
+              Décocher cette étape
+            </button>
+            <button type="button" onClick={() => setOpened(null)} className="btn btn-on">
+              Garder cochée
+            </button>
+          </Sheet>
+        ) : (
+          <Sheet label="Étape pas encore cochée" onClose={() => setOpened(null)}>
+            <p className="text-[13px] font-extrabold tracking-[0.5px] uppercase" style={{ color: territory.color }}>
+              {skill.name}
+            </p>
+            <h2 className="font-display text-[22px] leading-tight font-extrabold">{stepPhrase(skill.id, opened)}</h2>
+            <p className="text-[17px] leading-snug">
+              {dog.name} sait déjà faire ça ? Cochez l'étape : elle sera notée « Il savait déjà le faire ».{opened > current ? ' Les étapes plus faciles seront cochées aussi.' : ''}
+            </p>
+            <p className="text-[15px] leading-snug text-muted">Cocher ne donne pas d'XP : elle se gagne en notant ce que vous faites.</p>
+            <button type="button" onClick={() => setChecked(opened, true)} className="btn btn-on mt-1">
+              Cocher cette étape
+            </button>
+            <button type="button" onClick={() => setOpened(null)} className="btn btn-outline">
+              Annuler
+            </button>
+          </Sheet>
+        ))}
     </div>
   )
 }

@@ -3,7 +3,7 @@ import { db } from './app'
 import { newId, send, userDoc } from './paths'
 import type { BossProgress, DailyQuestDoc, Entry, Exposure, Place, TrainingSession, XpEntry } from './types'
 import { bossById } from '../content/training'
-import { addValidation, EMPTY_PROGRESS, markPreApp, uncheckPreApp } from '../lib/bossProgress'
+import { addValidation, checkStep, EMPTY_PROGRESS, markPreApp, uncheckPreApp, uncheckStep } from '../lib/bossProgress'
 import type { ISODate } from '../lib/dates'
 import { MOMENT_XP, previewMoment } from '../lib/moment'
 import { globalLevel, XP } from '../lib/xp'
@@ -155,6 +155,21 @@ export function uncheckSteps(bossId: string, current: BossProgress, step: number
       send(back.commit())
     },
   }
+}
+
+/**
+ * Chemin d'une compétence : coche ou décoche une étape. Seule la progression change ; le journal d'XP n'est jamais touché.
+ * Renvoie de quoi annuler.
+ */
+export function setStepChecked(bossId: string, current: BossProgress | undefined, step: number, checked: boolean): { changed: number[]; undo: () => void } {
+  const before = current ?? EMPTY_PROGRESS
+  const result = checked ? checkStep(before, step) : uncheckStep(before, step)
+  const changed = 'gained' in result ? result.gained : result.removed
+  if (changed.length === 0) return { changed, undo: () => undefined }
+  const ref = userDoc('bossProgress', bossId)
+  const plain = (p: BossProgress) => strip({ level: p.level, validations: p.validations, masteryPlaces: p.masteryPlaces, preApp: p.preApp })
+  send(setDoc(ref, plain(result.progress)))
+  return { changed, undo: () => send(current ? setDoc(ref, plain(current)) : deleteDoc(ref)) }
 }
 
 /** Gain d'XP unique (première fois, quête, repos du jour) : l'identifiant fixe empêche tout doublon. */

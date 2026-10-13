@@ -471,6 +471,17 @@ describe('quête du jour', () => {
     for (const id of kinds.get('exercice')!) expect(base.active).toContain(id)
   })
 
+  it('évite l’exercice du défi de la semaine quand un autre est possible', () => {
+    const plain = dailyQuest(base)
+    const other = dailyQuest({ ...base, avoidExerciseId: plain.planned!.exercise.id })
+    expect(other.kind).toBe('exercice')
+    expect(other.planned!.exercise.id).not.toBe(plain.planned!.exercise.id)
+    expect(base.active).toContain(other.bossId)
+    // Une seule compétence en cours, un seul exercice à son étape : on le garde plutôt que de ne rien proposer.
+    const only = dailyQuest({ ...base, active: ['rappel'], progress: { rappel: { level: 2, validations: [], masteryPlaces: [] } }, avoidExerciseId: 'rappel-ping-pong' })
+    expect(only.planned!.exercise.id).toBe('rappel-ping-pong')
+  })
+
   it('sans compétence en cours ni maîtrisée, propose du repos plutôt que rien', () => {
     expect(dailyQuest({ ...base, active: [] }).kind).toBe('repos')
   })

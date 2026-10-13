@@ -33,6 +33,8 @@ export interface QuestContext {
   moments: { date: ISODate; feeling?: string }[]
   /** Jours de repos déjà notés. */
   rests: ISODate[]
+  /** Exercice du défi de la semaine : la quête en propose un autre quand c'est possible. */
+  avoidExerciseId?: string
 }
 
 const pick = <T>(items: T[], n: number): T => items[((n % items.length) + items.length) % items.length]!
@@ -42,7 +44,7 @@ const pick = <T>(items: T[], n: number): T => items[((n % items.length) + items.
  * Le lendemain d'un moment « Difficile », c'est toujours une journée de repos.
  * Une compétence de peur se travaille à son étape en cours, au réglage du catalogue : au calme et à distance.
  */
-export function dailyQuest({ today, active, progress, moments, rests }: QuestContext, skips = 0): Quest {
+export function dailyQuest({ today, active, progress, moments, rests, avoidExerciseId }: QuestContext, skips = 0): Quest {
   const n = dayNumber(today)
   const rest = (afterHardDay: boolean): Quest => ({ kind: 'repos', idea: pick(REST_IDEAS, n + skips), afterHardDay })
 
@@ -70,10 +72,20 @@ export function dailyQuest({ today, active, progress, moments, rests }: QuestCon
   }
   if (pool.length === 0) return rest(false)
 
-  const bossId = pick(pool, n + skips)
-  const planned = exercisesForStep(bossId, level(bossId))
-  if (planned.length === 0) return rest(false)
-  return { kind: 'exercice', bossId, planned: pick(planned, Math.floor(n / pool.length) + skips) }
+  // On parcourt les compétences en cours à partir de celle du jour, et leurs exercices à partir de celui du jour :
+  // le premier qui n'est pas l'exercice du défi de la semaine est retenu. S'il n'y a que lui, on le garde.
+  let fallback: Quest | undefined
+  for (let i = 0; i < pool.length; i++) {
+    const bossId = pick(pool, n + skips + i)
+    const planned = exercisesForStep(bossId, level(bossId))
+    for (let j = 0; j < planned.length; j++) {
+      const choice = pick(planned, Math.floor(n / pool.length) + skips + j)
+      const quest: Quest = { kind: 'exercice', bossId, planned: choice }
+      if (choice.exercise.id !== avoidExerciseId) return quest
+      fallback ??= quest
+    }
+  }
+  return fallback ?? rest(false)
 }
 
 /** La mission en une phrase : « Jeu du prénom, 3 minutes. Salon, à 1 m. » */

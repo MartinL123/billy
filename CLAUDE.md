@@ -1,0 +1,120 @@
+# Billy — app de suivi pour mon chien
+
+PWA mobile-first pour suivre Billy, croisé épagneul-labrador né le 13/05/2026 :
+calendrier santé, journal photos, documents, puis programme d'entraînement.
+Utilisateur unique (moi), sur **iPhone**, app installée sur l'écran d'accueil.
+
+Lire avant toute nouvelle fonctionnalité :
+- `docs/spec-v1.md` : la spec de la version en cours
+- `docs/maquettes/README.md` : tokens visuels et maquettes de référence
+- `docs/prompts.md` : l'étape en cours
+
+## Principes UX (non négociables)
+
+- **Mobile-first** : conçu pour 375–430 px de large, testé en premier à 390 px.
+- **Une action principale par écran**, visible sans scroller.
+- **Ajout en 2 taps maximum** depuis l'accueil (photo, note, événement, document).
+- **Zones tactiles ≥ 44 px**, actions principales dans la moitié basse de l'écran (pouce).
+- **Pas d'écran vide ou d'onglet « bientôt »** : un état vide propose toujours l'action pour le remplir.
+- **Français partout**, dates au format `13 mai 2026`, âges en langage naturel (« 5 mois et 3 jours »).
+- **Hors ligne d'abord** : tout se consulte sans réseau, les ajouts se synchronisent au retour du réseau.
+- **Aucune sauvegarde manuelle** : les données vivent dans Firestore, jamais uniquement dans le navigateur.
+- **Import uniquement** : l'app n'ouvre jamais l'appareil photo. Photos et documents viennent de la photothèque ou de l'app Fichiers.
+- Accessibilité : contrastes WCAG AA, labels sur tous les champs et boutons icône.
+
+## Contraintes iPhone (PWA iOS)
+
+- Installation : Safari › Partager › « Sur l'écran d'accueil ». Manifest + `apple-touch-icon` 180 px + `apple-mobile-web-app-capable`.
+- Respecter les zones sûres : `viewport-fit=cover` et `env(safe-area-inset-*)` (encoche, barre d'accueil).
+- Import de photos : `<input type="file" accept="image/*" multiple>` **sans** attribut `capture`.
+  iOS convertit le HEIC en JPEG à l'import ; si un fichier HEIC passe quand même, afficher un message clair.
+- Import de documents : `<input type="file" accept="application/pdf,image/*" multiple>` (ouvre Photos ou Fichiers).
+- Pas de `window.open` ni de popups : ils se comportent mal en mode écran d'accueil.
+- Champs de saisie en 16 px minimum (sinon Safari zoome au focus).
+- Tester dans Safari iOS (ou le simulateur Xcode) avant de valider un écran ; Chrome desktop ne suffit pas.
+
+## Stack
+
+| Rôle | Choix |
+| --- | --- |
+| Build | Vite + React + TypeScript (strict) |
+| Style | Tailwind CSS, tokens repris de `docs/maquettes/README.md` |
+| Routing | React Router en `HashRouter` (compatible GitHub Pages) |
+| Connexion | Firebase Authentication, **e-mail + mot de passe** (un seul compte, créé dans la console) |
+| Données | Cloud Firestore avec `persistentLocalCache` (taille de cache illimitée) |
+| Fichiers | Dans Firestore aussi (type `Bytes`), **pas de Cloud Storage** — voir Règles techniques |
+| PWA | `vite-plugin-pwa` (`registerType: 'autoUpdate'`) |
+| Dates | `date-fns` avec la locale `fr` |
+| Tests | Vitest + Testing Library, émulateurs Firebase en local |
+
+Ne pas ajouter de dépendance sans raison claire ; préférer du code simple.
+
+## Budget : 0 €
+
+Le projet Firebase reste sur le **plan Spark (gratuit)**. Jamais de fonctionnalité qui exige le plan Blaze
+(Cloud Storage, Cloud Functions, etc.). Quotas Spark à respecter :
+1 Gio stocké, 50 000 lectures / jour, 20 000 écritures / jour, 10 Gio de transfert / mois.
+Sur Spark, un dépassement bloque jusqu'au lendemain mais ne facture rien.
+
+## Commandes
+
+```bash
+npm install
+npm run dev                # serveur local
+npm run build              # build de production
+npm run preview            # tester le build (et la PWA)
+npm test                   # tests unitaires
+firebase emulators:start   # Auth + Firestore en local
+```
+
+Configuration Firebase dans `.env.local` (variables `VITE_FIREBASE_*`), jamais commitée.
+Un `.env.example` liste les variables attendues.
+
+## Structure
+
+```
+src/
+  firebase/     # init, auth, accès Firestore, stockage des fichiers en Bytes, types, seed
+  features/
+    auth/       # écran de connexion
+    today/      # écran Aujourd'hui
+    calendar/   # événements, rappels, poids
+    journal/    # entrées, photos, tags
+    profile/    # profil de Billy, contacts, documents, compte
+  components/   # composants UI partagés (Button, Sheet, TabBar, EmptyState, Field…)
+  lib/          # utilitaires (âge, récurrences, compression d'image, découpage de fichiers)
+firestore.rules
+firebase.json
+docs/
+```
+
+## Règles techniques
+
+- **Images** (photos et pages de documents) : compressées côté client avant envoi
+  (photo : 1600 px max, JPEG 0,75 ; page de document : 2000 px max, JPEG 0,8 ; miniature 400 px, JPEG 0,7).
+  Chaque image va dans son propre document Firestore `files/{id}` en `Bytes`, toujours < 900 Ko.
+  Si une image compressée dépasse 900 Ko, réduire encore la qualité.
+- **PDF** : découpés en morceaux de 750 Ko dans `files/{id}/chunks/{n}` et recollés à l'ouverture.
+  Taille max d'un PDF importé : 8 Mo (message clair au-delà).
+- **Affichage** : `Bytes` → `Blob` → `URL.createObjectURL`, libérée au démontage du composant.
+  Les listes chargent seulement les miniatures ; l'image pleine résolution à l'ouverture.
+- **Sécurité** : tout sous `users/{uid}/…` ; `firestore.rules` n'autorise que le propriétaire. Rien n'est public.
+- **Hors ligne** : les écritures faites hors ligne partent seules au retour du réseau ; afficher
+  « en attente d'envoi » sur les éléments concernés (`hasPendingWrites`).
+- **Dates** : stockées en ISO `YYYY-MM-DD` (sans heure) ; toute la logique d'âge et de récurrence
+  dans `src/lib/`, avec des tests.
+- **Évolution du modèle** : nouveaux champs toujours optionnels côté lecture ; ne jamais casser l'existant.
+- Composants petits, logique métier hors des composants.
+
+## Déploiement
+
+GitHub Pages via GitHub Actions (`.github/workflows/deploy.yml`) à chaque push sur `main`.
+`base` de Vite = `/<nom-du-repo>/` ; manifest et service worker doivent utiliser ce chemin.
+Les variables `VITE_FIREBASE_*` viennent des secrets du repo (ce ne sont pas des secrets au sens
+sécurité : la protection vient de `firestore.rules`). Ajouter `<user>.github.io` aux domaines autorisés de Firebase Auth.
+
+## Façon de travailler
+
+- Suivre `docs/prompts.md` : une étape à la fois, s'arrêter au critère de fin et me demander de valider.
+- Une fonctionnalité = un commit clair.
+- Si une décision UX n'est pas couverte par la spec ou les maquettes, prendre l'option la plus simple et me la signaler.

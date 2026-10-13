@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Connexion</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1E5A50}a:hover{color:#143F38}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F3F5F2; font-family: 'Figtree', sans-serif; color: #18201E; display: flex; flex-direction: column; padding: 96px 24px 48px">
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center">
+<div style="width: 96px; height: 96px; border-radius: 28px; background: #1E5A50; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(30,90,80,0.28)">
+<svg width="52" height="52" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true"><ellipse cx="7" cy="8" rx="1.8" ry="2.3"></ellipse><ellipse cx="12" cy="6" rx="1.8" ry="2.3"></ellipse><ellipse cx="17" cy="8" rx="1.8" ry="2.3"></ellipse><ellipse cx="4.6" cy="12.6" rx="1.6" ry="2"></ellipse><ellipse cx="19.4" cy="12.6" rx="1.6" ry="2"></ellipse><path d="M12 11c-3 0-5.5 3.2-5.5 5.6 0 1.8 1.4 2.6 2.8 2.6 1.1 0 1.8-.6 2.7-.6s1.6.6 2.7.6c1.4 0 2.8-.8 2.8-2.6C17.5 14.2 15 11 12 11z"></path></svg>
+</div>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 34px; font-weight: 700; letter-spacing: -0.5px">Billy</h1>
+<p style="margin: 0; font-size: 16px; color: #5A6662">Son calendrier, ses souvenirs, ses papiers.</p>
+</div>
+
+<form style="margin-top: 48px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="email" style="font-size: 15px; font-weight: 600">E-mail</label>
+<input id="email" type="email" autocomplete="email" value="martin@exemple.fr" style="height: 52px; border-radius: 14px; border: 1.5px solid #D3D9D6; background: #FFFFFF; padding: 0 16px; font-family: inherit; font-size: 16px; color: #18201E; box-sizing: border-box">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="mdp" style="font-size: 15px; font-weight: 600">Mot de passe</label>
+<input id="mdp" type="password" autocomplete="current-password" value="motdepasse" aria-describedby="mdp-err" style="height: 52px; border-radius: 14px; border: 1.5px solid #B3261E; background: #FFFFFF; padding: 0 16px; font-family: inherit; font-size: 16px; color: #18201E; box-sizing: border-box">
+<div id="mdp-err" style="font-size: 14px; color: #B3261E; font-weight: 500">Mot de passe incorrect. Réessaie.</div>
+</div>
+<a href="Main.dc.html" style="margin-top: 8px; height: 54px; border-radius: 27px; background: #1E5A50; color: #FFFFFF; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none">Se connecter</a>
+<a href="#" style="align-self: center; font-size: 15px; font-weight: 600; padding: 12px; text-decoration: none">Mot de passe oublié ?</a>
+</form>
+
+<p style="margin: auto 0 0; font-size: 13px; color: #5A6662; text-align: center">Une seule connexion : l'app reste ouverte ensuite.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

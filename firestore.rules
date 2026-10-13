@@ -1,0 +1,21 @@
+rules_version = '2';
+
+// Billy — règles de sécurité Firestore.
+// Chaque utilisateur ne peut lire et écrire que ses propres données, sous users/{uid}/…
+// Tout le reste est refusé.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    match /users/{uid}/{document=**} {
+      allow read, delete: if isOwner(uid);
+      // Garde-fou : aucun document au-delà de 1 000 000 d'octets de données binaires.
+      allow create, update: if isOwner(uid)
+        && (!('data' in request.resource.data) || request.resource.data.data.size() < 1000000);
+    }
+  }
+}

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Importer un document</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1E5A50}a:hover{color:#143F38}
+</style>
+</helmet>
+<div style="width: 390px; height: 1000px; position: relative; box-sizing: border-box; background: #F3F5F2; font-family: 'Figtree', sans-serif; color: #18201E">
+
+<div style="height: 56px; padding: 0 8px; display: flex; align-items: center; justify-content: space-between">
+<a href="Profil.dc.html" style="height: 44px; padding: 0 12px; display: flex; align-items: center; font-size: 16px; font-weight: 600; text-decoration: none">Annuler</a>
+<div style="font-size: 17px; font-weight: 700">Nouveau document</div>
+<div style="width: 76px"></div>
+</div>
+
+<form style="padding: 8px 20px 120px; display: flex; flex-direction: column; gap: 20px">
+
+<div style="background: #FFFFFF; border-radius: 20px; padding: 14px; display: flex; gap: 14px; align-items: center; box-shadow: 0 1px 2px rgba(24,32,30,0.06)">
+<div style="width: 64px; height: 84px; border-radius: 8px; background: #E3EAF8; border: 1px solid #C9D6EF; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; font-weight: 700; color: #2559A8">PDF</div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 16px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">Scan 13 oct. 2026.pdf</div>
+<div style="font-size: 14px; color: #5A6662">3 pages · 2,4 Mo</div>
+<button type="button" style="align-self: flex-start; height: 36px; padding: 0; border: none; background: transparent; font-family: inherit; font-size: 15px; font-weight: 600; color: #1E5A50">Changer de fichier</button>
+</div>
+</div>
+
+<div style="display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: #E3EAF8">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2559A8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="11" x2="12" y2="16"></line><line x1="12" y1="7.5" x2="12" y2="7.6"></line></svg>
+<p style="margin: 0; font-size: 14px; line-height: 1.4; color: #1D3F73">Pour scanner un papier, utilise l'app Notes ou Fichiers de ton iPhone, puis importe le PDF ici.</p>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="t" style="font-size: 15px; font-weight: 600">Titre</label>
+<input id="t" type="text" value="Compte rendu véto" style="height: 52px; border-radius: 14px; border: 1.5px solid #D3D9D6; background: #FFFFFF; padding: 0 16px; font-family: inherit; font-size: 16px; color: #18201E; box-sizing: border-box">
+</div>
+
+<fieldset style="border: none; margin: 0; padding: 0">
+<legend style="font-size: 15px; font-weight: 600; padding: 0; margin-bottom: 10px">Catégorie</legend>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #E4E8E4; border-radius: 14px; padding: 4px; gap: 4px">
+<button type="button" aria-pressed="false" style="height: 44px; border: none; border-radius: 10px; background: transparent; font-family: inherit; font-size: 14px; font-weight: 500; color: #3F4946">Santé</button>
+<button type="button" aria-pressed="true" style="height: 44px; border: none; border-radius: 10px; background: #FFFFFF; box-shadow: 0 1px 3px rgba(24,32,30,0.12); font-family: inherit; font-size: 14px; font-weight: 700; color: #18201E">Véto</button>
+<button type="button" aria-pressed="false" style="height: 44px; border: none; border-radius: 10px; background: transparent; font-family: inherit; font-size: 14px; font-weight: 500; color: #3F4946">Admin.</button>
+<button type="button" aria-pressed="false" style="height: 44px; border: none; border-radius: 10px; background: transparent; font-family: inherit; font-size: 14px; font-weight: 500; color: #3F4946">Autre</button>
+</div>
+</fieldset>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="dd" style="font-size: 15px; font-weight: 600">Date du document</label>
+<input id="dd" type="text" value="13 oct. 2026" style="height: 52px; border-radius: 14px; border: 1.5px solid #D3D9D6; background: #FFFFFF; padding: 0 16px; font-family: inherit; font-size: 16px; color: #18201E; box-sizing: border-box">
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 15px; font-weight: 600">Lier à un événement <span style="font-weight: 400; color: #5A6662">(option)</span></span>
+<button type="button" style="height: 56px; border-radius: 14px; border: 1.5px solid #D3D9D6; background: #FFFFFF; padding: 0 16px; display: flex; align-items: center; gap: 12px; font-family: inherit; text-align: left; cursor: pointer">
+<span style="width: 10px; height: 10px; border-radius: 5px; background: #C4423A; flex-shrink: 0"></span>
+<span style="flex: 1; display: flex; flex-direction: column"><span style="font-size: 16px; font-weight: 600; color: #18201E">RDV vétérinaire</span><span style="font-size: 13px; color: #5A6662">[date du RDV]</span></span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8C9692" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 5 16 12 9 19"></polyline></svg>
+</button>
+</div>
+
+</form>
+
+<div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 32px; background: #F3F5F2; border-top: 1px solid #E6EAE7">
+<a href="Profil.dc.html" style="height: 54px; border-radius: 27px; background: #1E5A50; color: #FFFFFF; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none">Enregistrer le document</a>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

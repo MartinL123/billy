@@ -14,7 +14,7 @@ import { formatAgeShort } from '../../lib/age'
 import { formatLong, formatShort, formatTime, isValidISO } from '../../lib/dates'
 import { levelTitle } from '../../content/phrases'
 import { questionnaireStatus, reactionSentence, reactionsFromFears, statusLabel } from '../../lib/questionnaire'
-import { globalLevel, totalXp } from '../../lib/xp'
+import { dogLevel } from '../../lib/level'
 import { formatBytes } from '../../lib/image'
 import { sortMeals } from '../../lib/feeding'
 import { useBack } from '../../lib/useBack'
@@ -128,7 +128,7 @@ function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; onl
 
 /** Le profil du chien : on l'ouvre en touchant sa photo dans son onglet. */
 export default function Profile() {
-  const { dog, documents, weights, xpLog, pendingCount, online } = useData()
+  const { dog, documents, weights, bossProgress, pendingCount, online } = useData()
   const today = useToday()
   const back = useBack('/billy')
   const [confirmLogout, setConfirmLogout] = useState(false)
@@ -148,7 +148,7 @@ export default function Profile() {
 
   const email = auth.currentUser?.email ?? ''
   const usedRatio = used === undefined ? 0 : used / QUOTA_BYTES
-  const level = globalLevel(totalXp(xpLog))
+  const level = dogLevel(bossProgress)
   const sentences = (dog.reactions ?? reactionsFromFears(dog.fears ?? [])).map(reactionSentence)
   const lastWeight = weights[0]
   const status = questionnaireStatus(dog.questionnaire)

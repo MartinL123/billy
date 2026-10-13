@@ -25,7 +25,7 @@ export function QuickAdd({ onClose }: { onClose: () => void }) {
     const xp = restXp(xpLog, weekOf(today))
     const { undo } = declareRest(today, false, xp)
     onClose()
-    toast(`Jour de repos noté${xp ? ` · +${xp} XP` : ''}`, { label: 'Annuler', run: undo })
+    toast('Jour de repos noté', { label: 'Annuler', run: undo })
   }
   const other = 'btn btn-quiet w-full justify-start gap-3 px-4'
 

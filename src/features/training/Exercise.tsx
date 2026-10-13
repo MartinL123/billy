@@ -108,7 +108,7 @@ function RestDay() {
   const toast = useToast()
   const finish = () => {
     completeQuest(today, { kind: 'repos' }, skips, QUEST_XP)
-    toast(`Journée de repos notée · +${QUEST_XP} XP`)
+    toast('Journée de repos notée')
     back()
   }
   return (
@@ -118,7 +118,7 @@ function RestDay() {
           <ChevronLeftIcon size={20} />
           Accueil
         </button>
-        <p className="text-[13px] font-extrabold tracking-[0.8px] uppercase">Quête du jour · +{QUEST_XP} XP</p>
+        <p className="text-[13px] font-extrabold tracking-[0.8px] uppercase">Quête du jour</p>
         <h1 className="font-display text-[30px] leading-none font-extrabold">Aujourd'hui, repos</h1>
         <p className="text-[15px] leading-snug text-white/90">{quest.afterHardDay ? 'Hier était difficile : aujourd’hui, on souffle.' : 'Un jour sans exercice l’aide à retenir ce qu’il apprend.'}</p>
       </header>
@@ -197,7 +197,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
           <ChevronLeftIcon size={20} />
           {fromQuest ? 'Accueil' : 'Retour'}
         </button>
-        {fromQuest && <p className="text-[13px] font-extrabold tracking-[0.8px] uppercase">Quête du jour · +{QUEST_XP} XP</p>}
+        {fromQuest && <p className="text-[13px] font-extrabold tracking-[0.8px] uppercase">Quête du jour</p>}
         <h1 className="font-display text-[30px] leading-none font-extrabold">{exercise.name}</h1>
         <SkillPill bossId={skill} onDark />
         <p className="text-[15px] leading-snug text-white/90">Étape « {stepPhrase(skill, step)} »</p>

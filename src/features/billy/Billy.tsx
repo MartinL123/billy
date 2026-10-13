@@ -9,7 +9,7 @@ import { formatShort } from '../../lib/dates'
 import { programWeek, type DayState } from '../../lib/rhythm'
 import { currentExercise, LONG_SESSION_MINUTES, longSessionsDate, sessionMinutes } from '../../lib/training-plan'
 import { useToday } from '../../lib/useToday'
-import { globalLevel, totalXp } from '../../lib/xp'
+import { dogLevel, nextLevelLabel } from '../../lib/level'
 import { Badge } from './Badge'
 
 const DAY_NAMES = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
@@ -118,7 +118,7 @@ export default function Billy() {
   const { dog, entries, sessions, bossProgress, xpLog } = useData()
   const today = useToday()
 
-  const level = globalLevel(totalXp(xpLog))
+  const level = dogLevel(bossProgress)
   const active = activeSkills(dog.activeSkills, dog.traits ?? [], bossProgress)
   const minutes = sessionMinutes(dog.birthDate, today)
   const rests = xpLog.filter((e) => e.kind === 'repos').map((e) => e.date)
@@ -138,8 +138,8 @@ export default function Billy() {
           <p className="text-[15px] font-bold text-[#3F4946]">
             Niveau {level.level} · {levelTitle(level.level)}
           </p>
-          <div className="h-2.5 overflow-hidden rounded-full bg-placeholder" role="img" aria-label={`Encore ${level.needed - level.current} XP avant le niveau ${level.level + 1}`}>
-            <div className="h-full rounded-full bg-gold" style={{ width: `${Math.min(100, (level.current / level.needed) * 100)}%` }} />
+          <div className="h-2.5 overflow-hidden rounded-full bg-placeholder" role="img" aria-label={nextLevelLabel(level)}>
+            <div className="h-full rounded-full bg-gold" style={{ width: `${Math.max(6, level.ratio * 100)}%` }} />
           </div>
         </div>
       </header>

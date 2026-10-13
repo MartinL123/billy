@@ -9,7 +9,7 @@ import { declarePreApp, uncheckSteps } from '../../firebase/training'
 import { canUncheck, EMPTY_PROGRESS, markPreApp } from '../../lib/bossProgress'
 import { answerForSteps } from '../../lib/questionnaire'
 import { useToday } from '../../lib/useToday'
-import { globalLevel, totalXp } from '../../lib/xp'
+import { dogLevel } from '../../lib/level'
 import { Badge } from '../billy/Badge'
 
 const plural = (n: number, word: string) => `${n} étape${n > 1 ? 's' : ''} ${word}${n > 1 ? 's' : ''}`
@@ -24,7 +24,7 @@ export function Result() {
   const today = useToday()
   const toast = useToast()
   const navigate = useNavigate()
-  const level = globalLevel(totalXp(xpLog)).level
+  const level = dogLevel(bossProgress).level
   const answers = dog.questionnaire?.answers ?? {}
 
   const uncheck = (skillId: string, name: string, step: number) => {

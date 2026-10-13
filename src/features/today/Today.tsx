@@ -8,12 +8,12 @@ import { challengeProgress, weekChallenge } from '../../lib/challenge'
 import { diffDays, formatDayHeading, formatLong, formatRelative, formatTime } from '../../lib/dates'
 import { typeInfo, upcoming } from '../../lib/events'
 import { nextMealIndex, portion, sortMeals } from '../../lib/feeding'
-import { MOMENT_XP } from '../../lib/moment'
+import { bossById } from '../../content/training'
 import { questionnaireStatus } from '../../lib/questionnaire'
 import { weekId } from '../../lib/rhythm'
 import { lastSuccess } from '../../lib/skills'
 import { useToday } from '../../lib/useToday'
-import { globalLevel, totalXp } from '../../lib/xp'
+import { dogLevel, nextLevelLabel } from '../../lib/level'
 import { Badge } from '../billy/Badge'
 import { DailyIdeas } from './DailyIdeas'
 import { QuestCard } from './QuestCard'
@@ -25,8 +25,8 @@ export default function Today() {
   const { dog, events, entries, sessions, bossProgress, xpLog } = useData()
   const today = useToday()
 
-  const level = globalLevel(totalXp(xpLog))
-  const ratio = Math.min(1, level.current / level.needed)
+  const level = dogLevel(bossProgress)
+  const ratio = level.ratio
   const life = nextLifeStep(dog.birthDate, today)
   const questionnaire = questionnaireStatus(dog.questionnaire)
   const challenge = weekChallenge(weekId(today), bossProgress)
@@ -58,7 +58,7 @@ export default function Today() {
           <span className="font-display text-[28px] leading-none font-extrabold">{dog.name}</span>
           <span className="text-[17px] font-bold text-[#F7D58A]">{levelTitle(level.level)}</span>
           <span className="text-sm text-white/85">
-            Encore {level.needed - level.current} XP avant le niveau {level.level + 1}
+            {nextLevelLabel(level)}
           </span>
           {life && (
             <span className="text-[13px] text-white/75">
@@ -111,7 +111,7 @@ export default function Today() {
       <section aria-label="Défi de la semaine" className="card flex flex-col gap-3 rounded-[22px] p-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-[13px] font-bold tracking-[0.6px] text-milestone-dark uppercase">Défi de la semaine</h2>
-          <span className="text-sm font-bold text-primary">+{MOMENT_XP.challenge} XP</span>
+          <span className="text-sm font-bold text-primary">▲ {bossById(challenge.bossId)?.name}</span>
         </div>
         <p className="text-[17px] leading-snug font-semibold">{challenge.label}</p>
         <div className="grid grid-cols-3 gap-1.5" aria-hidden="true">

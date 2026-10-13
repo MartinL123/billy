@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { CheckIcon, ChevronRightIcon } from '../../components/Icons'
 import { territoryOf } from '../../content/phrases'
 import { skipQuest } from '../../firebase/training'
-import { QUEST_XP } from '../../lib/quest'
+import { bossById } from '../../content/training'
 import { useToday } from '../../lib/useToday'
 import { BossIcon } from '../training/BossIcon'
 import { useQuest } from './useQuest'
@@ -24,7 +24,7 @@ export function QuestCard() {
     <section aria-label="Quête du jour" className="overflow-hidden rounded-[26px] border-2 border-solid bg-surface" style={{ borderColor: territory.color, boxShadow: '0 4px 14px rgba(24,32,30,0.12)' }}>
       <div className="flex items-center justify-between gap-3 px-4 py-2.5 text-white" style={{ background: territory.color }}>
         <h2 className="text-[13px] font-extrabold tracking-[0.8px] uppercase">Quête du jour · {territory.name}</h2>
-        <span className="rounded-[10px] bg-gold px-2.5 py-[3px] text-[13px] font-extrabold whitespace-nowrap text-gold-dark">+{QUEST_XP} XP</span>
+        {quest.bossId && <span className="rounded-[10px] bg-gold px-2.5 py-[3px] text-[13px] font-extrabold whitespace-nowrap text-gold-dark">▲ {bossById(quest.bossId)?.name}</span>}
       </div>
       <div className="flex flex-col gap-3.5 p-4">
         <Link to={to} aria-label={`${mission.title}. ${mission.detail}. Ouvrir`} className="flex items-center gap-3.5 text-text no-underline">

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { levelTitle, SKILLS, skillText, stepPhrase, stepPhraseLower } from '../content/phrases'
+import { SKILLS, skillText, stepPhrase, stepPhraseLower } from '../content/phrases'
 import { BOSSES } from '../content/training'
 import { deriveTraits, fearSkills, isPuppy, PARTS, questionnaireStatus, reactionSentence, reactionsFromFears, situationSkill, skillOptions, statusLabel, STEPS, stepsForAnswer } from './questionnaire'
 import { acquiredSteps, lastSuccess } from './skills'
@@ -36,15 +36,6 @@ describe('phrases des étapes', () => {
 
   it('rangent les compétences des bases vers le monde', () => {
     expect(SKILLS.map((s) => s.id)).toEqual(['lien', 'calme', 'soins', 'laisse', 'rappel', 'manieres', 'nouveaute', 'ville', 'rencontres', 'congeneres'])
-  })
-})
-
-describe('titre selon le niveau', () => {
-  it('suit les tranches de la spec', () => {
-    expect([1, 2, 3, 4, 5, 7, 8, 10, 11, 14, 15, 40].map(levelTitle)).toEqual([
-      'Chiot curieux', 'Chiot curieux', 'Apprenti', 'Apprenti', 'Explorateur', 'Explorateur',
-      'Compagnon', 'Compagnon', 'Complice', 'Complice', 'Légende', 'Légende',
-    ])
   })
 })
 

@@ -72,7 +72,7 @@ export default function Session() {
             <CheckIcon size={40} />
           </span>
           <h1 className="font-display text-[28px] leading-tight font-bold">Séance enregistrée</h1>
-          <p className="font-display text-2xl font-bold text-primary">+{outcome.xp} XP</p>
+          <p className="font-display text-2xl font-bold text-primary">Noté !</p>
         </div>
         <div className="card flex flex-col gap-3 p-4 text-[15px] leading-snug">
           {bossIds.map((id) => {

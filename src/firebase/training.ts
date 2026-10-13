@@ -6,7 +6,8 @@ import { bossById } from '../content/training'
 import { addValidation, checkStep, EMPTY_PROGRESS, markPreApp, uncheckPreApp, uncheckStep } from '../lib/bossProgress'
 import type { ISODate } from '../lib/dates'
 import { MOMENT_XP, previewMoment } from '../lib/moment'
-import { globalLevel, XP } from '../lib/xp'
+import { levelForSteps, stepsAcquired } from '../lib/level'
+import { XP } from '../lib/xp'
 import { levelTitle, stepPhrase, stepPhraseLower } from '../content/phrases'
 
 const now = () => new Date().toISOString()
@@ -228,7 +229,7 @@ export interface MomentOutcome {
  * Enregistre un moment raconté : une entrée du Carnet, son XP, et les « oui, c'est réussi » qui comptent.
  * Une étape acquise et un passage de niveau ajoutent chacun une carte au Carnet.
  */
-export function recordMoment(entry: Entry, yes: string[], progress: Record<string, BossProgress | undefined>, dogName: string, xpBefore: number): MomentOutcome {
+export function recordMoment(entry: Entry, yes: string[], progress: Record<string, BossProgress | undefined>, dogName: string): MomentOutcome {
   const preview = previewMoment({ feeling: entry.feeling, fear: Boolean(entry.fear), movedAway: Boolean(entry.movedAway) }, yes, progress, entry.date)
   const batch = writeBatch(db)
   const created: ReturnType<typeof userDoc>[] = []
@@ -239,7 +240,8 @@ export function recordMoment(entry: Entry, yes: string[], progress: Record<strin
   }
   const entryId = newId('entries')
   const skills = entry.skills ?? []
-  add(userDoc('entries', entryId), strip({ ...entry, validations: preview.validated, xp: preview.xp, createdAt: now() }))
+  // Le champ `xp` des anciens moments est conservé, mais on n'en écrit plus : le niveau vient des étapes acquises.
+  add(userDoc('entries', entryId), strip({ ...entry, validations: preview.validated, createdAt: now() }))
   const base = preview.xp - preview.steps.length * MOMENT_XP.step
   add(xpRef(entryId), strip<XpEntry>({ date: entry.date, kind: 'moment', xp: base, bossId: skills[0], bossIds: skills.length ? skills : undefined, createdAt: now() }))
 
@@ -263,8 +265,9 @@ export function recordMoment(entry: Entry, yes: string[], progress: Record<strin
     }
   }
 
-  const levelBefore = globalLevel(xpBefore).level
-  const levelAfter = globalLevel(xpBefore + preview.xp).level
+  const stepsBefore = stepsAcquired(progress)
+  const levelBefore = levelForSteps(stepsBefore)
+  const levelAfter = levelForSteps(stepsBefore + preview.steps.length)
   if (levelAfter > levelBefore) {
     add(userDoc('entries', `niveau-${levelAfter}`), {
       date: entry.date,

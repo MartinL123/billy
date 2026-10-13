@@ -11,6 +11,7 @@ import { useData } from '../../firebase/store'
 import { setStepChecked } from '../../firebase/training'
 import { EMPTY_PROGRESS, remaining } from '../../lib/bossProgress'
 import { formatLong } from '../../lib/dates'
+import { dogLevel, levelForSteps, stepsAcquired } from '../../lib/level'
 import { sessionMinutes } from '../../lib/training-plan'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
@@ -112,13 +113,15 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
     return date ? formatLong(date).replace(/ \d{4}$/, '') : 'Il savait déjà le faire'
   }
 
-  // Cocher ou décocher : seule la progression change, jamais l'XP. « Annuler » remet l'état d'avant.
+  // Cocher ou décocher : une correction volontaire, qui recalcule le niveau. « Annuler » remet l'état d'avant.
   const setChecked = (step: number, checked: boolean) => {
     setOpened(null)
     const { changed, undo } = setStepChecked(skill.id, stored, step, checked)
     if (changed.length === 0) return
     const many = changed.length > 1
-    toast(checked ? (many ? `${changed.length} étapes cochées` : 'Étape cochée') : many ? `${changed.length} étapes décochées` : 'Étape décochée', { label: 'Annuler', run: undo })
+    const after = levelForSteps(stepsAcquired(bossProgress) + (checked ? changed.length : -changed.length))
+    const recalculated = after !== dogLevel(bossProgress).level ? ' · Niveau recalculé' : ''
+    toast(`${checked ? (many ? `${changed.length} étapes cochées` : 'Étape cochée') : many ? `${changed.length} étapes décochées` : 'Étape décochée'}${recalculated}`, { label: 'Annuler', run: undo })
   }
 
   const photo = (size: number) => (
@@ -247,7 +250,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
               {skill.name} · {whenOf(opened) === 'Il savait déjà le faire' ? 'il savait déjà le faire' : `acquise le ${whenOf(opened)}`}
             </p>
             <h2 className="font-display text-[22px] leading-tight font-extrabold">{stepPhrase(skill.id, opened)}</h2>
-            <p className="text-[17px] leading-snug">Il ne le fait plus vraiment, ou c'était une erreur ? Décochez l'étape : elle redevient l'étape en cours. Son XP reste acquise.</p>
+            <p className="text-[17px] leading-snug">Il ne le fait plus vraiment, ou c'était une erreur ? Décochez l'étape : elle redevient l'étape en cours. Le niveau sera recalculé.</p>
             {opened < progress.level && <p className="rounded-[14px] bg-[#FFF8E6] px-3.5 py-2.5 text-[15px] leading-snug text-gold-dark">Les étapes plus difficiles déjà cochées seront décochées aussi.</p>}
             <button type="button" onClick={() => setChecked(opened, false)} className="btn mt-1 border-2 border-solid border-danger bg-surface text-danger">
               Décocher cette étape
@@ -265,7 +268,6 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
             <p className="text-[17px] leading-snug">
               {dog.name} sait déjà faire ça ? Cochez l'étape : elle sera notée « Il savait déjà le faire ».{opened > current ? ' Les étapes plus faciles seront cochées aussi.' : ''}
             </p>
-            <p className="text-[15px] leading-snug text-muted">Cocher ne donne pas d'XP : elle se gagne en notant ce que vous faites.</p>
             <button type="button" onClick={() => setChecked(opened, true)} className="btn btn-on mt-1">
               Cocher cette étape
             </button>

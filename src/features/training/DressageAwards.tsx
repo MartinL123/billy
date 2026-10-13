@@ -25,7 +25,7 @@ export function DressageAwards() {
     if (challengeProgress(challenge, today, entries, sessions) < challenge.target) return
     given.current.add(id)
     awardOnce(id, { date: today, kind: 'defi', xp: MOMENT_XP.challenge, bossId: challenge.bossId, label: challenge.label })
-    toast(`Défi de la semaine réussi · +${MOMENT_XP.challenge} XP`)
+    toast('Défi de la semaine réussi, bravo !')
   }, [bossProgress, entries, sessions, xpLog, today, toast])
 
   return null

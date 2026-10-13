@@ -12,10 +12,9 @@ import type { EntryPhoto } from '../../firebase/types'
 import { EMPTY_PROGRESS, remaining } from '../../lib/bossProgress'
 import { addDays, formatLong, isValidISO } from '../../lib/dates'
 import { compressImage, PHOTO } from '../../lib/image'
-import { canAskStep, FEELINGS, hasNextStep, isFearMoment, previewMoment, tileOrder, type Feeling } from '../../lib/moment'
+import { canAskStep, FEELINGS, hasNextStep, isFearMoment, tileOrder, type Feeling } from '../../lib/moment'
 import { QUEST_XP } from '../../lib/quest'
 import { useToday } from '../../lib/useToday'
-import { totalXp } from '../../lib/xp'
 import { SkillPill } from '../billy/SkillPill'
 import { useQuest } from '../today/useQuest'
 import { BossIcon } from '../training/BossIcon'
@@ -41,7 +40,7 @@ const choice = (on: boolean) => `btn px-2 ${on ? 'btn-on' : 'btn-outline'}`
  */
 export default function Noter() {
   const [params] = useSearchParams()
-  const { dog, entries, sessions, bossProgress, xpLog } = useData()
+  const { dog, entries, sessions, bossProgress } = useData()
   const today = useToday()
   const toast = useToast()
   const navigate = useNavigate()
@@ -104,8 +103,6 @@ export default function Noter() {
   const askable = canAskStep(input)
   const stepSkills = skills.filter((id) => hasNextStep(bossProgress, id))
   const yesIds = askable ? stepSkills.filter((id) => yes[id]) : []
-  const preview = previewMoment(input, yesIds, bossProgress, isValidISO(date) ? date : today)
-  const gain = preview.xp + (fromQuest ? QUEST_XP : 0)
   const leave = () => navigate(params.get('retour') === 'questionnaire' ? '/questionnaire?etape=fin' : '/', { replace: true })
 
   const save = async () => {
@@ -121,7 +118,6 @@ export default function Noter() {
         yesIds,
         bossProgress,
         dog.name,
-        totalXp(xpLog),
       )
       if (fromQuest) completeQuest(today, { kind: today0.quest.kind, bossId: today0.quest.bossId, exerciseId: today0.quest.planned?.exercise.id }, today0.skips, QUEST_XP)
       // Souvenir des premières semaines : l'écran de résultat du questionnaire le retrouve.
@@ -137,7 +133,7 @@ export default function Noter() {
   const celebrations = outcome ? outcome.steps.length + (outcome.levelReached ? 1 : 0) : 0
   useEffect(() => {
     if (outcome && shown >= celebrations) {
-      toast(`Ajouté au Carnet · +${outcome.xp + (fromQuest ? QUEST_XP : 0)} XP`, fromQuest ? undefined : { label: 'Annuler', run: outcome.undo })
+      toast('Noté !', fromQuest ? undefined : { label: 'Annuler', run: outcome.undo })
       leave()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -381,9 +377,8 @@ export default function Noter() {
 
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto max-w-[430px] px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-          <button type="submit" disabled={saving || Boolean(progress)} className="btn btn-main min-h-[60px] w-full justify-between px-6 text-[19px] disabled:opacity-60">
+          <button type="submit" disabled={saving || Boolean(progress)} className="btn btn-main min-h-[60px] w-full px-6 text-[19px] disabled:opacity-60">
             <span>{saving ? 'Enregistrement…' : 'Enregistrer'}</span>
-            <span aria-live="polite">+{gain} XP</span>
           </button>
         </div>
       </div>

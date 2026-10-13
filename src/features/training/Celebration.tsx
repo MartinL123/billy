@@ -4,7 +4,6 @@ import { FileImage } from '../../components/FileImage'
 import { CheckIcon } from '../../components/Icons'
 import { levelTitle, stepPhraseLower } from '../../content/phrases'
 import { bossById, MAX_LEVEL } from '../../content/training'
-import { MOMENT_XP } from '../../lib/moment'
 
 function FullScreen({ label, children }: { label: string; children: ReactNode }) {
   useEffect(() => {
@@ -51,7 +50,7 @@ export function StepSuccess({ dogName, bossId, level, inCarnet = true, onClose }
         </div>
       )}
       <div className="mt-4 mb-6 flex flex-wrap justify-center gap-2.5">
-        <span className={pill}>+{MOMENT_XP.step} XP</span>
+        <span className={pill}>▲ {boss?.name} avance</span>
         {inCarnet && <span className={pill}>Ajouté au Carnet</span>}
       </div>
       <button type="button" onClick={onClose} className={continueButton}>

@@ -150,11 +150,11 @@ export const SKILLS: Boss[] = SKILL_GROUPS.flatMap((group) => BOSSES.filter((b) 
 
 /** Titre de Billy selon son niveau. */
 export function levelTitle(level: number): string {
-  if (level >= 15) return 'Légende'
-  if (level >= 11) return 'Complice'
-  if (level >= 8) return 'Compagnon'
-  if (level >= 5) return 'Explorateur'
-  if (level >= 3) return 'Apprenti'
+  if (level >= 26) return 'Légende'
+  if (level >= 19) return 'Complice'
+  if (level >= 13) return 'Compagnon'
+  if (level >= 8) return 'Explorateur'
+  if (level >= 4) return 'Apprenti'
   return 'Chiot curieux'
 }
 

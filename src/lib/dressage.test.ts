@@ -67,12 +67,12 @@ describe('XP', () => {
 })
 
 describe('niveau global et rang', () => {
-  it('suit 25 × L × (L+1)', () => {
-    expect([1, 3, 7, 10].map(xpForLevel)).toEqual([50, 300, 1400, 2750])
-    expect(globalLevel(0)).toEqual({ level: 0, current: 0, needed: 50 })
-    expect(globalLevel(49).level).toBe(0)
-    expect(globalLevel(50)).toEqual({ level: 1, current: 0, needed: 100 })
-    expect(globalLevel(320)).toEqual({ level: 3, current: 20, needed: 200 })
+  it('commence au niveau 1 et suit 25 × (L−1) × L', () => {
+    expect([1, 2, 4, 8, 11].map(xpForLevel)).toEqual([0, 50, 300, 1400, 2750])
+    expect(globalLevel(0)).toEqual({ level: 1, current: 0, needed: 50 })
+    expect(globalLevel(49).level).toBe(1)
+    expect(globalLevel(50)).toEqual({ level: 2, current: 0, needed: 100 })
+    expect(globalLevel(320)).toEqual({ level: 4, current: 20, needed: 200 })
     expect(globalLevel(1_000_000).level).toBeGreaterThan(100)
   })
 

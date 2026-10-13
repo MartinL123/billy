@@ -22,6 +22,7 @@ export function useDressage() {
       level: globalLevel(xp),
       rank: rank(levelsAcquired(bossProgress), starsEarned(bossProgress)),
       levelsAcquired: levelsAcquired(bossProgress),
+      stars: starsEarned(bossProgress),
       statsNow: xpByStat(xpLog),
       statsBefore: xpByStat(xpLog, addDays(today, -30)),
       weatherByBoss,

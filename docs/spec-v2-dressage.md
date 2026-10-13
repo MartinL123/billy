@@ -292,7 +292,8 @@ Décisions prises avant le code, qui précisent ou remplacent des points ci-dess
 - **Lieu** : demandé seulement au moment de valider P5 ou une étoile de maîtrise.
 - **Validation directe** d'un palier déjà maîtrisé : acquis tout de suite, sans XP, et ne compte pas pour les premières fois.
 - **Paliers de départ de Billy** : tous à 0, Martin valide lui-même.
-- **Niveau global** : départ au niveau 0, niveau 1 à 50 XP.
+- **Niveau global** : on commence au niveau 1. Atteindre le niveau L demande `25 × (L−1) × L` XP cumulés
+  (50 pour le niveau 2, 300 pour le 4, 2 750 pour le 11). Remplace la formule du § 3.
 - **Météo** : affichée pour Les Rencontres, Les Congénères, La Ville, La Nouveauté et Les Soins.
 - **Garde-fou « P4 par beau temps »** : un conseil affiché, P4 reste accessible.
 - **Annulation** : possible juste après la saisie (bilan de séance, message d'exposition), ensuite définitive.

@@ -4,6 +4,7 @@ import { InfoIcon, TargetIcon } from '../../components/Icons'
 import { PageHeader } from '../../components/PageHeader'
 import { Sheet } from '../../components/Sheet'
 import { Fab } from '../../components/TabBar'
+import { BOSSES, MAX_LEVEL } from '../../content/training'
 import { useData } from '../../firebase/store'
 import { declareRest } from '../../firebase/training'
 import { useToast } from '../../components/Toast'
@@ -43,30 +44,29 @@ export default function Training() {
 
       <SessionAdviceCard />
 
-      <section aria-label={`Rang et niveau de ${dog.name}`} className="flex flex-col gap-2.5 rounded-3xl bg-primary p-5 text-white shadow-card">
-        <div className="flex items-end justify-between gap-3">
-          <div className="flex min-w-0 flex-col">
-            <span className="text-[12px] font-bold tracking-[0.6px] uppercase opacity-85">Rang</span>
-            <span className="font-display text-[28px] leading-tight font-bold">{dressage.rank}</span>
-          </div>
-          <span className="shrink-0 rounded-full bg-white px-3 py-1.5 text-[15px] font-bold text-primary-dark">Niveau {dressage.level.level}</span>
-        </div>
-        <div
-          role="progressbar"
-          aria-label={`Expérience vers le niveau ${dressage.level.level + 1}`}
-          aria-valuemin={0}
-          aria-valuemax={dressage.level.needed}
-          aria-valuenow={dressage.level.current}
-          className="h-3 overflow-hidden rounded-full bg-white/25"
-        >
-          <div className="h-full rounded-full bg-[#F4C27A] transition-[width] duration-500" style={{ width: `${Math.max(ratio * 100, ratio > 0 ? 4 : 0)}%` }} />
-        </div>
-        <div className="flex justify-between text-[13px] opacity-90">
-          <span>
-            {dressage.level.current} / {dressage.level.needed} XP
+      <section aria-label={`Rang et niveau de ${dog.name}`} className="flex flex-col rounded-3xl bg-primary text-white shadow-card">
+        <div className="flex flex-col gap-0.5 px-5 pt-5 pb-4">
+          <span className="text-[12px] font-bold tracking-[0.6px] uppercase opacity-85">Rang</span>
+          <span className="font-display text-[28px] leading-tight font-bold">{dressage.rank}</span>
+          <span className="text-[15px] opacity-90">
+            {dressage.levelsAcquired} palier{dressage.levelsAcquired > 1 ? 's' : ''} sur {BOSSES.length * MAX_LEVEL}
+            {dressage.stars > 0 ? ` · ${dressage.stars} étoile${dressage.stars > 1 ? 's' : ''}` : ''}
           </span>
-          <span>
-            {dressage.levelsAcquired} palier{dressage.levelsAcquired > 1 ? 's' : ''} acquis
+        </div>
+        <div className="flex flex-col gap-2 border-t border-white/20 px-5 pt-4 pb-5">
+          <span className="text-[17px] font-bold">Niveau {dressage.level.level}</span>
+          <div
+            role="progressbar"
+            aria-label={`Expérience vers le niveau ${dressage.level.level + 1}`}
+            aria-valuemin={0}
+            aria-valuemax={dressage.level.needed}
+            aria-valuenow={dressage.level.current}
+            className="h-3 overflow-hidden rounded-full bg-white/25"
+          >
+            <div className="h-full rounded-full bg-[#F4C27A] transition-[width] duration-500" style={{ width: `${Math.max(ratio * 100, ratio > 0 ? 4 : 0)}%` }} />
+          </div>
+          <span className="text-[13px] opacity-90">
+            {dressage.level.current} / {dressage.level.needed} XP vers le niveau {dressage.level.level + 1}
           </span>
         </div>
       </section>

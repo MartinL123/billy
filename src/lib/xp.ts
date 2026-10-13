@@ -85,8 +85,11 @@ export function restXp(log: XpLike[], week: ISODate[]): number {
 
 // ——— Niveau global : l'effort fourni ———
 
-/** XP cumulée demandée par le niveau L : 50 pour N1, 300 pour N3, 2 750 pour N10. Pas de niveau max. */
-export const xpForLevel = (level: number) => 25 * level * (level + 1)
+/**
+ * XP cumulée demandée pour atteindre le niveau L. On commence au niveau 1 :
+ * 50 XP pour le niveau 2, 300 pour le 4, 2 750 pour le 11. Pas de niveau max.
+ */
+export const xpForLevel = (level: number) => 25 * (level - 1) * level
 
 export interface GlobalLevel {
   level: number
@@ -97,7 +100,7 @@ export interface GlobalLevel {
 }
 
 export function globalLevel(xp: number): GlobalLevel {
-  let level = 0
+  let level = 1
   while (xp >= xpForLevel(level + 1)) level++
   return { level, current: xp - xpForLevel(level), needed: xpForLevel(level + 1) - xpForLevel(level) }
 }

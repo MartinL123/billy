@@ -1,96 +1,312 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ChevronRightIcon } from '../../components/Icons'
+import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, TargetIcon } from '../../components/Icons'
 import { Sheet } from '../../components/Sheet'
-import { bossById, EXERCISES, exerciseById, type Exercise as ExerciseInfo } from '../../content/training'
+import { useToast } from '../../components/Toast'
+import { stepPhrase, territoryOf } from '../../content/phrases'
+import { bossById, EXERCISES, exerciseById, MAX_LEVEL, type Exercise as ExerciseInfo } from '../../content/training'
 import { useData } from '../../firebase/store'
+import { completeQuest } from '../../firebase/training'
 import { activeSkills } from '../../lib/active'
+import { QUEST_XP, REST_IDEAS } from '../../lib/quest'
 import { currentDifficulty } from '../../lib/session'
+import { formatCountdown, secondsLeft } from '../../lib/timer'
 import { currentExercise, exercisesForStep, sessionMinutes } from '../../lib/training-plan'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
+import { SkillPill } from '../billy/SkillPill'
+import { useQuest } from '../today/useQuest'
 import { Illustration } from './Illustration'
 
+const GENERIC_TIP = 'S’il ne mange plus, il est trop stressé : arrêtez et revenez plus facile la prochaine fois.'
+
+interface WakeLockLike {
+  release: () => Promise<void>
+}
+
+/** Un petit son de fin, sans fichier : trois bips. Le contexte audio est ouvert au toucher de « Lancer ». */
+function beep(audio: AudioContext | null) {
+  if (!audio) return
+  for (const at of [0, 0.35, 0.7]) {
+    const oscillator = audio.createOscillator()
+    const gain = audio.createGain()
+    oscillator.frequency.value = 880
+    gain.gain.setValueAtTime(0.0001, audio.currentTime + at)
+    gain.gain.exponentialRampToValueAtTime(0.25, audio.currentTime + at + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + at + 0.25)
+    oscillator.connect(gain).connect(audio.destination)
+    oscillator.start(audio.currentTime + at)
+    oscillator.stop(audio.currentTime + at + 0.3)
+  }
+}
+
+/** Minuteur de la séance : l'écran reste allumé, la fin s'affiche et sonne. Pas de vibration (Safari iPhone ne la gère pas). */
+function useTimer(minutes: number) {
+  const [endsAt, setEndsAt] = useState<number | null>(null)
+  const [left, setLeft] = useState(0)
+  const [finished, setFinished] = useState(false)
+  const audio = useRef<AudioContext | null>(null)
+  const lock = useRef<WakeLockLike | null>(null)
+
+  const release = () => {
+    void lock.current?.release().catch(() => undefined)
+    lock.current = null
+  }
+
+  useEffect(() => {
+    if (endsAt === null) return
+    const tick = () => {
+      const remaining = secondsLeft(endsAt, Date.now())
+      setLeft(remaining)
+      if (remaining <= 0) {
+        setEndsAt(null)
+        setFinished(true)
+        beep(audio.current)
+        release()
+      }
+    }
+    tick()
+    const timer = setInterval(tick, 250)
+    return () => clearInterval(timer)
+  }, [endsAt])
+
+  useEffect(() => release, [])
+
+  const start = () => {
+    setFinished(false)
+    setEndsAt(Date.now() + minutes * 60_000)
+    try {
+      const Context = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+      audio.current ??= Context ? new Context() : null
+      void audio.current?.resume()
+    } catch {
+      audio.current = null
+    }
+    const wake = (navigator as Navigator & { wakeLock?: { request: (type: 'screen') => Promise<WakeLockLike> } }).wakeLock
+    void wake
+      ?.request('screen')
+      .then((sentinel) => {
+        lock.current = sentinel
+      })
+      .catch(() => undefined)
+  }
+  const stop = () => {
+    setEndsAt(null)
+    release()
+  }
+  return { running: endsAt !== null, left, finished, start, stop, dismiss: () => setFinished(false) }
+}
+
+const sectionTitle = 'text-[13px] font-extrabold tracking-[0.6px] text-muted uppercase'
+
+/** Journée de repos : une page simple, sans minuteur. Elle compte comme une vraie action. */
+function RestDay() {
+  const { quest, skips, done } = useQuest()
+  const { dog } = useData()
+  const today = useToday()
+  const back = useBack('/')
+  const toast = useToast()
+  const finish = () => {
+    completeQuest(today, { kind: 'repos' }, skips, QUEST_XP)
+    toast(`Journée de repos notée · +${QUEST_XP} XP`)
+    back()
+  }
+  return (
+    <div className="mx-auto min-h-dvh max-w-[430px]">
+      <header className="flex flex-col gap-3 rounded-b-[28px] bg-primary px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white">
+        <button type="button" onClick={back} className="flex min-h-12 items-center gap-1.5 self-start rounded-full border-2 border-solid border-white/60 bg-transparent px-4 text-[17px] font-semibold text-white">
+          <ChevronLeftIcon size={20} />
+          Accueil
+        </button>
+        <p className="text-[13px] font-extrabold tracking-[0.8px] uppercase">Quête du jour · +{QUEST_XP} XP</p>
+        <h1 className="font-display text-[30px] leading-none font-extrabold">Aujourd'hui, repos</h1>
+        <p className="text-[15px] leading-snug text-white/90">{quest.afterHardDay ? 'Hier était difficile : aujourd’hui, on souffle.' : 'Un jour sans exercice l’aide à retenir ce qu’il apprend.'}</p>
+      </header>
+      <main className="flex flex-col gap-4 px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+120px)]">
+        <h2 className={sectionTitle}>Des idées pour {dog.name}</h2>
+        <ul className="card m-0 flex list-none flex-col p-0">
+          {REST_IDEAS.map((idea, i) => (
+            <li key={idea} className={`px-4 py-3.5 text-[17px] leading-snug ${i ? 'border-t border-divider' : ''}`}>
+              {idea}
+            </li>
+          ))}
+        </ul>
+        <p className="text-[15px] leading-snug text-muted">Aucun exercice aujourd'hui. Le repos compte comme une vraie action.</p>
+      </main>
+      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
+        <div className="mx-auto max-w-[430px] px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+          {done ? (
+            <p className="flex min-h-[58px] items-center justify-center gap-2 rounded-full bg-gold-soft text-[17px] font-bold text-[#5C4410]">
+              <CheckIcon size={22} strokeWidth={3} />
+              Journée de repos notée
+            </p>
+          ) : (
+            <button type="button" onClick={finish} className="btn btn-main min-h-[58px] w-full text-[18px]">
+              C'est fait !
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /**
- * Faire un exercice : le geste, où le faire aujourd'hui, puis on le note.
- * L'interrupteur « Mode précis » ouvre la séance à 5 essais.
+ * L'écran d'un exercice : celui de la quête du jour, ou celui de l'étape en cours d'une compétence (« S'entraîner »).
+ * Le geste, le réglage du jour, un minuteur, puis on le note.
  */
 export default function Exercise() {
   const [params] = useSearchParams()
+  const today0 = useQuest()
+  // On fige d'où l'on vient : la quête peut être marquée faite pendant qu'on est sur l'écran.
+  const [fromQuest] = useState(() => params.get('depuis') === 'quete')
+  if (fromQuest && today0.quest.kind === 'repos') return <RestDay />
+  return <ExerciseScreen fromQuest={fromQuest && Boolean(today0.quest.planned)} />
+}
+
+function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
+  const [params] = useSearchParams()
   const { dog, sessions, bossProgress } = useData()
+  const { quest } = useQuest()
   const today = useToday()
   const navigate = useNavigate()
   const back = useBack('/')
-  // La compétence demandée, sinon la première compétence en cours : on ouvre l'exercice de son étape en cours.
-  const skillId = params.get('competence') ?? activeSkills(dog.activeSkills, dog.traits ?? [], bossProgress)[0] ?? 'lien'
+
+  // La compétence : celle de la quête, celle demandée, sinon la première compétence en cours.
+  const [skillId] = useState(() => (fromQuest && quest.bossId) || params.get('competence') || activeSkills(dog.activeSkills, dog.traits ?? [], bossProgress)[0] || 'lien')
   const acquired = bossProgress[skillId]?.level ?? 0
-  const [exercise, setExercise] = useState<ExerciseInfo>(() => exerciseById(params.get('exercice') ?? '') ?? currentExercise(skillId, acquired)?.exercise ?? EXERCISES[0]!)
+  const [exercise, setExercise] = useState<ExerciseInfo>(() => (fromQuest && quest.planned?.exercise) || exerciseById(params.get('exercice') ?? '') || currentExercise(skillId, acquired)?.exercise || EXERCISES[0]!)
   const [picking, setPicking] = useState(false)
-  // Le réglage vient de l'étape en cours ; pour un autre exercice, celui du mode précis.
-  const planned = exercisesForStep(skillId, acquired).find((p) => p.exercise.id === exercise.id)
-  const setting = planned?.setting ?? exercise.levels[currentDifficulty(sessions, exercise.id) - 1]
   const minutes = sessionMinutes(dog.birthDate, today)
-  const skillParam = exercise.bossIds.includes(skillId) ? skillId : exercise.bossIds[0]!
+  const timer = useTimer(minutes)
+
+  // Le réglage vient de l'étape en cours ; pour un autre exercice, celui du mode précis.
+  const planned = (fromQuest && quest.planned?.exercise.id === exercise.id ? quest.planned : undefined) ?? exercisesForStep(skillId, acquired).find((p) => p.exercise.id === exercise.id)
+  const level = planned?.level ?? currentDifficulty(sessions, exercise.id)
+  const setting = exercise.levels[level - 1]
+  const easier = level > 1 ? exercise.levels[level - 2] : undefined
+  const skill = exercise.bossIds.includes(skillId) ? skillId : exercise.bossIds[0]!
+  const territory = territoryOf(skill)
+  const step = Math.min(MAX_LEVEL, (bossProgress[skill]?.level ?? 0) + 1)
+  const pill = 'flex min-h-9 items-center rounded-full bg-white/16 px-3 text-[15px] font-bold'
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
-      <header className="sticky top-0 z-10 flex items-center justify-between bg-bg px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5">
-        <button type="button" onClick={back} className="btn btn-quiet min-h-12 px-4">
-          Retour
+      <header className="flex flex-col gap-3 rounded-b-[28px] px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white" style={{ background: territory.color }}>
+        <button type="button" onClick={back} className="flex min-h-12 items-center gap-1.5 self-start rounded-full border-2 border-solid border-white/60 bg-transparent px-4 text-[17px] font-semibold text-white">
+          <ChevronLeftIcon size={20} />
+          {fromQuest ? 'Accueil' : 'Retour'}
         </button>
-        <h1 className="text-lg font-bold">S'entraîner · {minutes} min</h1>
-        <div className="w-[92px]" />
+        {fromQuest && <p className="text-[13px] font-extrabold tracking-[0.8px] uppercase">Quête du jour · +{QUEST_XP} XP</p>}
+        <h1 className="font-display text-[30px] leading-none font-extrabold">{exercise.name}</h1>
+        <SkillPill bossId={skill} onDark />
+        <p className="text-[15px] leading-snug text-white/90">Étape « {stepPhrase(skill, step)} »</p>
+        <div className="flex flex-wrap gap-2">
+          <span className={pill} style={{ background: 'rgba(255,255,255,0.16)' }}>
+            {minutes} min
+          </span>
+          <span className={pill} style={{ background: 'rgba(255,255,255,0.16)' }}>
+            {setting}
+          </span>
+        </div>
       </header>
 
-      <main className="flex flex-col gap-5 px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+130px)]">
-        <div className="flex flex-col gap-1.5">
-          <h2 className="font-display text-[28px] leading-tight font-bold">{exercise.name}</h2>
-          <p className="text-[17px] text-muted">Pour : {bossById(skillParam)?.name}</p>
-        </div>
-
+      <main className="flex flex-col gap-5 px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+170px)]">
         {exercise.scene && <Illustration scene={exercise.scene} className="h-[150px] bg-surface" />}
 
+        <section className="flex flex-col gap-2">
+          <h2 className={sectionTitle}>Ce qu'il faut</h2>
+          <p className="text-[17px] leading-snug">
+            {dog.treats ? `Ses friandises préférées (${dog.treats})` : 'Ses friandises préférées'}
+            {exercise.needs ? `. ${exercise.needs}` : ''}.
+          </p>
+        </section>
+
         <section className="card flex flex-col gap-3 p-4">
-          <h3 className="text-[17px] font-bold">Comment faire</h3>
+          <h2 className={sectionTitle}>Comment faire</h2>
           <ol className="m-0 flex list-none flex-col gap-2.5 p-0">
-            {exercise.steps.map((step, i) => (
-              <li key={step} className="flex gap-3">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary-soft text-[15px] font-bold text-primary-dark">{i + 1}</span>
-                <span className="text-[17px] leading-snug">{step}</span>
+            {exercise.steps.map((text, i) => (
+              <li key={text} className="flex gap-3">
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full text-[15px] font-bold" style={{ background: territory.soft, color: territory.color }}>
+                  {i + 1}
+                </span>
+                <span className="text-[17px] leading-snug">{text}</span>
               </li>
             ))}
           </ol>
-          {exercise.caution && <p className="text-[15px] font-semibold text-danger">{exercise.caution}</p>}
-          {!exercise.verified && <p className="text-[15px] text-muted">À vérifier avec votre éducateur.</p>}
         </section>
 
-        <section className="rounded-[20px] bg-milestone-soft p-4">
-          <h3 className="text-[13px] font-bold tracking-[0.6px] text-milestone-dark uppercase">Aujourd'hui</h3>
-          <p className="mt-1 text-[19px] leading-snug font-bold text-[#5C2A08]">{setting}</p>
-          <p className="mt-1 text-[15px] text-[#5C2A08]">{minutes} minutes suffisent. On s'arrête sur une réussite.</p>
+        <section className="flex flex-col gap-2 rounded-[20px] bg-[#FFF8E6] p-4">
+          <h2 className="text-[13px] font-extrabold tracking-[0.6px] text-gold-dark uppercase">Bon à savoir</h2>
+          {exercise.caution && <p className="text-[17px] leading-snug font-semibold text-gold-dark">{exercise.caution}</p>}
+          <p className="text-[17px] leading-snug text-gold-dark">{GENERIC_TIP}</p>
+          {!exercise.verified && <p className="text-[15px] text-gold-dark">Exercice à vérifier avec votre éducateur.</p>}
         </section>
 
-        <button type="button" onClick={() => setPicking(true)} className="card-link w-full">
-          <span className="flex-1 text-[17px] font-semibold">Choisir un autre exercice</span>
-          <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
-        </button>
+        {easier && (
+          <section className="flex flex-col gap-1.5">
+            <h2 className={sectionTitle}>Trop difficile aujourd'hui ?</h2>
+            <p className="text-[17px] leading-snug">Revenez au réglage d'avant : « {easier} ». L'étape, elle, ne recule pas.</p>
+          </section>
+        )}
 
-        <label className="flex min-h-16 items-center gap-3.5 rounded-[20px] border-2 border-solid border-border bg-surface px-4 py-3">
-          <input type="checkbox" role="switch" checked={false} onChange={() => navigate(`/seance?boss=${skillParam}&exercice=${exercise.id}`)} className="size-7 shrink-0 accent-primary" />
-          <span className="flex flex-col gap-0.5">
-            <span className="text-[17px] font-bold">Mode précis</span>
-            <span className="text-[15px] text-muted">Compter 5 essais, un par un</span>
-          </span>
-        </label>
+        <p className="text-[13px] text-muted">Source : {exercise.source.name}</p>
+
+        {!fromQuest && (
+          <>
+            <button type="button" onClick={() => setPicking(true)} className="card-link w-full">
+              <span className="flex-1 text-[17px] font-semibold">Choisir un autre exercice</span>
+              <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
+            </button>
+            <label className="flex min-h-16 items-center gap-3.5 rounded-[20px] border-2 border-solid border-border bg-surface px-4 py-3">
+              <input type="checkbox" role="switch" checked={false} onChange={() => navigate(`/seance?boss=${skill}&exercice=${exercise.id}`)} className="size-7 shrink-0 accent-primary" />
+              <span className="flex flex-col gap-0.5">
+                <span className="text-[17px] font-bold">Mode précis</span>
+                <span className="text-[15px] text-muted">Compter 5 essais, un par un</span>
+              </span>
+            </label>
+          </>
+        )}
       </main>
 
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
-        <div className="mx-auto max-w-[430px] px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-          <button type="button" onClick={() => navigate(`/noter?depuis=exercice&competences=${skillParam}`)} className="btn btn-main min-h-[60px] w-full text-[19px]">
-            C'est fait, je le note
+        <div className="mx-auto flex max-w-[430px] flex-col gap-2 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+          {timer.running ? (
+            <div role="timer" aria-live="off" className="flex min-h-[58px] items-center justify-between gap-3 rounded-full bg-primary pr-1.5 pl-6 text-white">
+              <span className="font-display text-[30px] leading-none font-extrabold tabular-nums">{formatCountdown(timer.left)}</span>
+              <button type="button" onClick={timer.stop} className="min-h-12 rounded-full border-2 border-solid border-white/70 bg-transparent px-5 text-[17px] font-bold text-white">
+                Arrêter
+              </button>
+            </div>
+          ) : (
+            <button type="button" onClick={timer.start} className="btn btn-main min-h-[58px] text-[18px]">
+              <TargetIcon size={22} />
+              Lancer le minuteur · {minutes} min
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => navigate(fromQuest ? '/noter?depuis=quete' : `/noter?depuis=exercice&competences=${skill}`)}
+            className="min-h-12 rounded-full border-2 border-solid bg-transparent text-[17px] font-bold"
+            style={{ borderColor: territory.color, color: territory.color }}
+          >
+            C'est fait !
           </button>
         </div>
       </div>
+
+      {timer.finished && (
+        <Sheet label="Temps écoulé" onClose={timer.dismiss}>
+          <h2 className="mt-1 font-display text-[26px] leading-tight font-extrabold">C'est fini, bravo !</h2>
+          <p className="text-[17px] leading-snug">Les {minutes} minutes sont passées. On s'arrête sur une réussite.</p>
+          <button type="button" onClick={() => navigate(fromQuest ? '/noter?depuis=quete' : `/noter?depuis=exercice&competences=${skill}`)} className="btn btn-main min-h-[58px] text-[18px]">
+            C'est fait, je le note
+          </button>
+          <button type="button" onClick={timer.dismiss} className="btn btn-outline">
+            Rester sur l'exercice
+          </button>
+        </Sheet>
+      )}
 
       {picking && (
         <Sheet label="Choisir un exercice" onClose={() => setPicking(false)}>

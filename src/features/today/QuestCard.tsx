@@ -1,8 +1,7 @@
-import { useNavigate } from 'react-router-dom'
-import { CheckIcon } from '../../components/Icons'
-import { useToast } from '../../components/Toast'
+import { Link } from 'react-router-dom'
+import { CheckIcon, ChevronRightIcon } from '../../components/Icons'
 import { territoryOf } from '../../content/phrases'
-import { completeQuest, skipQuest } from '../../firebase/training'
+import { skipQuest } from '../../firebase/training'
 import { QUEST_XP } from '../../lib/quest'
 import { useToday } from '../../lib/useToday'
 import { BossIcon } from '../training/BossIcon'
@@ -17,16 +16,9 @@ const REST = { name: 'Repos', color: '#1E5A50', soft: '#DCEBE6' }
 export function QuestCard() {
   const { quest, mission, skips, done, canSkip } = useQuest()
   const today = useToday()
-  const navigate = useNavigate()
-  const toast = useToast()
   const territory = quest.bossId ? territoryOf(quest.bossId) : REST
-  const rest = quest.kind === 'repos'
-
-  const finish = () => {
-    if (!rest) return navigate('/noter?depuis=quete')
-    completeQuest(today, { kind: 'repos' }, skips, QUEST_XP)
-    toast(`Journée de repos notée · +${QUEST_XP} XP`)
-  }
+  // Toute la carte mène à l'exercice (ou à la page de repos) : c'est là qu'on trouve le minuteur et « C'est fait ! ».
+  const to = '/exercice?depuis=quete'
 
   return (
     <section aria-label="Quête du jour" className="overflow-hidden rounded-[26px] border-2 border-solid bg-surface" style={{ borderColor: territory.color, boxShadow: '0 4px 14px rgba(24,32,30,0.12)' }}>
@@ -35,7 +27,7 @@ export function QuestCard() {
         <span className="rounded-[10px] bg-gold px-2.5 py-[3px] text-[13px] font-extrabold whitespace-nowrap text-gold-dark">+{QUEST_XP} XP</span>
       </div>
       <div className="flex flex-col gap-3.5 p-4">
-        <div className="flex items-center gap-3.5">
+        <Link to={to} aria-label={`${mission.title}. ${mission.detail}. Ouvrir`} className="flex items-center gap-3.5 text-text no-underline">
           <span className="flex size-[60px] shrink-0 items-center justify-center rounded-full" style={{ background: territory.soft, color: territory.color }}>
             <BossIcon bossId={quest.bossId ?? 'calme'} size={30} />
           </span>
@@ -43,7 +35,8 @@ export function QuestCard() {
             <span className="font-display text-xl leading-tight font-extrabold">{mission.title}</span>
             <span className="text-[15px] leading-snug text-[#3F4946]">{mission.detail}</span>
           </span>
-        </div>
+          <ChevronRightIcon size={22} className="ml-auto shrink-0" style={{ color: territory.color }} />
+        </Link>
         {done ? (
           <p className="flex min-h-[54px] items-center justify-center gap-2 rounded-full bg-gold-soft text-[17px] font-bold text-[#5C4410]">
             <CheckIcon size={22} strokeWidth={3} />
@@ -51,9 +44,12 @@ export function QuestCard() {
           </p>
         ) : (
           <div className={`grid gap-2.5 ${canSkip ? 'grid-cols-[2fr_1fr]' : ''}`}>
-            <button type="button" onClick={finish} className="min-h-[54px] rounded-full border-0 text-[17px] font-extrabold text-white" style={{ background: territory.color }}>
-              C'est fait !
-            </button>
+            <Link to={to} className="flex min-h-[54px] items-center justify-center gap-2 rounded-full text-[17px] font-extrabold text-white no-underline" style={{ background: territory.color }}>
+              <svg width="12" height="12" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+                <path d="M2 1l7 4-7 4z" />
+              </svg>
+              Commencer
+            </Link>
             {canSkip && (
               <button type="button" onClick={() => skipQuest(today, skips + 1)} className="min-h-[54px] rounded-full border-2 border-solid bg-transparent text-[15px] font-bold" style={{ borderColor: territory.color, color: territory.color }}>
                 Autre idée

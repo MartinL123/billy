@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FilePicker } from '../../components/FilePicker'
 import { CheckIcon, PhotoIcon } from '../../components/Icons'
 import { useToast } from '../../components/Toast'
-import { SKILLS, stepPhrase, territoryOf } from '../../content/phrases'
+import { SKILLS, stepPhrase } from '../../content/phrases'
 import { answerQuestion } from '../../firebase/db'
 import { saveImage } from '../../firebase/files'
 import { useData } from '../../firebase/store'
@@ -16,6 +16,7 @@ import { canAskStep, FEELINGS, hasNextStep, isFearMoment, previewMoment, tileOrd
 import { QUEST_XP } from '../../lib/quest'
 import { useToday } from '../../lib/useToday'
 import { totalXp } from '../../lib/xp'
+import { SkillPill } from '../billy/SkillPill'
 import { useQuest } from '../today/useQuest'
 import { BossIcon } from '../training/BossIcon'
 import { LevelUp, StepSuccess } from '../training/Celebration'
@@ -105,7 +106,6 @@ export default function Noter() {
   const yesIds = askable ? stepSkills.filter((id) => yes[id]) : []
   const preview = previewMoment(input, yesIds, bossProgress, isValidISO(date) ? date : today)
   const gain = preview.xp + (fromQuest ? QUEST_XP : 0)
-  const territory = territoryOf(skills[0] ?? '')
   const leave = () => navigate(params.get('retour') === 'questionnaire' ? '/questionnaire?etape=fin' : '/', { replace: true })
 
   const save = async () => {
@@ -170,10 +170,7 @@ export default function Noter() {
       <div className="flex flex-col gap-6 px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+130px)]">
         {fromQuest && (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="flex min-h-9 items-center gap-2 rounded-full px-3.5 text-[15px] font-bold" style={{ background: territory.soft, color: territory.color }}>
-              <BossIcon bossId={skills[0] ?? ''} size={18} />
-              Pour : {SKILLS.find((s) => s.id === skills[0])?.name}
-            </span>
+            <SkillPill bossId={skills[0] ?? ''} />
             <span className="text-[15px] font-semibold text-muted">Quête du jour</span>
           </div>
         )}
@@ -281,9 +278,10 @@ export default function Noter() {
 
         {!fromQuest && !choosing && (
           <div className="card flex items-center gap-3 p-3.5">
-            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="text-[15px] text-muted">Pour</span>
-              <span className="text-[17px] font-bold">{skills.map((id) => SKILLS.find((s) => s.id === id)?.name).join(' · ')}</span>
+            <span className="flex min-w-0 flex-1 flex-col gap-2">
+              {skills.map((id) => (
+                <SkillPill key={id} bossId={id} />
+              ))}
             </span>
             <button type="button" onClick={() => setChoosing(true)} className="btn btn-outline min-h-12 shrink-0 px-4">
               Changer

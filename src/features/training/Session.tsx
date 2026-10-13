@@ -12,6 +12,7 @@ import { exercisesFor, guards, suggestedBosses } from '../../lib/traits'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { sessionXp, type Decision } from '../../lib/xp'
+import { SkillPill } from '../billy/SkillPill'
 import { StepSuccess } from './Celebration'
 import { Illustration } from './Illustration'
 
@@ -259,7 +260,11 @@ export default function Session() {
 
       <div className="flex flex-col gap-3">
         <h1 className="font-display text-[28px] leading-tight font-bold">{exercise.name}</h1>
-        <p className="text-[15px] font-medium text-muted">Compte pour : {bossIds.map((id) => bossById(id)?.name).join(' · ')}</p>
+        <div className="flex flex-col gap-2">
+          {bossIds.map((id) => (
+            <SkillPill key={id} bossId={id} />
+          ))}
+        </div>
 
         <div className="card flex items-center gap-3 p-4">
           <div className="flex shrink-0 flex-col items-center">

@@ -210,6 +210,8 @@ export interface Exercise {
   source: { name: string; url?: string }
   /** `false` : étapes décrites de mémoire dans la recherche, à vérifier avec l'éducateur. */
   verified: boolean
+  /** « Ce qu'il faut » en plus des friandises. */
+  needs?: string
   /** Précaution affichée avec l'exercice. */
   caution?: string
   /** Illustration (voir Illustration.tsx). */
@@ -237,30 +239,35 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'cherche', name: 'Cherche !', bossIds: ['calme', 'nouveaute', 'ville'], traits: ['chiot', 'craintif'], verified: false, scene: 'flair',
+    needs: 'Quelques croquettes',
     steps: ['Éparpille quelques croquettes au sol et dis « cherche ».', 'Laisse-le renifler sans l’aider : cela fait baisser le stress.', 'En rue, c’est une sortie de secours : on s’arrête et on cherche.'],
     levels: ['Entre ses pattes', 'À 1 m', 'Dans l’herbe', 'En balade, lieu calme', 'En balade, ce qui lui fait peur visible très loin'],
     source: { name: 'Fiche décrite de mémoire' },
   },
   {
     id: 'tapis', name: 'Tapis puis relax', bossIds: ['calme', 'manieres'], traits: ['energique', 'adopte-adulte'], verified: true, scene: 'panier',
+    needs: 'Son tapis ou son panier',
     steps: ['Il monte sur son tapis : friandise posée sur le tapis.', 'Il s’y couche : friandises calmes, entre ses pattes.', 'S’il se lève, reviens à une durée plus courte d’au moins 5 secondes.'],
     levels: ['Tenue de 2 secondes', '5 secondes', '15 secondes', '30 secondes', '30 secondes pendant que tu bouges dans la pièce'],
     source: { name: 'Today’s Veterinary Practice', url: 'https://todaysveterinarypractice.com/pet-owner-resources/teaching-relaxation-exercises-to-dogs/' },
   },
   {
     id: 'relaxation', name: 'Protocole de relaxation', bossIds: ['calme'], traits: ['energique'], verified: true, scene: 'panier',
+    needs: 'Son tapis ou son panier',
     steps: ['Environ 8 minutes par jour, le chien posé sur son tapis.', 'Suis les étapes du « jour » en cours dans le document source.', 'Répète le même jour tant que toutes ses étapes ne sont pas calmes.'],
     levels: ['Jours 1 à 3', 'Jours 4 à 6', 'Jours 7 à 9', 'Jours 10 à 12', 'Jours 13 à 15'],
     source: { name: 'Karen Overall, via HSHV', url: 'https://www.hshv.org/wp-content/uploads/2021/01/Relaxation-Protocol.pdf' },
   },
   {
     id: 'bol', name: 'Jeu du bol', bossIds: ['soins'], traits: ['chiot', 'senior'], verified: true, scene: 'manipulations',
+    needs: 'Un bol de friandises, puis la brosse ou la serviette',
     steps: ['Un bol de friandises posé à vue : il le regarde, tu le nourris.', 'Tant qu’il regarde le bol, tu peux toucher ; s’il détourne le regard, tu arrêtes.', 'C’est lui qui dit « stop ».'],
     levels: ['Regarder le bol = friandise', 'Toucher, puis nourrir', 'Avec les outils : brosse, serviette', 'Couché sur le flanc', 'Sans le bol'],
     source: { name: 'Guide Dogs for the Blind', url: 'https://www.guidedogs.com/puppy-raising-guidebook/fundamentals-pups-2-to-5-months/the-bucket-game' },
   },
   {
     id: '123', name: 'Jeu 1-2-3', bossIds: ['ville', 'laisse', 'lien'], traits: ['craintif'], verified: true, scene: 'pied',
+    needs: 'Sa laisse dès que vous marchez',
     steps: ['Compte à voix haute « un, deux, trois ».', 'À « trois », toujours une friandise, à hauteur de ta jambe.', 'Un rituel prévisible pour passer un endroit difficile.'],
     levels: ['Sur place', 'En reculant', 'En marchant', 'Dans une rue calme', 'En croisant quelque chose à distance'],
     source: { name: 'Cattledog Publishing', url: 'https://cattledogpublishing.com/blog/walking-1-2-3/' },
@@ -279,18 +286,21 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'demi-tour', name: 'Demi-tour d’urgence', bossIds: ['ville', 'congeneres', 'laisse'], traits: ['craintif', 'reactif-chiens'], verified: true, scene: 'laisse',
+    needs: 'Sa laisse',
     steps: ['Dis ton signal joyeux (« on y va ! ») et fais demi-tour.', 'Il te suit : friandises en marchant.', 'Sans tirer sur la laisse : c’est un jeu appris au calme d’abord.'],
     levels: ['À la maison', 'Dans la cour', 'Dans une rue vide', 'Avec des passants au loin', 'En situation réelle'],
     source: { name: 'Positively', url: 'https://positively.com/dog-training/article/canine-life-skills-emergency-u-turn' },
   },
   {
     id: 'sons', name: 'Sons progressifs', bossIds: ['nouveaute', 'ville', 'congeneres'], traits: ['craintif', 'chiot'], verified: true, scene: 'bruits',
+    needs: 'Un téléphone ou une enceinte, pendant son repas',
     steps: ['Diffuse le son à peine audible pendant son repas.', 'Il mange détendu : garde ce volume plusieurs jours.', 'La porte reste ouverte : il peut partir quand il veut.'],
     levels: ['À peine audible, pendant le repas', 'Volume moyen', 'Depuis une autre pièce', 'Volume réel', 'D’autres sons, depuis le début'],
     source: { name: 'Blue Cross', url: 'https://www.bluecross.ie/pet-advice/sounds/' },
   },
   {
     id: 'treat-retreat', name: 'Treat & Retreat', bossIds: ['rencontres'], traits: ['craintif'], verified: false,
+    needs: 'Une personne prévenue de la consigne',
     steps: ['La personne ne s’approche pas et ne le regarde pas fixement.', 'Elle lance une friandise loin derrière lui : il s’éloigne pour la manger.', 'C’est lui qui choisit de revenir ou non. Jamais de contact imposé.'],
     levels: ['Avec un adulte connu, à la maison', 'Avec un adulte peu connu, à la maison', 'Dehors, dans un lieu calme', 'Avec plusieurs adultes, un à la fois', 'Dans un nouveau lieu calme'],
     source: { name: 'Suzanne Clothier', url: 'https://suzanneclothier.com/treat-retreat/' },
@@ -298,12 +308,14 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'rappel-ping-pong', name: 'Rappel ping-pong', bossIds: ['rappel'], verified: true, scene: 'rappel',
+    needs: 'Une longe de 10 m dehors, une deuxième personne si possible',
     steps: ['Un mot de rappel réservé, dit d’une voix joyeuse.', 'Il arrive : fête et friandises.', 'Jamais de rappel pour le gronder ou finir la balade.'],
     levels: ['Dans le salon', 'D’une pièce à l’autre', 'Dans la cour', 'En longe, au parc', 'En longe, avec une distraction'],
     source: { name: 'SF SPCA', url: 'https://sfhumanesociety.org/wp-content/uploads/2024/02/Teaching-a-Reliable-Recall.pdf' },
   },
   {
     id: 'laisse-arbre', name: 'Laisse détendue : l’arbre', bossIds: ['laisse'], traits: ['energique'], verified: true, scene: 'laisse',
+    needs: 'Sa laisse',
     steps: ['La laisse se tend : tu t’arrêtes, immobile comme un arbre.', 'Elle se détend : vous repartez.', 'Récompense à hauteur de ta jambe.'],
     levels: ['Dans le salon', 'Dans la cour', 'Dans une rue calme', 'Dans une rue animée', 'En croisant un chien'],
     source: { name: 'UC Davis', url: 'https://www.vetmed.ucdavis.edu/sites/g/files/dgvnsk491/files/inline-files/Loose_Leash_Walking.pdf' },
@@ -312,12 +324,14 @@ export const EXERCISES: Exercise[] = [
   // Exercices ajoutés avec l'arbre de compétences (docs/specs/arbre-competences.md), à valider avec l'éducateur.
   {
     id: 'absences', name: 'Petites absences', bossIds: ['calme'], verified: false, scene: 'panier',
+    needs: 'Son tapis et un os à mâcher',
     steps: ['Il est sur son tapis avec un os à mâcher.', 'Sors de la pièce, puis reviens sans faire la fête.', 'Allonge peu à peu, de 10 à 30 secondes à la fois.'],
     levels: ['10 secondes', '2 minutes', '5 minutes', '10 minutes', '10 minutes, dans un autre lieu connu'],
     source: { name: 'docs/specs/arbre-competences.md' },
   },
   {
     id: 'visite-veto', name: 'Visite de courtoisie', bossIds: ['soins'], verified: false,
+    needs: 'Prévenir le cabinet avant de passer',
     steps: ['Entrez chez le vétérinaire, sans rendez-vous de soin.', 'Une friandise donnée à l’accueil.', 'Ressortez. Aucun soin ce jour-là.'],
     levels: ['Passer devant le cabinet', 'Entrer, une friandise, ressortir', 'Rester une minute dans la salle d’attente', 'Monter sur la balance', 'Monter sur la table, sans soin'],
     source: { name: 'docs/specs/arbre-competences.md' },
@@ -342,6 +356,7 @@ export const EXERCISES: Exercise[] = [
   },
   {
     id: 'parcours-objets', name: 'Parcours d’objets', bossIds: ['nouveaute'], verified: false, scene: 'flair',
+    needs: 'Un carton, une bâche, un coussin',
     steps: ['Pose au sol un carton, une bâche, un coussin.', 'Mets des friandises dessus.', 'Il explore à son rythme. On ne l’attire jamais.'],
     levels: ['Un seul objet connu', 'Un objet nouveau', 'Trois objets nouveaux', 'Un objet qui bouge ou fait du bruit', 'Dans une autre pièce ou au jardin'],
     source: { name: 'docs/specs/arbre-competences.md' },

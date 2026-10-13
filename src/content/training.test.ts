@@ -71,7 +71,7 @@ describe('exercices', () => {
   })
 
   it('marquent « à vérifier » les fiches décrites de mémoire', () => {
-    expect(EXERCISES.filter((e) => !e.verified).map((e) => e.id).sort()).toEqual(['cherche', 'treat-retreat'])
+    expect(EXERCISES.filter((e) => !e.verified).map((e) => e.id).sort()).toEqual(['absences', 'assis-couche', 'cherche', 'parcours-objets', 'porte', 'quatre-pattes', 'treat-retreat', 'visite-veto'])
     expect(exerciseById('treat-retreat')!.caution).toContain('enfants')
   })
 

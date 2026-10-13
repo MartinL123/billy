@@ -272,7 +272,7 @@ export const EXERCISES: Exercise[] = [
     source: { name: 'Preventive Vet', url: 'https://www.preventivevet.com/dogs/engage-disengage-dog-training-game' },
   },
   {
-    id: 'lat', name: 'Look At That', bossIds: ['ville', 'nouveaute', 'rencontres'], traits: ['craintif', 'reactif-chiens'], verified: true, scene: 'regard',
+    id: 'lat', name: 'Look At That', bossIds: ['ville', 'nouveaute', 'rencontres', 'congeneres'], traits: ['craintif', 'reactif-chiens'], verified: true, scene: 'regard',
     steps: ['Il jette un coup d’œil à la chose : « oui ! », friandise près de toi.', 'La chose apparaît d’abord, la friandise ensuite.', 'Commence par des objets neutres.'],
     levels: ['Sur son tapis, objet neutre', 'L’objet apparaît : friandises ; il disparaît : plus rien', 'Tu marques son coup d’œil', 'Sur un signal : « Où est… ? »', 'Dans la vraie vie, de loin'],
     source: { name: 'Cattledog Publishing', url: 'https://cattledogpublishing.com/blog/a-game-changer-for-reactive-dogs-look-at-that-lat/' },
@@ -284,7 +284,7 @@ export const EXERCISES: Exercise[] = [
     source: { name: 'Positively', url: 'https://positively.com/dog-training/article/canine-life-skills-emergency-u-turn' },
   },
   {
-    id: 'sons', name: 'Sons progressifs', bossIds: ['nouveaute', 'ville'], traits: ['craintif', 'chiot'], verified: true, scene: 'bruits',
+    id: 'sons', name: 'Sons progressifs', bossIds: ['nouveaute', 'ville', 'congeneres'], traits: ['craintif', 'chiot'], verified: true, scene: 'bruits',
     steps: ['Diffuse le son à peine audible pendant son repas.', 'Il mange détendu : garde ce volume plusieurs jours.', 'La porte reste ouverte : il peut partir quand il veut.'],
     levels: ['À peine audible, pendant le repas', 'Volume moyen', 'Depuis une autre pièce', 'Volume réel', 'D’autres sons, depuis le début'],
     source: { name: 'Blue Cross', url: 'https://www.bluecross.ie/pet-advice/sounds/' },
@@ -309,9 +309,77 @@ export const EXERCISES: Exercise[] = [
     source: { name: 'UC Davis', url: 'https://www.vetmed.ucdavis.edu/sites/g/files/dgvnsk491/files/inline-files/Loose_Leash_Walking.pdf' },
     caution: 'Pour un chien craintif, la source conseille l’avis d’un vétérinaire comportementaliste.',
   },
+  // Exercices ajoutés avec l'arbre de compétences (docs/specs/arbre-competences.md), à valider avec l'éducateur.
+  {
+    id: 'absences', name: 'Petites absences', bossIds: ['calme'], verified: false, scene: 'panier',
+    steps: ['Il est sur son tapis avec un os à mâcher.', 'Sors de la pièce, puis reviens sans faire la fête.', 'Allonge peu à peu, de 10 à 30 secondes à la fois.'],
+    levels: ['10 secondes', '2 minutes', '5 minutes', '10 minutes', '10 minutes, dans un autre lieu connu'],
+    source: { name: 'docs/specs/arbre-competences.md' },
+  },
+  {
+    id: 'visite-veto', name: 'Visite de courtoisie', bossIds: ['soins'], verified: false,
+    steps: ['Entrez chez le vétérinaire, sans rendez-vous de soin.', 'Une friandise donnée à l’accueil.', 'Ressortez. Aucun soin ce jour-là.'],
+    levels: ['Passer devant le cabinet', 'Entrer, une friandise, ressortir', 'Rester une minute dans la salle d’attente', 'Monter sur la balance', 'Monter sur la table, sans soin'],
+    source: { name: 'docs/specs/arbre-competences.md' },
+  },
+  {
+    id: 'assis-couche', name: 'Assis et couché au leurre', bossIds: ['manieres'], verified: false,
+    steps: ['Assis : une friandise passe au-dessus de sa tête.', 'Couché : la friandise descend entre ses pattes.', '« Oui ! » quand c’est fait. Ajoute le mot quand le geste est fluide.'],
+    levels: ['Avec la friandise en main', 'Avec le geste, main vide', 'Au mot seul, à la maison', 'Dehors, dans un lieu calme', 'Dans un nouveau lieu'],
+    source: { name: 'docs/specs/arbre-competences.md' },
+  },
+  {
+    id: 'porte', name: 'Attendre à la porte', bossIds: ['manieres'], verified: false,
+    steps: ['Pose la main sur la poignée.', 'Il se lève : la porte se referme.', 'Il reste assis : elle s’ouvre et tu dis « vas-y ».'],
+    levels: ['Porte d’une pièce', 'Porte d’entrée, entrouverte', 'Porte d’entrée, grande ouverte', 'Portière de la voiture', 'Une porte dans un autre lieu'],
+    source: { name: 'docs/specs/arbre-competences.md' },
+  },
+  {
+    id: 'quatre-pattes', name: 'Quatre pattes au sol', bossIds: ['manieres'], verified: false,
+    steps: ['Quelqu’un arrive.', 'Lance des friandises au sol tant que ses 4 pattes y sont.', 'Il saute : la personne se détourne, sans un mot.'],
+    levels: ['Quand tu rentres', 'Avec un proche', 'Avec un invité', 'Dehors, avec une personne connue', 'Dans un autre lieu'],
+    source: { name: 'docs/specs/arbre-competences.md' },
+  },
+  {
+    id: 'parcours-objets', name: 'Parcours d’objets', bossIds: ['nouveaute'], verified: false, scene: 'flair',
+    steps: ['Pose au sol un carton, une bâche, un coussin.', 'Mets des friandises dessus.', 'Il explore à son rythme. On ne l’attire jamais.'],
+    levels: ['Un seul objet connu', 'Un objet nouveau', 'Trois objets nouveaux', 'Un objet qui bouge ou fait du bruit', 'Dans une autre pièce ou au jardin'],
+    source: { name: 'docs/specs/arbre-competences.md' },
+  },
 ]
 
 export const exerciseById = (id: string) => EXERCISES.find((e) => e.id === id)
+
+export interface StepExercise {
+  id: string
+  /** Réglage de l'exercice, de 1 à 5 (index dans `levels`). */
+  level: number
+}
+
+const ex = (id: string, level: number): StepExercise => ({ id, level })
+
+/**
+ * Pour chaque compétence, les exercices de chacune de ses 5 étapes, avec leur réglage
+ * (docs/specs/arbre-competences.md). « S'entraîner » et la quête du jour s'en servent.
+ * Pour les compétences de peur, le réglage reste toujours au calme et à distance.
+ */
+export const STEP_EXERCISES: Record<string, [StepExercise[], StepExercise[], StepExercise[], StepExercise[], StepExercise[]]> = {
+  lien: [[ex('prenom', 1)], [ex('prenom', 2)], [ex('up-down', 3), ex('prenom', 4)], [ex('prenom', 5), ex('touche', 5)], [ex('prenom', 5), ex('touche', 5), ex('up-down', 4)]],
+  calme: [[ex('tapis', 1)], [ex('tapis', 5), ex('absences', 2)], [ex('tapis', 3)], [ex('tapis', 4), ex('absences', 4)], [ex('tapis', 5), ex('absences', 5)]],
+  soins: [[ex('bol', 1), ex('bol', 2)], [ex('bol', 3)], [ex('bol', 2)], [ex('visite-veto', 2), ex('bol', 4)], [ex('bol', 5)]],
+  laisse: [[ex('123', 3), ex('laisse-arbre', 1)], [ex('demi-tour', 2)], [ex('laisse-arbre', 3), ex('123', 4)], [ex('laisse-arbre', 4), ex('demi-tour', 4)], [ex('laisse-arbre', 4), ex('123', 4), ex('demi-tour', 4)]],
+  rappel: [[ex('rappel-ping-pong', 1), ex('rappel-ping-pong', 2)], [ex('rappel-ping-pong', 2)], [ex('rappel-ping-pong', 4)], [ex('rappel-ping-pong', 5)], [ex('rappel-ping-pong', 5)]],
+  manieres: [[ex('assis-couche', 1), ex('assis-couche', 3)], [ex('tapis', 3), ex('porte', 1)], [ex('assis-couche', 4), ex('tapis', 3)], [ex('quatre-pattes', 2), ex('quatre-pattes', 3)], [ex('assis-couche', 5), ex('quatre-pattes', 5)]],
+  nouveaute: [[ex('parcours-objets', 2), ex('cherche', 2)], [ex('sons', 1), ex('lat', 1)], [ex('cherche', 4)], [ex('lat', 5)], [ex('lat', 5), ex('cherche', 4)]],
+  ville: [[ex('sons', 1)], [ex('lat', 2)], [ex('123', 4), ex('cherche', 4)], [ex('123', 4), ex('demi-tour', 3)], [ex('123', 4), ex('cherche', 4), ex('demi-tour', 3)]],
+  rencontres: [[ex('treat-retreat', 1)], [ex('lat', 2)], [ex('engage-disengage', 1)], [ex('treat-retreat', 2), ex('lat', 5)], [ex('treat-retreat', 5), ex('engage-disengage', 4)]],
+  congeneres: [[ex('sons', 1)], [ex('lat', 2)], [ex('engage-disengage', 1)], [ex('engage-disengage', 3), ex('demi-tour', 4)], [ex('engage-disengage', 4), ex('demi-tour', 4)]],
+}
+
+/** Exercices de l'étape en cours (1 à 5) d'une compétence. Compétence maîtrisée : ceux de la dernière étape, en révision. */
+export function stepExercises(bossId: string, step: number): StepExercise[] {
+  return STEP_EXERCISES[bossId]?.[Math.min(MAX_LEVEL, Math.max(1, step)) - 1] ?? []
+}
 
 // ——— Traits ———
 

@@ -303,3 +303,65 @@ describe('anciennes cartes de réussite', () => {
     expect(modernCard(plain)).toBe(plain)
   })
 })
+
+import { FEAR_SKILLS, stepShort, TERRITORIES } from '../content/phrases'
+import { exerciseById, STEP_EXERCISES } from '../content/training'
+import { currentExercise, exercisesForStep, longSessionsDate, sessionMinutes } from './training-plan'
+
+describe('arbre de compétences : étape → exercices', () => {
+  it('chaque étape de chaque compétence a au moins un exercice du catalogue, avec un réglage de 1 à 5', () => {
+    expect(Object.keys(STEP_EXERCISES).sort()).toEqual(BOSSES.map((b) => b.id).sort())
+    for (const boss of BOSSES) {
+      expect(STEP_EXERCISES[boss.id]).toHaveLength(5)
+      for (const step of STEP_EXERCISES[boss.id]!) {
+        expect(step.length).toBeGreaterThan(0)
+        for (const { id, level } of step) {
+          const exercise = exerciseById(id)
+          expect(exercise, id).toBeDefined()
+          expect(exercise!.bossIds, `${id} pour ${boss.id}`).toContain(boss.id)
+          expect(level).toBeGreaterThanOrEqual(1)
+          expect(level).toBeLessThanOrEqual(5)
+        }
+      }
+    }
+  })
+
+  it('contient les 6 nouveaux exercices', () => {
+    for (const id of ['absences', 'visite-veto', 'assis-couche', 'porte', 'quatre-pattes', 'parcours-objets']) expect(exerciseById(id), id).toBeDefined()
+  })
+
+  it('donne l’exercice de l’étape en cours, au bon réglage', () => {
+    expect(currentExercise('lien', 0)).toMatchObject({ level: 1, setting: 'Salon, à 1 m' })
+    expect(currentExercise('lien', 0)!.exercise.id).toBe('prenom')
+    expect(exercisesForStep('rappel', 2).map((e) => `${e.exercise.id}:${e.level}`)).toEqual(['rappel-ping-pong:4'])
+    // Compétence maîtrisée : on révise la dernière étape.
+    expect(exercisesForStep('rappel', 5)).toEqual(exercisesForStep('rappel', 4))
+  })
+
+  it('ne rapproche jamais de ce qui fait peur : pas de réglage « en situation réelle » pour les compétences de peur', () => {
+    for (const id of FEAR_SKILLS) {
+      for (const step of [0, 1, 2, 3, 4]) {
+        for (const planned of exercisesForStep(id, step)) expect(planned.setting).not.toMatch(/situation réelle|En croisant un chien/)
+      }
+    }
+  })
+
+  it('a une phrase courte par étape, sans mot banni, et 3 étages', () => {
+    for (const boss of BOSSES) for (const step of [1, 2, 3, 4, 5]) {
+      const short = stepShort(boss.id, step)
+      expect(short.split(' ').length).toBeLessThanOrEqual(7)
+      expect(short).not.toMatch(BANNED)
+    }
+    expect(TERRITORIES.map((t) => t.name)).toEqual(['La Maison', 'Le Quartier', 'Le Grand Monde'])
+  })
+})
+
+describe('durée des séances', () => {
+  it('3 minutes avant 6 mois, 5 minutes ensuite, depuis la date de naissance', () => {
+    expect(sessionMinutes('2026-05-13', '2026-10-13')).toBe(3)
+    expect(sessionMinutes('2026-05-13', '2026-11-12')).toBe(3)
+    expect(sessionMinutes('2026-05-13', '2026-11-13')).toBe(5)
+    expect(sessionMinutes('2020-01-01', '2026-10-13')).toBe(5)
+    expect(longSessionsDate('2026-05-13')).toBe('2026-11-13')
+  })
+})

@@ -73,10 +73,9 @@ export default function Training() {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-[19px] font-bold">Les 10 boss</h2>
-        <div className="card rounded-3xl px-2 py-4">
+        <div className="card rounded-3xl px-2 pt-4 pb-3">
           <Tree progress={bossProgress} weatherByBoss={dressage.weatherByBoss} featured={dressage.featured} />
         </div>
-        <p className="text-[13px] leading-snug text-muted">Tous les boss sont ouverts. Un trait plein relie deux boss quand le premier facilite déjà le second ; en pointillé, il aidera plus tard.</p>
       </section>
 
       <Rhythm />

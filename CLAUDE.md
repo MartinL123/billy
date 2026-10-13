@@ -8,6 +8,7 @@ Lire avant toute nouvelle fonctionnalité :
 - `docs/spec-v1.md` : la spec de la version en cours
 - `docs/maquettes/README.md` : tokens visuels et maquettes de référence
 - `docs/prompts.md` : l'étape en cours
+- `docs/spec-v2-dressage.md` : spec du dressage (boss communs, arbre de compétences, XP) — fait foi pour tout ce qui touche à `src/features/training/` ; `docs/recherche-dressage.md` n'est que du contexte
 
 ## Principes UX (non négociables)
 

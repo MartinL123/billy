@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import type { Weather } from '../../lib/weather'
 
 const stroke = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
 
@@ -68,39 +67,6 @@ export function BossIcon({ bossId, size = 24 }: { bossId: string; size?: number 
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" {...stroke}>
       {BOSS_PATHS[bossId]}
-    </svg>
-  )
-}
-
-const cloud = 'M7 18a4 4 0 0 1-.500-8A5 5 0 0 1 16 9.5a3.5 3.5 0 0 1 .500 8.5z'
-
-const WEATHER_PATHS: Record<Weather, ReactNode> = {
-  soleil: (
-    <>
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
-    </>
-  ),
-  eclaircies: (
-    <>
-      <circle cx="8" cy="8" r="3" />
-      <path d="M8 2.5v1M2.5 8h1M4 4l.700.7M12 4l-.700.7" />
-      <path d="M9 19.5a3.5 3.5 0 0 1-.400-7 4.5 4.5 0 0 1 8.4-.300 3.2 3.2 0 0 1 .500 7.3z" />
-    </>
-  ),
-  nuageux: <path d={cloud} />,
-  averse: (
-    <>
-      <path d="M7 15a4 4 0 0 1-.500-8A5 5 0 0 1 16 6.5a3.5 3.5 0 0 1 .500 8.5z" />
-      <path d="M8.5 18l-1 3M12.5 18l-1 3M16.5 18l-1 3" />
-    </>
-  ),
-}
-
-export function WeatherIcon({ weather, size = 18, className }: { weather: Weather; size?: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" className={className} {...stroke}>
-      {WEATHER_PATHS[weather]}
     </svg>
   )
 }

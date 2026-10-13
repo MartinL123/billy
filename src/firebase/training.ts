@@ -148,23 +148,6 @@ export function declareRest(date: ISODate, sniff: boolean, xp: number): { undo: 
   return { undo: () => removeAward(id) }
 }
 
-/** Première fois : XP unique et carte souvenir datée dans le Journal. */
-export function awardFirst(key: string, label: string, date: ISODate): void {
-  const id = `premiere-${key}`
-  awardOnce(id, { date, kind: 'premiere', xp: XP.first, key, label })
-  const card: Entry = { date, text: `Première fois : ${label}.`, tags: ['Dressage'], photos: [], createdAt: now() }
-  send(setDoc(userDoc('entries', id), card))
-}
-
-export function awardQuest(week: ISODate, key: string, label: string, date: ISODate): void {
-  awardOnce(`quete-${week}-${key}`, { date, kind: 'quete', xp: XP.quest, key, label })
-}
-
-/** Remplace une quête de la semaine, sans pénalité. */
-export function replaceQuest(week: ISODate, replaced: string[]): void {
-  send(setDoc(userDoc('quests', week), { date: week, replaced }))
-}
-
 // ——— Raconter un moment (V3) ———
 
 export interface MomentOutcome {

@@ -7,10 +7,6 @@ import { MOMENT_XP } from '../../lib/moment'
 import { weekId } from '../../lib/rhythm'
 import { useToday } from '../../lib/useToday'
 
-/** Les jours de repos déclarés, tirés du journal d'XP. */
-export const restsOf = (log: { date: string; kind: string; key?: string }[]) =>
-  log.filter((e) => e.kind === 'repos').map((e) => ({ date: e.date, sniff: e.key === 'reniflage' }))
-
 /**
  * Attribue le défi de la semaine dès qu'il est réussi, où que l'on soit dans l'app.
  * L'identifiant du gain est fixe : il ne peut pas être compté deux fois.

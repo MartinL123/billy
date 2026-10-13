@@ -4,7 +4,7 @@ import { CalendarIcon, PhotoIcon, PlusIcon, SunIcon, TargetIcon } from './Icons'
 const TABS = [
   { to: '/', label: "Aujourd'hui", Icon: SunIcon },
   { to: '/calendrier', label: 'Calendrier', Icon: CalendarIcon },
-  { to: '/journal', label: 'Journal', Icon: PhotoIcon },
+  { to: '/carnet', label: 'Carnet', Icon: PhotoIcon },
   { to: '/dressage', label: 'Dressage', Icon: TargetIcon },
 ]
 

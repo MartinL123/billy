@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { Pending } from '../../components/Pending'
+import { bossById } from '../../content/training'
 import type { Entry, WithId } from '../../firebase/types'
 import { formatRelative, formatShort, formatWeekdayShort, diffDays, parseISO, type ISODate } from '../../lib/dates'
+import { feelingLabel } from '../../lib/moment'
 
 /** « Hier · 12 oct. », « Lun. 5 oct. » */
 export function entryDateLabel(date: ISODate, today: ISODate): string {
@@ -15,16 +17,22 @@ export function entryDateLabel(date: ISODate, today: ISODate): string {
   return formatWeekdayShort(date, year)
 }
 
+/** Un moment du Carnet. `readOnly` : ancienne séance ou situation, affichée en résumé. */
+export type Moment = WithId<Entry> & { readOnly?: boolean }
+
 interface EntryCardProps {
-  entry: WithId<Entry>
+  entry: Moment
   today: ISODate
   activeTag: string | null
   onOpenPhoto: (index: number) => void
 }
 
+const chip = 'rounded-xl px-2.5 py-1 text-sm font-semibold'
+
 export function EntryCard({ entry, today, activeTag, onOpenPhoto }: EntryCardProps) {
   const { photos } = entry
   const photoButton = 'block w-full border-0 bg-transparent p-0'
+  const feeling = feelingLabel(entry.feeling)
 
   return (
     <article className="card overflow-hidden">
@@ -46,9 +54,7 @@ export function EntryCard({ entry, today, activeTag, onOpenPhoto }: EntryCardPro
                 className={`${photoButton} relative`}
               >
                 <FileImage fileId={photo.thumbFileId} alt="" className="h-[118px] w-full" />
-                {more > 0 && (
-                  <span className="absolute inset-0 flex items-center justify-center bg-[rgba(24,32,30,0.5)] text-lg font-bold text-white">+{more}</span>
-                )}
+                {more > 0 && <span className="absolute inset-0 flex items-center justify-center bg-[rgba(24,32,30,0.5)] text-lg font-bold text-white">+{more}</span>}
               </button>
             )
           })}
@@ -56,27 +62,31 @@ export function EntryCard({ entry, today, activeTag, onOpenPhoto }: EntryCardPro
       )}
       <div className="flex flex-col gap-2.5 px-4 pt-3.5 pb-4">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span className="text-[13px] font-semibold text-muted">{entryDateLabel(entry.date, today)}</span>
+          <span className="text-sm font-semibold text-muted">{entryDateLabel(entry.date, today)}</span>
           <Pending show={entry.pending} />
         </div>
-        {entry.text && <p className="text-base leading-[1.45] whitespace-pre-wrap">{entry.text}</p>}
-        {entry.tags.length > 0 && (
+        {entry.text && <p className="text-[17px] leading-[1.45] whitespace-pre-wrap">{entry.text}</p>}
+        {(feeling || entry.fear || entry.skills?.length || entry.tags.length > 0) && (
           <div className="flex flex-wrap gap-1.5">
+            {feeling && <span className={`${chip} bg-gold-soft text-[#5C4508]`}>{feeling}</span>}
+            {entry.fear && <span className={`${chip} bg-info-soft text-[#1D3F73]`}>{entry.movedAway ? 'Il a eu peur · on s’est éloignés' : 'Il a eu peur'}</span>}
+            {entry.skills?.map((id) => (
+              <span key={id} className={`${chip} bg-primary-soft text-primary-dark`}>
+                {bossById(id)?.name}
+              </span>
+            ))}
             {entry.tags.map((tag) => (
-              <span
-                key={tag}
-                className={`rounded-xl px-2.5 py-1 text-[13px] font-semibold ${
-                  activeTag === tag ? 'bg-primary-soft text-primary-dark' : 'bg-[#EEF0EE] text-[#3F4946]'
-                }`}
-              >
+              <span key={tag} className={`${chip} ${activeTag === tag ? 'bg-primary text-white' : 'bg-[#EEF0EE] text-[#3F4946]'}`}>
                 {tag}
               </span>
             ))}
           </div>
         )}
-        <Link to={`/souvenir/${entry.id}`} className="btn btn-outline mt-1 min-h-12 self-start px-4">
-          Modifier
-        </Link>
+        {!entry.readOnly && (
+          <Link to={`/souvenir/${entry.id}`} className="btn btn-outline mt-1 min-h-12 self-start px-4">
+            Modifier
+          </Link>
+        )}
       </div>
     </article>
   )

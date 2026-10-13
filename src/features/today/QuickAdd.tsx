@@ -44,14 +44,14 @@ export function QuickAdd({ onClose }: { onClose: () => void }) {
         accept="image/*"
         onFiles={(files) => {
           setDraftPhotos(files)
-          go('/souvenir/nouveau')
+          go('/raconter')
         }}
         className={rowClass}
       >
         <RowContent icon={<PhotoIcon size={26} />} tone="bg-primary text-white" title="Photos" detail="Depuis ta photothèque" />
       </FilePicker>
 
-      <button type="button" onClick={() => go('/souvenir/nouveau')} className={rowClass}>
+      <button type="button" onClick={() => go('/raconter')} className={rowClass}>
         <RowContent icon={<NoteIcon size={26} />} tone="bg-[#EEF0EE] text-[#3F4946]" title="Note" detail="Un progrès, une bêtise, un ressenti" />
       </button>
 

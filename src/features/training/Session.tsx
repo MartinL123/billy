@@ -12,7 +12,7 @@ import { exercisesFor, guards, suggestedBosses } from '../../lib/traits'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { sessionXp, type Decision } from '../../lib/xp'
-import { Celebration } from './Celebration'
+import { StepSuccess } from './Celebration'
 import { Illustration } from './Illustration'
 
 const bigChoice = (active: boolean) =>
@@ -117,7 +117,7 @@ export default function Session() {
             Annuler cette séance (erreur de saisie)
           </button>
         </div>
-        {celebrating?.levelGained && <Celebration boss={bossById(celebrating.bossId)!} level={celebrating.levelGained} onClose={() => setCelebrated(celebrated + 1)} />}
+        {celebrating?.levelGained && <StepSuccess dogName={dog.name} bossId={celebrating.bossId} level={celebrating.levelGained} onClose={() => setCelebrated(celebrated + 1)} />}
       </main>
     )
   }

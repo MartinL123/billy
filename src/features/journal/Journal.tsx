@@ -7,10 +7,11 @@ import { Fab } from '../../components/TabBar'
 import { useData } from '../../firebase/store'
 import type { EntryPhoto } from '../../firebase/types'
 import { formatMonthYear, monthKey } from '../../lib/dates'
+import { byRecency, exposureAsMoment, sessionAsMoment } from '../../lib/carnet'
 import { allTags, sameTag } from '../../lib/tags'
 import { useToday } from '../../lib/useToday'
 import { setDraftPhotos } from './draft'
-import { EntryCard } from './EntryCard'
+import { EntryCard, type Moment } from './EntryCard'
 import { PhotoViewer } from './PhotoViewer'
 
 function EmptyJournal({ onPhotos }: { onPhotos: (files: File[]) => void }) {
@@ -19,25 +20,24 @@ function EmptyJournal({ onPhotos }: { onPhotos: (files: File[]) => void }) {
       <div className="flex size-40 items-center justify-center rounded-full bg-milestone-soft text-milestone">
         <PhotoIcon size={84} strokeWidth={1.5} />
       </div>
-      <h2 className="mt-2 font-display text-2xl leading-tight font-bold">Le premier souvenir de Billy commence ici</h2>
-      <p className="text-base leading-[1.45] text-muted">Importe des photos de ta photothèque ou écris une note sur sa journée.</p>
-      <FilePicker
-        accept="image/*"
-        onFiles={onPhotos}
-        className="mt-2 flex h-[54px] items-center justify-center gap-2 rounded-full bg-primary px-7 text-[17px] font-bold text-white"
-      >
-        <ImportIcon size={20} />
-        Importer des photos
-      </FilePicker>
-      <Link to="/souvenir/nouveau" className="btn btn-outline p-3">
-        Écrire une note
+      <h2 className="mt-2 font-display text-2xl leading-tight font-bold">Le Carnet commence ici</h2>
+      <p className="text-[17px] leading-[1.45] text-muted">Racontez ce que vous vivez ensemble, avec ou sans photo.</p>
+      <Link to="/raconter" className="btn btn-main mt-2 w-full">
+        Raconter ce qu'on a fait
       </Link>
+      <FilePicker accept="image/*" onFiles={onPhotos} className="btn btn-outline w-full">
+        <ImportIcon size={20} />
+        Ajouter des photos
+      </FilePicker>
     </div>
   )
 }
 
 export default function Journal() {
-  const { entries } = useData()
+  const { entries: written, sessions, exposures } = useData()
+  // Le Carnet est la seule liste : moments racontés, et anciennes séances et situations en lecture seule.
+  const legacy: Moment[] = [...sessions.map(sessionAsMoment), ...exposures.map(exposureAsMoment)].map((m) => ({ ...m, tags: [], photos: [], pending: false, readOnly: true }))
+  const entries: Moment[] = [...written, ...legacy].sort(byRecency)
   const today = useToday()
   const navigate = useNavigate()
   const [tag, setTag] = useState<string | null>(null)
@@ -45,7 +45,7 @@ export default function Journal() {
 
   const importPhotos = (files: File[]) => {
     setDraftPhotos(files)
-    navigate('/souvenir/nouveau')
+    navigate('/raconter')
   }
 
   // Seuls les tags réellement utilisés servent de filtre.
@@ -68,7 +68,7 @@ export default function Journal() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="Journal" className="px-5" />
+      <PageHeader title="Carnet" className="px-5" />
 
       {entries.length === 0 ? (
         <EmptyJournal onPhotos={importPhotos} />
@@ -111,7 +111,7 @@ export default function Journal() {
             </div>
           )}
 
-          <Fab label="Nouveau souvenir" onClick={() => navigate('/souvenir/nouveau')} />
+          <Fab label="Raconter ce qu'on a fait" onClick={() => navigate('/raconter')} />
         </>
       )}
 

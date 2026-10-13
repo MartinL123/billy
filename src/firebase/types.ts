@@ -2,6 +2,7 @@ import type { Bytes } from 'firebase/firestore'
 import type { ISODate } from '../lib/dates'
 import type { EventType } from '../lib/events'
 import type { Feeding } from '../lib/feeding'
+import type { Feeling } from '../lib/moment'
 import type { Questionnaire } from '../lib/questionnaire'
 import type { Recurrence } from '../lib/recurrence'
 import type { Decision } from '../lib/xp'
@@ -71,6 +72,17 @@ export interface Entry {
   tags: string[]
   photos: EntryPhoto[]
   createdAt?: string
+  // ——— Moment raconté (V3) : champs optionnels, une entrée du Journal reste valide sans eux ———
+  /** Compétences travaillées, choisies par l'utilisateur. */
+  skills?: string[]
+  feeling?: Feeling
+  /** « Il a eu peur ? » */
+  fear?: boolean
+  /** « On s'est éloignés pour qu'il se sente mieux. » */
+  movedAway?: boolean
+  /** Compétences où « oui, c'est réussi » a compté ce jour-là. */
+  validations?: string[]
+  xp?: number
 }
 
 export type DocumentCategory = 'sante' | 'veto' | 'administratif' | 'autre'
@@ -148,7 +160,7 @@ export interface Exposure {
   createdAt?: string
 }
 
-export type XpKind = 'seance' | 'exposition' | 'repos' | 'validation' | 'palier' | 'etoile' | 'premiere' | 'quete'
+export type XpKind = 'moment' | 'defi' | 'seance' | 'exposition' | 'repos' | 'validation' | 'palier' | 'etoile' | 'premiere' | 'quete'
 
 /** users/{uid}/xpLog/{id} — journal d'XP, en ajout seul. Tout le reste (niveau, stats, radar) en découle. */
 export interface XpEntry {

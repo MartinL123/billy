@@ -107,3 +107,91 @@ describe('ce qu’il sait déjà faire', () => {
     expect(lastSuccess({}, [])).toBeUndefined()
   })
 })
+
+import { EMPTY_PROGRESS } from './bossProgress'
+import { canAskStep, feelingOfReaction, momentBaseXp, previewMoment, tileOrder } from './moment'
+
+describe('XP d’un moment raconté', () => {
+  const calm = { fear: false, movedAway: false }
+
+  it('donne 10 pour raconter, quel que soit le ressenti', () => {
+    expect(momentBaseXp({ ...calm })).toBe(10)
+    expect(momentBaseXp({ ...calm, feeling: 'difficile' })).toBe(10)
+    expect(momentBaseXp({ ...calm, feeling: 'bien' })).toBe(10)
+    expect(momentBaseXp({ ...calm, feeling: 'super' })).toBe(15)
+  })
+
+  it('récompense le fait de noter une peur et de s’éloigner, jamais de s’approcher', () => {
+    expect(momentBaseXp({ feeling: 'difficile', fear: true, movedAway: false })).toBe(15)
+    expect(momentBaseXp({ feeling: 'difficile', fear: true, movedAway: true })).toBe(23)
+    expect(momentBaseXp({ feeling: 'bien', fear: false, movedAway: true })).toBe(10)
+  })
+
+  it('ne demande « c’est réussi ? » que si tout s’est bien passé', () => {
+    expect(canAskStep({ ...calm })).toBe(true)
+    expect(canAskStep({ ...calm, feeling: 'super' })).toBe(true)
+    expect(canAskStep({ ...calm, feeling: 'difficile' })).toBe(false)
+    expect(canAskStep({ feeling: 'bien', fear: true, movedAway: true })).toBe(false)
+  })
+
+  it('ajoute 10 par « oui » qui compte, et 50 quand l’étape est acquise', () => {
+    const two = { ...EMPTY_PROGRESS, validations: [{ level: 1, date: '2026-10-10' }, { level: 1, date: '2026-10-11' }] }
+    expect(previewMoment({ ...calm, feeling: 'bien' }, ['lien'], {}, '2026-10-13')).toEqual({ xp: 20, validated: ['lien'], steps: [] })
+    expect(previewMoment({ ...calm, feeling: 'super' }, ['lien'], { lien: two }, '2026-10-13')).toEqual({ xp: 75, validated: ['lien'], steps: [{ bossId: 'lien', level: 1 }] })
+  })
+
+  it('ne compte pas deux « oui » le même jour, ni un « oui » un jour difficile', () => {
+    const today = { ...EMPTY_PROGRESS, validations: [{ level: 1, date: '2026-10-13' }] }
+    expect(previewMoment({ ...calm }, ['lien'], { lien: today }, '2026-10-13')).toEqual({ xp: 10, validated: [], steps: [] })
+    expect(previewMoment({ ...calm, feeling: 'difficile' }, ['lien'], {}, '2026-10-13').xp).toBe(10)
+  })
+
+  it('compte un moment passé comme un moment du jour', () => {
+    expect(previewMoment({ ...calm, feeling: 'super' }, ['rappel'], {}, '2026-09-20').xp).toBe(25)
+  })
+})
+
+describe('tuiles des compétences', () => {
+  it('suivent l’ordre des bases vers le monde quand rien n’a été raconté', () => {
+    expect(tileOrder([])).toEqual(SKILLS.map((s) => s.id))
+  })
+
+  it('remontent les 3 compétences utilisées le plus récemment', () => {
+    const order = tileOrder([
+      { date: '2026-10-10', skills: ['ville'] },
+      { date: '2026-10-12', skills: ['rappel', 'lien'] },
+      { date: '2026-10-11', skills: ['calme'] },
+      { date: '2026-10-01', skills: ['soins'] },
+    ])
+    expect(order.slice(0, 3)).toEqual(['rappel', 'lien', 'calme'])
+    expect(order).toHaveLength(10)
+    expect(new Set(order).size).toBe(10)
+  })
+})
+
+describe('anciennes réactions', () => {
+  it('se lisent comme un ressenti', () => {
+    expect([0, 1, 2, 3, 4, undefined].map(feelingOfReaction)).toEqual(['super', 'bien', 'difficile', 'difficile', 'difficile', undefined])
+  })
+})
+
+import { byRecency, exposureAsMoment, sessionAsMoment } from './carnet'
+
+describe('Carnet unifié', () => {
+  it('résume une ancienne séance sans chiffre ni vocabulaire interne', () => {
+    const moment = sessionAsMoment({ id: 'a', date: '2026-10-13', exerciseId: 'prenom', bossId: 'lien', bossIds: ['lien', 'rappel'], reaction: 1 })
+    expect(moment).toMatchObject({ id: 'seance-a', text: 'Exercice : Jeu du prénom.', skills: ['lien', 'rappel'], feeling: 'bien' })
+    expect(moment.text).not.toMatch(BANNED)
+  })
+
+  it('présente une ancienne exposition comme une situation qui lui fait peur', () => {
+    const moment = exposureAsMoment({ id: 'b', date: '2026-10-12', bossId: 'ville', trigger: 'La ruelle', reaction: 3, retreat: true })
+    expect(moment).toMatchObject({ text: 'Une situation qui lui fait peur : La ruelle.', fear: true, movedAway: true, feeling: 'difficile', skills: ['ville'] })
+    expect(moment.text).not.toMatch(BANNED)
+  })
+
+  it('range tout par date, le plus récent en haut', () => {
+    const items = [{ date: '2026-10-10' }, { date: '2026-10-13', createdAt: 'a' }, { date: '2026-10-13', createdAt: 'b' }]
+    expect([...items].sort(byRecency).map((i) => `${i.date}${i.createdAt ?? ''}`)).toEqual(['2026-10-13b', '2026-10-13a', '2026-10-10'])
+  })
+})

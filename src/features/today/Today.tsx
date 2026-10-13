@@ -107,12 +107,12 @@ export default function Today() {
       <section className="flex flex-col gap-3">
         <div className="flex items-baseline justify-between">
           <h2 className="text-[19px] font-bold">Dernier souvenir</h2>
-          <Link to="/journal" className={sectionLink}>
+          <Link to="/carnet" className={sectionLink}>
             Journal
           </Link>
         </div>
         {lastEntry ? (
-          <Link to="/journal" className="card flex items-center gap-3.5 overflow-hidden p-3 text-text no-underline">
+          <Link to="/carnet" className="card flex items-center gap-3.5 overflow-hidden p-3 text-text no-underline">
             {lastPhoto && <FileImage fileId={lastPhoto.thumbFileId} alt="" className="size-24 shrink-0 rounded-field" />}
             <div className="flex min-w-0 flex-col gap-1.5 py-1">
               {lastEntry.text && <div className="line-clamp-3 text-[15px] leading-[1.4]">{lastEntry.text}</div>}
@@ -122,7 +122,7 @@ export default function Today() {
         ) : (
           <div className="card flex flex-col gap-3 p-4">
             <p className="text-[15px] text-muted">Le premier souvenir de {dog.name} commence ici.</p>
-            <Link to="/souvenir/nouveau" className={outlineButton}>
+            <Link to="/raconter" className={outlineButton}>
               Écrire une note
             </Link>
           </div>

@@ -28,7 +28,7 @@ export default function EntryForm() {
   const [params] = useSearchParams()
   const { entries } = useData()
   const today = useToday()
-  const back = useBack('/journal')
+  const back = useBack('/carnet')
   const existing = id ? entries.find((e) => e.id === id) : undefined
 
   const [items, setItems] = useState<Item[]>(() => (existing?.photos ?? []).map((saved) => ({ key: saved.fileId, saved })))
@@ -104,7 +104,9 @@ export default function EntryForm() {
         if ('saved' in item) photos.push(item.saved)
         else photos.push({ fileId: await saveImage(item.full), thumbFileId: await saveImage(item.thumb) })
       }
+      const { id: _id, pending: _pending, ...kept } = existing ?? ({} as Partial<NonNullable<typeof existing>>)
       saveEntry(existing?.id ?? newId('entries'), {
+        ...kept,
         date,
         text: text.trim(),
         tags,

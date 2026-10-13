@@ -8,6 +8,7 @@ import Calendar from './features/calendar/Calendar'
 import EventForm from './features/calendar/EventForm'
 import EntryForm from './features/journal/EntryForm'
 import Journal from './features/journal/Journal'
+import Raconter from './features/journal/Raconter'
 import DocumentForm from './features/profile/DocumentForm'
 import DocumentView from './features/profile/DocumentView'
 import Profile from './features/profile/Profile'
@@ -69,16 +70,17 @@ export default function App() {
             <Route element={<TabLayout />}>
               <Route index element={<Today />} />
               <Route path="calendrier" element={<Calendar />} />
-              <Route path="journal" element={<Journal />} />
+              <Route path="carnet" element={<Journal />} />
+              <Route path="journal" element={<Navigate to="/carnet" replace />} />
               <Route path="dressage" element={<Training />} />
             </Route>
             <Route path="ouverture" element={<Opening />} />
             <Route path="questionnaire" element={<Questionnaire />} />
-            <Route path="raconter" element={<EntryForm />} />
+            <Route path="raconter" element={<Raconter />} />
             <Route path="profil" element={<Profile />} />
             <Route path="evenement/nouveau" element={<EventForm />} />
             <Route path="evenement/:id" element={<EventForm />} />
-            <Route path="souvenir/nouveau" element={<EntryForm />} />
+            <Route path="souvenir/nouveau" element={<Navigate to="/raconter" replace />} />
             <Route path="souvenir/:id" element={<EntryForm />} />
             <Route path="boss/:id" element={<BossSheet />} />
             <Route path="seance" element={<Session />} />

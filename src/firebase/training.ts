@@ -5,7 +5,9 @@ import type { BossProgress, Entry, Exposure, Place, TrainingSession, XpEntry } f
 import { bossById } from '../content/training'
 import { addValidation, EMPTY_PROGRESS, markPreApp } from '../lib/bossProgress'
 import type { ISODate } from '../lib/dates'
-import { XP } from '../lib/xp'
+import { MOMENT_XP, previewMoment } from '../lib/moment'
+import { globalLevel, XP } from '../lib/xp'
+import { levelTitle, stepPhraseLower } from '../content/phrases'
 
 const now = () => new Date().toISOString()
 
@@ -161,4 +163,80 @@ export function awardQuest(week: ISODate, key: string, label: string, date: ISOD
 /** Remplace une quête de la semaine, sans pénalité. */
 export function replaceQuest(week: ISODate, replaced: string[]): void {
   send(setDoc(userDoc('quests', week), { date: week, replaced }))
+}
+
+// ——— Raconter un moment (V3) ———
+
+export interface MomentOutcome {
+  xp: number
+  /** Étapes acquises grâce à ce moment. */
+  steps: { bossId: string; level: number }[]
+  /** Niveau atteint, si le moment en a fait passer un. */
+  levelReached?: number
+  undo: () => void
+}
+
+/**
+ * Enregistre un moment raconté : une entrée du Carnet, son XP, et les « oui, c'est réussi » qui comptent.
+ * Une étape acquise et un passage de niveau ajoutent chacun une carte au Carnet.
+ */
+export function recordMoment(entry: Entry, yes: string[], progress: Record<string, BossProgress | undefined>, dogName: string, xpBefore: number): MomentOutcome {
+  const preview = previewMoment({ feeling: entry.feeling, fear: Boolean(entry.fear), movedAway: Boolean(entry.movedAway) }, yes, progress, entry.date)
+  const batch = writeBatch(db)
+  const created: ReturnType<typeof userDoc>[] = []
+  const restore: (() => Promise<unknown>)[] = []
+  const add = (ref: ReturnType<typeof userDoc>, data: DocumentData) => {
+    batch.set(ref, data)
+    created.push(ref)
+  }
+  const entryId = newId('entries')
+  const skills = entry.skills ?? []
+  add(userDoc('entries', entryId), strip({ ...entry, validations: preview.validated, xp: preview.xp, createdAt: now() }))
+  const base = preview.xp - preview.steps.length * MOMENT_XP.step
+  add(xpRef(entryId), strip<XpEntry>({ date: entry.date, kind: 'moment', xp: base, bossId: skills[0], bossIds: skills.length ? skills : undefined, createdAt: now() }))
+
+  for (const bossId of preview.validated) {
+    const current = progress[bossId]
+    const result = addValidation(current ?? EMPTY_PROGRESS, entry.date)
+    const ref = userDoc('bossProgress', bossId)
+    batch.set(ref, strip(result.progress))
+    restore.push(() => (current ? setDoc(ref, strip(current)) : deleteDoc(ref)))
+    if (result.levelGained) {
+      const boss = bossById(bossId)
+      add(xpRef(`palier-${bossId}-${result.levelGained}`), strip<XpEntry>({ date: entry.date, kind: 'palier', xp: MOMENT_XP.step, bossId, label: boss?.name, createdAt: now() }))
+      add(userDoc('entries', `palier-${bossId}-${result.levelGained}`), {
+        date: entry.date,
+        text: `C'est réussi ! ${dogName} ${stepPhraseLower(bossId, result.levelGained)}.`,
+        tags: [],
+        photos: [],
+        skills: [bossId],
+        createdAt: now(),
+      } satisfies Entry)
+    }
+  }
+
+  const levelBefore = globalLevel(xpBefore).level
+  const levelAfter = globalLevel(xpBefore + preview.xp).level
+  if (levelAfter > levelBefore) {
+    add(userDoc('entries', `niveau-${levelAfter}`), {
+      date: entry.date,
+      text: `Niveau ${levelAfter} ! ${dogName} devient ${levelTitle(levelAfter)}.`,
+      tags: [],
+      photos: [],
+      createdAt: now(),
+    } satisfies Entry)
+  }
+  send(batch.commit())
+
+  return {
+    xp: preview.xp,
+    steps: preview.steps,
+    levelReached: levelAfter > levelBefore ? levelAfter : undefined,
+    undo: () => {
+      const back = writeBatch(db)
+      for (const ref of created) back.delete(ref)
+      send(back.commit())
+      for (const put of restore) send(put())
+    },
+  }
 }

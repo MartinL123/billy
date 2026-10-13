@@ -14,6 +14,10 @@ import { entryDateLabel } from '../journal/EntryCard'
 import { DailyIdeas } from './DailyIdeas'
 import { Meals } from './Meals'
 import { QuickAdd } from './QuickAdd'
+import { bossById } from '../../content/training'
+import { ChevronRightIcon, TargetIcon } from '../../components/Icons'
+import { sessionLink } from '../../lib/recommend'
+import { useSessionAdvice } from '../training/SessionAdviceCard'
 
 export default function Today() {
   const { dog, events, entries } = useData()
@@ -26,6 +30,7 @@ export default function Today() {
   const lastEntry = entries[0]
   const lastPhoto = lastEntry?.photos[0]
   const memories = onThisDay(entries, today)
+  const advice = useSessionAdvice()
 
   const sectionLink = 'py-2.5 text-[15px] font-semibold text-primary no-underline'
 
@@ -52,6 +57,22 @@ export default function Today() {
         </div>
         {celebration && <div className="bg-primary-soft px-4 py-3 text-[15px] font-medium text-primary-dark">{celebration}</div>}
       </section>
+
+      {advice && (
+        <Link to={sessionLink(advice)} className="card -mt-3 flex min-h-[64px] items-center gap-3.5 px-4 py-3 text-text no-underline">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary-soft text-primary-dark">
+            <TargetIcon size={24} />
+          </span>
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="text-[13px] font-semibold text-muted">Séance du jour</span>
+            <span className="truncate text-base font-semibold">{advice.exercise.name}</span>
+            <span className="truncate text-[13px] text-muted">
+              {bossById(advice.bossId)?.name} · N{advice.difficulty}
+            </span>
+          </span>
+          <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
+        </Link>
+      )}
 
       {dog.feeding && dog.feeding.meals.length > 0 && <Meals dogName={dog.name} feeding={dog.feeding} today={today} />}
 

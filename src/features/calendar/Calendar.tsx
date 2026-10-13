@@ -8,7 +8,7 @@ import { Fab } from '../../components/TabBar'
 import { useData } from '../../firebase/store'
 import type { Weight, WithId } from '../../firebase/types'
 import { formatLong, formatShort, parseISO, toISO, type ISODate } from '../../lib/dates'
-import { upcoming, type EventType } from '../../lib/events'
+import { CARE_FILTERS, filterInfo, filterSummary, matchesFilter, upcoming, type CareFilter, type EventType } from '../../lib/events'
 import { careStatus } from '../../lib/health'
 import { useToday } from '../../lib/useToday'
 import { DocumentsSection } from '../profile/DocumentsSection'
@@ -19,6 +19,16 @@ import { WeightChart } from './WeightChart'
 import { formatKg, WeightSheet } from './WeightSheet'
 
 const DONE_PREVIEW = 3
+
+// Le dernier filtre choisi est retenu sur l'appareil : une préférence d'affichage, pas une donnée.
+const FILTER_KEY = 'billy.sante.filtre'
+function storedFilter(): CareFilter {
+  try {
+    return filterInfo(localStorage.getItem(FILTER_KEY) ?? '').id
+  } catch {
+    return 'tout'
+  }
+}
 
 const CARE: { type: EventType; label: string }[] = [
   { type: 'vaccin', label: 'Vaccin CHPPiL' },
@@ -33,11 +43,23 @@ export default function Calendar() {
   const [month, setMonth] = useState(() => toISO({ ...parseISO(today), d: 1 }))
   const [selected, setSelected] = useState<ISODate | null>(null)
   const [showAllDone, setShowAllDone] = useState(false)
+  const [filter, setFilterState] = useState<CareFilter>(storedFilter)
+  const setFilter = (next: CareFilter) => {
+    setFilterState(next)
+    setShowAllDone(false)
+    try {
+      localStorage.setItem(FILTER_KEY, next)
+    } catch {
+      // Stockage indisponible (navigation privée) : le filtre reste valable pour cette visite.
+    }
+  }
   const [weightSheet, setWeightSheet] = useState<{ editing?: WithId<Weight> } | null>(null)
 
   const toComplete = events.filter((e) => !e.date && !e.done)
-  const next = upcoming(events, today)
-  const done = events.filter((e) => e.done).sort((a, b) => (b.doneAt ?? b.date).localeCompare(a.doneAt ?? a.date))
+  const allNext = upcoming(events, today)
+  const next = allNext.filter((e) => matchesFilter(e, filter))
+  const info = filterInfo(filter)
+  const done = events.filter((e) => e.done && matchesFilter(e, filter)).sort((a, b) => (b.doneAt ?? b.date).localeCompare(a.doneAt ?? a.date))
   const ofDay = selected ? events.filter((e) => e.date === selected) : []
   const lastWeight = weights[0]
   const year = parseISO(today).y
@@ -65,7 +87,7 @@ export default function Calendar() {
         month={month}
         today={today}
         selected={selected}
-        events={events}
+        events={events.filter((e) => matchesFilter(e, filter))}
         onMonthChange={setMonth}
         onSelect={(day) => setSelected(day === selected ? null : day)}
       />
@@ -102,17 +124,40 @@ export default function Calendar() {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-[19px] font-bold">À venir</h2>
+        <div role="group" aria-label="Filtrer par catégorie" className="-mx-5 flex gap-2 overflow-x-auto px-5 pt-0.5 pb-1">
+          {CARE_FILTERS.map((item) => {
+            const on = filter === item.id
+            const count = allNext.filter((e) => matchesFilter(e, item.id)).length
+            return (
+              <button
+                key={item.id}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setFilter(item.id)}
+                className="flex min-h-12 shrink-0 items-center gap-[7px] rounded-full border-2 border-solid px-3.5 text-[15px] font-bold"
+                style={on ? { background: item.color, borderColor: item.color, color: '#FFFFFF' } : { background: '#FFFFFF', borderColor: '#C9D1CD', color: '#18201E' }}
+              >
+                {item.id !== 'tout' && <span className="size-2.5 rounded-full" style={{ background: on ? '#FFFFFF' : item.color }} />}
+                {item.label}
+                <span className="text-[13px] opacity-80">{count}</span>
+              </button>
+            )
+          })}
+        </div>
         {next.length > 0 ? (
-          <div className="card overflow-hidden">
-            {next.map((event, i) => (
-              <CalendarEventRow key={event.id} event={event} today={today} first={i === 0} />
-            ))}
-          </div>
+          <>
+            {filter !== 'tout' && <p className="text-[15px] font-semibold text-muted">{filterSummary(filter, next.length)}</p>}
+            <div className="card overflow-hidden">
+              {next.map((event, i) => (
+                <CalendarEventRow key={event.id} event={event} today={today} first={i === 0} />
+              ))}
+            </div>
+          </>
         ) : (
-          <div className="card flex flex-col gap-3 p-4">
-            <p className="text-[15px] text-muted">Rien de prévu pour l'instant.</p>
-            <Link to="/evenement/nouveau" className={outlineButton}>
-              Ajouter un événement
+          <div className="card flex flex-col items-start gap-3 p-4">
+            <p className="text-[17px] font-semibold">{info.empty}</p>
+            <Link to={info.type ? `/evenement/nouveau?type=${info.type}` : '/evenement/nouveau'} className="btn btn-outline">
+              {info.add}
             </Link>
           </div>
         )}

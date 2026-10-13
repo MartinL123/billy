@@ -13,14 +13,6 @@ interface MonthGridProps {
   onSelect: (day: ISODate) => void
 }
 
-const LEGEND = [
-  { label: 'Vaccin', color: '#2F6FD0' },
-  { label: 'Soins', color: '#7B4FC9' },
-  { label: 'Véto', color: '#C4423A' },
-  { label: 'Éducateur', color: '#1E5A50' },
-  { label: 'Étape', color: '#D9661F' },
-]
-
 /** Semaines complètes (lundi → dimanche) couvrant le mois. */
 function gridDays(month: ISODate): ISODate[] {
   const { y, m } = parseISO(month)
@@ -98,14 +90,6 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
             </button>
           )
         })}
-      </div>
-      <div className="flex flex-wrap gap-x-3.5 gap-y-1.5 border-t border-divider px-1.5 pt-2 pb-1 text-xs text-muted">
-        {LEGEND.map(({ label, color }) => (
-          <span key={label} className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full" style={{ background: color }} />
-            {label}
-          </span>
-        ))}
       </div>
     </section>
   )

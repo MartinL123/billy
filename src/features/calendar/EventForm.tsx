@@ -36,11 +36,13 @@ export default function EventForm() {
   const back = useBack('/sante')
   const existing = id ? events.find((e) => e.id === id) : undefined
 
-  const [type, setType] = useState<EventType>(existing?.type ?? 'veto')
-  const [title, setTitle] = useState(existing?.title ?? EVENT_TYPES.veto.title)
+  // Depuis un filtre vide de Santé, le formulaire arrive pré-réglé sur la catégorie.
+  const asked = params.get('type') as EventType | null
+  const [type, setType] = useState<EventType>(existing?.type ?? (asked && asked in EVENT_TYPES ? asked : 'veto'))
+  const [title, setTitle] = useState(existing?.title ?? EVENT_TYPES[type].title)
   const [date, setDate] = useState(existing?.date ?? params.get('date') ?? today)
   const [time, setTime] = useState(existing?.time ?? '')
-  const [recurrence, setRecurrence] = useState<Recurrence>(existing?.recurrence ?? 'none')
+  const [recurrence, setRecurrence] = useState<Recurrence>(existing?.recurrence ?? EVENT_TYPES[type].recurrence)
   const [notes, setNotes] = useState(existing?.notes ?? '')
   const [errors, setErrors] = useState<{ title?: string; date?: string }>({})
   const [confirmDelete, setConfirmDelete] = useState(false)

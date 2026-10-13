@@ -43,3 +43,47 @@ export function upcoming<T extends Schedulable>(events: T[], today: ISODate): T[
     .sort((a, b) => a.date.localeCompare(b.date) || (a.time ?? '').localeCompare(b.time ?? ''))
     .sort((a, b) => Number(isOverdue(b, today)) - Number(isOverdue(a, today)))
 }
+
+// ——— Santé : filtrer par catégorie (spec V3 § 5.10) ———
+
+export type CareFilter = 'tout' | 'soins' | 'vaccins' | 'veto' | 'educateur' | 'etapes'
+
+export interface FilterInfo {
+  id: CareFilter
+  label: string
+  color: string
+  /** « 2 soins à venir » */
+  one: string
+  many: string
+  /** Catégorie vide. */
+  empty: string
+  add: string
+  /** Type pré-réglé du formulaire. */
+  type?: EventType
+}
+
+export const CARE_FILTERS: FilterInfo[] = [
+  { id: 'tout', label: 'Tout', color: '#18201E', one: 'événement à venir', many: 'événements à venir', empty: 'Rien de prévu pour l’instant', add: 'Ajouter un rendez-vous ou un soin' },
+  { id: 'soins', label: 'Soins', color: '#7B4FC9', one: 'soin à venir', many: 'soins à venir', empty: 'Aucun soin à venir', add: 'Ajouter un soin', type: 'antiparasitaire' },
+  { id: 'vaccins', label: 'Vaccins', color: '#2F6FD0', one: 'vaccin à venir', many: 'vaccins à venir', empty: 'Aucun vaccin à venir', add: 'Ajouter un vaccin', type: 'vaccin' },
+  { id: 'veto', label: 'Véto', color: '#C4423A', one: 'rendez-vous véto à venir', many: 'rendez-vous véto à venir', empty: 'Aucun rendez-vous véto à venir', add: 'Ajouter un rendez-vous véto', type: 'veto' },
+  { id: 'educateur', label: 'Éducateur', color: '#1E5A50', one: 'séance avec l’éducateur à venir', many: 'séances avec l’éducateur à venir', empty: 'Aucune séance avec l’éducateur à venir', add: 'Ajouter une séance avec l’éducateur', type: 'educateur' },
+  { id: 'etapes', label: 'Étapes', color: '#D9661F', one: 'étape à venir', many: 'étapes à venir', empty: 'Aucune étape à venir', add: 'Ajouter une étape', type: 'etape' },
+]
+
+export const filterInfo = (id: string): FilterInfo => CARE_FILTERS.find((f) => f.id === id) ?? CARE_FILTERS[0]!
+
+/** Catégorie d'un événement. Les anniversaires et « Billy a 6 mois / 1 an » sont des étapes. Séjours et autres : seulement dans « Tout ». */
+export function eventCategory(event: { type: string; title: string }): CareFilter | undefined {
+  if (event.type === 'etape' || /anniversaire/i.test(event.title)) return 'etapes'
+  if (event.type === 'vaccin') return 'vaccins'
+  if (event.type === 'vermifuge' || event.type === 'antiparasitaire') return 'soins'
+  if (event.type === 'veto') return 'veto'
+  if (event.type === 'educateur') return 'educateur'
+  return undefined
+}
+
+export const matchesFilter = (event: { type: string; title: string }, filter: CareFilter) => filter === 'tout' || eventCategory(event) === filter
+
+/** « 2 soins à venir », « 1 vaccin à venir ». */
+export const filterSummary = (filter: CareFilter, count: number) => `${count} ${count > 1 ? filterInfo(filter).many : filterInfo(filter).one}`

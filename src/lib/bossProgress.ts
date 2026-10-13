@@ -96,3 +96,29 @@ export function softAdvice(boss: Boss, map: ProgressMap): Advice | undefined {
 
 /** Un lien de l'arbre s'allume quand son prérequis conseillé est atteint. */
 export const linkLit = (map: ProgressMap, requirement: { bossId: string; level: number }) => levelOf(map, requirement.bossId) >= requirement.level
+
+// ——— Corriger « ce qu'il savait déjà faire » (écran de résultat du questionnaire) ———
+
+/**
+ * Une étape n'est décochable que si elle a été déclarée « avant l'app », ainsi que toutes les étapes plus difficiles
+ * déjà acquises : une étape validée dans l'app ne se décoche jamais, et décocher emporte les étapes au-dessus.
+ */
+export function canUncheck(progress: BossProgress, step: number): boolean {
+  if (step < 1 || step > progress.level) return false
+  const preApp = progress.preApp ?? []
+  for (let s = step; s <= progress.level; s++) if (!preApp.includes(s)) return false
+  return true
+}
+
+/** Décoche une étape « avant l'app » et toutes les plus difficiles. Sans effet si une étape validée dans l'app est concernée. */
+export function uncheckPreApp(progress: BossProgress, step: number): { progress: BossProgress; removed: number[] } {
+  if (!canUncheck(progress, step)) return { progress, removed: [] }
+  const removed = Array.from({ length: progress.level - step + 1 }, (_, i) => step + i)
+  return { progress: { ...progress, level: step - 1, preApp: (progress.preApp ?? []).filter((s) => s < step) }, removed }
+}
+
+/** XP et niveau une fois ces étapes retirées : seules les lignes « étape acquise » de ces étapes disparaissent. */
+export function xpWithout<T extends { id: string; xp: number }>(log: T[], bossId: string, steps: number[]): number {
+  const ids = new Set(steps.map((s) => `palier-${bossId}-${s}`))
+  return log.filter((e) => !ids.has(e.id)).reduce((sum, e) => sum + e.xp, 0)
+}

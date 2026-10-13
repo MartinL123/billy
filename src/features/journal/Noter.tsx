@@ -4,6 +4,7 @@ import { FilePicker } from '../../components/FilePicker'
 import { CheckIcon, PhotoIcon } from '../../components/Icons'
 import { useToast } from '../../components/Toast'
 import { SKILLS, stepPhrase, territoryOf } from '../../content/phrases'
+import { answerQuestion } from '../../firebase/db'
 import { saveImage } from '../../firebase/files'
 import { useData } from '../../firebase/store'
 import { completeQuest, recordMoment, type MomentOutcome } from '../../firebase/training'
@@ -105,7 +106,7 @@ export default function Noter() {
   const preview = previewMoment(input, yesIds, bossProgress, isValidISO(date) ? date : today)
   const gain = preview.xp + (fromQuest ? QUEST_XP : 0)
   const territory = territoryOf(skills[0] ?? '')
-  const leave = () => navigate(params.get('retour') === 'questionnaire' ? '/questionnaire' : '/', { replace: true })
+  const leave = () => navigate(params.get('retour') === 'questionnaire' ? '/questionnaire?etape=fin' : '/', { replace: true })
 
   const save = async () => {
     if (progress || saving) return
@@ -123,6 +124,8 @@ export default function Noter() {
         totalXp(xpLog),
       )
       if (fromQuest) completeQuest(today, { kind: today0.quest.kind, bossId: today0.quest.bossId, exerciseId: today0.quest.planned?.exercise.id }, today0.skips, QUEST_XP)
+      // Souvenir des premières semaines : l'écran de résultat du questionnaire le retrouve.
+      if (params.get('retour') === 'questionnaire') answerQuestion('souvenir', result.entryId, { 'questionnaire.souvenirs': [...(dog.questionnaire?.souvenirs ?? []), result.entryId] })
       setOutcome(result)
     } catch (err) {
       setSaving(false)

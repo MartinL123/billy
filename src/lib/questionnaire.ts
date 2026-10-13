@@ -11,6 +11,8 @@ export interface Questionnaire {
   /** Le questionnaire s'est déjà ouvert une première fois. */
   startedAt?: string
   completedAt?: string
+  /** Souvenirs des premières semaines notés depuis l'écran de résultat (identifiants du Carnet). */
+  souvenirs?: string[]
 }
 
 export const PARTS = ['Sa fiche d’identité', 'Sa santé', 'Son quotidien', 'Comment il réagit', 'Ce qu’il sait déjà faire']
@@ -125,6 +127,11 @@ export const FOLLOW_UPS: { value: SkillAnswer; question: string }[] = [
 /** Étapes acquises d'après la réponse : à la maison → 1 et 2 ; même dehors → 1 à 3 ; lieu animé → 4 ; partout → 5. */
 export function stepsForAnswer(answer: string | undefined): number {
   return answer === 'partout' ? 5 : answer === 'anime' ? 4 : answer === 'dehors' ? 3 : answer === 'maison' ? 2 : 0
+}
+
+/** La réponse qui correspond aux étapes cochées sur l'écran de résultat. */
+export function answerForSteps(steps: number): SkillAnswer {
+  return steps >= 5 ? 'partout' : steps === 4 ? 'anime' : steps === 3 ? 'dehors' : steps === 2 ? 'maison' : 'non'
 }
 
 // ——— Partie 4 : comment il réagit ———

@@ -505,3 +505,54 @@ describe('son programme : la semaine en 7 pastilles', () => {
     expect(programWeek('2026-10-15', [], [])[0]!.state).toBe('attente')
   })
 })
+
+import { canUncheck, markPreApp, uncheckPreApp, xpWithout } from './bossProgress'
+import { answerForSteps } from './questionnaire'
+import { globalLevel } from './xp'
+
+describe('corriger ce qu’il savait déjà faire', () => {
+  const pre = (level: number, preApp: number[]) => ({ level, validations: [], masteryPlaces: [], preApp })
+
+  it('décocher une étape décoche aussi les plus difficiles', () => {
+    const { progress, removed } = uncheckPreApp(pre(4, [1, 2, 3, 4]), 2)
+    expect(removed).toEqual([2, 3, 4])
+    expect(progress).toMatchObject({ level: 1, preApp: [1] })
+    expect(uncheckPreApp(pre(3, [1, 2, 3]), 3)).toMatchObject({ removed: [3], progress: { level: 2, preApp: [1, 2] } })
+  })
+
+  it('cocher une étape coche aussi les plus faciles', () => {
+    const { progress, gained } = markPreApp(pre(1, [1]), 4)
+    expect(gained).toEqual([2, 3, 4])
+    expect(progress).toMatchObject({ level: 4, preApp: [1, 2, 3, 4] })
+  })
+
+  it('ne décoche jamais une étape validée dans l’app, ni une étape située sous elle', () => {
+    // Étapes 1 et 2 déclarées, étape 3 gagnée par la pratique.
+    const mixed = pre(3, [1, 2])
+    expect(canUncheck(mixed, 3)).toBe(false)
+    expect(canUncheck(mixed, 2)).toBe(false)
+    expect(canUncheck(mixed, 1)).toBe(false)
+    expect(uncheckPreApp(mixed, 2)).toEqual({ progress: mixed, removed: [] })
+    // Une étape pas encore acquise n'a rien à décocher.
+    expect(canUncheck(pre(2, [1, 2]), 3)).toBe(false)
+    expect(canUncheck({ level: 2, validations: [], masteryPlaces: [] }, 2)).toBe(false)
+  })
+
+  it('recalcule le niveau sans toucher au reste de l’XP', () => {
+    const log = [
+      { id: 'palier-soins-1', xp: 50 },
+      { id: 'palier-soins-2', xp: 50 },
+      { id: 'palier-soins-3', xp: 50 },
+      { id: 'palier-lien-1', xp: 50 },
+      { id: 'moment-a', xp: 25 },
+    ]
+    expect(globalLevel(xpWithout(log, 'soins', [])).level).toBe(3)
+    expect(xpWithout(log, 'soins', [2, 3])).toBe(125)
+    expect(globalLevel(xpWithout(log, 'soins', [2, 3])).level).toBe(2)
+  })
+
+  it('met la réponse du questionnaire en accord avec les étapes cochées', () => {
+    expect([0, 1, 2, 3, 4, 5].map(answerForSteps)).toEqual(['non', 'non', 'maison', 'dehors', 'anime', 'partout'])
+    for (const n of [0, 2, 3, 4, 5]) expect(stepsForAnswer(answerForSteps(n))).toBe(n)
+  })
+})

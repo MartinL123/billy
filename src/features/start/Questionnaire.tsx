@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { FilePicker } from '../../components/FilePicker'
 import { CheckIcon, TrashIcon } from '../../components/Icons'
-import { levelTitle, SKILLS } from '../../content/phrases'
+import { SKILLS } from '../../content/phrases'
 import { answerQuestion, recordCare, saveWeight, updateDog } from '../../firebase/db'
 import { deleteFile, saveImage } from '../../firebase/files'
 import { newId } from '../../firebase/paths'
@@ -32,11 +32,10 @@ import {
   type Reaction,
   type SkillAnswer,
 } from '../../lib/questionnaire'
-import { acquiredSteps } from '../../lib/skills'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
-import { globalLevel, totalXp } from '../../lib/xp'
 import { BossIcon } from '../training/BossIcon'
+import { Result } from './Result'
 
 const label = 'text-[17px] font-bold'
 const input = 'field min-h-14 text-[17px]'
@@ -60,7 +59,7 @@ function Tick({ on }: { on: boolean }) {
  * on confirme au lieu de retaper. Une réponse ne compte qu'après « Suivant ».
  */
 export default function Questionnaire() {
-  const { dog, events, weights, bossProgress, xpLog } = useData()
+  const { dog, events, weights, bossProgress } = useData()
   const today = useToday()
   const navigate = useNavigate()
   const later = useBack('/')
@@ -223,8 +222,6 @@ export default function Questionnaire() {
 
   const title = step.title.replace('{nom}', draft.nom || dog.name)
   const skill = SKILLS.find((s) => s.id === step.id)
-  const known = acquiredSteps(bossProgress, xpLog)
-  const level = globalLevel(totalXp(xpLog)).level
   const choices = (draft[step.id] ?? '').split('|').filter(Boolean)
 
   const addReaction = (reaction: string) => {
@@ -460,33 +457,7 @@ export default function Questionnaire() {
           </>
         )}
 
-        {step.kind === 'fin' && (
-          <>
-            <h1 className="font-display text-[28px] leading-tight font-bold">
-              {dog.name} est niveau {level} · {levelTitle(level)}
-            </h1>
-            {known.length > 0 ? (
-              <>
-                <p className="text-[17px] text-muted">Voici ce qu'il sait déjà faire :</p>
-                <ul className="card m-0 flex list-none flex-col p-0">
-                  {known.map((item, i) => (
-                    <li key={`${item.bossId}-${item.step}`} className={`flex items-start gap-3 px-4 py-3 ${i ? 'border-t border-divider' : ''}`}>
-                      <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-white">
-                        <CheckIcon size={14} />
-                      </span>
-                      <span className="text-[17px] leading-snug">{item.phrase}</span>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ) : (
-              <p className="text-[17px] leading-snug text-muted">Tout est à découvrir ensemble. Chaque moment noté le fera progresser.</p>
-            )}
-            <button type="button" onClick={() => navigate('/noter?quand=autre&retour=questionnaire')} className="btn btn-outline">
-              Noter un souvenir de vos premières semaines
-            </button>
-          </>
-        )}
+        {step.kind === 'fin' && <Result />}
 
         {error && (
           <p role="alert" className="text-[15px] font-semibold text-danger">
@@ -496,11 +467,11 @@ export default function Questionnaire() {
       </div>
 
       <footer className="mt-6 grid grid-cols-[auto_minmax(0,1fr)] gap-2.5">
-        <button type="button" onClick={() => go(index - 1)} disabled={index === 0} className="btn btn-quiet px-5 disabled:opacity-40">
+        <button type="button" onClick={() => go(index - 1)} disabled={index === 0} className={`btn ${step.kind === 'fin' ? 'btn-outline' : 'btn-quiet'} px-5 disabled:opacity-40`}>
           Retour
         </button>
         <button type="button" onClick={next} className="btn btn-main">
-          {step.kind === 'fin' ? 'Commencer' : 'Suivant'}
+          {step.kind === 'fin' ? 'C’est bon, on commence' : 'Suivant'}
         </button>
       </footer>
     </main>

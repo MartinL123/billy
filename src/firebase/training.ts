@@ -3,7 +3,7 @@ import { db } from './app'
 import { newId, send, userDoc } from './paths'
 import type { BossProgress, DailyQuestDoc, Entry, Exposure, Place, TrainingSession, XpEntry } from './types'
 import { bossById } from '../content/training'
-import { addValidation, EMPTY_PROGRESS, markPreApp } from '../lib/bossProgress'
+import { addValidation, EMPTY_PROGRESS, markPreApp, uncheckPreApp } from '../lib/bossProgress'
 import type { ISODate } from '../lib/dates'
 import { MOMENT_XP, previewMoment } from '../lib/moment'
 import { globalLevel, XP } from '../lib/xp'
@@ -132,6 +132,31 @@ export function declarePreApp(bossId: string, current: BossProgress | undefined,
   return gained
 }
 
+/**
+ * Écran de résultat du questionnaire : décoche une étape « avant l'app » et les plus difficiles.
+ * Leurs lignes d'XP « étape acquise » sont retirées : c'est une correction avant le départ, pas une baisse.
+ * Une étape validée dans l'app n'est jamais concernée. Renvoie de quoi annuler.
+ */
+export function uncheckSteps(bossId: string, current: BossProgress, step: number, log: (XpEntry & { id: string })[]): { removed: number[]; undo: () => void } {
+  const { progress, removed } = uncheckPreApp(current, step)
+  if (removed.length === 0) return { removed, undo: () => undefined }
+  const ids = removed.map((s) => `palier-${bossId}-${s}`)
+  const previous = log.filter((e) => ids.includes(e.id))
+  const batch = writeBatch(db)
+  batch.set(userDoc('bossProgress', bossId), strip(progress))
+  for (const id of ids) batch.delete(xpRef(id))
+  send(batch.commit())
+  return {
+    removed,
+    undo: () => {
+      const back = writeBatch(db)
+      back.set(userDoc('bossProgress', bossId), strip({ level: current.level, validations: current.validations, masteryPlaces: current.masteryPlaces, preApp: current.preApp }))
+      for (const { id, ...entry } of previous) back.set(xpRef(id), strip<XpEntry>({ date: entry.date, kind: entry.kind, xp: entry.xp, bossId: entry.bossId, key: entry.key, label: entry.label, createdAt: entry.createdAt }))
+      send(back.commit())
+    },
+  }
+}
+
 /** Gain d'XP unique (première fois, quête, repos du jour) : l'identifiant fixe empêche tout doublon. */
 export function awardOnce(id: string, entry: Omit<XpEntry, 'createdAt'>): void {
   send(setDoc(xpRef(id), strip<XpEntry>({ ...entry, createdAt: now() })))
@@ -174,6 +199,8 @@ export function completeQuest(date: ISODate, quest: { kind: 'exercice' | 'revisi
 // ——— Noter ce qu'on a fait (V3) ———
 
 export interface MomentOutcome {
+  /** Identifiant du moment dans le Carnet. */
+  entryId: string
   xp: number
   /** Étapes acquises grâce à ce moment. */
   steps: { bossId: string; level: number }[]
@@ -235,6 +262,7 @@ export function recordMoment(entry: Entry, yes: string[], progress: Record<strin
   send(batch.commit())
 
   return {
+    entryId,
     xp: preview.xp,
     steps: preview.steps,
     levelReached: levelAfter > levelBefore ? levelAfter : undefined,

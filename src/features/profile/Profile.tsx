@@ -169,7 +169,8 @@ export default function Profile() {
         </div>
       </section>
 
-      <Link to="/questionnaire" className="card-link min-h-16">
+      {/* Une fois terminé, on arrive sur le résultat : c'est là qu'on corrige ce qu'il savait déjà faire. */}
+      <Link to={status.complete ? '/questionnaire?etape=fin' : '/questionnaire'} className="card-link min-h-16">
         <NoteIcon size={24} className="shrink-0 text-primary" />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[17px] font-bold">Questionnaire de départ</span>

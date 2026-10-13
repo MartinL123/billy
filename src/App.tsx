@@ -17,6 +17,7 @@ import Questionnaire from './features/start/Questionnaire'
 import Today from './features/today/Today'
 import BossSheet from './features/training/BossSheet'
 import { DressageAwards } from './features/training/DressageAwards'
+import Exercise from './features/training/Exercise'
 import ExposureForm from './features/training/ExposureForm'
 import Session from './features/training/Session'
 import Training from './features/training/Training'
@@ -83,6 +84,7 @@ export default function App() {
             <Route path="souvenir/nouveau" element={<Navigate to="/raconter" replace />} />
             <Route path="souvenir/:id" element={<EntryForm />} />
             <Route path="boss/:id" element={<BossSheet />} />
+            <Route path="exercice" element={<Exercise />} />
             <Route path="seance" element={<Session />} />
             <Route path="exposition" element={<ExposureForm />} />
             <Route path="document/nouveau" element={<DocumentForm />} />

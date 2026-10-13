@@ -195,3 +195,30 @@ describe('Carnet unifié', () => {
     expect([...items].sort(byRecency).map((i) => `${i.date}${i.createdAt ?? ''}`)).toEqual(['2026-10-13b', '2026-10-13a', '2026-10-10'])
   })
 })
+
+import { challengeProgress, weekChallenge } from './challenge'
+
+describe('défi de la semaine', () => {
+  it('est unique, sur une compétence conseillée, et change chaque semaine', () => {
+    const a = weekChallenge('2026-10-12', ['chiot', 'craintif'])
+    expect(a.target).toBe(3)
+    expect(a.label).toMatch(/^Raconter 3 moments pour /)
+    expect(a.label).not.toMatch(BANNED)
+    expect(weekChallenge('2026-10-12', ['chiot', 'craintif'])).toEqual(a)
+    expect(weekChallenge('2026-10-19', ['chiot', 'craintif']).bossId).not.toBe(a.bossId)
+  })
+
+  it('compte les moments de la semaine où la compétence est choisie', () => {
+    const challenge = { bossId: 'lien', label: '', target: 3 }
+    const moments = [
+      { date: '2026-10-12', skills: ['lien'] },
+      { date: '2026-10-13', skills: ['rappel', 'lien'] },
+      { date: '2026-10-13', skills: ['ville'] },
+      { date: '2026-10-13' },
+      { date: '2026-10-05', skills: ['lien'] },
+    ]
+    expect(challengeProgress(challenge, '2026-10-13', moments, [])).toBe(2)
+    expect(challengeProgress(challenge, '2026-10-13', moments, [{ date: '2026-10-14', bossId: 'rappel', bossIds: ['rappel', 'lien'] }])).toBe(3)
+    expect(challengeProgress(challenge, '2026-10-13', [...moments, ...moments], [])).toBe(3)
+  })
+})

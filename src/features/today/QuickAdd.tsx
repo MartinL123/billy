@@ -1,70 +1,70 @@
-import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FilePicker } from '../../components/FilePicker'
-import { CalendarIcon, DocumentIcon, InfoIcon, NoteIcon, PhotoIcon, TargetIcon } from '../../components/Icons'
+import { CalendarIcon, DocumentIcon, NoteIcon, PhotoIcon, TargetIcon } from '../../components/Icons'
 import { Sheet } from '../../components/Sheet'
+import { useToast } from '../../components/Toast'
+import { useData } from '../../firebase/store'
+import { declareRest } from '../../firebase/training'
+import { weekOf } from '../../lib/rhythm'
+import { useToday } from '../../lib/useToday'
+import { restXp } from '../../lib/xp'
 import { setDraftPhotos } from '../journal/draft'
 
-const rowClass = 'flex w-full items-center gap-3.5 rounded-[20px] border-0 bg-bg px-4 py-2.5 text-left text-text'
-
-function RowContent({ icon, tone, title, detail }: { icon: ReactNode; tone: string; title: string; detail: string }) {
-  return (
-    <>
-      <span className={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${tone}`}>{icon}</span>
-      <span className="flex flex-col gap-0.5">
-        <span className="text-[17px] font-bold">{title}</span>
-        <span className="text-sm text-muted">{detail}</span>
-      </span>
-    </>
-  )
-}
-
-/** Feuille d'ajout rapide : tout s'ajoute en 2 taps depuis l'accueil. */
+/** Le « + » : raconter d'abord, puis faire un exercice, puis le reste. */
 export function QuickAdd({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate()
+  const { xpLog } = useData()
+  const today = useToday()
+  const toast = useToast()
   const go = (to: string) => {
     onClose()
     navigate(to)
   }
+  const rested = xpLog.some((e) => e.id === `repos-${today}`)
+  const rest = () => {
+    const xp = restXp(xpLog, weekOf(today))
+    const { undo } = declareRest(today, false, xp)
+    onClose()
+    toast(`Jour de repos noté${xp ? ` · +${xp} XP` : ''}`, { label: 'Annuler', run: undo })
+  }
+  const other = 'btn btn-quiet w-full justify-start gap-3 px-4'
 
   return (
     <Sheet label="Ajouter" onClose={onClose}>
       <h2 className="my-1 font-display text-2xl font-bold">Ajouter</h2>
 
-      <button type="button" onClick={() => go('/seance')} className={rowClass}>
-        <RowContent icon={<TargetIcon size={26} />} tone="bg-primary-soft text-primary-dark" title="Séance" detail="5 essais sur un exercice de dressage" />
+      <button type="button" onClick={() => go('/raconter')} className="btn btn-main min-h-16 w-full text-[19px]">
+        <NoteIcon size={24} />
+        Raconter ce qu'on a fait
+      </button>
+      <button type="button" onClick={() => go('/exercice')} className="btn btn-outline min-h-14 w-full">
+        <TargetIcon size={22} />
+        Faire un exercice
       </button>
 
-      <button type="button" onClick={() => go('/exposition')} className={rowClass}>
-        <RowContent icon={<InfoIcon size={26} />} tone="bg-milestone-soft text-milestone-dark" title="Exposition" detail="Un déclencheur croisé, voulu ou subi" />
-      </button>
-
-      {/* « Photos » ouvre directement la photothèque, puis le formulaire d'entrée. */}
+      <h3 className="mt-2 text-[15px] font-bold tracking-[0.5px] text-muted uppercase">Autre</h3>
+      {/* « Photos » ouvre la photothèque, puis « Raconter un moment » avec les photos choisies. */}
       <FilePicker
         accept="image/*"
         onFiles={(files) => {
           setDraftPhotos(files)
           go('/raconter')
         }}
-        className={rowClass}
+        className={other}
       >
-        <RowContent icon={<PhotoIcon size={26} />} tone="bg-primary text-white" title="Photos" detail="Depuis ta photothèque" />
+        <PhotoIcon size={22} />
+        Photos
       </FilePicker>
-
-      <button type="button" onClick={() => go('/raconter')} className={rowClass}>
-        <RowContent icon={<NoteIcon size={26} />} tone="bg-[#EEF0EE] text-[#3F4946]" title="Note" detail="Un progrès, une bêtise, un ressenti" />
+      <button type="button" onClick={() => go('/evenement/nouveau')} className={other}>
+        <CalendarIcon size={22} />
+        Rendez-vous ou soin
       </button>
-
-      <button type="button" onClick={() => go('/evenement/nouveau')} className={rowClass}>
-        <RowContent icon={<CalendarIcon size={26} />} tone="bg-info-soft text-info" title="Événement" detail="Vaccin, véto, séance, séjour…" />
+      <button type="button" onClick={() => go('/document/nouveau')} className={other}>
+        <DocumentIcon size={22} />
+        Document
       </button>
-
-      <button type="button" onClick={() => go('/document/nouveau')} className={rowClass}>
-        <RowContent icon={<DocumentIcon size={26} />} tone="bg-[#F6E3E1] text-[#9A2F28]" title="Document" detail="PDF ou photos de pages" />
-      </button>
-
-      <button type="button" onClick={onClose} className="btn btn-quiet mt-1">
-        Annuler
+      <button type="button" disabled={rested} onClick={rest} className={`${other} disabled:opacity-50`}>
+        {rested ? 'Jour de repos déjà noté' : 'Jour de repos'}
       </button>
     </Sheet>
   )

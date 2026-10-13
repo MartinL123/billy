@@ -1,152 +1,153 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
-import { outlineButton } from '../../components/Form'
-import { PageHeader } from '../../components/PageHeader'
+import { CheckIcon, ChevronRightIcon, NoteIcon, TargetIcon } from '../../components/Icons'
 import { Fab } from '../../components/TabBar'
+import { levelTitle } from '../../content/phrases'
 import { useData } from '../../firebase/store'
-import { formatAge, milestoneMessage } from '../../lib/age'
-import { upcoming } from '../../lib/events'
-import { onThisDay } from '../../lib/memories'
+import { milestoneMessage } from '../../lib/age'
+import { challengeProgress, weekChallenge } from '../../lib/challenge'
+import { diffDays, formatDayHeading, formatRelative, formatTime } from '../../lib/dates'
+import { typeInfo, upcoming } from '../../lib/events'
+import { nextMealIndex, portion, sortMeals } from '../../lib/feeding'
+import { MOMENT_XP } from '../../lib/moment'
+import { recommendSession } from '../../lib/recommend'
+import { weekId } from '../../lib/rhythm'
+import { lastSuccess } from '../../lib/skills'
 import { useToday } from '../../lib/useToday'
-import { CalendarEventRow } from '../calendar/EventRows'
-import { entryDateLabel } from '../journal/EntryCard'
+import { globalLevel, totalXp } from '../../lib/xp'
 import { DailyIdeas } from './DailyIdeas'
-import { Meals } from './Meals'
 import { QuickAdd } from './QuickAdd'
-import { bossById } from '../../content/training'
-import { ChevronRightIcon, TargetIcon } from '../../components/Icons'
-import { sessionLink } from '../../lib/recommend'
-import { useSessionAdvice } from '../training/SessionAdviceCard'
 
+const RING = 2 * Math.PI * 46
+
+/** Accueil : la partie. Le niveau de Billy, puis l'action principale : raconter ce qu'on a fait. */
 export default function Today() {
-  const { dog, events, entries } = useData()
+  const { dog, events, entries, sessions, bossProgress, xpLog } = useData()
   const today = useToday()
   const [adding, setAdding] = useState(false)
 
-  const next = upcoming(events, today).slice(0, 3)
-  const toComplete = events.filter((e) => !e.date && !e.done).length
+  const level = globalLevel(totalXp(xpLog))
+  const ratio = Math.min(1, level.current / level.needed)
+  const advice = recommendSession(dog.traits ?? [], sessions)
+  const challenge = weekChallenge(weekId(today), dog.traits ?? [])
+  const done = challengeProgress(challenge, today, entries, sessions)
+  const success = lastSuccess(bossProgress, xpLog)
   const celebration = milestoneMessage(dog.name, dog.birthDate, dog.adoptionDate, today)
-  const lastEntry = entries[0]
-  const lastPhoto = lastEntry?.photos[0]
-  const memories = onThisDay(entries, today)
-  const advice = useSessionAdvice()
 
-  const sectionLink = 'py-2.5 text-[15px] font-semibold text-primary no-underline'
+  const meals = sortMeals(dog.feeding?.meals ?? [])
+  const nextMeal = meals[nextMealIndex(meals, new Date().toTimeString().slice(0, 5)) ?? -1]
+  const grams = dog.feeding ? portion(dog.feeding) : undefined
+  const care = upcoming(events, today).slice(0, 2)
 
   return (
-    <div className="flex flex-col gap-6 px-5">
-      <PageHeader title="Aujourd'hui" />
+    <div className="flex flex-col gap-4 px-5">
+      <p className="text-[15px] font-medium text-muted">{formatDayHeading(today)}</p>
 
-      <section aria-label={dog.name} className="card overflow-hidden rounded-3xl">
-        <div className="flex items-center gap-4 p-4">
-          {dog.photoThumbFileId ? (
-            <FileImage fileId={dog.photoThumbFileId} alt={`Photo de ${dog.name}`} className="size-[88px] shrink-0 rounded-[20px]" eager />
-          ) : (
-            <Link
-              to="/profil"
-              className="flex size-[88px] shrink-0 items-center justify-center rounded-[20px] bg-placeholder p-2 text-center text-xs font-semibold text-primary no-underline"
-            >
-              Ajouter une photo
-            </Link>
-          )}
-          <div className="flex flex-col gap-1">
-            <div className="font-display text-[26px] font-bold">{dog.name}</div>
-            <div className="text-base text-muted">{formatAge(dog.birthDate, today)}</div>
-          </div>
-        </div>
-        {celebration && <div className="bg-primary-soft px-4 py-3 text-[15px] font-medium text-primary-dark">{celebration}</div>}
-      </section>
+      <Link to="/billy" aria-label={`${dog.name}, niveau ${level.level}, ${levelTitle(level.level)}. Voir ce qu'il sait faire`} className="flex items-center gap-[18px] rounded-[28px] bg-primary p-5 text-white no-underline shadow-[0_6px_18px_rgba(30,90,80,0.25)]">
+        <span className="relative size-[104px] shrink-0">
+          <svg viewBox="0 0 104 104" className="absolute inset-0 size-full -rotate-90" aria-hidden="true">
+            <circle cx="52" cy="52" r="46" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="8" />
+            <circle cx="52" cy="52" r="46" fill="none" stroke="#F2B544" strokeWidth="8" strokeLinecap="round" strokeDasharray={RING} strokeDashoffset={RING * (1 - ratio)} className="transition-[stroke-dashoffset] duration-700" />
+          </svg>
+          <span className="absolute inset-3 flex items-center justify-center overflow-hidden rounded-full bg-milestone-soft font-display text-4xl font-bold text-milestone-dark">
+            {dog.photoThumbFileId ? <FileImage fileId={dog.photoThumbFileId} alt="" className="size-full" eager /> : dog.name.charAt(0).toUpperCase()}
+          </span>
+          <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 rounded-xl bg-gold px-2.5 py-[3px] font-display text-[13px] font-extrabold whitespace-nowrap text-gold-dark">Niv. {level.level}</span>
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="font-display text-[28px] leading-none font-extrabold">{dog.name}</span>
+          <span className="text-[17px] font-bold text-[#F7D58A]">{levelTitle(level.level)}</span>
+          <span className="text-sm text-white/85">
+            Encore {level.needed - level.current} XP avant le niveau {level.level + 1}
+          </span>
+        </span>
+        <ChevronRightIcon size={24} className="shrink-0" />
+      </Link>
+
+      {celebration && <p className="rounded-[20px] bg-primary-soft px-4 py-3 text-[15px] font-medium text-primary-dark">{celebration}</p>}
+
+      <Link to="/raconter" className="btn btn-main min-h-16 text-[19px] shadow-[0_4px_12px_rgba(194,87,26,0.35)]">
+        <NoteIcon size={24} />
+        Raconter ce qu'on a fait
+      </Link>
 
       {advice && (
-        <Link to={sessionLink(advice)} className="card -mt-3 flex min-h-[64px] items-center gap-3.5 px-4 py-3 text-text no-underline">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary-soft text-primary-dark">
-            <TargetIcon size={24} />
+        <Link to={`/exercice?competence=${advice.bossId}&exercice=${advice.exercise.id}`} className="btn btn-outline min-h-14">
+          <TargetIcon size={22} />
+          Faire un exercice · {advice.exercise.name}
+        </Link>
+      )}
+
+      <section aria-label="Défi de la semaine" className="card flex flex-col gap-3 rounded-[22px] p-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-[13px] font-bold tracking-[0.6px] text-milestone-dark uppercase">Défi de la semaine</h2>
+          <span className="text-sm font-bold text-primary">+{MOMENT_XP.challenge} XP</span>
+        </div>
+        <p className="text-[17px] leading-snug font-semibold">{challenge.label}</p>
+        <div className="grid grid-cols-3 gap-1.5" aria-hidden="true">
+          {[0, 1, 2].map((i) => (
+            <span key={i} className={`h-2.5 rounded-full ${i < done ? 'bg-milestone' : 'bg-placeholder'}`} />
+          ))}
+        </div>
+        <p className="text-sm text-muted">{done >= challenge.target ? 'Défi réussi, bravo !' : `${done} sur ${challenge.target} · rien n'est perdu si ce n'est pas fini dimanche`}</p>
+      </section>
+
+      {success?.date ? (
+        <Link to={`/competence/${success.bossId}`} className="card-link rounded-[22px]">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-gold-soft text-[#8A6514]">
+            <CheckIcon size={24} />
           </span>
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="text-[13px] font-semibold text-muted">Séance du jour</span>
-            <span className="truncate text-base font-semibold">{advice.exercise.name}</span>
-            <span className="truncate text-[13px] text-muted">
-              {bossById(advice.bossId)?.name} · N{advice.difficulty}
-            </span>
+            <span className="text-[13px] font-bold tracking-[0.6px] text-[#8A6514] uppercase">Dernière réussite · {formatRelative(success.date, today)}</span>
+            <span className="text-base leading-snug font-semibold">{success.phrase}</span>
+          </span>
+          <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
+        </Link>
+      ) : (
+        <Link to="/billy" className="card-link rounded-[22px]">
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="text-[13px] font-bold tracking-[0.6px] text-[#8A6514] uppercase">Ce qu'il sait faire</span>
+            <span className="text-base leading-snug font-semibold">Voir les compétences de {dog.name}</span>
           </span>
           <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
         </Link>
       )}
 
-      {dog.feeding && dog.feeding.meals.length > 0 && <Meals dogName={dog.name} feeding={dog.feeding} today={today} />}
-
-      <section className="flex flex-col gap-3">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-[19px] font-bold">À venir</h2>
-          <Link to="/calendrier" className={sectionLink}>
-            Tout voir
-          </Link>
-        </div>
-        {next.length > 0 ? (
-          <div className="card overflow-hidden">
-            {next.map((event, i) => (
-              <CalendarEventRow key={event.id} event={event} today={today} first={i === 0} />
-            ))}
-          </div>
-        ) : (
-          <div className="card flex flex-col gap-3 p-4">
-            <p className="text-[15px] text-muted">Rien de prévu pour l'instant.</p>
-            <Link to="/evenement/nouveau" className={outlineButton}>
-              Ajouter un événement
-            </Link>
-          </div>
-        )}
-        {toComplete > 0 && (
-          <Link to="/calendrier" className="flex min-h-11 items-center rounded-field bg-info-soft px-4 py-2.5 text-[15px] font-semibold text-[#1D3F73] no-underline">
-            {toComplete > 1 ? `${toComplete} dates à compléter` : '1 date à compléter'} dans le calendrier
-          </Link>
-        )}
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-[19px] font-bold">Dernier souvenir</h2>
-          <Link to="/carnet" className={sectionLink}>
-            Journal
-          </Link>
-        </div>
-        {lastEntry ? (
-          <Link to="/carnet" className="card flex items-center gap-3.5 overflow-hidden p-3 text-text no-underline">
-            {lastPhoto && <FileImage fileId={lastPhoto.thumbFileId} alt="" className="size-24 shrink-0 rounded-field" />}
-            <div className="flex min-w-0 flex-col gap-1.5 py-1">
-              {lastEntry.text && <div className="line-clamp-3 text-[15px] leading-[1.4]">{lastEntry.text}</div>}
-              <div className="text-[13px] text-muted">{[entryDateLabel(lastEntry.date, today).split(' · ')[0], ...lastEntry.tags.slice(0, 2)].join(' · ')}</div>
+      <section className="flex flex-col gap-2.5">
+        <h2 className="mt-1 text-[19px] font-bold">Aujourd'hui</h2>
+        <div className="card overflow-hidden">
+          {nextMeal && (
+            <div className="flex items-center gap-3 px-4 py-3.5">
+              <span className="size-2.5 shrink-0 rounded-full bg-primary" />
+              <span className="flex-1 text-base font-semibold">
+                Repas de {formatTime(nextMeal.time)}
+                {grams ? ` · ${grams} g` : ''}
+              </span>
+              <span className="text-sm text-muted">{nextMeal.label}</span>
             </div>
-          </Link>
-        ) : (
-          <div className="card flex flex-col gap-3 p-4">
-            <p className="text-[15px] text-muted">Le premier souvenir de {dog.name} commence ici.</p>
-            <Link to="/raconter" className={outlineButton}>
-              Écrire une note
-            </Link>
-          </div>
-        )}
+          )}
+          {care.map((event, i) => {
+            const late = diffDays(event.date, today) > 0
+            return (
+              <div key={event.id} className={`flex items-center gap-3 px-4 py-3.5 ${nextMeal || i ? 'border-t border-divider' : ''}`}>
+                <span className="size-2.5 shrink-0 rounded-full" style={{ background: typeInfo(event.type).color }} />
+                <span className="min-w-0 flex-1 truncate text-base font-semibold">{event.title}</span>
+                <span className={`shrink-0 text-sm ${late ? 'font-semibold text-danger' : 'text-muted'}`}>{late ? 'en retard' : formatRelative(event.date, today)}</span>
+              </div>
+            )
+          })}
+          {!nextMeal && care.length === 0 && <p className="px-4 py-3.5 text-base text-muted">Rien de prévu aujourd'hui.</p>}
+        </div>
+        <Link to="/sante" className="card-link">
+          <span className="flex-1 text-[17px] font-semibold">Voir la santé et les rendez-vous</span>
+          <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
+        </Link>
       </section>
 
       <DailyIdeas today={today} />
 
-      {memories.length > 0 && (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-[19px] font-bold">Ce jour-là</h2>
-          {memories.map(({ label, entry }) => (
-            <Link key={entry.id} to={`/souvenir/${entry.id}`} className="card flex items-center gap-3.5 overflow-hidden p-3 text-text no-underline">
-              {entry.photos[0] && <FileImage fileId={entry.photos[0].thumbFileId} alt="" className="size-24 shrink-0 rounded-field" />}
-              <div className="flex min-w-0 flex-col gap-1.5 py-1">
-                <div className="text-[13px] font-semibold text-milestone-dark">{label}</div>
-                {entry.text && <div className="line-clamp-3 text-[15px] leading-[1.4]">{entry.text}</div>}
-              </div>
-            </Link>
-          ))}
-        </section>
-      )}
-
-      <Fab label="Ajouter une photo, une note, un événement ou un document" onClick={() => setAdding(true)} />
+      <Fab label="Ajouter" onClick={() => setAdding(true)} />
       {adding && <QuickAdd onClose={() => setAdding(false)} />}
     </div>
   )

@@ -61,6 +61,8 @@ export interface Dog {
   homeMood?: string
   /** Ce que le chien porte (boutique). */
   cosmetics?: Cosmetics
+  /** Le mot de passe donné par Martin a été changé, ou la proposition fermée. */
+  passwordPromptDone?: boolean
   /** Compétences en cours choisies par le maître (3 au plus). Absent : l'app propose les 3 premières non maîtrisées. */
   activeSkills?: string[]
   /** Calculé à la lecture, jamais enregistré : le nom n'a pas encore été donné (on affiche « Votre chien »). */

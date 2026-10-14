@@ -1,4 +1,4 @@
-import { deleteUser, EmailAuthProvider, onAuthStateChanged, reauthenticateWithCredential, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth'
+import { deleteUser, updatePassword, EmailAuthProvider, onAuthStateChanged, reauthenticateWithCredential, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth'
 import { FirebaseError } from 'firebase/app'
 import { auth } from './app'
 
@@ -21,6 +21,14 @@ export async function confirmPassword(password: string): Promise<void> {
   if (!user?.email) throw new Error('Aucun compte connecté.')
   await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password))
 }
+
+/** Changer son mot de passe : l'ancien est vérifié d'abord. */
+export async function changePassword(current: string, next: string): Promise<void> {
+  await confirmPassword(current)
+  if (auth.currentUser) await updatePassword(auth.currentUser, next)
+}
+
+export const MIN_PASSWORD = 8
 
 /** Supprime le compte lui-même. Les données doivent déjà avoir été supprimées. */
 export async function deleteAccount(): Promise<void> {
@@ -47,6 +55,10 @@ export function authErrorMessage(error: unknown): AuthMessage {
       return { field: 'password', text: 'Trop de tentatives. Patientez quelques minutes avant de réessayer.' }
     case 'auth/network-request-failed':
       return { field: 'password', text: 'Pas de réseau. La première connexion a besoin d’Internet.' }
+    case 'auth/weak-password':
+      return { field: 'password', text: 'Mot de passe trop court : 8 caractères au moins.' }
+    case 'auth/requires-recent-login':
+      return { field: 'password', text: 'Par sécurité, reconnectez-vous puis réessayez.' }
     case 'auth/user-disabled':
       return { field: 'email', text: 'Ce compte est désactivé.' }
     default:

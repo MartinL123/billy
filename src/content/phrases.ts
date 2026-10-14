@@ -1,4 +1,5 @@
 import { bossById, BOSSES, type Boss, type Tier } from './training'
+import { place } from '../lib/garden'
 
 // Ce que voit le joueur (docs/specs/spec-v3-simplification.md) : chaque étape est une phrase concrète,
 // jamais un numéro. Les phrases commencent par un verbe : « Billy revient… », « Prochaine étape : revient… ».
@@ -93,7 +94,7 @@ const TEXTS: Record<string, SkillText> = {
 export const skillText = (bossId: string): SkillText | undefined => TEXTS[bossId]
 
 /** Phrase d'une étape (1 à 5), telle qu'on l'affiche : « Revient quand on l'appelle d'une autre pièce ». */
-export const stepPhrase = (bossId: string, step: number): string => TEXTS[bossId]?.steps[step - 1] ?? bossById(bossId)?.levels[step - 1]?.criterion ?? ''
+export const stepPhrase = (bossId: string, step: number): string => place(TEXTS[bossId]?.steps[step - 1] ?? bossById(bossId)?.levels[step - 1]?.criterion ?? '')
 
 /** « revient quand on l'appelle… » : la même phrase, sans majuscule, pour la mettre après « Billy » ou « Prochaine étape : ». */
 export const stepPhraseLower = (bossId: string, step: number): string => {

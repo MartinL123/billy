@@ -21,6 +21,7 @@ import { useQuest } from '../today/useQuest'
 import { Illustration } from './Illustration'
 import { needsCalmPlace } from '../../lib/community'
 import { CalmSpotCard } from '../meute/CalmSpotCard'
+import { place } from '../../lib/garden'
 
 const GENERIC_TIP = 'S’il ne mange plus, il est trop stressé : arrêtez et revenez plus facile la prochaine fois.'
 
@@ -187,8 +188,8 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
   // Le réglage vient de l'étape en cours ; pour un autre exercice, celui du mode précis.
   const planned = (fromQuest && quest.planned?.exercise.id === exercise.id ? quest.planned : undefined) ?? exercisesForStep(skillId, acquired).find((p) => p.exercise.id === exercise.id)
   const level = planned?.level ?? currentDifficulty(sessions, exercise.id)
-  const setting = exercise.levels[level - 1]
-  const easier = level > 1 ? exercise.levels[level - 2] : undefined
+  const setting = place(exercise.levels[level - 1] ?? '')
+  const easier = level > 1 ? place(exercise.levels[level - 2] ?? '') : undefined
   const skill = exercise.bossIds.includes(skillId) ? skillId : exercise.bossIds[0]!
   const territory = territoryOf(skill)
   const step = Math.min(MAX_LEVEL, (bossProgress[skill]?.level ?? 0) + 1)
@@ -237,7 +238,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
                 <span className="flex size-7 shrink-0 items-center justify-center rounded-full text-[15px] leading-none font-extrabold text-white" style={{ background: inkOn(territory) }}>
                   {i + 1}
                 </span>
-                <span className="text-[17px] leading-7">{text}</span>
+                <span className="text-[17px] leading-7">{place(text)}</span>
               </li>
             ))}
           </ol>

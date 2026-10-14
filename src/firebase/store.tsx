@@ -7,6 +7,7 @@ import { isClosingAccount } from './erase'
 import type { Bone } from '../lib/bones'
 import type { StoredSavedRoute } from '../lib/route'
 import { isExposure, isTrainingSession, type BillyDocument, type BillyEvent, type BossProgress, type DailyQuestDoc, type Dog, type InventoryItem, type Entry, type Exposure, type Place, type QuestWeek, type TrainingSession, type Weight, type WithId, type XpEntry } from './types'
+import { setNoGarden } from '../lib/garden'
 
 interface Data {
   dog: WithId<Dog>
@@ -122,6 +123,8 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
     const progressById = Object.fromEntries(bossProgress.map((p) => [p.id, p]))
     // Tant que le nom n'est pas donné, l'interface dit « Votre chien ».
     const named = dog.name?.trim() ? dog : { ...dog, name: 'Votre chien', unnamed: true }
+    // Sans jardin : les textes du dressage parlent de couloir, palier, parc vide.
+    setNoGarden(dog.garden === 'Non')
     return { dog: named, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, places, xpLog, questWeeks, dailyQuests, bones, inventory, routes, usage, pendingCount, online }
   }, [dog, events, weights, entries, documents, sessions, exposures, bossProgress, places, xpLog, questWeeks, dailyQuests, bones, inventory, routes, usage, online])
 

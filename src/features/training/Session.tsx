@@ -15,6 +15,7 @@ import { sessionXp, type Decision } from '../../lib/xp'
 import { SkillPill } from '../billy/SkillPill'
 import { StepSuccess } from './Celebration'
 import { Illustration } from './Illustration'
+import { place } from '../../lib/garden'
 
 const bigChoice = (active: boolean) =>
   `min-h-[52px] rounded-field border-[1.5px] px-3 text-base ${active ? 'border-primary bg-primary font-bold text-white' : 'border-border bg-surface font-semibold text-text'}`
@@ -224,7 +225,7 @@ export default function Session() {
                   {item.name} : {mastery ? 'réussi dans un nouveau lieu ?' : 'critère du palier atteint aujourd’hui ?'}
                 </legend>
                 <p className="rounded-field bg-milestone-soft px-3 py-2.5 text-[15px] leading-snug font-semibold text-[#5C2A08]">
-                  {mastery ? 'Maîtrise : chaque nouveau lieu ajoute une étoile' : `P${progress.level + 1} ${target?.title} : ${target?.criterion}`}
+                  {mastery ? 'Maîtrise : chaque nouveau lieu ajoute une étoile' : `P${progress.level + 1} ${target?.title} : ${place(target?.criterion ?? '')}`}
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   <button type="button" aria-pressed={met[id] === true} onClick={() => setMet({ ...met, [id]: true })} className={bigChoice(met[id] === true)}>
@@ -280,7 +281,7 @@ export default function Session() {
               </span>
             )}
           </div>
-          <p className="text-[17px] leading-snug font-semibold">{exercise.levels[difficulty - 1]}</p>
+          <p className="text-[17px] leading-snug font-semibold">{place(exercise.levels[difficulty - 1] ?? '')}</p>
         </div>
 
         {showSteps ? (
@@ -288,7 +289,7 @@ export default function Session() {
             {exercise.scene && <Illustration scene={exercise.scene} className="h-[110px]" />}
             <ol className="m-0 flex list-decimal flex-col gap-1.5 pl-5 text-[15px] leading-snug">
               {exercise.steps.map((step) => (
-                <li key={step}>{step}</li>
+                <li key={step}>{place(step)}</li>
               ))}
             </ol>
             {exercise.caution && <p className="text-sm font-semibold text-danger">{exercise.caution}</p>}

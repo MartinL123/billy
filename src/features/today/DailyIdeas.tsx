@@ -4,6 +4,7 @@ import { CHEW_RULES, chewsFor, GAMES, ideaOfTheDay, type Idea } from '../../cont
 import { useData } from '../../firebase/store'
 import { dayNumber, type ISODate } from '../../lib/dates'
 import { Illustration } from '../training/Illustration'
+import { place } from '../../lib/garden'
 
 /** Occupation du jour : une idée de jeu et une idée à mâcher, renouvelées chaque jour. Rien à enregistrer. */
 export function DailyIdeas({ today }: { today: ISODate }) {
@@ -40,7 +41,7 @@ export function DailyIdeas({ today }: { today: ISODate }) {
                 <Illustration scene={idea.scene} className="h-[110px] bg-surface" />
                 <ol className="m-0 flex list-decimal flex-col gap-1.5 pl-5 text-[15px] leading-snug">
                   {idea.steps.map((step) => (
-                    <li key={step}>{step}</li>
+                    <li key={step}>{place(step)}</li>
                   ))}
                 </ol>
                 {kind === 'À mâcher' && <p className="text-[13px] leading-snug text-muted">{CHEW_RULES}</p>}

@@ -37,7 +37,26 @@ Ils ne s'ouvrent pas tels quels dans un navigateur.
 | `V3-CheminEtape.dc.html` | Chemin : panneau après avoir touché une étape (décocher / cocher) |
 | `V3-Profil.dc.html` | Profil de Billy (s'ouvre en touchant sa photo dans l'onglet Billy) |
 | `V3-EnCours.dc.html` | Choisir ses 3 compétences en cours (depuis « Son programme » dans l'onglet Billy) |
-| `V3-SanteAVenir.dc.html` | Santé : « À venir » filtré par catégorie (pastilles-filtres) |
+| `V3-SanteAVenir.dc.html` | Santé, page entière comme l'app en ligne : suivis, calendrier, « À venir » filtré, exemple de rendez-vous véto, faits, poids, repas, documents |
+| `V3-Carnet.dc.html` | Carnet : filtres (compétences puis étiquettes), cartes avec ressenti et compétences, marge sous le bouton + |
+| `V3-Installer.dc.html` | Mettre l'app sur son téléphone (iPhone Safari, Android Chrome) + compte donné par Martin |
+| `V3-Meute.dc.html` | Onglet Meute (5e onglet) : carte des spots, Marquer, aujourd'hui dans la meute, chiens, défi |
+| `V3-Spot.dc.html` | Détail d'un spot : niveau de calme, infos, qui est passé, avis, Y aller / Marquer |
+| `V3-Marquer.dc.html` | Marquer : choisir un spot à moins de 300 m ou en créer un |
+| `V3-Marque.dc.html` | Fête après une marque : +os, territoire |
+| `V3-ParcoursMeute.dc.html` | Les 7 parcours de la communauté (planche large, cliquable) |
+| `V3-Connexion.dc.html` | Connexion : compte donné par Martin, pas d'inscription, lien vers l'installation |
+| `V3-MeuteBienvenue.dc.html` | Première visite de l'onglet Meute + autorisation de position |
+| `V3-NouveauSpot.dc.html` | Créer un spot : point, nom, catégorie, calme, infos |
+| `V3-ChienProfil.dc.html` | Profil d'un chien de la meute (badges, territoire, moments partagés ; rien de privé) |
+| `V3-Territoire.dc.html` | Territoire de Billy : carte, spots marqués, en commun avec un ami |
+| `V3-RaconterPartage.dc.html` | Noter : interrupteur « Partager avec la meute » + aperçu |
+| `V3-Compte.dc.html` | Mon compte : espace utilisé (80 Mo), mot de passe, installation |
+| `V3-RaconterTrajet.dc.html` | Noter : carte « Le trajet » (trajets habituels, tracer un nouveau) |
+| `V3-TracerTrajet.dc.html` | Tracer le trajet après coup : points sur la carte, distance, durée, trajet habituel |
+| `V3-TrajetMoment.dc.html` | Placer un moment sur le trajet (peur, grogné, rappel, détendu) |
+| `V3-CarnetTrajet.dc.html` | Détail d'un moment avec trajet : carte, moments, distance, durée |
+| `V3-Boutique.dc.html` | La boutique : os, aperçu de Billy, accessoires à acheter / porter, comment gagner des os |
 
 Les versions abandonnées 
 ## Territoires (V3)
@@ -47,7 +66,8 @@ Les versions abandonnées
 | La Maison | `#1E5A50` | `#DCEBE6` | Le Lien, Le Calme, Les Soins |
 | Le Quartier | `#2559A8` | `#E3EAF8` | La Laisse, Le Rappel, Les Bonnes manières, La Nouveauté |
 | Le Grand Monde | `#C2571A` | `#FBE6D4` | La Ville, Les Rencontres, Les Congénères |
-| Maîtrisé / niveau | `#F2B544` | `#FCEFD3` | Badges complets, XP, niveau |
+| Maîtrisé / niveau | `#F2B544` | `#FCEFD3` | Badges complets, niveau |
+| Os (monnaie) | contour `#8A6514` | `#F6E7C8` (icône) · `#FFF8E6` (cartes) | Solde, gains, prix |
 
 ## Tokens
 

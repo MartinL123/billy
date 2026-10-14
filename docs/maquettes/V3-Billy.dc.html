@@ -14,17 +14,18 @@ body{margin:0}
 a{color:#1E5A50}a:hover{color:#143F38}
 </style>
 </helmet>
-<div style="width: 390px; height: 2410px; position: relative; overflow: hidden; box-sizing: border-box; background: #F3F5F2; font-family: 'Figtree', sans-serif; color: #18201E">
+<div style="width: 390px; height: 2520px; position: relative; overflow: hidden; box-sizing: border-box; background: #F3F5F2; font-family: 'Figtree', sans-serif; color: #18201E">
 <div style="padding: 20px 16px 120px; display: flex; flex-direction: column; gap: 22px">
 
 <div style="display: flex; align-items: center; gap: 14px; padding: 0 4px">
-<a href="V3-Profil.dc.html" aria-label="Voir le profil de Billy" style="position: relative; width: 72px; height: 72px; flex-shrink: 0; text-decoration: none"><span style="width: 72px; height: 72px; border-radius: 36px; background: #FBE6D4; display: flex; align-items: center; justify-content: center; color: #8A3E0C; font-size: 11px; border: 3px solid #F2B544; box-sizing: border-box">Photo</span><span style="position: absolute; right: -4px; bottom: -4px; width: 30px; height: 30px; border-radius: 15px; background: #1E5A50; border: 3px solid #F3F5F2; display: flex; align-items: center; justify-content: center; box-sizing: border-box"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg></span></a>
+<a href="V3-Profil.dc.html" aria-label="Voir le profil de Billy" style="position: relative; width: 72px; height: 72px; flex-shrink: 0; text-decoration: none"><span style="width: 72px; height: 72px; border-radius: 36px; background: #FBE6D4; display: flex; align-items: center; justify-content: center; color: #8A3E0C; font-size: 11px; border: 3px solid #F2B544; box-sizing: border-box">Photo</span><span style="position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); height: 22px; padding: 0 9px; border-radius: 11px; background: #1E5A50; border: 2px solid #F3F5F2; color: #FFFFFF; display: flex; align-items: center; font-size: 12px; font-weight: 700">profil</span></a>
 <div style="flex: 1; display: flex; flex-direction: column; gap: 6px">
 <h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 28px; font-weight: 800; line-height: 1">L'arbre de Billy</h1>
 <div style="font-size: 15px; font-weight: 700; color: #3F4946">Niveau 8 · Explorateur</div>
 <div style="height: 10px; border-radius: 5px; background: #E4E8E4; overflow: hidden"><div style="width: 50%; height: 100%; background: #F2B544; border-radius: 5px"></div></div>
 </div>
 </div>
+<a href="V3-Boutique.dc.html" aria-label="240 os · ouvrir la boutique" style="align-self: stretch; margin: 0 4px; min-height: 76px; border-radius: 20px; background: #FFF8E6; border: 2px solid #F2B544; display: flex; align-items: center; gap: 14px; padding: 14px 16px; box-sizing: border-box; text-decoration: none; color: #3D2A00"><span style="width: 46px; height: 46px; border-radius: 23px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><g fill="#F6E7C8" stroke="#8A6514" stroke-width="1.6"><circle cx="5.5" cy="9" r="3"/><circle cx="5.5" cy="15" r="3"/><circle cx="18.5" cy="9" r="3"/><circle cx="18.5" cy="15" r="3"/></g><rect x="5.5" y="9.2" width="13" height="5.6" fill="#F6E7C8"/><path d="M6 9.2h12M6 14.8h12" stroke="#8A6514" stroke-width="1.6"/></svg></span><span style="flex: 1; display: flex; flex-direction: column; gap: 4px; line-height: 1.15"><span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 800">240 os</span><span style="font-size: 13px; color: #6B4E0F; font-weight: 600">Pour vos efforts</span></span><span style="height: 36px; padding: 0 10px 0 14px; border-radius: 18px; background: #FFFFFF; border: 2px solid #8A6514; display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 800; color: #6B4E0F; flex-shrink: 0">Boutique<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 5 16 12 9 19"></polyline></svg></span></a>
 
 
 
@@ -49,7 +50,7 @@ a{color:#1E5A50}a:hover{color:#143F38}
 <a href="V3-Chemin.dc.html" style="background: #FFFFFF; border-radius: 20px; padding: 14px 10px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; color: #18201E; text-align: center; position: relative; box-shadow: 0 2px 6px rgba(24,32,30,0.08)">
 <sc-if value="{{b.current}}" hint-placeholder-val="{{ false }}"><span style="{{b.pillStyle}}">En cours</span></sc-if>
 <svg width="84" height="84" viewBox="0 0 84 84" role="img" aria-label="{{b.aria}}">
-<sc-for list="{{b.segs}}" as="sg" hint-placeholder-count="5"><circle cx="42" cy="42" r="37" fill="none" stroke="{{sg.color}}" stroke-width="7" stroke-dasharray="40 192.5" stroke-linecap="round" transform="{{sg.t}}"></circle></sc-for>
+<sc-for list="{{b.segs}}" as="sg" hint-placeholder-count="5"><circle cx="42" cy="42" r="37" fill="none" stroke="{{sg.color}}" stroke-width="7" stroke-dasharray="36 196.5" stroke-linecap="round" transform="{{sg.t}}"></circle></sc-for>
 <circle cx="42" cy="42" r="28" fill="{{b.fill}}"></circle>
 <path d="{{b.icon}}" transform="translate(30 30)" fill="none" stroke="{{b.ink}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
@@ -61,7 +62,6 @@ a{color:#1E5A50}a:hover{color:#143F38}
 </div>
 <a href="{{z.linkHref}}" style="{{z.linkStyle}}"><span style="{{z.linkIconStyle}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{z.linkArrow}}"></path></svg></span><span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="{{z.linkLabelStyle}}">{{z.linkLabel}}</span><span style="font-size: 14px; font-weight: 600; color: #18201E; line-height: 1.3">{{z.linkText}}</span></span></a>
 </section>
-<sc-if value="{{z.hasNext}}" hint-placeholder-val="{{ true }}"><div aria-hidden="true" style="align-self: center; width: 12px; height: 22px; margin: -22px 0; background: #8A6A4A; border-radius: 6px"></div></sc-if>
 </sc-for>
 
 
@@ -70,16 +70,11 @@ a{color:#1E5A50}a:hover{color:#143F38}
 
 </div>
 
-<nav aria-label="Navigation principale" style="position: absolute; left: 0; right: 0; bottom: 0; height: 88px; background: #FFFFFF; border-top: 1px solid #E6EAE7; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding-bottom: 14px; box-sizing: border-box">
-<a href="V3-Accueil.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #3F4946; font-size: 14px; font-weight: 600"><span style="width: 60px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg></span>Accueil</a>
-<a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #3F4946; font-size: 14px; font-weight: 600"><span style="width: 60px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"></path><line x1="8" y1="10" x2="16" y2="10"></line><line x1="8" y1="14" x2="14" y2="14"></line></svg></span>Carnet</a>
-<a href="#" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #3F4946; font-size: 14px; font-weight: 600"><span style="width: 60px; height: 32px; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"></path></svg></span>Santé</a>
-<a href="V3-Billy.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #1E5A50; font-size: 14px; font-weight: 700"><span style="width: 60px; height: 32px; border-radius: 16px; background: #DCEBE6; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="9" r="1.6"></circle><circle cx="12" cy="6.5" r="1.6"></circle><circle cx="17" cy="9" r="1.6"></circle><path d="M12 12c-2.8 0-5 3-5 5.2 0 1.6 1.2 2.4 2.5 2.4 1 0 1.6-.5 2.5-.5s1.5.5 2.5.5c1.3 0 2.5-.8 2.5-2.4 0-2.2-2.2-5.2-5-5.2z"></path></svg></span>Billy</a>
-</nav>
+<nav aria-label="Navigation principale" style="position: absolute; left: 0; right: 0; bottom: 0; height: 88px; background: #FFFFFF; border-top: 1px solid #E6EAE7; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding-bottom: 14px; box-sizing: border-box"><a href="V3-Carnet.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #3F4946; font-size: 13px; font-weight: 600"><span style="width: 52px; height: 32px; border-radius: 16px;  display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="M21 16l-5-5-8 8"></path></svg></span>Carnet</a><a href="V3-SanteAVenir.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #3F4946; font-size: 13px; font-weight: 600"><span style="width: 52px; height: 32px; border-radius: 16px;  display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"></path></svg></span>Santé</a><a href="V3-Accueil.dc.html" style="position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #3F4946; font-size: 13px; font-weight: 700"><span style="position: absolute; top: -26px; left: 50%; transform: translateX(-50%); width: 66px; height: 66px; border-radius: 33px; background: #1E5A50; border: 5px solid #FFFFFF; box-shadow: 0 4px 12px rgba(30,90,80,0.3); display: flex; align-items: center; justify-content: center; box-sizing: border-box"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg></span><span aria-hidden="true" style="height: 32px"></span>Accueil</a><a href="V3-Billy.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #1E5A50; font-size: 13px; font-weight: 700"><span style="width: 52px; height: 32px; border-radius: 16px; background: #DCEBE6; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="9" r="1.6"></circle><circle cx="12" cy="6.5" r="1.6"></circle><circle cx="17" cy="9" r="1.6"></circle><path d="M12 12c-2.8 0-5 3-5 5.2 0 1.6 1.2 2.4 2.5 2.4 1 0 1.6-.5 2.5-.5s1.5.5 2.5.5c1.3 0 2.5-.8 2.5-2.4 0-2.2-2.2-5.2-5-5.2z"></path></svg></span>Billy</a><a href="V3-Meute.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: #3F4946; font-size: 13px; font-weight: 600"><span style="width: 52px; height: 32px; border-radius: 16px;  display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"></path><circle cx="12" cy="11" r="2.2"></circle></svg></span>Meute</a></nav>
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2410}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":2520}}'>
 class Component extends DCLogic {
 renderVals() {
 const I = {
@@ -94,7 +89,7 @@ city: 'M4 21V9l6-4v16 M10 21V11h10v10 M13 14h4 M13 17h4',
 people: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M3 21c0-4 3-6 6-6s6 2 6 6 M17 11a2.5 2.5 0 1 0 0-5 M16 15c3 0 5 2 5 6',
 dogs: 'M6 10a2 2 0 1 0 0-.1 M12 7a2 2 0 1 0 0-.1 M18 10a2 2 0 1 0 0-.1 M12 13c-3 0-5 3-5 5.2 0 1.6 1.2 2.4 2.5 2.4 1 0 1.6-.5 2.5-.5s1.5.5 2.5.5c1.3 0 2.5-.8 2.5-2.4 0-2.2-2-5.2-5-5.2z'
 };
-const segs = (n, color, pale) => [0,1,2,3,4].map(i => ({ color: i < n ? color : pale, t: 'rotate(' + (-90 + i * 72 + 4) + ' 42 42)' }));
+const segs = (n, color, pale) => [0,1,2,3,4].map(i => ({ color: i < n ? color : pale, t: 'rotate(' + (-90 + i * 72 + 8) + ' 42 42)' }));
 const badge = (name, n, step, icon, z, exercise) => ({
 name, step, current: !!exercise, exercise: exercise || '', icon: I[icon],
 aria: name + ' : ' + step + (exercise ? ' (en cours : ' + exercise + ')' : ''),
@@ -132,20 +127,20 @@ badges: badges.map(b => badge(b[0], b[1], b[2], b[3], z, b[4]))
 return {
 zones: [
 zone('maison', 'Étage 1 · les racines', 'La Maison', 'Là où tout commence', 'M3 11l9-7 9 7v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z', { to: 'quartier', label: 'Mène au Quartier', text: 'Le lien et le calme préparent les balades' }, [
-['Le Lien', 2, 'Regarde quand on l’appelle dans une rue calme', 'eye', 'Jeu du prénom'],
-['Le Calme', 5, 'Maîtrisé · à entretenir', 'moon'],
-['Les Soins', 1, 'Se laisse brosser et essuyer les pattes', 'care']
+['Le Lien', 2, 'Regarde quand on l’appelle malgré des passants', 'eye'],
+['Le Calme', 2, 'Reste sur son tapis, maison qui s’active', 'moon', 'Tapis puis relax'],
+['Les Soins', 1, 'Se laisse brosser et essuyer', 'care']
 ]),
 zone('quartier', 'Étage 2 · le tronc', 'Le Quartier', 'Les balades de tous les jours', 'M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z M12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6z', { to: 'monde', label: 'Mène au Grand Monde', text: 'Laisse et rappel ouvrent la ville et les rencontres' }, [
-['La Laisse', 1, 'Suit les changements de direction', 'leash'],
-['Le Rappel', 2, 'Revient dans un parc calme', 'recall', 'Rappel ping-pong'],
-['Les Manières', 1, 'Attend à la porte', 'sit'],
-['La Nouveauté', 1, 'Reste détendu devant un son ou un reflet', 'spark', 'Sons progressifs']
+['La Laisse', 1, 'Marche sans tirer, rue calme', 'leash'],
+['Le Rappel', 3, 'Revient malgré un autre chien', 'recall', 'Rappel ping-pong'],
+['Les Bonnes manières', 1, 'S’assoit, se couche et reste, dehors', 'sit'],
+['La Nouveauté', 1, 'Reste détendu devant un son ou un reflet', 'spark']
 ]),
 zone('monde', 'Étage 3 · les branches', 'Le Grand Monde', 'La ville, les gens, les autres chiens', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M3 12h18 M12 3c3 3 3 15 0 18 M12 3c-3 3-3 15 0 18', { to: 'quartier', label: 'Vient du Quartier', text: 'Un moment difficile ? On revient aux balades calmes', up: true }, [
 ['La Ville', 1, 'Regarde la rue par la fenêtre', 'city'],
 ['Les Rencontres', 0, 'À découvrir', 'people'],
-['Les Congénères', 0, 'À découvrir', 'dogs']
+['Les Congénères', 0, 'Reste détendu en entendant un chien', 'dogs', 'Sons progressifs']
 ])
 ]
 };

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Tracer le trajet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1E5A50}a:hover{color:#143F38}
+</style>
+</helmet>
+<div style="width: 390px; height: 1060px; position: relative; overflow: hidden; box-sizing: border-box; background: #F3F5F2; font-family: 'Figtree', sans-serif; color: #18201E">
+<div style="position: absolute; left: 0; right: 0; top: 0; height: 600px; overflow: hidden"><svg width="390" height="600" viewBox="0 0 390 420" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0">
+<rect width="390" height="420" fill="#ECEAE3"/>
+<path d="M-10 70 C 80 40, 160 95, 250 60 S 380 20, 400 40 L 400 0 L -10 0 Z" fill="#A9CFE8"/>
+<path d="M-10 70 C 80 40, 160 95, 250 60 S 380 20, 400 40" fill="none" stroke="#8DBBD9" stroke-width="2"/>
+<path d="M40 120 h150 a14 14 0 0 1 14 14 v90 a14 14 0 0 1 -14 14 h-150 a14 14 0 0 1 -14 -14 v-90 a14 14 0 0 1 14 -14z" fill="#CFE3C4"/>
+<path d="M270 280 h80 v70 h-80z" fill="#CFE3C4"/>
+<g stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" fill="none"><path d="M-10 105 L 400 92"/><path d="M230 90 L 245 430"/><path d="M-10 270 L 400 255"/><path d="M110 260 L 95 430"/><path d="M300 95 L 360 250"/><path d="M-10 360 L 230 352"/></g>
+<g stroke="#F6F0DE" stroke-width="5" stroke-linecap="round" fill="none"><path d="M20 190 L 220 185"/><path d="M160 300 L 180 420"/><path d="M250 180 L 395 175"/></g>
+<text x="300" y="30" font-family="Figtree, sans-serif" font-size="12" font-style="italic" fill="#4F7EA0">La Seine</text>
+
+</svg><svg width="390" height="600" viewBox="0 0 390 420" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position: absolute; inset: 0"><path d="M218 300 L218 262 L190 250 L135 248 L100 215 L98 170 L120 128 L190 118 L255 112 L278 150 L280 215" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M218 300 L218 262 L190 250 L135 248 L100 215 L98 170 L120 128 L190 118 L255 112 L278 150 L280 215" fill="none" stroke="#C2571A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="218" cy="300" r="6" fill="#FFFFFF" stroke="#C2571A" stroke-width="3"/><circle cx="218" cy="262" r="6" fill="#FFFFFF" stroke="#C2571A" stroke-width="3"/><circle cx="190" cy="250" r="6" fill="#FFFFFF" stroke="#C2571A" stroke-width="3"/><circle cx="135" cy="248" r="6" fill="#FFFFFF" stroke="#C2571A" stroke-width="3"/><circle cx="100" cy="215" r="6" fill="#FFFFFF" stroke="#C2571A" stroke-width="3"/><circle cx="98" cy="170" r="6" fill="#FFFFFF" stroke="#C2571A" stroke-width="3"/><circle cx="120" cy="128" r="6" fill="#FFFFFF" stroke="#C2571A" stroke-width="3"/><circle cx="190" cy="118" r="6" fill="#FFFFFF" stroke="#C2571A" stroke-width="3"/><circle cx="255" cy="112" r="6" fill="#FFFFFF" stroke="#C2571A" stroke-width="3"/><circle cx="278" cy="150" r="6" fill="#FFFFFF" stroke="#C2571A" stroke-width="3"/><circle cx="280" cy="215" r="9" fill="#C2571A" stroke="#C2571A" stroke-width="3"/><circle cx="218" cy="300" r="9" fill="#1E5A50" stroke="#FFFFFF" stroke-width="3"/></svg></div>
+<div style="position: absolute; left: 12px; right: 12px; top: 14px; display: flex; align-items: center; gap: 8px">
+<a href="V3-RaconterTrajet.dc.html" aria-label="Annuler" style="width: 48px; height: 48px; border-radius: 24px; background: #FFFFFF; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; color: #18201E">✕</a>
+<span style="flex: 1; height: 48px; border-radius: 24px; background: #FFFFFF; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 800">1,4 km<span style="font-weight: 500; color: #5A6662; font-size: 14px">· 10 points</span></span>
+</div>
+<div style="position: absolute; left: 12px; top: 76px; right: 12px; background: rgba(24,32,30,0.82); color: #FFFFFF; border-radius: 14px; padding: 10px 14px; font-size: 14px; line-height: 1.4">Touchez la carte à chaque virage. Le point vert est le départ.</div>
+<div style="position: absolute; right: 12px; top: 420px; display: flex; flex-direction: column; gap: 10px">
+<button type="button" aria-label="Annuler le dernier point" style="width: 52px; height: 52px; border-radius: 26px; border: 0; background: #FFFFFF; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#18201E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+<button type="button" aria-label="Revenir au départ" style="width: 52px; height: 52px; border-radius: 26px; border: 0; background: #FFFFFF; box-shadow: 0 2px 6px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E5A50" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="#1E5A50"/></svg></button>
+</div>
+<div style="position: absolute; left: 0; right: 0; bottom: 0; top: 560px; background: #FFFFFF; border-radius: 28px 28px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); padding: 10px 20px 30px; display: flex; flex-direction: column; gap: 14px; box-sizing: border-box">
+<span aria-hidden="true" style="align-self: center; width: 44px; height: 5px; border-radius: 3px; background: #D3D9D6"></span>
+<div role="group" aria-label="Ce que fait le toucher sur la carte" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: #F3F5F2; border-radius: 18px; padding: 4px">
+<button type="button" aria-pressed="true" style="height: 48px; border-radius: 14px; border: 0; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.12); font-family: inherit; font-size: 15px; font-weight: 800; color: #18201E">Tracer le chemin</button>
+<button type="button" aria-pressed="false" style="height: 48px; border-radius: 14px; border: 0; background: transparent; font-family: inherit; font-size: 15px; font-weight: 700; color: #3F4946">Placer un moment</button>
+</div>
+<span style="font-size: 15px; font-weight: 700">Durée de la balade <span style="font-weight: 500; color: #5A6662">· facultatif</span></span>
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px"><button type="button" aria-pressed="false" style="height: 48px; border-radius: 16px; border: 2px solid #D3D9D6; background: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 700; color: #3F4946">15 min</button><button type="button" aria-pressed="false" style="height: 48px; border-radius: 16px; border: 2px solid #D3D9D6; background: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 700; color: #3F4946">30 min</button><button type="button" aria-pressed="true" style="height: 48px; border-radius: 16px; border: 2px solid #1E5A50; background: #DCEBE6; font-family: inherit; font-size: 15px; font-weight: 700; color: #143F38">45 min</button><button type="button" aria-pressed="false" style="height: 48px; border-radius: 16px; border: 2px solid #D3D9D6; background: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 700; color: #3F4946">1 h +</button></div>
+<label style="display: flex; align-items: center; gap: 12px; min-height: 48px"><span role="checkbox" aria-checked="true" style="width: 28px; height: 28px; border-radius: 8px; background: #1E5A50; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 12 10 17 19 7"/></svg></span><span style="flex: 1; font-size: 15px">Garder comme trajet habituel</span></label>
+<input aria-label="Nom du trajet" value="Le grand tour du parc" style="height: 52px; border-radius: 16px; border: 2px solid #C9D1CD; padding: 0 16px; font-family: inherit; font-size: 16px; margin-top: -6px">
+<a href="V3-TrajetMoment.dc.html" style="margin-top: auto; height: 58px; border-radius: 29px; background: #C2571A; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; text-decoration: none">Terminé · 1,4 km</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1060}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Billy · Style guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --primary:#1E5A50; --primary-dark:#143F38; --primary-soft:#DCEBE6;
+  --bg:#F3F5F2; --surface:#FFFFFF; --border:#D3D9D6; --text:#18201E; --muted:#5A6662; --divider:#E6EAE7; --placeholder:#E4E8E4;
+  --action:#C2571A; --gold:#F2B544; --gold-soft:#FCEFD3; --gold-dark:#3D2A00; --gold-text:#8A6514;
+  --milestone:#D9661F; --milestone-soft:#FBE6D4; --milestone-dark:#8A3E0C;
+  --danger:#B3261E; --danger-soft:#FDF1F0; --info:#2559A8; --info-soft:#E3EAF8;
+  --care:#7B4FC9; --vaccine:#2F6FD0; --vet:#C4423A;
+  --maison:#1E5A50; --maison-soft:#DCEBE6; --quartier:#2559A8; --quartier-soft:#E3EAF8; --monde:#C2571A; --monde-soft:#FBE6D4;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Figtree',system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:40px 20px 80px}
+h1,h2,h3{font-family:'Bricolage Grotesque',system-ui,sans-serif;margin:0}
+h1{font-size:44px;font-weight:800;line-height:1.05}
+h2{font-size:28px;font-weight:800;margin:56px 0 6px}
+h3{font-size:18px;font-weight:700;margin:24px 0 10px}
+p.lead{font-size:18px;color:var(--muted);max-width:640px;margin:12px 0 0}
+p.note{color:var(--muted);margin:4px 0 16px;max-width:720px}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0}
+nav.toc a{height:40px;padding:0 14px;border-radius:20px;border:2px solid var(--primary);color:var(--primary);display:flex;align-items:center;font-weight:700;font-size:14px;text-decoration:none;background:#fff}
+.grid{display:grid;gap:12px}
+.g4{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.g3{grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
+.g2{grid-template-columns:repeat(auto-fill,minmax(420px,1fr))}
+@media (max-width:480px){.g2,.g3{grid-template-columns:1fr}}
+.card{background:#fff;border-radius:20px;padding:16px;border:1px solid var(--divider)}
+.sw{border-radius:16px;overflow:hidden;background:#fff;border:1px solid var(--divider)}
+.sw .chip{height:72px;display:flex;align-items:flex-end;padding:8px 10px;font-weight:800;font-size:13px}
+.sw .meta{padding:10px 12px;font-size:13px;line-height:1.4}
+.sw code,code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--bg);padding:1px 6px;border-radius:6px}
+.tag{display:inline-block;font-size:11px;font-weight:800;padding:2px 7px;border-radius:8px;margin-top:4px}
+.ok{background:var(--primary-soft);color:var(--primary-dark)} .warn{background:var(--milestone-soft);color:var(--milestone-dark)} .bad{background:var(--danger-soft);color:var(--danger)}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--divider);font-size:14px}
+th,td{text-align:left;padding:10px 12px;border-top:1px solid var(--divider);vertical-align:top}
+th{background:#FAFBFA;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-top:none}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.stack{display:flex;flex-direction:column;gap:10px}
+/* composants */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:54px;padding:6px 22px;border-radius:999px;border:2px solid transparent;font:700 18px 'Figtree',sans-serif;text-decoration:none;cursor:pointer}
+.btn-main{background:var(--action);border-color:var(--action);color:#fff}
+.btn-outline{background:#fff;border-color:var(--primary);color:var(--primary);min-height:48px;font-size:16px}
+.btn-quiet{background:#fff;border-color:var(--border);color:var(--text);min-height:44px;font-size:15px}
+.btn-danger{background:#fff;border-color:var(--danger);color:var(--danger);min-height:48px;font-size:16px}
+.btn-on{background:var(--primary);border-color:var(--primary);color:#fff;min-height:48px;font-size:16px}
+.btn-close{width:44px;height:44px;border-radius:22px;background:var(--placeholder);display:inline-flex;align-items:center;justify-content:center;border:none}
+.field{width:100%;min-height:52px;border-radius:14px;border:1.5px solid var(--border);background:#fff;padding:0 16px;font:16px 'Figtree',sans-serif;color:var(--text)}
+.field:focus{outline:2px solid var(--primary);outline-offset:2px}
+label.lbl{font-weight:700;font-size:16px;display:block;margin-bottom:6px}
+.pill{height:44px;padding:0 14px;border-radius:22px;border:2px solid #C9D1CD;background:#fff;display:inline-flex;align-items:center;gap:7px;font:700 15px 'Figtree',sans-serif}
+.pill.on{background:var(--care);border-color:var(--care);color:#fff}
+.dot{width:10px;height:10px;border-radius:5px;display:inline-block}
+.cardlink{display:flex;align-items:center;gap:14px;min-height:56px;padding:14px 16px;background:#fff;border:1px solid var(--divider);border-radius:20px;color:var(--text);text-decoration:none}
+.phone{width:360px;max-width:100%;background:var(--bg);border-radius:28px;border:1px solid var(--divider);overflow:hidden}
+.typo-row{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:baseline;padding:12px 0;border-top:1px solid var(--divider)}
+.typo-row:first-child{border-top:none}
+.typo-row small{color:var(--muted);font-size:12px;line-height:1.4}
+ul.rules{margin:8px 0 0;padding-left:20px} ul.rules li{margin:4px 0}
+.do,.dont{border-radius:16px;padding:14px 16px}
+.do{background:var(--primary-soft)} .dont{background:var(--danger-soft)}
+.do b{color:var(--primary-dark)} .dont b{color:var(--danger)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+<div style="font-size:13px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--primary)">App Billy · V3 « Billy, le jeu »</div>
+<h1 style="margin-top:6px">Style guide</h1>
+<p class="lead">Couleurs, typographie, composants et règles d'écriture de l'app. Les tokens correspondent à <code>src/index.css</code> (<code>@theme</code>) et à <code>docs/maquettes/README.md</code>. Mis à jour le 14 octobre 2026 (os et boutique).</p>
+<nav class="toc" aria-label="Sommaire">
+<a href="#principes">Principes</a><a href="#couleurs">Couleurs</a><a href="#territoires">Territoires</a><a href="#typo">Typographie</a><a href="#formes">Formes</a><a href="#boutons">Boutons</a><a href="#composants">Composants</a><a href="#jeu">Éléments de jeu</a><a href="#icones">Icônes</a><a href="#ecriture">Écriture</a><a href="#a11y">Accessibilité</a><a href="#mouvement">Mouvement</a>
+</nav>
+</header>
+
+<section id="principes">
+<h2>Principes</h2>
+<p class="note">Les règles non négociables, valables sur tous les écrans.</p>
+<div class="grid g3">
+<div class="card"><h3 style="margin-top:0">Une action principale</h3>Un seul bouton plein orange par écran, visible sans faire défiler, dans la moitié basse (zone du pouce).</div>
+<div class="card"><h3 style="margin-top:0">Tout ce qui se touche est un bouton</h3>Pilule, carte avec chevron ou pastille. Jamais de lien texte souligné pour une action. Zone tactile de 44 px minimum.</div>
+<div class="card"><h3 style="margin-top:0">Un jeu, pas un tableau</h3>La progression se voit (anneaux, chemin, trophées), elle ne se compte pas : pas d'XP, pas d'étoiles, pas de « 3/5 ».</div>
+<div class="card"><h3 style="margin-top:0">Rien ne baisse à cause d'un mauvais jour</h3>Seule une correction volontaire change ce qui est acquis. Jamais de rouge pour un jour sans entraînement.</div>
+<div class="card"><h3 style="margin-top:0">Jamais d'écran vide</h3>Un état vide explique et propose le bouton pour le remplir.</div>
+<div class="card"><h3 style="margin-top:0">Ajout en 2 touchers</h3>Noter, ajouter une photo ou un événement : 2 touchers maximum depuis l'accueil.</div>
+</div>
+</section>
+
+<section id="couleurs">
+<h2>Couleurs</h2>
+<p class="note">Nom du token CSS, valeur et usage. Les ratios de contraste sont calculés pour le texte indiqué.</p>
+
+<h3>Base</h3>
+<div class="grid g4">
+<div class="sw"><div class="chip" style="background:var(--primary);color:#fff">primary</div><div class="meta"><code>#1E5A50</code><br>Couleur de l'app, boutons contour, choix sélectionné, onglet actif. Blanc dessus : 7,97 <span class="tag ok">AA</span></div></div>
+<div class="sw"><div class="chip" style="background:var(--primary-dark);color:#fff">primary-dark</div><div class="meta"><code>#143F38</code><br>Survol, plein écran « C'est réussi ! ».</div></div>
+<div class="sw"><div class="chip" style="background:var(--primary-soft);color:var(--primary-dark)">primary-soft</div><div class="meta"><code>#DCEBE6</code><br>Fond de l'onglet actif, étiquettes, encadrés positifs.</div></div>
+<div class="sw"><div class="chip" style="background:var(--bg);color:var(--text)">bg</div><div class="meta"><code>#F3F5F2</code><br>Fond de toutes les pages.</div></div>
+<div class="sw"><div class="chip" style="background:#fff;color:var(--text)">surface</div><div class="meta"><code>#FFFFFF</code><br>Cartes, champs, boutons contour.</div></div>
+<div class="sw"><div class="chip" style="background:var(--text);color:#fff">text</div><div class="meta"><code>#18201E</code><br>Texte principal. Sur bg : 15,15</div></div>
+<div class="sw"><div class="chip" style="background:var(--muted);color:#fff">muted</div><div class="meta"><code>#5A6662</code><br>Texte secondaire, dates. Sur blanc : 5,98 <span class="tag ok">AA</span></div></div>
+<div class="sw"><div class="chip" style="background:var(--border);color:var(--text)">border · divider</div><div class="meta"><code>#D3D9D6</code> bord de champ · <code>#E6EAE7</code> séparateurs · <code>#E4E8E4</code> placeholder</div></div>
+</div>
+
+<h3>Action et récompense</h3>
+<div class="grid g4">
+<div class="sw"><div class="chip" style="background:var(--action);color:#fff">action</div><div class="meta"><code>#C2571A</code><br>Le bouton principal, un seul par écran. Blanc dessus : 4,49 <span class="tag warn">gros texte seulement</span> → texte ≥ 19 px gras, ou passer à <code>#B85218</code> (4,93).</div></div>
+<div class="sw"><div class="chip" style="background:var(--gold);color:var(--gold-dark)">gold</div><div class="meta"><code>#F2B544</code><br>Réservé au niveau, au « Maîtrisé » et aux réussites. Texte <code>#3D2A00</code> dessus : 7,5. <b>Jamais de texte doré sur blanc</b> (1,83).</div></div>
+<div class="sw"><div class="chip" style="background:var(--gold-soft);color:var(--gold-text)">gold-soft</div><div class="meta"><code>#FCEFD3</code><br>Pastilles « Maîtrisé », encadrés « Bon à savoir ». Texte <code>#8A6514</code> : 4,66 <span class="tag ok">AA</span></div></div>
+<div class="sw"><div class="chip" style="background:var(--milestone);color:#fff">milestone</div><div class="meta"><code>#D9661F</code> sur <code>#FBE6D4</code><br>Étapes de vie (6 mois, anniversaire). Blanc dessus 3,58 : icônes seulement.</div></div>
+</div>
+
+<h3>États</h3>
+<div class="grid g4">
+<div class="sw"><div class="chip" style="background:var(--danger);color:#fff">danger</div><div class="meta"><code>#B3261E</code> sur <code>#FDF1F0</code><br>Retard, erreur, « Décocher », « Supprimer ». Jamais pour un jour sans entraînement.</div></div>
+<div class="sw"><div class="chip" style="background:var(--info);color:#fff">info</div><div class="meta"><code>#2559A8</code> sur <code>#E3EAF8</code><br>Informations neutres (c'est aussi la couleur du Quartier).</div></div>
+</div>
+
+<h3>Santé (catégories du calendrier)</h3>
+<div class="grid g4">
+<div class="sw"><div class="chip" style="background:var(--care);color:#fff">care · Soins</div><div class="meta"><code>#7B4FC9</code> · vermifuge, antiparasitaire. Blanc : 5,52</div></div>
+<div class="sw"><div class="chip" style="background:var(--vaccine);color:#fff">vaccine · Vaccins</div><div class="meta"><code>#2F6FD0</code> · Blanc : 4,88</div></div>
+<div class="sw"><div class="chip" style="background:var(--vet);color:#fff">vet · Véto</div><div class="meta"><code>#C4423A</code> · Blanc : 5,01</div></div>
+<div class="sw"><div class="chip" style="background:var(--primary);color:#fff">Éducateur</div><div class="meta"><code>#1E5A50</code></div></div>
+<div class="sw"><div class="chip" style="background:var(--milestone);color:#fff">Étapes</div><div class="meta"><code>#D9661F</code> · anniversaires, 6 mois, 1 an</div></div>
+</div>
+</section>
+
+<section id="territoires">
+<h2>Territoires de l'arbre</h2>
+<p class="note">Chaque compétence appartient à un étage de l'arbre. Sa couleur sert aux badges, au chemin, à la quête et aux étiquettes du Carnet.</p>
+<div class="grid g3">
+<div class="card" style="background:var(--maison-soft);border:none"><div style="font-size:12px;font-weight:800;letter-spacing:.6px;color:var(--maison)">ÉTAGE 1 · LES RACINES</div><div style="font:800 22px 'Bricolage Grotesque';color:var(--maison)">La Maison</div><div style="font-size:14px;margin:4px 0 10px">Le Lien · Le Calme · Les Soins</div><code>#1E5A50</code> sur <code>#DCEBE6</code> (6,48)</div>
+<div class="card" style="background:var(--quartier-soft);border:none"><div style="font-size:12px;font-weight:800;letter-spacing:.6px;color:var(--quartier)">ÉTAGE 2 · LE TRONC</div><div style="font:800 22px 'Bricolage Grotesque';color:var(--quartier)">Le Quartier</div><div style="font-size:14px;margin:4px 0 10px">La Laisse · Le Rappel · Les Bonnes manières · La Nouveauté</div><code>#2559A8</code> sur <code>#E3EAF8</code> (5,66)</div>
+<div class="card" style="background:var(--monde-soft);border:none"><div style="font-size:12px;font-weight:800;letter-spacing:.6px;color:var(--milestone-dark)">ÉTAGE 3 · LES BRANCHES</div><div style="font:800 22px 'Bricolage Grotesque';color:var(--monde)">Le Grand Monde</div><div style="font-size:14px;margin:4px 0 10px">La Ville · Les Rencontres · Les Congénères</div><code>#C2571A</code> sur <code>#FBE6D4</code> (3,72 : titres ≥ 19 px gras) · petit texte en <code>#8A3E0C</code> (6,26)</div>
+</div>
+<p class="note" style="margin-top:12px">Le Grand Monde partage la couleur du bouton principal : sur sa carte de quête, le bouton « Commencer » passe en <code>#9A4413</code> (blanc : 6,54) pour ne pas se confondre avec « Noter ce qu'on a fait ».</p>
+</section>
+
+<section id="typo">
+<h2>Typographie</h2>
+<p class="note">Titres en <b>Bricolage Grotesque</b>, texte en <b>Figtree</b>. Jamais moins de 16 px dans un champ (sinon Safari zoome au focus).</p>
+<div class="card">
+<div class="typo-row"><small>Titre d'écran<br>Bricolage 800 · 28–30 px</small><div style="font:800 30px/1.1 'Bricolage Grotesque'">L'arbre de Billy</div></div>
+<div class="typo-row"><small>Titre de section<br>Bricolage 800 · 20–22 px</small><div style="font:800 21px 'Bricolage Grotesque'">Son programme</div></div>
+<div class="typo-row"><small>Nom de badge<br>Bricolage 800 · 16 px</small><div style="font:800 16px 'Bricolage Grotesque'">Le Rappel</div></div>
+<div class="typo-row"><small>Surtitre<br>Figtree 800 · 12–13 px · majuscules · +0,6 px</small><div style="font:800 13px 'Figtree';letter-spacing:.6px;text-transform:uppercase;color:var(--primary)">Quête du jour · La Maison</div></div>
+<div class="typo-row"><small>Corps<br>Figtree 400–600 · 16–17 px · 1,45</small><div style="font-size:17px">Dites son mot de rappel une seule fois, d'une voix joyeuse.</div></div>
+<div class="typo-row"><small>Bouton<br>Figtree 700 · 17–19 px</small><div style="font:700 18px 'Figtree'">Noter ce qu'on a fait</div></div>
+<div class="typo-row"><small>Secondaire<br>Figtree 500–600 · 13–15 px · muted</small><div style="font-size:14px;color:var(--muted)">5 mois · 6 mois le 13 novembre</div></div>
+</div>
+</section>
+
+<section id="formes">
+<h2>Formes, espaces, ombres</h2>
+<table>
+<tr><th>Élément</th><th>Valeur</th><th>Remarque</th></tr>
+<tr><td>Rayon de carte</td><td><code>20 px</code> (grandes cartes d'étage 26 px)</td><td><code>--radius-card</code></td></tr>
+<tr><td>Rayon de champ</td><td><code>14 px</code></td><td><code>--radius-field</code></td></tr>
+<tr><td>Boutons, pastilles</td><td>pilule (<code>999px</code>)</td><td>Jamais de bouton carré</td></tr>
+<tr><td>Marge de page</td><td><code>16 px</code> à gauche et à droite</td><td>Largeur cible 360–430 px</td></tr>
+<tr><td>Espace entre blocs</td><td><code>12–22 px</code></td><td>Plus grand entre sections qu'entre cartes</td></tr>
+<tr><td>Hauteurs</td><td>bouton principal 54–58 px · bouton secondaire 48 px · champ 52 px · pastille 44 px</td><td>Zone tactile ≥ 44 px</td></tr>
+<tr><td>Ombre de carte</td><td><code>0 1px 2px rgba(24,32,30,.06)</code></td><td><code>--shadow-card</code></td></tr>
+<tr><td>Ombre du bouton flottant</td><td><code>0 6px 16px rgba(30,90,80,.35)</code></td><td><code>--shadow-fab</code> · laisser une marge en bas des listes</td></tr>
+<tr><td>Barre d'onglets</td><td>88 px, 5 onglets : Carnet · Santé · <b>Accueil au centre</b> · Billy · Meute. Accueil = rond <code>primary</code> de 66 px, icône blanche, bord blanc 5 px, qui dépasse de 26 px</td><td>Onglet actif : icône dans une pilule <code>primary-soft</code> ; accueil actif : libellé en gras</td></tr>
+</table>
+</section>
+
+<section id="boutons">
+<h2>Boutons</h2>
+<p class="note">Classes utilitaires de <code>src/index.css</code> : <code>btn</code> + variante.</p>
+<div class="grid g2">
+<div class="card stack">
+<div class="row"><a class="btn btn-main" href="#boutons">Noter ce qu'on a fait</a></div>
+<div><b>btn-main</b> — l'action principale, un seul par écran, en bas de l'écran ou en haut de la zone du pouce.</div>
+</div>
+<div class="card stack">
+<div class="row"><a class="btn btn-outline" href="#boutons">Faire un exercice</a><a class="btn btn-on" href="#boutons">Aujourd'hui</a></div>
+<div><b>btn-outline</b> — action secondaire, contour vert de 2 px. <b>btn-on</b> — choix sélectionné dans un groupe.</div>
+</div>
+<div class="card stack">
+<div class="row"><a class="btn btn-quiet" href="#boutons">Changer</a><button class="btn-close" aria-label="Fermer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3F4946" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button></div>
+<div><b>btn-quiet</b> — annuler, petits réglages. <b>Fermer</b> : rond gris de 44 px en haut à droite.</div>
+</div>
+<div class="card stack">
+<div class="row"><a class="btn btn-danger" href="#boutons">Décocher cette étape</a></div>
+<div><b>btn-danger</b> — action qui retire quelque chose. Toujours suivie d'un bandeau « Annuler », jamais d'une fenêtre système.</div>
+</div>
+<div class="card stack">
+<div class="row"><a class="btn" href="#boutons" style="background:var(--quartier);color:#fff;min-height:54px">▶ Commencer</a><a class="btn" href="#boutons" style="background:#9A4413;color:#fff;min-height:54px">▶ Commencer</a></div>
+<div><b>Bouton de mission</b> — seule exception à « principal = orange » : couleur du territoire de la mission (Grand Monde : <code>#9A4413</code>).</div>
+</div>
+<div class="card stack">
+<a class="cardlink" href="#boutons"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E5A50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><line x1="9" y1="15" x2="15" y2="15"/></svg><span style="flex:1"><b>Questionnaire de départ</b><br><span style="font-size:14px;color:var(--muted)">Complété · revoir mes réponses</span></span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1E5A50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 5 16 12 9 19"/></svg></a>
+<div><b>card-link</b> — carte entière touchable, toujours avec un chevron à droite.</div>
+</div>
+</div>
+</section>
+
+<section id="composants">
+<h2>Composants</h2>
+<div class="grid g2">
+
+<div class="card stack">
+<h3 style="margin-top:0">Champ</h3>
+<div><label class="lbl" for="ex1">Un mot sur la séance ? <span style="font-weight:500;color:var(--muted)">(facultatif)</span></label><input id="ex1" class="field" value="Ping-pong du rappel au parc"></div>
+<div style="font-size:14px;color:var(--muted)">Libellé toujours visible au-dessus (jamais seulement un placeholder), 16 px minimum, « (facultatif) » en gris.</div>
+</div>
+
+<div class="card stack">
+<h3 style="margin-top:0">Pastilles-filtres</h3>
+<div class="row" style="flex-wrap:nowrap;overflow-x:auto"><span class="pill">Tout <span style="opacity:.7">7</span></span><span class="pill on"><span class="dot" style="background:#fff"></span>Soins <span style="opacity:.8">2</span></span><span class="pill"><span class="dot" style="background:var(--vaccine)"></span>Vaccins <span style="opacity:.7">1</span></span></div>
+<div style="font-size:14px;color:var(--muted)">Défilement horizontal, un seul choix, point de couleur et nombre. Choisie : remplie de sa couleur.</div>
+</div>
+
+<div class="card stack">
+<h3 style="margin-top:0">Panneau du bas (feuille)</h3>
+<div style="background:#fff;border:1px solid var(--divider);border-radius:24px 24px 0 0;box-shadow:0 -6px 24px rgba(24,32,30,.12);padding:10px 16px 16px" class="stack">
+<span style="align-self:center;width:44px;height:5px;border-radius:3px;background:var(--border)"></span>
+<b style="font:800 19px 'Bricolage Grotesque'">Revient même s'il joue</b>
+<span style="font-size:14px;color:var(--muted)">Le Rappel · acquise le 8 octobre</span>
+<a class="btn btn-danger" href="#composants">Décocher cette étape</a>
+</div>
+<div style="font-size:14px;color:var(--muted)">Poignée, titre, explication, boutons empilés. Glisse depuis le bas (0,22 s), fond assombri, toucher le fond ferme.</div>
+</div>
+
+<div class="card stack">
+<h3 style="margin-top:0">Bandeau (toast)</h3>
+<div style="background:var(--text);color:#fff;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;font-size:14px"><span style="flex:1">Les Soins : 2 étapes décochées. Niveau recalculé.</span><b style="color:#F7D58A">Annuler</b></div>
+<div style="font-size:14px;color:var(--muted)">Confirme une action en quelques secondes, avec « Annuler » si elle retire quelque chose. Remplace toute fenêtre de confirmation.</div>
+</div>
+
+<div class="card stack">
+<h3 style="margin-top:0">État vide</h3>
+<div style="border:1px solid var(--divider);border-radius:20px;padding:18px;text-align:center" class="stack"><b>Aucun rendez-vous véto à venir</b><a class="btn btn-outline" href="#composants" style="align-self:center">Ajouter un rendez-vous véto</a></div>
+<div style="font-size:14px;color:var(--muted)">Une phrase + le bouton qui remplit. Jamais « Bientôt disponible ».</div>
+</div>
+
+<div class="card stack">
+<h3 style="margin-top:0">Encadrés</h3>
+<div style="background:var(--gold-soft);border-radius:16px;padding:12px 14px;color:var(--gold-dark)"><b style="font-size:12px;letter-spacing:.6px;color:var(--gold-text)">BON À SAVOIR</b><br>S'il ne mange plus, il est trop stressé : arrêtez.</div>
+<div style="background:var(--primary-soft);border-radius:16px;padding:12px 14px;color:var(--primary-dark)">Souvenir noté dans le Carnet</div>
+<div style="font-size:14px;color:var(--muted)">Doré clair = conseil ou précaution · vert clair = confirmation.</div>
+</div>
+
+</div>
+</section>
+
+<section id="jeu">
+<h2>Éléments de jeu</h2>
+<div class="grid g2">
+
+<div class="card stack">
+<h3 style="margin-top:0">Badge de compétence</h3>
+<div class="row">
+<svg width="84" height="84" viewBox="0 0 84 84" role="img" aria-label="Le Rappel : 2 étapes sur 5">
+<circle cx="42" cy="42" r="37" fill="none" stroke="#2559A8" stroke-width="7" stroke-dasharray="36 196.5" stroke-linecap="round" transform="rotate(-82 42 42)"/>
+<circle cx="42" cy="42" r="37" fill="none" stroke="#2559A8" stroke-width="7" stroke-dasharray="36 196.5" stroke-linecap="round" transform="rotate(-10 42 42)"/>
+<circle cx="42" cy="42" r="37" fill="none" stroke="#DCE3F2" stroke-width="7" stroke-dasharray="36 196.5" stroke-linecap="round" transform="rotate(62 42 42)"/>
+<circle cx="42" cy="42" r="37" fill="none" stroke="#DCE3F2" stroke-width="7" stroke-dasharray="36 196.5" stroke-linecap="round" transform="rotate(134 42 42)"/>
+<circle cx="42" cy="42" r="37" fill="none" stroke="#DCE3F2" stroke-width="7" stroke-dasharray="36 196.5" stroke-linecap="round" transform="rotate(206 42 42)"/>
+<circle cx="42" cy="42" r="28" fill="#E3EAF8"/><path d="M20 12a8 8 0 1 1-2.3-5.7 M20 4v5h-5" transform="translate(30 30)" fill="none" stroke="#2559A8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<svg width="84" height="84" viewBox="0 0 84 84" role="img" aria-label="Le Calme : maîtrisé">
+<g fill="none" stroke="#F2B544" stroke-width="7" stroke-dasharray="36 196.5" stroke-linecap="round"><circle cx="42" cy="42" r="37" transform="rotate(-82 42 42)"/><circle cx="42" cy="42" r="37" transform="rotate(-10 42 42)"/><circle cx="42" cy="42" r="37" transform="rotate(62 42 42)"/><circle cx="42" cy="42" r="37" transform="rotate(134 42 42)"/><circle cx="42" cy="42" r="37" transform="rotate(206 42 42)"/></g>
+<circle cx="42" cy="42" r="28" fill="#FCEFD3"/><path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z" transform="translate(30 30)" fill="none" stroke="#8A6514" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</div>
+<div style="font-size:14px;color:var(--muted)">Anneau en 5 segments = 5 étapes, aucun chiffre affiché ; un petit espace visible (environ 4 px) sépare les segments (<code>stroke-dasharray: 36 196.5</code> pour r = 37, trait 7). Commencé : couleur du territoire. Maîtrisé : doré + « Maîtrisé · à entretenir ». À découvrir : pâle, jamais grisé ni cadenassé. Pastille « En cours » + étiquette ▶ exercice pour les 3 compétences en cours.</div>
+</div>
+
+<div class="card stack">
+<h3 style="margin-top:0">Niveau et titre</h3>
+<div class="row" style="gap:14px"><div style="width:64px;height:64px;border-radius:32px;background:var(--milestone-soft);border:3px solid var(--gold)"></div><div style="flex:1"><b style="font:800 20px 'Bricolage Grotesque'">Niveau 8 · Explorateur</b><div style="height:10px;border-radius:5px;background:var(--placeholder);margin:6px 0"><div style="width:50%;height:100%;background:var(--gold);border-radius:5px"></div></div><span style="font-size:13px;color:var(--muted)">Encore 1 étape avant le niveau 9</span></div></div>
+<div style="font-size:14px;color:var(--muted)">Niveau = 1 + étapes acquises ÷ 2 (1 à 26). Titres : Chiot curieux (1–3) · Apprenti (4–7) · Explorateur (8–12) · Compagnon (13–18) · Complice (19–25) · Légende (26). Jamais d'XP.</div>
+</div>
+
+<div class="card stack">
+<h3 style="margin-top:0">« Ce que ça fait avancer »</h3>
+<div class="row"><span style="background:var(--gold);color:var(--gold-dark);font-weight:800;font-size:13px;padding:4px 10px;border-radius:10px">▲ Le Rappel</span><span style="background:var(--primary-soft);color:var(--primary);font-weight:800;font-size:13px;padding:4px 10px;border-radius:10px">▲ Le Lien</span></div>
+<div style="font-size:14px;color:var(--muted)">Remplace tout « +XP » sur la mission, le défi et « C'est réussi ! ». Les os gagnés s'affichent à côté (« +10 os »).</div>
+</div>
+
+<div class="card stack">
+<h3 style="margin-top:0">Les os (monnaie de l'effort)</h3>
+<div class="row"><span style="height:44px;padding:0 14px;border-radius:22px;background:#FFF8E6;border:2px solid #F2B544;display:inline-flex;align-items:center;gap:8px;font:800 18px 'Bricolage Grotesque';color:#3D2A00"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><g fill="#F6E7C8" stroke="#8A6514" stroke-width="1.6"><circle cx="5.5" cy="9" r="3"/><circle cx="5.5" cy="15" r="3"/><circle cx="18.5" cy="9" r="3"/><circle cx="18.5" cy="15" r="3"/></g><rect x="5.5" y="9.2" width="13" height="5.6" fill="#F6E7C8"/><path d="M6 9.2h12M6 14.8h12" stroke="#8A6514" stroke-width="1.6"/></svg>240</span><span style="background:#FFF8E6;color:#3D2A00;font-size:13px;font-weight:800;padding:3px 8px;border-radius:10px;display:inline-flex;align-items:center;gap:4px">+10 <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><g fill="#F6E7C8" stroke="#8A6514" stroke-width="1.6"><circle cx="5.5" cy="9" r="3"/><circle cx="5.5" cy="15" r="3"/><circle cx="18.5" cy="9" r="3"/><circle cx="18.5" cy="15" r="3"/></g><rect x="5.5" y="9.2" width="13" height="5.6" fill="#F6E7C8"/><path d="M6 9.2h12M6 14.8h12" stroke="#8A6514" stroke-width="1.6"/></svg></span><span style="height:44px;padding:0 16px;border-radius:22px;border:2px solid #8A6514;background:#FFF8E6;color:#3D2A00;display:inline-flex;align-items:center;gap:6px;font-weight:800">Acheter · 120 <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><g fill="#F6E7C8" stroke="#8A6514" stroke-width="1.6"><circle cx="5.5" cy="9" r="3"/><circle cx="5.5" cy="15" r="3"/><circle cx="18.5" cy="9" r="3"/><circle cx="18.5" cy="15" r="3"/></g><rect x="5.5" y="9.2" width="13" height="5.6" fill="#F6E7C8"/><path d="M6 9.2h12M6 14.8h12" stroke="#8A6514" stroke-width="1.6"/></svg></span></div>
+<div style="font-size:14px;color:var(--muted)">Icône os dessinée (crème <code>#F6E7C8</code>, contour <code>#8A6514</code>), jamais un émoji. Fond des cartes <code>#FFF8E6</code>, bord <code>#F2B544</code>. Gagnés par l'effort, jamais perdus, jamais comparés. Pas assez d'os : bouton gris « Encore 60 », jamais rouge.</div>
+</div>
+
+<div class="card stack">
+<h3 style="margin-top:0">Étape en cours (3 réussites)</h3>
+<div class="row" style="gap:6px;font-size:14px;color:var(--muted)"><span class="dot" style="width:12px;height:12px;border-radius:6px;background:var(--gold)"></span><span style="width:12px;height:12px;border-radius:6px;border:2px solid #C9D1CD"></span><span style="width:12px;height:12px;border-radius:6px;border:2px solid #C9D1CD"></span> encore 2 fois, un autre jour</div>
+<div style="font-size:14px;color:var(--muted)">Une étape est acquise après 3 réussites sur 3 jours différents.</div>
+</div>
+
+<div class="card stack">
+<h3 style="margin-top:0">Semaine de « Son programme »</h3>
+<div class="row" style="gap:8px">
+<span style="width:34px;height:34px;border-radius:17px;background:var(--primary);display:inline-flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 12 10 17 19 7"/></svg></span>
+<span style="width:34px;height:34px;border-radius:17px;border:3px solid var(--action);background:#fff"></span>
+<span style="width:34px;height:34px;border-radius:17px;border:2px dashed #C9D1CD"></span>
+<span style="width:34px;height:34px;border-radius:17px;background:#EEF0F5;display:inline-flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5A6662" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/></svg></span>
+</div>
+<div style="font-size:14px;color:var(--muted)">Coche = jour noté · contour orange = aujourd'hui (même un jour de repos) · pointillé = à venir ou sans rien · lune = repos. Jamais de rouge.</div>
+</div>
+
+<div class="card stack">
+<h3 style="margin-top:0">Ressenti</h3>
+<div class="row">
+<span style="text-align:center;font-weight:700"><svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#F4C9A8"/><circle cx="14" cy="16" r="2.2" fill="#3F2A1A"/><circle cx="26" cy="16" r="2.2" fill="#3F2A1A"/><path d="M13 28c2-3 12-3 14 0" fill="none" stroke="#3F2A1A" stroke-width="2.4" stroke-linecap="round"/></svg><br>Difficile</span>
+<span style="text-align:center;font-weight:700"><svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#CFE3DC"/><circle cx="14" cy="16" r="2.2" fill="#143F38"/><circle cx="26" cy="16" r="2.2" fill="#143F38"/><path d="M13 25c2 3 12 3 14 0" fill="none" stroke="#143F38" stroke-width="2.4" stroke-linecap="round"/></svg><br>Bien</span>
+<span style="text-align:center;font-weight:700"><svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#F7D58A"/><path d="M11 16c1.5-2 4.5-2 6 0M23 16c1.5-2 4.5-2 6 0" fill="none" stroke="#3D2A00" stroke-width="2.2" stroke-linecap="round"/><path d="M12 23h16c0 5-3.5 8-8 8s-8-3-8-8z" fill="#3D2A00"/></svg><br>Super</span>
+</div>
+<div style="font-size:14px;color:var(--muted)">3 grands boutons de 100 px de haut. Toujours un visage + un mot, jamais une note sur 4.</div>
+</div>
+
+</div>
+</section>
+
+<section id="icones">
+<h2>Icônes</h2>
+<p class="note">Trait de 2–2,6 px, bouts arrondis, 24 × 24, couleur du contexte. Une icône seule a toujours un <code>aria-label</code> ; à côté d'un texte, elle est <code>aria-hidden</code>.</p>
+<div class="grid g4">
+<div class="card row"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E5A50" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z M12 9a3 3 0 1 0 0 6 3 3 0 1 0 0-6z"/></svg> Le Lien</div>
+<div class="card row"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E5A50" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/></svg> Le Calme</div>
+<div class="card row"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E5A50" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h14v14H5z M12 9v6 M9 12h6"/></svg> Les Soins</div>
+<div class="card row"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2559A8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19l7-7 M12 12c3-4 6-6 7-5s-1 4-5 7 M5 19a2 2 0 1 0 0-.1"/></svg> La Laisse</div>
+<div class="card row"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2559A8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7 M20 4v5h-5"/></svg> Le Rappel</div>
+<div class="card row"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2559A8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 20v-6l3-3V6h4v5l3 3v6 M7 14h10"/></svg> Les Bonnes manières</div>
+<div class="card row"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2559A8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4 M12 17v4 M3 12h4 M17 12h4 M6 6l2.5 2.5 M15.5 15.5L18 18 M6 18l2.5-2.5 M15.5 8.5L18 6"/></svg> La Nouveauté</div>
+<div class="card row"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C2571A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V9l6-4v16 M10 21V11h10v10 M13 14h4 M13 17h4"/></svg> La Ville</div>
+<div class="card row"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C2571A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M3 21c0-4 3-6 6-6s6 2 6 6 M17 11a2.5 2.5 0 1 0 0-5 M16 15c3 0 5 2 5 6"/></svg> Les Rencontres</div>
+<div class="card row"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C2571A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 10a2 2 0 1 0 0-.1 M12 7a2 2 0 1 0 0-.1 M18 10a2 2 0 1 0 0-.1 M12 13c-3 0-5 3-5 5.2 0 1.6 1.2 2.4 2.5 2.4 1 0 1.6-.5 2.5-.5s1.5.5 2.5.5c1.3 0 2.5-.8 2.5-2.4 0-2.2-2-5.2-5-5.2z"/></svg> Les Congénères</div>
+</div>
+</section>
+
+<section id="ecriture">
+<h2>Écriture</h2>
+<div class="grid g2">
+<div class="card">
+<h3 style="margin-top:0">Ton</h3>
+<ul class="rules">
+<li><b>Vouvoiement partout</b>, y compris dans les exercices.</li>
+<li>Phrases courtes, verbes d'action, le chien au centre : « Billy revient quand on l'appelle ».</li>
+<li>Encourager sans culpabiliser : « Rien n'est perdu si ce n'est pas fini dimanche ».</li>
+<li>Une étape s'écrit toujours avec la phrase de <code>phrases.ts</code> (une seule formulation dans toute l'app).</li>
+<li>Le nom du chien plutôt que « votre chien ».</li>
+</ul>
+</div>
+<div class="card">
+<h3 style="margin-top:0">Formats</h3>
+<ul class="rules">
+<li>Dates : <b>13 mai 2026</b>, « 13 oct. » en abrégé, « Aujourd'hui », « Hier ».</li>
+<li>Âges en langage naturel : « 5 mois et 3 jours », « 6 mois le 13 novembre ».</li>
+<li>Durées : « 3 min », heures : « 21 h », « 8 h 00 ».</li>
+<li>Poids : « 8,7 kg » (virgule).</li>
+<li>Espace insécable avant « ! ? : ; » et guillemets français « … ».</li>
+</ul>
+</div>
+<div class="do"><b>À écrire</b><br>Noter · compétence · étape · mission du jour · défi de la semaine · os · boutique · Maîtrisé · à entretenir · « Il savait déjà le faire » · « ▲ Le Rappel » · situation qui lui fait peur</div>
+<div class="dont"><b>À ne jamais écrire</b><br>XP · boss · palier · P1–P5 · N1–N5 · étoile · rang · stats · exposition · seuil · déclencheur · Raconter · « Avant l'app » · « Bientôt disponible »</div>
+</div>
+</section>
+
+<section id="a11y">
+<h2>Accessibilité</h2>
+<div class="card">
+<ul class="rules">
+<li>Contrastes WCAG AA : 4,5 pour le texte courant, 3 pour le texte ≥ 19 px gras et les icônes. Ratios indiqués dans la section Couleurs.</li>
+<li>Zones tactiles ≥ 44 × 44 px ; lignes cochables entièrement cliquables.</li>
+<li>Tous les champs ont un libellé visible ; tous les boutons-icônes ont un <code>aria-label</code>.</li>
+<li>La couleur n'est jamais la seule information : badge = couleur + texte de l'étape ; filtre = point + nom.</li>
+<li>Focus visible : contour 2 px <code>primary</code>, décalé de 2 px.</li>
+<li>Rangées horizontales (badges, filtres) : jamais de barre de défilement visible ; le dernier élément est coupé à moitié au bord pour montrer la suite.</li>
+<li>Pas de fenêtre système (<code>alert</code>, <code>confirm</code>) : panneaux et bandeaux dans l'app.</li>
+<li>Tester en premier à 390 px de large (iPhone, Safari, app installée sur l'écran d'accueil).</li>
+</ul>
+</div>
+</section>
+
+<section id="mouvement">
+<h2>Mouvement</h2>
+<table>
+<tr><th>Animation</th><th>Durée</th><th>Usage</th></tr>
+<tr><td><code>sheet-up</code></td><td>0,22 s ease-out</td><td>Panneau du bas qui monte</td></tr>
+<tr><td><code>fade-in</code></td><td>0,2 s</td><td>Apparition d'un bandeau ou d'un fond</td></tr>
+<tr><td><code>rise</code></td><td>0,9 s</td><td>Écran « C'est réussi ! », passage de niveau</td></tr>
+<tr><td><code>breathe</code></td><td>2,4 s en boucle</td><td>Logo de l'écran d'ouverture, étape en cours</td></tr>
+</table>
+<p class="note" style="margin-top:10px">Toutes les animations sont coupées si <code>prefers-reduced-motion</code> est activé.</p>
+</section>
+
+</div>
+</body>
+</html>

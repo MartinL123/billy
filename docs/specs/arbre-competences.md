@@ -49,7 +49,7 @@ entre étages sont des conseils, jamais des cadenas.
 **3 jours minimum** par étape. Une étape validée l'est pour toujours.
 
 **Après l'étape 5 :** la compétence est « Maîtrisée · à entretenir ». On la révise environ une fois par semaine, et la
-quête du jour la propose de temps en temps en révision.
+mission du jour la propose de temps en temps en révision.
 
 ## Le rythme
 
@@ -70,7 +70,7 @@ quête du jour la propose de temps en temps en révision.
 
 ### Une semaine type (Billy, octobre 2026)
 
-| Jour | Quête du jour (3 min × 2) | En balade |
+| Jour | Mission du jour (3 min × 2) | En balade |
 |---|---|---|
 | Lun. | Le Lien : Jeu du prénom | Jeu 1-2-3 sur 20 m |
 | Mar. | Le Calme : Tapis puis relax | Cherche ! dans l'herbe |
@@ -302,7 +302,7 @@ Les 3 compétences de cet étage sont des **compétences de peur**. Un moment «
 | Onglet Billy | Les 3 étages en cartes reliées par le tronc, les badges (anneau en 5 segments + étape en cours), la carte-lien de chaque étage |
 | Toucher un badge | Le chemin de la compétence : étapes acquises datées, Billy sur l'étape en cours, trophée au bout, bouton « S'entraîner » |
 | « S'entraîner » | L'exercice de l'étape en cours, au bon réglage, avec son minuteur (3 min jusqu'à 6 mois, puis 5 min) |
-| Quête du jour | Un exercice choisi parmi les 3 compétences en cours, une révision, ou une journée de repos |
+| Mission du jour | Un exercice choisi parmi les 3 compétences en cours, une révision, ou une journée de repos |
 | Questionnaire de départ | Partie 5 « Ce qu'il sait déjà faire » : coche les étapes déjà acquises (« Il savait déjà ») |
 
 ## Pour Claude Code
@@ -310,7 +310,7 @@ Les 3 compétences de cet étage sont des **compétences de peur**. Un moment «
 - Ajouter au catalogue (`training.ts`) les exercices 🆕 : Petites absences, Visite de courtoisie, Assis et couché au
   leurre, Attendre à la porte, Quatre pattes au sol, Parcours d'objets.
 - Ajouter pour chaque compétence la **correspondance étape → exercices (+ niveau N1–N5)** des tableaux ci-dessus.
-  « S'entraîner » et la quête du jour l'utilisent.
+  « S'entraîner » et la mission du jour l'utilisent.
 - Durée de séance : 3 min tant que Billy a moins de 6 mois (calculée depuis sa date de naissance), puis 5 min.
 - Les « temps estimés » restent dans ce document : l'app ne les affiche pas comme un délai.
 

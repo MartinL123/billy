@@ -20,13 +20,14 @@ Contexte et constats : `docs/recherche/audit-ux.md`. Maquettes : `docs/maquettes
 - L'app ne récompense jamais le fait de rapprocher le chien de ce qui lui fait peur.
 - Les données existantes (séances, expositions, journal, validations) restent valides et comptent.
 
-## 1. Trois notions, pas une de plus
+## 1. Quatre notions, pas une de plus
 
 | Notion | Ce que voit le joueur | Remplace (V2) |
 |---|---|---|
 | **Le niveau de Billy** | « Niveau 8 · Explorateur », calculé à partir des étapes acquises ; barre vers le niveau suivant | Rang + niveau global + XP affichée |
 | **Ce qu'il sait faire** | Pour chacune des 10 compétences, des **étapes** en phrases concrètes : « Revient quand on l'appelle à la maison ✓ », « Prochaine étape : revient dans un parc calme » | Boss + paliers + arbre + radar + étoiles |
 | **Le Carnet** | Tout ce qu'on vit avec Billy, noté librement, avec photos | Journal + séances + expositions |
+| **Les os** (ajout du 14/10) | La monnaie de l'effort : gagnée en faisant ses missions, dépensée dans la boutique (§ 2 bis) | — |
 
 On ne **compte** pas les étapes et on n'affiche **aucune note** (ni étoiles, ni « 3/5 », ni pourcentage).
 On montre **ce que le chien sait faire**, en mots. C'est ce qui intéresse vraiment un propriétaire.
@@ -34,7 +35,7 @@ La progression se **voit** comme dans un jeu (badges colorés par territoire ave
 de niveaux avec Billy posé dessus, trophée « Maîtrisé ») mais **ne se compte pas** : aucun chiffre d'étapes à l'écran.
 
 Vocabulaire **banni de l'interface** : boss, palier, P1–P5, N1–N5, étoile, exposition, déclencheur, retraite stratégique,
-seuil, stats, rang, quête, **XP** (le mot et les chiffres d'XP disparaissent de l'interface). Correspondances :
+seuil, stats, rang, **XP** (le mot et les chiffres d'XP disparaissent de l'interface). Correspondances :
 
 | Interne (code, Firestore) | Affiché |
 |---|---|
@@ -44,7 +45,7 @@ seuil, stats, rang, quête, **XP** (le mot et les chiffres d'XP disparaissent de
 | exposition | « Une situation qui lui fait peur » |
 | retraite stratégique | « On s'est éloignés » (et c'est bien) |
 | réaction 0–4 | 3 visages : Difficile / Bien / Super (0–4 seulement en mode précis) |
-| quête | défi de la semaine (1 seul) |
+| quête (V2) / quête du jour (V3) | « Mission du jour » (une par jour) ; « Défi de la semaine » (un par semaine) |
 | météo de confiance | voir « Avant / maintenant » (§ 5.4) |
 
 ## 2. Le niveau de Billy (la partie) — décision du 13/10 : plus d'XP affichée
@@ -68,6 +69,67 @@ Ce qui remplace les « +XP » : la quête et le défi indiquent **ce qu'ils font
 « Enregistrer » n'affiche plus de gain ; l'écran « C'est réussi ! » affiche « ▲ Le Lien avance ».
 Les photos et les jours de repos ne changent rien au niveau, mais comptent dans la semaine de « Son programme ».
 Le champ `xp` déjà enregistré dans les moments est conservé mais n'est plus lu ni affiché.
+
+## 2 bis. Les os et la boutique — décision du 14/10
+
+Retours d'un testeur : « faire des missions qui rapportent quelque chose », « récompenser et challenger ». On garde
+le niveau = ce que Billy sait faire (§ 2) et on ajoute une **monnaie de l'effort du maître : les os** (icône os dessinée,
+crème `#F6E7C8` contour `#8A6514`, jamais un émoji).
+
+**Gagner des os** (jamais en perdre, ni par une correction, ni par un mauvais jour) :
+
+| Action | Os |
+|---|---|
+| Mission du jour faite (« C'est fait ! ») | +10 |
+| Noter un moment (3 fois par jour au maximum) | +3 |
+| Une réussite sur l'étape en cours (« Oui ») | +5 |
+| Nouvelle étape acquise dans l'app (pas les étapes « Il savait déjà ») | +25 |
+| Défi de la semaine réussi | +30 |
+| Semaine régulière : au moins 5 jours notés sur 7 (bonus du dimanche soir) | +20 |
+| Jour de repos respecté (le lendemain d'un « Difficile » ou le repos de la semaine) | +5 |
+| Questionnaire de départ terminé (une fois) | +50 |
+
+Les photos ne rapportent rien. Décocher une étape ne retire aucun os. Ordre de grandeur : environ 120 à 180 os par
+semaine régulière, soit un objet de la boutique par semaine.
+
+**Où on les voit**
+- Onglet Billy : sous le niveau, une carte-bouton dorée aérée (≥ 76 px de haut) : os dans un rond blanc, « 240 os » en grand,
+  « Pour vos efforts » dessous (une seule ligne), et à droite une pastille contour « Boutique › ».
+- Mission du jour et défi de la semaine : **une seule pastille** « +10 [os] » (« +30 » pour le défi) dans le bandeau
+  de la carte, rien d'autre. La compétence travaillée est dans la ligne sous le titre (« Le Rappel · 3 min · en longe
+  au parc ») ; plus de « ▲ Le Rappel » ni du nom du territoire dans le bandeau (carte allégée le 14/10).
+- Après « C'est fait ! » ou « Enregistrer » : bandeau « +10 os » avec l'os qui saute (désactivé si
+  `prefers-reduced-motion`).
+- Jamais de total d'os comparé à quelqu'un d'autre.
+
+### 2 bis.1 La boutique (maquette `V3-Boutique`)
+- En-tête : retour « L'arbre », solde « [os] 240 » ; titre « La boutique ».
+- **Aperçu** : la photo de Billy avec ce qu'il porte (« Porte : bandana rouge ») ; toucher un objet l'essaie sur
+  l'aperçu avant d'acheter.
+- Catégories en pastilles (défilement sans barre) : **Accessoires** (bandana, nœud papillon, casquette, lunettes,
+  couronne, cape…) · **Cadres photo** · **Fonds de l'arbre** (automne, neige, bord de mer…) · **Stickers du Carnet** ·
+  **Couleurs de l'app** (variantes qui gardent les contrastes AA ; les couleurs des territoires et de l'action ne
+  changent jamais).
+- Carte d'objet : illustration, nom, puis un seul bouton selon l'état :
+  « Acheter · 120 [os] » (contour doré) · « Porter » (contour vert, déjà acheté) · « Porté ✓ » (vert plein) ·
+  « Encore 60 [os] » (gris, pas assez d'os ; jamais rouge).
+- Acheter ouvre un panneau du bas : aperçu, prix, « Acheter » / « Pas maintenant » ; puis bandeau « C'est à vous ! ».
+- En bas : « Comment gagner des os » (le tableau ci-dessus) et la phrase « Les os récompensent vos efforts, pas ce que
+  Billy sait faire : ils ne se perdent jamais. »
+- Ce qu'on porte apparaît partout où il y a la photo du chien (accueil, arbre, profil, chemin).
+- Prix de départ : stickers 40, accessoires 60 à 300, cadres 80 à 120, fonds de l'arbre 200 à 250, couleurs 300.
+  Le catalogue vit dans le code (`src/content/shop.ts`).
+
+### 2 bis.2 Le défi de la meute (version simple, décidée le 14 octobre)
+On compare **l'effort, jamais le chien** : pas de classement des compétences, pas de « qui y arrive le plus vite »
+(chaque chien a son âge et ses peurs ; la compétition pousserait vers ce qui lui fait peur).
+- **Un seul défi commun par semaine** pour toute la meute, automatique (pas d'invitation, pas de création de défi) :
+  « Chacun fait sa mission 5 jours cette semaine ».
+- Dans l'onglet Meute : la carte du défi avec, pour chaque chien, ses 7 pastilles de la semaine (jour fait ou non) et
+  « 3/5 ». Rien d'autre : ni niveau, ni étapes, ni photos.
+- Récompense : +40 os pour chaque chien qui a tenu, et un sticker « Meute » dans la boutique au premier défi tenu.
+- Lundi : nouveau défi, l'ancien disparaît sans message de reproche. Rien n'est perdu si on n'a pas tenu.
+- Plus tard seulement : d'autres formats de défis, réductions de partenaires.
 
 ## 3. Noter ce qu'on a fait (l'action principale)
 
@@ -103,7 +165,7 @@ L'écran s'adapte à **d'où l'on vient** : une question dont la réponse est d�
 
 | On arrive depuis… | La compétence est connue | Ce qui change à l'écran |
 |---|---|---|
-| La quête du jour (« C'est fait ! ») | Oui, et elle est fixe | Pas de grille « Vous avez travaillé quoi ? ». À la place, une pastille « Pour : Le Rappel » (couleur du territoire) suivie de « Quête du jour », **non modifiable** : le moment vient d'une quête précise. Le texte est pré-rempli avec la mission. |
+| La mission du jour (« C'est fait ! ») | Oui, et elle est fixe | Pas de grille « Vous avez travaillé quoi ? ». À la place, une pastille « Pour : Le Rappel » (couleur du territoire) suivie de « Mission du jour », **non modifiable** : le moment vient d'une quête précise. Le texte est pré-rempli avec la mission. |
 | La fiche d'une compétence ou un badge (« Noter ») | Oui | Pas de grille ; ligne « Pour : [compétence] » + « Changer ». |
 | La fin d'un exercice (« Faire un exercice ») | Oui | Pas de grille ; ligne « Pour : [compétence] » + « Changer ». |
 | L'accueil (« Noter ce qu'on a fait ») ou le « + » | Non | Grille des 10 compétences (facultative), comme décrit ci-dessus. |
@@ -111,7 +173,7 @@ L'écran s'adapte à **d'où l'on vient** : une question dont la réponse est d�
 Même logique pour les autres questions :
 - **Aucune question « Il a eu peur ? »** : la peur se déduit du ressenti « Difficile » + compétence de peur (§ 3, point 6) ;
   la case « On s'est éloignés » n'apparaît que dans ce cas.
-- **« Quand ? »** : supprimé quand on vient de la quête du jour : c'est forcément aujourd'hui, **pas de « Changer la
+- **« Quand ? »** : supprimé quand on vient de la mission du jour : c'est forcément aujourd'hui, **pas de « Changer la
   date »**. Depuis la quête, l'écran commence par une carte **« Ajouter des photos et/ou un commentaire »** (facultatif) :
   le champ texte pré-rempli avec la mission + le bouton contour « Ajouter des photos » ; puis le ressenti, puis la carte
   « Prochaine étape ». Le choix de la date reste uniquement dans « Noter ce qu'on a fait » depuis l'accueil (pour noter
@@ -150,8 +212,14 @@ Même logique pour les autres questions :
   ou « Complété · revoir mes réponses »). Il ouvre le questionnaire (§ 4) ; à la fin, retour à l'écran d'ouverture.
 - À la toute première connexion, le questionnaire s'ouvre directement après le toucher du logo.
 
-### 5.2 Navigation : 4 onglets avec des mots simples
-**Accueil** · **Carnet** · **Santé** · **Billy**
+### 5.2 Navigation : l'accueil au centre (décision du 14 octobre)
+**Carnet** · **Santé** · **ACCUEIL** · **Billy** · **Meute**
+- L'accueil est au centre, en gros : rond de 66 px couleur `primary` (#1E5A50), icône maison blanche 30 px, bord blanc
+  de 5 px, ombre douce, qui dépasse de 26 px au-dessus de la barre ; libellé « Accueil » aligné avec les autres.
+- Carnet et Santé à gauche, Billy et Meute à droite. Onglet actif : icône dans une pilule `primary-soft` (pour l'accueil :
+  libellé en gras et ombre plus marquée). Barre de 88 px, 5 colonnes égales, libellés 13 px.
+- Tant que la meute n'existe pas (prompt v3-14) : même grille de 5 colonnes, Billy occupe les 2 dernières
+  (`grid-column: span 2`), pour que l'accueil reste au centre de l'écran. Jamais d'onglet « bientôt ».
 - *Carnet* = l'ancien Journal (+ séances et situations notées). *Santé* = Calendrier + poids + documents.
 - *Billy* = ce qu'il sait faire (§ 5.4) ; le profil s'ouvre en touchant sa photo. L'onglet Dressage disparaît.
 
@@ -161,7 +229,7 @@ Même logique pour les autres questions :
    Toute la carte ouvre l'onglet Billy.
 2. **Tant que le questionnaire n'est pas terminé** : carte orange « Terminez le questionnaire : Billy gagnera ses
    premières étapes » + bouton plein. Elle disparaît une fois le questionnaire fini.
-3. **Quête du jour** (§ 5.9) : grande carte de jeu, à la couleur du territoire, avec son icône, la mission en une phrase,
+3. **Mission du jour** (§ 5.9) : grande carte de jeu, à la couleur du territoire, avec son icône, la mission en une phrase,
    la durée et ce qu'elle fait avancer (« ▲ Le Rappel ») et deux boutons : **« C'est fait ! »** (plein, à la couleur du
    territoire) et « Autre idée » (contour). C'est la seule exception à la règle « bouton principal orange » : la carte
    de quête est un objet de jeu, identifiable à sa couleur.
@@ -198,7 +266,7 @@ De haut en bas :
      pointillé = à venir, lune = jour de repos. Rien n'est « raté » : un jour sans rien reste en pointillé, sans rouge ;
    - rappel : « Un jour de repos par semaine, et toujours le lendemain d'un moment difficile. » ;
    - bouton contour **« Choisir ses compétences en cours »** : le maître choisit lui-même ses **3 compétences en cours**
-     au maximum (pré-remplies par l'app à partir du questionnaire). La quête du jour tire ses exercices de ces 3-là.
+     au maximum (pré-remplies par l'app à partir du questionnaire). La mission du jour tire ses exercices de ces 3-là.
      Écran **« En cours »** (maquette `V3-EnCours`) :
      - titre « Sur quoi travailler en ce moment ? » + explication : jusqu'à 3 compétences ; les autres reviennent de temps
        en temps en révision ;
@@ -212,8 +280,8 @@ De haut en bas :
        appris reste acquis. » ;
      - bouton plein orange « Enregistrer » en bas ; retour vers l'arbre.
 3. **Les 3 étages**, une grande carte par territoire, dans l'ordre : *Étage 1 · les racines* (La Maison), *Étage 2 · le
-   tronc* (Le Quartier), *Étage 3 · les branches* (Le Grand Monde). Les cartes sont reliées par un **morceau de tronc**
-   (barre brune verticale). Dans chaque carte :
+   tronc* (Le Quartier), *Étage 3 · les branches* (Le Grand Monde). Pas de connecteur dessiné entre les cartes
+   (l'ancien « morceau de tronc » brun est supprimé) : le lien entre étages passe par les cartes « Mène au … ». Dans chaque carte :
    - en-tête : icône du territoire, « Étage N · … », nom, phrase (« Là où tout commence ») ;
    - les badges en **grille de 2 colonnes** :
      - grand cercle coloré avec l'icône, entouré d'un **anneau en 5 segments** qui s'allument au fil des étapes (aucun
@@ -258,7 +326,7 @@ De haut en bas :
     fenêtre système de confirmation.
   - C'est une **correction** : l'étape en cours, l'anneau du badge et le niveau suivent ; bandeau « Niveau recalculé »
     s'il change.
-- Compétence maîtrisée : le trophée brille, mention « À entretenir : elle revient de temps en temps dans la quête du jour ».
+- Compétence maîtrisée : le trophée brille, mention « À entretenir : elle revient de temps en temps dans la mission du jour ».
 
 ### 5.6 Le « + »
 - **Noter ce qu'on a fait** (gros, orange) · **Faire un exercice** (contour)
@@ -270,15 +338,22 @@ De haut en bas :
 - **Nouvelle étape** : plein écran, « C'est réussi ! », la phrase de l'étape en grand (« Billy revient quand on l'appelle
   à la maison »), « Prochaine étape : … », « Ajouté au Carnet ». Pas d'étoile, pas de compteur.
 - **Nouveau niveau** : voir § 2. Respecter `prefers-reduced-motion`.
+- **Animation de « C'est réussi ! »** (CSS seul, sans bibliothèque, ~1,5 s au total) : le badge arrive en rebond
+  (échelle 0,6 → 1,08 → 1), le segment gagné de l'anneau se remplit (stroke-dashoffset), une pluie courte de
+  confettis aux couleurs du territoire (12 à 16 formes, 1,2 s), puis le texte apparaît en fondu. Petit son optionnel ;
+  pas de vibration (Safari iPhone ne la gère pas). Toucher l'écran
+  passe l'animation. Avec `prefers-reduced-motion` : simple fondu, pas de confettis.
 
 ### 5.8 Carnet
 - Toute la carte d'un moment est cliquable (chevron) et ouvre son détail, où se trouve « Modifier ». Plus de bouton
   « Modifier » sous chaque carte.
 - Chaque carte affiche le **visage du ressenti** et les **compétences travaillées** en étiquettes colorées (couleur du territoire).
+- Maquette `V3-Carnet`. Filtres dans l'ordre : « Tous », compétences notées (pastilles couleur du territoire), étiquettes
+  libres. Texte limité à 4 lignes sur la carte. Marge en bas ≥ hauteur du bouton « + » + 16 px.
 - Les entrées automatiques sont rédigées simplement : « Jour de repos », « C'est réussi : revient à la maison »
   (plus de « Première fois : … »).
 
-### 5.9 Quête du jour (le programme du jour)
+### 5.9 Mission du jour (le programme du jour)
 Chaque jour, l'accueil propose **une seule chose à faire**, toujours courte, pour entretenir la répétition :
 - **Un exercice court** (3 min avant 6 mois, 5 min après) tiré de l'étape en cours d'une des **3 compétences en
   cours**, en alternant (« Jeu du prénom · 3 min · dans une rue calme »).
@@ -288,15 +363,15 @@ Chaque jour, l'accueil propose **une seule chose à faire**, toujours courte, po
 - **La carte de quête mène à l'exercice** (maquette `V3-QueteExercice`) : toute la carte est touchable (chevron à
   droite) et son bouton plein s'appelle **« ▶ Commencer »** ; « Autre idée » en propose une autre (3 fois par jour
   maximum). Sous le titre : durée et réglage du jour (« 3 min · en longe, dans un parc calme »).
-- **Écran de l'exercice** : en-tête à la couleur du territoire (retour « Accueil », « Quête du jour », nom de
+- **Écran de l'exercice** : en-tête à la couleur du territoire (retour « Accueil », « Mission du jour », nom de
   l'exercice, compétence et étape visée, pastilles durée + réglage) ; illustration ; **« Ce qu'il faut »** ;
   **« Comment faire »** en 3 temps numérotés (les `steps` du catalogue) ; **« Bon à savoir »** (précaution) ;
   « Trop difficile aujourd'hui ? » qui donne le réglage d'avant ; la source.
-- **Partout où s'affiche « Pour : [compétence] »** (écran de l'exercice, « Quête réussie ? », séance) c'est une
+- **Partout où s'affiche « Pour : [compétence] »** (écran de l'exercice, « Mission réussie ? », séance) c'est une
   pastille-bouton avec chevron (≥ 44 px) qui ouvre **le chemin de cette compétence** (§ 5.5) pour voir où en est
   Billy ; le retour ramène à l'écran d'origine, saisie conservée. En bas : bouton orange **« Lancer le
   minuteur · 3 min »** (5 min après 6 mois ; écran qui reste allumé, fin signalée à l'écran + petit son ; pas de vibration, non gérée par Safari sur iPhone) et bouton contour
-  **« C'est fait ! »** qui ouvre « Quête réussie ? » (§ 3.1). Le même écran sert à « S'entraîner » depuis le chemin.
+  **« C'est fait ! »** qui ouvre « Mission réussie ? » (§ 3.1). Le même écran sert à « S'entraîner » depuis le chemin.
 - Journée de repos : la carte ouvre une page simple « Aujourd'hui, repos » (idées de balade calme, reniflage), sans
   minuteur, avec « C'est fait ! ».
 - Jamais de quête qui rapproche le chien de ce qui lui fait peur ; pour une compétence de peur, la quête vise toujours
@@ -304,7 +379,8 @@ Chaque jour, l'accueil propose **une seule chose à faire**, toujours courte, po
 
 ### 5.10 Santé : filtrer « À venir » par catégorie
 
-Maquette `V3-SanteAVenir`. Au-dessus de la liste « À venir », une rangée de **pastilles-filtres** qui défile
+Maquette `V3-SanteAVenir` (page entière, données réelles + un exemple de rendez-vous véto à 10 h 30 : l'heure s'affiche
+sous le titre). Au-dessus de la liste « À venir », une rangée de **pastilles-filtres** qui défile
 horizontalement : **Tout** · Soins · Vaccins · Véto · Éducateur · Étapes.
 - Chaque pastille : 44 px de haut, point de la couleur de la catégorie (tokens de `maquettes/README.md` ; Éducateur
   `#1E5A50`, Étapes `#D9661F`), nom et nombre d'événements à venir. Un seul choix à la fois ; la pastille choisie se
@@ -328,6 +404,9 @@ horizontalement : **Tout** · Soins · Vaccins · Véto · Éducateur · Étapes
 5. Phrases de 12 mots maximum dans les aides ; aucun chiffre technique hors mode précis.
 6. Le bouton « + » flottant ne masque jamais de contenu : marge en bas des pages ≥ 96 px.
 7. Chaque écran vide propose son bouton d'action.
+8. **Rangées qui défilent horizontalement** (badges, pastilles-filtres, catégories) : **aucune barre de défilement**
+   visible (`scrollbar-width: none` et `::-webkit-scrollbar { display: none }`) ; la rangée va jusqu'au bord de l'écran
+   et le dernier élément est coupé à moitié pour montrer qu'il y a une suite.
 
 ## 7. Données (évolution, rien à migrer de force)
 
@@ -340,7 +419,7 @@ horizontalement : **Tout** · Soins · Vaccins · Véto · Éducateur · Étapes
   provenance, jeux, lieu de vie, temps seul, sorties, foyer, « à savoir » santé).
 - `dailyQuest/{date}` : `{ kind: 'exercice'|'revision'|'repos', bossId?, exerciseId?, done: boolean, skips: number }`.
 - `dog/billy` gagne `activeSkills?: bossId[]` (**3 au maximum**, les compétences en cours choisies par le maître). Absent :
-  l'app propose les 3 premières non maîtrisées selon le questionnaire. La quête du jour pioche dans cette liste ;
+  l'app propose les 3 premières non maîtrisées selon le questionnaire. La mission du jour pioche dans cette liste ;
   une compétence hors liste ne revient qu'en révision.
 - Catalogue (dans le code, `src/content/training.ts`) : chaque étape de chaque compétence liste ses exercices et leur
   réglage N1–N5 (`stepExercises: Record<bossId, { step: 1..5, exercises: { id, level }[] }[]>`), d'après
@@ -349,6 +428,10 @@ horizontalement : **Tout** · Soins · Vaccins · Véto · Éducateur · Étapes
 - Chaque étape du catalogue a une phrase « acquise » à la 3ᵉ personne (« Revient quand on l'appelle à la maison »)
   en plus de son critère : à ajouter dans le catalogue (`src/content/training.ts`).
 - Niveau, titre, comparaisons avant / maintenant : **calculés**, jamais stockés.
+- **Os** : `users/{uid}/bones/{id}` = `{ date, amount, reason, refId? }` (une ligne par gain ou achat, montant négatif
+  pour un achat) ; le solde est la somme, recalculée ; `refId` évite de compter deux fois la même mission ou étape.
+  `users/{uid}/inventory/{itemId}` = `{ boughtAt }` ; ce qui est porté dans `dog/billy.cosmetics?: { accessory?,
+  frame?, treeBackground?, theme? }`. Catalogue de la boutique dans `src/content/shop.ts`.
 
 ## 8. À enlever ou cacher
 
@@ -374,7 +457,7 @@ chiffrée, textes des règles des traits. Rien n'est supprimé des données.
 
 ## 10. Maquettes de référence
 
-`docs/maquettes/V3-Ouverture`, `V3-Accueil`, `V3-Raconter`, `V3-Reussite`, `V3-Questionnaire`, `V3-Billy`, `V3-Chemin`, `V3-RaconterQuete`, `V3-Profil`, `V3-EnCours` (`.dc.html`).
+`docs/maquettes/V3-Ouverture`, `V3-Accueil`, `V3-Raconter`, `V3-Reussite`, `V3-Questionnaire`, `V3-Billy`, `V3-Chemin`, `V3-RaconterQuete`, `V3-Profil`, `V3-EnCours`, `V3-Boutique` (`.dc.html`).
 Les chiffres et dates sont des exemples. Écrans non maquettés : mêmes règles (§ 6).
 
 ## 11. Ordre de réalisation
@@ -384,5 +467,5 @@ Les chiffres et dates sont des exemples. Écrans non maquettés : mêmes règles
 3. Noter ce qu'on a fait (§ 3) + Carnet unifié.
 4. Niveau et titre (§ 2) + accueil (§ 5.3) + récompenses (§ 5.7).
 5. Onglet Billy (§ 5.4) + fiche d'une compétence (§ 5.5) + navigation à 4 onglets (§ 5.2).
-6. Quête du jour (§ 5.9), défi sûr, Carnet (§ 5.8).
+6. Mission du jour (§ 5.9), défi sûr, Carnet (§ 5.8).
 7. Nettoyage (§ 8) et vérification des critères (§ 9).

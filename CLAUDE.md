@@ -8,8 +8,10 @@ Lire avant toute nouvelle fonctionnalité (l'index complet est dans `docs/README
 - **`docs/specs/spec-v3-simplification.md` : la spec en cours (refonte « Billy, le jeu »). Elle fait foi sur toutes les autres en cas de divergence.**
 - `docs/specs/arbre-competences.md` : les 10 compétences, leurs 5 étapes, les exercices de chaque étape et le rythme des séances
 - `docs/specs/questionnaire-depart.md` : le questionnaire de départ, question par question
+- `docs/specs/communaute.md` : comptes des amis (10 max, créés par Martin), installation, la meute, carte des spots, « Marquer »
 - `docs/specs/spec-v1.md` : santé, calendrier, journal, documents, connexion — toujours valable hors des points changés par la V3
 - `docs/specs/spec-v2-dressage.md` : logique interne du dressage (catalogue, paliers, XP) réutilisée par la V3 ; son interface est remplacée
+- `docs/style-guide.html` : style guide (couleurs et contrastes, typo, boutons, composants, éléments de jeu, écriture) — à respecter pour tout nouvel écran
 - `docs/maquettes/README.md` : tokens visuels ; les maquettes `V3-*` font foi pour les écrans refondus
 - Contexte seulement : `docs/recherche/` (audit UX, recherche dressage)
 
@@ -99,7 +101,7 @@ docs/
 ## Règles techniques
 
 - **Images** (photos et pages de documents) : compressées côté client avant envoi
-  (photo : 1600 px max, JPEG 0,75 ; page de document : 2000 px max, JPEG 0,8 ; miniature 400 px, JPEG 0,7).
+  (photo : 1280 px max, JPEG 0,75 ; page de document : 2000 px max, JPEG 0,8 ; miniature 400 px, JPEG 0,7).
   Chaque image va dans son propre document Firestore `files/{id}` en `Bytes`, toujours < 900 Ko.
   Si une image compressée dépasse 900 Ko, réduire encore la qualité.
 - **PDF** : découpés en morceaux de 750 Ko dans `files/{id}/chunks/{n}` et recollés à l'ouverture.

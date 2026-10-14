@@ -170,11 +170,9 @@ export default function Billy() {
         </section>
       </div>
 
-      {TERRITORIES.map((territory, i) => (
-        <div key={territory.tier} className="flex flex-col">
-          <Floor territory={territory} active={active} />
-          {i < TERRITORIES.length - 1 && <span aria-hidden="true" className="-mb-[22px] h-[22px] w-3 self-center rounded-md bg-[#8A6A4A]" />}
-        </div>
+      {/* Pas de connecteur entre les étages : le lien passe par les cartes « Mène au … ». */}
+      {TERRITORIES.map((territory) => (
+        <Floor key={territory.tier} territory={territory} active={active} />
       ))}
     </div>
   )

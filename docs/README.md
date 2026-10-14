@@ -32,7 +32,8 @@ docs/
     prompt-v3-5-comptes.md        ← prompt création de comptes pour les testeurs
     prompt-v3-6-rappel-21h.md     ← prompt notification du soir à 21 h
     prompt-v3-7-niveau-sans-xp.md ← prompt le niveau sans XP (13 oct., 23 h 05)
-    prompt-v3-8-finitions.md      ← prompt finitions après revue de l'app (13 oct., 23 h 45) — LE PLUS RÉCENT
+    prompt-v3-8-finitions.md      ← prompt finitions après revue de l'app (13 oct., 23 h 45)
+    prompt-v3-9-retouches.md      ← prompt retouches après revue du 14 oct. — LE PLUS RÉCENT
 ```
 
 ## Quelle spec pour quoi

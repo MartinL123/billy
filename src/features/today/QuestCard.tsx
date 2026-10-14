@@ -2,7 +2,9 @@ import { Link } from 'react-router-dom'
 import { CheckIcon, ChevronRightIcon } from '../../components/Icons'
 import { territoryOf } from '../../content/phrases'
 import { skipQuest } from '../../firebase/training'
+import { BoneIcon } from '../../components/BoneIcon'
 import { bossById } from '../../content/training'
+import { BONES } from '../../lib/bones'
 import { useToday } from '../../lib/useToday'
 import { BossIcon } from '../training/BossIcon'
 import { useQuest } from './useQuest'
@@ -13,7 +15,7 @@ const REST = { name: 'Repos', color: '#1E5A50', soft: '#DCEBE6' }
 const darker = (color: string) => (color.toUpperCase() === '#C2571A' ? '#9A4413' : color)
 
 /**
- * Quête du jour : une seule chose à faire, courte. La carte prend la couleur du territoire :
+ * Mission du jour : une seule chose à faire, courte. La carte prend la couleur du territoire :
  * c'est un objet de jeu, la seule exception au bouton principal orange.
  */
 export function QuestCard() {
@@ -24,10 +26,15 @@ export function QuestCard() {
   const to = '/exercice?depuis=quete'
 
   return (
-    <section aria-label="Quête du jour" className="overflow-hidden rounded-[26px] border-2 border-solid bg-surface" style={{ borderColor: territory.color, boxShadow: '0 4px 14px rgba(24,32,30,0.12)' }}>
+    <section aria-label="Mission du jour" className="overflow-hidden rounded-[26px] border-2 border-solid bg-surface" style={{ borderColor: territory.color, boxShadow: '0 4px 14px rgba(24,32,30,0.12)' }}>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-4 py-2.5 text-white" style={{ background: territory.color }}>
-        <h2 className="text-[13px] font-extrabold tracking-[0.8px] uppercase">Quête du jour · {territory.name}</h2>
-        {quest.bossId && <span className="rounded-[10px] bg-gold px-2.5 py-[3px] text-[13px] font-extrabold whitespace-nowrap text-gold-dark">▲ {bossById(quest.bossId)?.name}</span>}
+        <h2 className="text-[13px] font-extrabold tracking-[0.8px] uppercase">Mission du jour</h2>
+        {/* Une seule pastille : ce que la mission rapporte. */}
+        <span className="flex items-center gap-1 rounded-[10px] bg-[#FFF8E6] px-2.5 py-[3px] text-[13px] font-extrabold whitespace-nowrap text-gold-dark">
+          +{BONES.mission + (quest.kind === 'repos' ? BONES.rest : 0)}
+          <BoneIcon size={16} />
+          <span className="sr-only">os</span>
+        </span>
       </div>
       <div className="flex flex-col gap-3.5 p-4">
         <Link to={to} aria-label={`${mission.title}. ${mission.detail}. Ouvrir`} className="flex items-center gap-3.5 text-text no-underline">
@@ -36,14 +43,15 @@ export function QuestCard() {
           </span>
           <span className="flex min-w-0 flex-col gap-1">
             <span className="font-display text-xl leading-tight font-extrabold">{mission.title}</span>
-            <span className="text-[15px] leading-snug text-[#3F4946]">{mission.detail}</span>
+            {/* La compétence travaillée est dans la ligne sous le titre : « Le Rappel · 3 min · en longe au parc ». */}
+            <span className="text-[15px] leading-snug text-[#3F4946]">{[quest.bossId && !done ? bossById(quest.bossId)?.name : undefined, mission.detail].filter(Boolean).join(' · ')}</span>
           </span>
           <ChevronRightIcon size={22} className="ml-auto shrink-0" style={{ color: territory.color }} />
         </Link>
         {done ? (
           <p className="flex min-h-[54px] items-center justify-center gap-2 rounded-full bg-gold-soft text-[17px] font-bold text-[#5C4410]">
             <CheckIcon size={22} strokeWidth={3} />
-            Quête du jour réussie !
+            Mission du jour réussie !
           </p>
         ) : (
           <div className={`grid gap-2.5 ${canSkip ? 'grid-cols-[2fr_1fr]' : ''}`}>

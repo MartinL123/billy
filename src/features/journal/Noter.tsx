@@ -15,6 +15,8 @@ import { compressImage, PHOTO } from '../../lib/image'
 import { canAskStep, FEELINGS, hasNextStep, isFearMoment, tileOrder, type Feeling } from '../../lib/moment'
 import { QUEST_XP } from '../../lib/quest'
 import { useToday } from '../../lib/useToday'
+import { BonesGained } from '../../components/BoneIcon'
+import { BONES } from '../../lib/bones'
 import { SkillPill } from '../billy/SkillPill'
 import { useQuest } from '../today/useQuest'
 import { BossIcon } from '../training/BossIcon'
@@ -41,7 +43,7 @@ const choice = (on: boolean) => `btn px-2 ${on ? 'btn-on' : 'btn-outline'}`
  */
 export default function Noter() {
   const [params] = useSearchParams()
-  const { dog, entries, sessions, bossProgress } = useData()
+  const { dog, entries, sessions, bossProgress, bones } = useData()
   const today = useToday()
   const toast = useToast()
   const navigate = useNavigate()
@@ -119,6 +121,7 @@ export default function Noter() {
         yesIds,
         bossProgress,
         dog.name,
+        bones,
       )
       if (fromQuest) completeQuest(today, { kind: today0.quest.kind, bossId: today0.quest.bossId, exerciseId: today0.quest.planned?.exercise.id }, today0.skips, QUEST_XP)
       // Souvenir des premières semaines : l'écran de résultat du questionnaire le retrouve.
@@ -134,7 +137,8 @@ export default function Noter() {
   const celebrations = outcome ? outcome.steps.length + (outcome.levelReached ? 1 : 0) : 0
   useEffect(() => {
     if (outcome && shown >= celebrations) {
-      toast('Noté !', fromQuest ? undefined : { label: 'Annuler', run: outcome.undo })
+      // « +10 os » avec l'os qui saute : les os du moment, plus ceux de la mission.
+      toast(<BonesGained label="Noté !" amount={outcome.bones + (fromQuest ? BONES.mission : 0)} />, fromQuest ? undefined : { label: 'Annuler', run: outcome.undo })
       leave()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -160,7 +164,7 @@ export default function Noter() {
         <button type="button" onClick={leave} className="btn btn-quiet min-h-12 px-4">
           Annuler
         </button>
-        <h1 className="text-lg font-bold">{fromQuest ? 'Quête réussie ?' : 'Noter ce qu’on a fait'}</h1>
+        <h1 className="text-lg font-bold">{fromQuest ? 'Mission réussie ?' : 'Noter ce qu’on a fait'}</h1>
         <div className="w-[92px]" />
       </header>
 
@@ -168,7 +172,7 @@ export default function Noter() {
         {fromQuest && (
           <div className="flex flex-wrap items-center gap-2">
             <SkillPill bossId={skills[0] ?? ''} />
-            <span className="text-[15px] font-semibold text-muted">Quête du jour</span>
+            <span className="text-[15px] font-semibold text-muted">Mission du jour</span>
           </div>
         )}
 

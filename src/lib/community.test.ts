@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { markBone, packChallengeBone } from './bones'
-import { calmSummary, distanceMeters, dogColor, formatDistance, markId, nearbySpots, packScore, slotOf } from './community'
+import { calmSummary, distanceMeters, needsCalmPlace, pickCalmSpot, dogColor, formatDistance, markId, nearbySpots, packScore, slotOf } from './community'
 import { weekOf } from './rhythm'
 
 describe('la meute', () => {
@@ -57,5 +57,26 @@ describe('la meute', () => {
     expect(packScore(['2026-10-12', '2026-10-13', '2026-10-13', '2026-10-01'], week)).toBe(2)
     expect(packScore(week, week)).toBe(5)
     expect(packChallengeBone('2026-10-12', '2026-10-17')).toMatchObject({ id: 'meute-2026-10-12', amount: 40 })
+  })
+
+  it('propose un spot calme pour une mission « rue calme »', () => {
+    expect(needsCalmPlace('Dans une rue calme')).toBe(true)
+    expect(needsCalmPlace('Revient à 10 m sur une longe, parc vide')).toBe(true)
+    expect(needsCalmPlace('Salon, à 1 m')).toBe(false)
+    const spots = [
+      { id: 'square', lat: 48.8566, lng: 2.3522, category: 'parc' },
+      { id: 'quai', lat: 48.87, lng: 2.36, category: 'balade' },
+      { id: 'bruyant', lat: 48.8567, lng: 2.3522, category: 'parc' },
+      { id: 'chantier', lat: 48.8566, lng: 2.3523, category: 'eviter' },
+    ]
+    const calm = {
+      square: [{ level: 'calme' as const, slot: 'matin' as const }],
+      quai: [{ level: 'calme' as const, slot: 'tot' as const }, { level: 'calme' as const, slot: 'soir' as const }],
+      bruyant: [{ level: 'anime' as const, slot: 'soir' as const }],
+      chantier: [{ level: 'calme' as const, slot: 'matin' as const }],
+    }
+    expect(pickCalmSpot(spots, calm)?.id).toBe('quai')
+    expect(pickCalmSpot(spots, calm, { lat: 48.8566, lng: 2.3522 })).toMatchObject({ id: 'square', headline: 'Plutôt calme le matin', meters: 0 })
+    expect(pickCalmSpot(spots, {})).toBeUndefined()
   })
 })

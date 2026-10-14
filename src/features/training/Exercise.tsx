@@ -19,6 +19,8 @@ import { BONES } from '../../lib/bones'
 import { SkillPill } from '../billy/SkillPill'
 import { useQuest } from '../today/useQuest'
 import { Illustration } from './Illustration'
+import { needsCalmPlace } from '../../lib/community'
+import { CalmSpotCard } from '../meute/CalmSpotCard'
 
 const GENERIC_TIP = 'S’il ne mange plus, il est trop stressé : arrêtez et revenez plus facile la prochaine fois.'
 
@@ -223,6 +225,8 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
             {exercise.needs ? `. ${exercise.needs}` : ''}.
           </p>
         </section>
+
+        {needsCalmPlace(setting) && <CalmSpotCard />}
 
         <section className="card flex flex-col gap-3 p-4">
           <h2 className={sectionTitle}>Comment faire</h2>

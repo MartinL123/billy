@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { BonesGained } from '../../components/BoneIcon'
 import { CheckIcon, ChevronRightIcon, PinIcon } from '../../components/Icons'
 import { Sheet } from '../../components/Sheet'
@@ -55,7 +55,9 @@ export default function Meute() {
   const [center, setCenter] = useState<LatLng>(DEFAULT_CENTER)
   const [recenter, setRecenter] = useState(0)
   const [filter, setFilter] = useState<Filter>('tout')
-  const [openSpot, setOpenSpot] = useState<string | null>(null)
+  // « Un spot calme pour ça » (depuis une mission) ouvre directement le spot.
+  const [params] = useSearchParams()
+  const [openSpot, setOpenSpot] = useState<string | null>(() => params.get('spot'))
   const [marking, setMarking] = useState(false)
   const [newSpot, setNewSpot] = useState<LatLng | null>(null)
   const [marked, setMarked] = useState<{ spot: string; bones: number; first: boolean } | null>(null)

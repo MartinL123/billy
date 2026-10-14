@@ -86,3 +86,26 @@ export const PACK_CHALLENGE_TARGET = 5
 export const PACK_CHALLENGE_LABEL = 'Chacun fait sa mission 5 jours cette semaine'
 /** « 3/5 » : jamais plus que la cible. */
 export const packScore = (days: ISODate[], week: ISODate[]) => Math.min(PACK_CHALLENGE_TARGET, new Set(days.filter((d) => week.includes(d))).size)
+
+/** Un exercice qui se fait « dans une rue calme », « un lieu calme », « parc vide »… : on peut proposer un spot calme. */
+export const needsCalmPlace = (setting: string | undefined) => Boolean(setting && /(rue|lieu|point) calme|calme dehors|parc vide|heure creuse/i.test(setting))
+
+/**
+ * Le spot calme à proposer pour une mission (communaute.md § 4) : un spot « Plutôt calme », jamais « À éviter ».
+ * Le plus proche si on connaît la position, sinon celui que la meute dit calme le plus souvent.
+ */
+export function pickCalmSpot<T extends { id: string; lat: number; lng: number; category: string }>(
+  spots: T[],
+  calm: Record<string, { level: CalmLevel; slot: CalmSlot }[]>,
+  here?: { lat: number; lng: number },
+): (T & { headline: string; votes: number; meters?: number }) | undefined {
+  const calmOnes = spots.flatMap((s) => {
+    const summary = s.category === 'eviter' ? undefined : calmSummary(calm[s.id] ?? [])
+    return summary?.headline.startsWith('Plutôt calme') ? [{ ...s, headline: summary.headline, votes: (calm[s.id] ?? []).filter((v) => v.level === 'calme').length }] : []
+  })
+  if (calmOnes.length === 0) return undefined
+  const best = here
+    ? calmOnes.map((s) => ({ ...s, meters: distanceMeters(s, here) })).sort((a, b) => a.meters - b.meters)[0]!
+    : [...calmOnes].sort((a, b) => b.votes - a.votes)[0]!
+  return best
+}

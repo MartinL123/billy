@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addPoint, buildRoute, closeLoop, distanceToRoute, formatRouteDistance, moveAt, removeAt, removeLast, routeDistance, routeFromSaved, routesToDrop, simplify, momentReaction, hasReaction, withMarkMoments, type RoutePoint } from './route'
+import { addPoint, buildRoute, closeLoop, distanceToRoute, formatRouteDistance, moveAt, removeAt, removeLast, routeDistance, routeFromSaved, routesToDrop, simplify, momentReaction, hasReaction, withMarkMoments, walksOfMonth, isHardMoment, type RoutePoint } from './route'
 
 const A: RoutePoint = [48.8566, 2.3522]
 const B: RoutePoint = [48.8584, 2.3522] // ~200 m au nord
@@ -82,5 +82,18 @@ describe('enregistrement d’un trajet', () => {
     const once = withMarkMoments(route, [near, far])
     expect(once.moments).toEqual([{ lat: near.lat, lng: near.lng, type: 'marque', note: 'Square du Temple' }])
     expect(withMarkMoments(once, [near])).toBe(once)
+  })
+
+  it('« Ses balades » : les trajets du mois seulement', () => {
+    const route = storeRoute(buildRoute([A, B], [{ lat: A[0], lng: A[1], type: 'peur' }]))
+    const entries = [
+      { date: '2026-10-14', route },
+      { date: '2026-10-02', route },
+      { date: '2026-09-30', route },
+      { date: '2026-10-05' },
+    ]
+    expect(walksOfMonth(entries, '2026-10')).toHaveLength(2)
+    expect(isHardMoment({ lat: 0, lng: 0, type: 'grogne' })).toBe(true)
+    expect(isHardMoment({ lat: 0, lng: 0, type: 'marque' })).toBe(false)
   })
 })

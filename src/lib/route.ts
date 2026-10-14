@@ -157,3 +157,19 @@ export function withMarkMoments(route: Route, spots: { lat: number; lng: number;
     .map((s): RouteMoment => ({ lat: s.lat, lng: s.lng, type: 'marque', note: s.name }))
   return added.length ? { ...route, moments: [...route.moments, ...added] } : route
 }
+
+/** Pour la carte « Ses balades » (trajets.md § 4) : les peurs et grognes d'un côté, les réussites de l'autre. */
+export const isHardMoment = (m: RouteMoment) => m.type === 'peur' || m.type === 'grogne'
+export const HARD_COLOR = '#C4423A'
+export const GOOD_COLOR = '#1E5A50'
+
+/** Les trajets du mois (« 2026-10 »), les plus anciens d'abord. */
+export function walksOfMonth(entries: { date: ISODate; route?: StoredRoute }[], month: string): Route[] {
+  return entries
+    .filter((e) => e.route && e.date.startsWith(month))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .flatMap((e) => {
+      const route = readRoute(e.route)
+      return route && route.points.length > 1 ? [route] : []
+    })
+}

@@ -2,49 +2,66 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useData } from '../firebase/store'
 import { HeartIcon, HomeIcon, PawIcon, PhotoIcon, PlusIcon } from './Icons'
 
-const TABS = [
-  { to: '/', label: 'Accueil', Icon: HomeIcon },
-  { to: '/carnet', label: 'Carnet', Icon: PhotoIcon },
-  { to: '/sante', label: 'Santé', Icon: HeartIcon },
-  { to: '/billy', label: 'Mon chien', Icon: ({ size }: { size?: number }) => <PawIcon size={size ?? 24} color="currentColor" /> },
-]
+/** Hauteur de la barre (hors zone sûre) et dépassement du rond de l'accueil au-dessus d'elle. */
+const BAR = 88
+const HOME_RISE = 26
 
+const side = (isActive: boolean) =>
+  // Tous les libellés sur la même ligne de base que « Accueil » : contenu calé en bas, 14 px au-dessus du bord.
+  `flex flex-col items-center justify-end gap-1 pb-[14px] text-[13px] no-underline ${isActive ? 'font-bold text-primary' : 'font-semibold text-[#3F4946]'}`
+
+function SideTab({ to, label, icon, className = '' }: { to: string; label: string; icon: React.ReactNode; className?: string }) {
+  return (
+    <NavLink to={to} end className={({ isActive }) => `${side(isActive)} ${className}`}>
+      {({ isActive }) => (
+        <>
+          <span className={`flex h-8 w-[60px] items-center justify-center rounded-full ${isActive ? 'bg-primary-soft' : ''}`}>{icon}</span>
+          <span className="max-w-full truncate px-1">{label}</span>
+        </>
+      )}
+    </NavLink>
+  )
+}
+
+/**
+ * Carnet · Santé · ACCUEIL · Billy (spec V3 § 5.2). L'accueil est au centre, en gros : un rond qui dépasse de la barre.
+ * Grille de 5 colonnes : tant que l'onglet Meute n'existe pas, Billy occupe les 2 dernières pour garder l'accueil au milieu.
+ */
 function TabBar() {
-  // Le dernier onglet porte le nom du chien.
   const { dog } = useData()
   return (
     <nav
       aria-label="Navigation principale"
-      className="fixed inset-x-0 bottom-0 z-20 grid h-[calc(72px+env(safe-area-inset-bottom))] grid-cols-4 border-t border-divider bg-surface pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-x-0 bottom-0 z-20 border-t border-divider bg-surface pb-[env(safe-area-inset-bottom)]"
     >
-      {TABS.map(({ to, label, Icon }) => (
-        <NavLink
-          key={to}
-          to={to}
-          end
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center gap-1 text-sm no-underline ${isActive ? 'font-bold text-primary' : 'font-semibold text-[#3F4946]'}`
-          }
-        >
+      <div className="mx-auto grid max-w-[430px] grid-cols-5" style={{ height: BAR }}>
+        <SideTab to="/carnet" label="Carnet" icon={<PhotoIcon />} />
+        <SideTab to="/sante" label="Santé" icon={<HeartIcon />} />
+        <NavLink to="/" end aria-label="Accueil" className={({ isActive }) => `relative flex flex-col items-center justify-end gap-1 pb-[14px] text-[13px] no-underline ${isActive ? 'font-bold text-primary' : 'font-semibold text-[#3F4946]'}`}>
           {({ isActive }) => (
             <>
-              <span className={`flex h-8 w-[60px] items-center justify-center rounded-full ${isActive ? 'bg-primary-soft' : ''}`}>
-                <Icon />
+              <span
+                aria-hidden="true"
+                className={`absolute left-1/2 flex size-[66px] -translate-x-1/2 items-center justify-center rounded-full border-[5px] border-solid border-white bg-primary text-white ${isActive ? 'shadow-[0_6px_18px_rgba(30,90,80,0.45)]' : 'shadow-[0_3px_10px_rgba(24,32,30,0.18)]'}`}
+                style={{ top: -HOME_RISE }}
+              >
+                <HomeIcon size={30} />
               </span>
-              <span className="max-w-full truncate px-1">{to === '/billy' ? (dog.unnamed ? 'Mon chien' : dog.name) : label}</span>
+              <span>Accueil</span>
             </>
           )}
         </NavLink>
-      ))}
+        <SideTab to="/billy" label={dog.unnamed ? 'Mon chien' : dog.name} icon={<PawIcon size={24} color="currentColor" />} className="col-span-2" />
+      </div>
     </nav>
   )
 }
 
-/** Écrans à onglets : contenu défilant au-dessus de la barre fixe. */
+/** Écrans à onglets : contenu défilant au-dessus de la barre fixe, jamais caché par le rond de l'accueil ni par le « + ». */
 export function TabLayout() {
   return (
     <>
-      <main className="mx-auto max-w-[430px] pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+176px)]">
+      <main className="mx-auto max-w-[430px] pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+200px)]">
         <Outlet />
       </main>
       <TabBar />
@@ -52,8 +69,9 @@ export function TabLayout() {
   )
 }
 
+// Le « + » reste au-dessus de la barre et du rond de l'accueil (88 px de barre + 16 px).
 const fabClass =
-  'fixed right-5 bottom-[calc(env(safe-area-inset-bottom)+92px)] z-20 flex size-16 items-center justify-center rounded-full border-0 bg-primary text-white shadow-fab'
+  'fixed right-5 bottom-[calc(env(safe-area-inset-bottom)+104px)] z-20 flex size-16 items-center justify-center rounded-full border-0 bg-primary text-white shadow-fab'
 
 /** Action principale de l'écran, sous le pouce. */
 export function Fab({ label, onClick }: { label: string; onClick: () => void }) {

@@ -44,6 +44,12 @@ describe('firestore.rules : deux comptes', () => {
     await assertFails(getDoc(doc(alice, 'users/bob/dog/billy')))
     await assertFails(getDocs(collection(alice, 'users/bob/entries')))
     await assertFails(getDoc(doc(alice, 'users/bob/files/f1/chunks/0')))
+    // Les os et la boutique d'un autre compte restent invisibles, et on ne peut pas s'en attribuer chez lui.
+    await assertFails(getDocs(collection(alice, 'users/bob/bones')))
+    await assertFails(setDoc(doc(alice, 'users/bob/bones/mission-2026-10-14'), { amount: 10 }))
+    await assertFails(getDoc(doc(alice, 'users/bob/inventory/cape')))
+    await assertSucceeds(setDoc(doc(alice, 'users/alice/bones/mission-2026-10-14'), { date: '2026-10-14', amount: 10, reason: 'mission', refId: '2026-10-14' }))
+    await assertSucceeds(setDoc(doc(alice, 'users/alice/inventory/cape'), { boughtAt: '2026-10-14', price: 300 }))
     // L'abonnement aux notifications d'un autre compte reste invisible.
     await assertFails(getDoc(doc(alice, 'users/bob/push/iphone')))
     await assertSucceeds(setDoc(doc(alice, 'users/alice/push/iphone'), { time: '21:00' }))

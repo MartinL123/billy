@@ -19,6 +19,10 @@ import { useToday } from '../../lib/useToday'
 import { BonesGained } from '../../components/BoneIcon'
 import { BONES } from '../../lib/bones'
 import { SkillPill } from '../billy/SkillPill'
+import { keepRoute } from '../trajets/keepRoute'
+import { RouteCard } from '../trajets/RouteCard'
+import type { TraceResult } from '../trajets/Tracer'
+import { storeRoute } from '../../lib/route'
 import { useQuest } from '../today/useQuest'
 import { BossIcon } from '../training/BossIcon'
 import { LevelUp, StepSuccess } from '../training/Celebration'
@@ -44,7 +48,7 @@ const choice = (on: boolean) => `btn px-2 ${on ? 'btn-on' : 'btn-outline'}`
  */
 export default function Noter() {
   const [params] = useSearchParams()
-  const { dog, entries, sessions, bossProgress, bones } = useData()
+  const { dog, entries, sessions, bossProgress, bones, routes } = useData()
   const today = useToday()
   const toast = useToast()
   const navigate = useNavigate()
@@ -66,6 +70,8 @@ export default function Noter() {
   const [movedAway, setMovedAway] = useState(false)
   // Partager avec la meute : un choix explicite à chaque fois, désactivé par défaut.
   const [share, setShare] = useState(false)
+  // Le trajet de la balade, tracé après coup (facultatif).
+  const [trace, setTrace] = useState<TraceResult | null>(null)
   const [yes, setYes] = useState<Record<string, boolean>>({})
   const [progress, setProgress] = useState('')
   const [error, setError] = useState('')
@@ -120,7 +126,7 @@ export default function Noter() {
       const saved: EntryPhoto[] = []
       for (const photo of photos) saved.push({ fileId: await saveImage(photo.full), thumbFileId: await saveImage(photo.thumb) })
       const result = recordMoment(
-        { date, text: text.trim() || today0.note, tags: [], photos: saved, skills, feeling, fear, movedAway: input.movedAway },
+        { date, text: text.trim() || today0.note, tags: [], photos: saved, skills, feeling, fear, movedAway: input.movedAway, ...(trace ? { route: storeRoute(trace.route) } : {}) },
         yesIds,
         bossProgress,
         dog.name,
@@ -129,6 +135,7 @@ export default function Noter() {
       if (fromQuest) completeQuest(today, { kind: today0.quest.kind, bossId: today0.quest.bossId, exerciseId: today0.quest.planned?.exercise.id }, today0.skips, QUEST_XP)
       // Souvenir des premières semaines : l'écran de résultat du questionnaire le retrouve.
       if (params.get('retour') === 'questionnaire') answerQuestion('souvenir', result.entryId, { 'questionnaire.souvenirs': [...(dog.questionnaire?.souvenirs ?? []), result.entryId] })
+      if (trace) keepRoute(trace, routes)
       if (share) shareMoment(result.entryId, { dogName: dog.name, text: text.trim() || today0.note, date, skills })
       setOutcome(result)
     } catch (err) {
@@ -233,6 +240,8 @@ export default function Noter() {
             </p>
           )}
         </div>
+
+        <RouteCard date={isValidISO(date) ? date : today} value={trace} onChange={setTrace} />
 
         {!fromQuest && (
           <fieldset className="m-0 border-0 p-0">

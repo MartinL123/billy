@@ -8,6 +8,7 @@ import { formatShort } from '../../lib/dates'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { Badge } from '../billy/Badge'
+import { FeedPhoto } from './FeedPhoto'
 import { MemberAvatar } from './MemberAvatar'
 
 /** Le profil public d'un chien de la meute : photo, âge, race, niveau, badges, territoire. Ni santé, ni documents, ni Carnet privé. */
@@ -69,9 +70,10 @@ export default function DogPublic() {
           <section className="flex flex-col gap-2">
             <h2 className="text-xl font-bold">Moments partagés</h2>
             {shared.map((f) => (
-              <div key={f.id} className="card flex flex-col gap-1 p-4">
+              <div key={f.id} className="card flex flex-col gap-2 p-4">
                 <span className="text-sm font-semibold text-muted">{formatShort(f.date)}</span>
                 <span className="text-[17px] leading-snug">{f.text}</span>
+                {f.photo && <FeedPhoto photo={f.photo} size={160} />}
               </div>
             ))}
           </section>

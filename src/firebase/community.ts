@@ -56,6 +56,8 @@ export interface FeedItem {
   text: string
   date: ISODate
   skills?: string[]
+  /** Miniature (400 px) de la première photo, si le maître la partage. */
+  photo?: Bytes
 }
 
 export interface ChallengeRow {
@@ -116,8 +118,19 @@ export async function markedSpotsOn(date: ISODate): Promise<{ name: string; lat:
   }
 }
 
+const feedId = (entryId: string) => `${uid()}_${entryId}`
+
+/** Le moment est-il partagé avec la meute ? (en direct) */
+export const watchShared = (entryId: string, onData: (shared: boolean) => void) =>
+  onSnapshot(packDoc('feed', feedId(entryId)), (snap) => onData(snap.exists()), () => onData(false))
+
+/** Retirer un moment partagé (« Vous pourrez le retirer »). */
+export function unshareMoment(entryId: string): void {
+  send(deleteDoc(packDoc('feed', feedId(entryId))))
+}
+
 export function shareMoment(entryId: string, item: Omit<FeedItem, 'uid'>): void {
-  send(setDoc(packDoc('feed', `${uid()}_${entryId}`), { ...item, uid: uid() } satisfies FeedItem))
+  send(setDoc(packDoc('feed', feedId(entryId)), { ...item, uid: uid() } satisfies FeedItem))
 }
 
 /** Supprimer un compte retire de la meute son profil, ses marques, ses moments partagés, ses avis et ses lignes de défi. */

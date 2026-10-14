@@ -4,6 +4,7 @@ import { FilePicker } from '../../components/FilePicker'
 import { CheckIcon, PhotoIcon } from '../../components/Icons'
 import { useToast } from '../../components/Toast'
 import { SKILLS, stepPhrase } from '../../content/phrases'
+import { Bytes } from 'firebase/firestore'
 import { shareMoment } from '../../firebase/community'
 import { answerQuestion } from '../../firebase/db'
 import { saveImage } from '../../firebase/files'
@@ -136,7 +137,11 @@ export default function Noter() {
       // Souvenir des premières semaines : l'écran de résultat du questionnaire le retrouve.
       if (params.get('retour') === 'questionnaire') answerQuestion('souvenir', result.entryId, { 'questionnaire.souvenirs': [...(dog.questionnaire?.souvenirs ?? []), result.entryId] })
       if (trace) keepRoute(trace, routes)
-      if (share) shareMoment(result.entryId, { dogName: dog.name, text: text.trim() || today0.note, date, skills })
+      // Ce que la meute voit : le texte, le jour, la 1re photo en miniature. Ni heure, ni lieu, ni ressenti, ni compétences.
+      if (share) {
+        const thumb = photos[0] ? Bytes.fromUint8Array(new Uint8Array(await photos[0].thumb.arrayBuffer())) : undefined
+        shareMoment(result.entryId, { dogName: dog.name, text: text.trim() || today0.note, date, ...(thumb ? { photo: thumb } : {}) })
+      }
       setOutcome(result)
     } catch (err) {
       setSaving(false)
@@ -390,9 +395,21 @@ export default function Noter() {
           <input type="checkbox" role="switch" checked={share} onChange={(e) => setShare(e.target.checked)} className="size-7 shrink-0 accent-primary" />
           <span className="flex flex-col gap-0.5">
             <span className="text-[17px] font-bold">Partager avec la meute</span>
-            <span className="text-[15px] text-muted">Le texte seulement, sans photo ni heure</span>
+            <span className="text-[15px] text-muted">Désactivé par défaut. Vous pourrez le retirer.</span>
           </span>
         </label>
+        {share && (
+          <section aria-label="Ce que la meute verra" className="flex flex-col gap-2 rounded-[18px] bg-primary-soft px-4 py-3">
+            <h2 className="text-[13px] font-bold tracking-[0.6px] text-primary-dark uppercase">Ce que la meute verra</h2>
+            <div className="flex items-start gap-3">
+              {photos[0] && <img src={photos[0].previewUrl} alt="" className="size-14 shrink-0 rounded-[12px] object-cover" />}
+              <p className="line-clamp-3 min-w-0 flex-1 text-[15px] leading-snug">
+                <strong>{dog.name}</strong> · {date === today ? "aujourd'hui" : date === addDays(today, -1) ? 'hier' : formatLong(date)} : {text.trim() || today0.note || '…'}
+              </p>
+            </div>
+            <p className="text-sm text-[#3F4946]">{photos.length > 1 ? 'La première photo seulement, en petit. ' : ''}Pas l'heure, pas le lieu exact, pas le ressenti ni les compétences.</p>
+          </section>
+        )}
 
         {error && (
           <p role="alert" className="rounded-[18px] bg-danger-soft px-4 py-3 text-[15px] font-semibold text-danger">
@@ -404,7 +421,7 @@ export default function Noter() {
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto max-w-[430px] px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           <button type="submit" disabled={saving || Boolean(progress)} className="btn btn-main min-h-[60px] w-full px-6 text-[19px] disabled:opacity-60">
-            <span>{saving ? 'Enregistrement…' : 'Enregistrer'}</span>
+            <span>{saving ? 'Enregistrement…' : share ? 'Enregistrer et partager' : 'Enregistrer'}</span>
           </button>
         </div>
       </div>

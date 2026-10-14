@@ -15,6 +15,7 @@ import {
 import { db } from './app'
 import { newId, send, userCol, userDoc } from './paths'
 import { deleteFile } from './files'
+import { unshareMoment } from './community'
 export { newId } from './paths'
 import { lifeMilestones } from '../lib/milestones'
 import type { StoredRoute, StoredSavedRoute } from '../lib/route'
@@ -206,6 +207,7 @@ export function saveEntry(id: string, entry: Entry): void {
 
 export function deleteEntry(entry: WithId<Entry>): void {
   send(deleteDoc(userDoc('entries', entry.id)))
+  unshareMoment(entry.id)
   for (const photo of entry.photos) {
     deleteFile(photo.fileId)
     deleteFile(photo.thumbFileId)

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { FilePicker } from '../../components/FilePicker'
 import { ImportIcon, PhotoIcon } from '../../components/Icons'
 import { PageHeader } from '../../components/PageHeader'
+import { inkOn, SKILLS, territoryOf } from '../../content/phrases'
 import { Fab } from '../../components/TabBar'
 import { useData } from '../../firebase/store'
 import type { EntryPhoto } from '../../firebase/types'
@@ -40,7 +41,13 @@ export default function Journal() {
   const entries: Moment[] = [...written.map(modernCard), ...legacy].sort(byRecency)
   const today = useToday()
   const navigate = useNavigate()
+  // Un seul filtre à la fois : une étiquette libre, ou une compétence notée.
   const [tag, setTag] = useState<string | null>(null)
+  const [skill, setSkill] = useState<string | null>(null)
+  const choose = (next: { tag?: string | null; skill?: string | null }) => {
+    setTag(next.tag ?? null)
+    setSkill(next.skill ?? null)
+  }
   const [viewer, setViewer] = useState<{ photos: EntryPhoto[]; start: number } | null>(null)
 
   const importPhotos = (files: File[]) => {
@@ -51,7 +58,9 @@ export default function Journal() {
   // Seuls les tags réellement utilisés servent de filtre.
   const used = entries.flatMap((e) => e.tags)
   const tags = allTags(used).filter((t) => used.some((u) => sameTag(u, t)))
-  const visible = tag ? entries.filter((e) => e.tags.some((t) => sameTag(t, tag))) : entries
+  // Les compétences qui ont au moins un moment, dans l'ordre de l'arbre.
+  const skills = SKILLS.filter((s) => entries.some((e) => e.skills?.includes(s.id)))
+  const visible = tag ? entries.filter((e) => e.tags.some((t) => sameTag(t, tag))) : skill ? entries.filter((e) => e.skills?.includes(skill)) : entries
 
   const groups: { key: string; items: typeof visible }[] = []
   for (const entry of visible) {
@@ -67,23 +76,41 @@ export default function Journal() {
     }`
 
   return (
-    <div className="flex flex-col gap-5">
+    // Marge sous la liste : le bouton « + » (64 px, à 92 px du bas) ne recouvre jamais la dernière carte.
+    <div className="flex flex-col gap-5 pb-[calc(64px+16px)]">
       <PageHeader title="Carnet" className="px-5" />
 
       {entries.length === 0 ? (
         <EmptyJournal onPhotos={importPhotos} />
       ) : (
         <>
-          {tags.length > 0 && (
-            <div role="group" aria-label="Filtrer par tag" className="flex gap-2 overflow-x-auto px-5 [scrollbar-width:none]">
-              <button type="button" aria-pressed={tag === null} onClick={() => setTag(null)} className={chip(tag === null)}>
+          {(tags.length > 0 || skills.length > 0) && (
+            <div role="group" aria-label="Filtrer le Carnet" className="flex gap-2 overflow-x-auto px-5 [scrollbar-width:none]">
+              <button type="button" aria-pressed={tag === null && skill === null} onClick={() => choose({})} className={chip(tag === null && skill === null)}>
                 Tous
               </button>
               {tags.map((t) => (
-                <button key={t} type="button" aria-pressed={tag === t} onClick={() => setTag(tag === t ? null : t)} className={chip(tag === t)}>
+                <button key={t} type="button" aria-pressed={tag === t} onClick={() => choose({ tag: tag === t ? null : t })} className={chip(tag === t)}>
                   {t}
                 </button>
               ))}
+              {skills.map((s) => {
+                const territory = territoryOf(s.id)
+                const on = skill === s.id
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => choose({ skill: on ? null : s.id })}
+                    className="flex min-h-12 shrink-0 items-center gap-2 rounded-full border-2 border-solid px-4 text-[17px] font-semibold whitespace-nowrap"
+                    style={on ? { background: territory.color, borderColor: territory.color, color: '#FFFFFF' } : { background: territory.soft, borderColor: territory.soft, color: inkOn(territory) }}
+                  >
+                    <span className="size-2.5 rounded-full" style={{ background: on ? '#FFFFFF' : territory.color }} />
+                    {s.name}
+                  </button>
+                )
+              })}
             </div>
           )}
 
@@ -104,8 +131,8 @@ export default function Journal() {
 
           {visible.length === 0 && (
             <div className="flex flex-col items-center gap-2 px-6 pt-6 text-center">
-              <p className="text-muted">Aucun souvenir avec le tag « {tag} ».</p>
-              <button type="button" onClick={() => setTag(null)} className="btn btn-outline">
+              <p className="text-muted">{tag ? `Aucun souvenir avec l'étiquette « ${tag} ».` : 'Aucun moment pour cette compétence.'}</p>
+              <button type="button" onClick={() => choose({})} className="btn btn-outline">
                 Voir tous les souvenirs
               </button>
             </div>

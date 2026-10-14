@@ -9,6 +9,9 @@ import { useQuest } from './useQuest'
 
 const REST = { name: 'Repos', color: '#1E5A50', soft: '#DCEBE6' }
 
+/** Le Grand Monde a la couleur du bouton principal : son « Commencer » est plus foncé pour ne pas se confondre avec « Noter ». Blanc sur #9A4413 : contraste 6,7:1 (AA). */
+const darker = (color: string) => (color.toUpperCase() === '#C2571A' ? '#9A4413' : color)
+
 /**
  * Quête du jour : une seule chose à faire, courte. La carte prend la couleur du territoire :
  * c'est un objet de jeu, la seule exception au bouton principal orange.
@@ -44,7 +47,7 @@ export function QuestCard() {
           </p>
         ) : (
           <div className={`grid gap-2.5 ${canSkip ? 'grid-cols-[2fr_1fr]' : ''}`}>
-            <Link to={to} className="flex min-h-[54px] items-center justify-center gap-2 rounded-full text-[17px] font-extrabold text-white no-underline" style={{ background: territory.color }}>
+            <Link to={to} className="flex min-h-[54px] items-center justify-center gap-2 rounded-full text-[17px] font-extrabold text-white no-underline" style={{ background: darker(territory.color) }}>
               <svg width="12" height="12" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
                 <path d="M2 1l7 4-7 4z" />
               </svg>

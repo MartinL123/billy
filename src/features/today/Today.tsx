@@ -82,7 +82,16 @@ export default function Today() {
 
       <QuestCard />
 
-      {/* Le défi suit la quête : les deux choses à faire sont ensemble. Toute la carte ouvre l'exercice du défi. */}
+      <Link to="/noter" className={`btn min-h-[60px] text-[18px] ${questionnaire.complete ? 'btn-main shadow-[0_4px_12px_rgba(194,87,26,0.3)]' : 'btn-outline'}`}>
+        <NoteIcon size={24} />
+        Noter ce qu'on a fait
+      </Link>
+      <Link to="/exercice" className="btn btn-outline min-h-14">
+        <TargetIcon size={22} />
+        Faire un exercice
+      </Link>
+
+      {/* Le défi vient après « Noter », qui doit rester visible sans défiler. Toute la carte ouvre l'exercice du défi. */}
       <Link to={`/exercice?competence=${challenge.bossId}`} aria-label={`Défi de la semaine : ${challenge.label}. Ouvrir l'exercice`} className="card flex flex-col gap-3 rounded-[22px] p-4 text-text no-underline">
         <span className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <span className="text-[13px] font-bold tracking-[0.6px] text-milestone-dark uppercase">Défi de la semaine</span>
@@ -98,15 +107,6 @@ export default function Today() {
           ))}
         </span>
         <span className="text-sm text-muted">{done >= challenge.target ? 'Défi réussi, bravo !' : "Rien n'est perdu si ce n'est pas fini dimanche."}</span>
-      </Link>
-
-      <Link to="/noter" className={`btn min-h-[60px] text-[18px] ${questionnaire.complete ? 'btn-main shadow-[0_4px_12px_rgba(194,87,26,0.3)]' : 'btn-outline'}`}>
-        <NoteIcon size={24} />
-        Noter ce qu'on a fait
-      </Link>
-      <Link to="/exercice" className="btn btn-outline min-h-14">
-        <TargetIcon size={22} />
-        Faire un exercice
       </Link>
 
       <section className="flex flex-col gap-2.5">

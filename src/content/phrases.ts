@@ -139,6 +139,9 @@ export const TERRITORIES: Territory[] = [
   },
 ]
 
+/** Couleur du texte sur le fond clair du territoire. L'orange du Grand Monde y serait trop pâle (4:1) : on le fonce (AA). */
+export const inkOn = (territory: Territory): string => (territory.tier === 'monde' ? '#9A4413' : territory.color)
+
 export const territoryOf = (bossId: string): Territory => TERRITORIES.find((t) => t.tier === bossById(bossId)?.tier) ?? TERRITORIES[0]!
 
 /** Compétences de peur : un moment « Difficile » y compte comme une situation de peur (spec V3 § 3). */

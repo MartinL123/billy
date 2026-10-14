@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { ChevronRightIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
-import { territoryOf } from '../../content/phrases'
+import { inkOn, territoryOf } from '../../content/phrases'
 import { bossById } from '../../content/training'
 import type { Entry, WithId } from '../../firebase/types'
 import { formatRelative, formatShort, formatWeekdayShort, diffDays, parseISO, type ISODate } from '../../lib/dates'
@@ -48,7 +48,7 @@ export function MomentChips({ entry, activeTag }: { entry: Moment; activeTag?: s
       {entry.skills?.map((id) => {
         const territory = territoryOf(id)
         return (
-          <span key={id} className={chip} style={{ background: territory.soft, color: territory.color }}>
+          <span key={id} className={chip} style={{ background: territory.soft, color: inkOn(territory) }}>
             {bossById(id)?.name}
           </span>
         )

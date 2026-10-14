@@ -224,6 +224,19 @@ export default function Questionnaire() {
     go(index + 1)
   }
 
+  // « Je ne sais pas » (dates de santé, ce qu'il sait faire) : on passe à la question suivante sans rien enregistrer d'autre.
+  const unknown = step.kind === 'skill' || (step.kind === 'date' && step.part === 2)
+  const dontKnow = () => {
+    if (step.kind === 'skill') {
+      setSkillDraft({ ...skillDraft, [step.id]: 'nsp' })
+      save({}, 'nsp')
+    } else {
+      set(step.id, '')
+      save({}, 'nsp')
+    }
+    go(index + 1)
+  }
+
   const title = step.title.replace('{nom}', draft.nom || (dog.unnamed ? 'votre chien' : dog.name))
   const skill = SKILLS.find((s) => s.id === step.id)
   const choices = (draft[step.id] ?? '').split('|').filter(Boolean)
@@ -239,17 +252,27 @@ export default function Questionnaire() {
     <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col px-5 pt-[calc(env(safe-area-inset-top)+12px)] pb-[calc(env(safe-area-inset-bottom)+20px)]">
       <header className="flex flex-col gap-3 pb-5">
         <div className="flex items-center justify-between gap-3">
-          <button type="button" onClick={later} className="btn btn-quiet min-h-12 px-4">
-            Continuer plus tard
-          </button>
-          <span className="text-[15px] font-bold text-muted" aria-live="polite">
-            Partie {step.part} sur {PARTS.length}
+          <span className="flex items-center gap-1">
+            {unknown && index > 0 && (
+              <button type="button" onClick={() => go(index - 1)} className="btn btn-quiet min-h-12 px-3 whitespace-nowrap">
+                Retour
+              </button>
+            )}
+            <button type="button" onClick={later} className="btn btn-quiet min-h-12 px-3 whitespace-nowrap">
+              Continuer plus tard
+            </button>
           </span>
         </div>
         <div role="progressbar" aria-label="Avancement du questionnaire" aria-valuemin={1} aria-valuemax={STEPS.length} aria-valuenow={index + 1} className="h-2.5 overflow-hidden rounded-full bg-placeholder">
           <div className="h-full rounded-full bg-primary transition-[width] duration-300" style={{ width: `${((index + 1) / STEPS.length) * 100}%` }} />
         </div>
-        <p className="text-[13px] font-bold tracking-[0.6px] text-primary uppercase">{PARTS[step.part - 1]}</p>
+        {/* La partie est rappelée ici, sous la barre : la ligne du haut garde ses boutons sur une seule ligne. */}
+        <p className="flex flex-wrap justify-between gap-x-3 text-[13px] font-bold tracking-[0.6px] uppercase" aria-live="polite">
+          <span className="text-primary">{PARTS[step.part - 1]}</span>
+          <span className="text-muted">
+            Partie {step.part} sur {PARTS.length}
+          </span>
+        </p>
       </header>
 
       <div className="flex flex-1 flex-col gap-5">
@@ -277,11 +300,6 @@ export default function Questionnaire() {
         {step.kind === 'date' && (
           <div className="flex flex-col gap-2.5">
             <input aria-label={title} type="date" max={today} value={draft[step.id] ?? ''} onChange={(e) => set(step.id, e.target.value)} className={`${input} px-3`} />
-            {step.part === 2 && (
-              <button type="button" onClick={() => set(step.id, '')} className={`btn ${draft[step.id] ? 'btn-quiet' : 'btn-on'}`}>
-                Je ne sais pas
-              </button>
-            )}
           </div>
         )}
 
@@ -433,9 +451,6 @@ export default function Questionnaire() {
                   </button>
                 )
               })}
-              <button type="button" role="radio" aria-checked={skillValue(skill.id) === 'nsp'} onClick={() => setSkillDraft({ ...skillDraft, [skill.id]: 'nsp' })} className={`btn ${skillValue(skill.id) === 'nsp' ? 'btn-on' : 'btn-quiet'}`}>
-                Je ne sais pas
-              </button>
             </div>
             {/* Chien âgé ou déjà éduqué : deux questions de plus, qui donnent les dernières étapes. */}
             {FOLLOW_UPS.map(({ value, question }, i) => {
@@ -471,10 +486,17 @@ export default function Questionnaire() {
       </div>
 
       <footer className="mt-6 grid grid-cols-[auto_minmax(0,1fr)] gap-2.5">
-        <button type="button" onClick={() => go(index - 1)} disabled={index === 0} className={`btn ${step.kind === 'fin' ? 'btn-outline' : 'btn-quiet'} px-5 disabled:opacity-40`}>
-          Retour
-        </button>
-        <button type="button" onClick={next} className="btn btn-main">
+        {unknown ? (
+          // « Je ne sais pas » prend la largeur de son texte, sur une ligne ; « Suivant » prend le reste.
+          <button type="button" onClick={dontKnow} className="btn btn-outline min-h-[60px] px-5 whitespace-nowrap">
+            Je ne sais pas
+          </button>
+        ) : (
+          <button type="button" onClick={() => go(index - 1)} disabled={index === 0} className={`btn ${step.kind === 'fin' ? 'btn-outline' : 'btn-quiet'} px-5 disabled:opacity-40`}>
+            Retour
+          </button>
+        )}
+        <button type="button" onClick={next} className={`btn btn-main ${unknown ? 'min-h-[60px]' : ''}`}>
           {step.kind === 'fin' ? 'C’est bon, on commence' : 'Suivant'}
         </button>
       </footer>

@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { PawIcon } from '../../components/Icons'
+import { PasswordField } from '../../components/PasswordField'
+import { InstallGuide } from '../account/Install'
 import { authErrorMessage, resetPassword, signIn, type AuthMessage } from '../../firebase/auth'
 
 export function Logo() {
@@ -16,6 +18,7 @@ export default function Login() {
   const [error, setError] = useState<AuthMessage | null>(null)
   const [info, setInfo] = useState('')
   const [busy, setBusy] = useState(false)
+  const [installing, setInstalling] = useState(false)
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -44,6 +47,8 @@ export default function Login() {
       setError(authErrorMessage(err))
     }
   }
+
+  if (installing) return <InstallGuide onBack={() => setInstalling(false)} backLabel="Connexion" />
 
   const fieldClass = (field: AuthMessage['field']) => `field ${error?.field === field ? 'border-danger' : ''}`
 
@@ -79,26 +84,7 @@ export default function Login() {
             </div>
           )}
         </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="mdp" className="text-[15px] font-semibold">
-            Mot de passe
-          </label>
-          <input
-            id="mdp"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            aria-invalid={error?.field === 'password' || undefined}
-            aria-describedby={error?.field === 'password' ? 'mdp-err' : undefined}
-            className={fieldClass('password')}
-          />
-          {error?.field === 'password' && (
-            <div id="mdp-err" role="alert" className="text-sm font-medium text-danger">
-              {error.text}
-            </div>
-          )}
-        </div>
+        <PasswordField label="Mot de passe" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} error={error?.field === 'password' ? error.text : undefined} />
         <button type="submit" disabled={busy} className="btn btn-main mt-2 disabled:opacity-60">
           {busy ? 'Connexion…' : 'Se connecter'}
         </button>
@@ -111,6 +97,11 @@ export default function Login() {
           </p>
         )}
       </form>
+
+      {/* Pas d'inscription : Martin crée les comptes. On explique seulement comment installer l'app. */}
+      <button type="button" onClick={() => setInstalling(true)} className="btn btn-outline mt-6">
+        Comment installer l'app sur mon téléphone ?
+      </button>
 
       <p className="mt-auto pt-8 text-center text-[13px] leading-snug text-muted">Vos données restent privées. Martin, qui gère l'app, peut techniquement y accéder.</p>
 

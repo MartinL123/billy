@@ -4,7 +4,7 @@ import { FileImage } from '../../components/FileImage'
 import { FilePicker } from '../../components/FilePicker'
 import { CheckIcon, TrashIcon } from '../../components/Icons'
 import { SKILLS } from '../../content/phrases'
-import { answerQuestion, ensureMilestones, recordCare, saveWeight, updateDog } from '../../firebase/db'
+import { answerQuestion, ensureMilestones, recordCare, saveEvent, saveWeight, updateDog } from '../../firebase/db'
 import { deleteFile, saveImage } from '../../firebase/files'
 import { newId } from '../../firebase/paths'
 import { useData } from '../../firebase/store'
@@ -12,6 +12,7 @@ import { declarePreApp } from '../../firebase/training'
 import type { Dog } from '../../firebase/types'
 import { isValidISO } from '../../lib/dates'
 import { sortMeals, type Meal } from '../../lib/feeding'
+import { nextTrainerSession, trainerSession } from '../../lib/events'
 import { careStatus } from '../../lib/health'
 import { compressImage, PHOTO } from '../../lib/image'
 import {
@@ -105,6 +106,8 @@ export default function Questionnaire() {
     sorties: dog.walksPerDay ?? '',
     'educateur-nom': dog.trainer?.name ?? '',
     'educateur-tel': dog.trainer?.phone ?? '',
+    'educateur-date': nextTrainerSession(events, today)?.date ?? '',
+    'educateur-heure': nextTrainerSession(events, today)?.time ?? '',
     foyer: dog.household ?? '',
     humeur: dog.homeMood ?? '',
   }))
@@ -178,7 +181,14 @@ export default function Questionnaire() {
     } else if (id === 'provenance') save({ origin: text(id) })
     else if (id === 'puce') save({ chip: text(id) })
     else if (id === 'veto') save({ vet: { name: text('veto-nom'), phone: text('veto-tel') } })
-    else if (id === 'educateur') save({ trainer: { name: text('educateur-nom'), phone: text('educateur-tel') } })
+    else if (id === 'educateur') {
+      const date = text('educateur-date')
+      if (date && (!isValidISO(date) || date < today)) return setError('Choisissez une date à venir pour la prochaine séance.')
+      // La prochaine séance devient un rendez-vous « Éducateur » dans Santé.
+      const session = trainerSession(events, { date, time: text('educateur-heure'), name: text('educateur-nom') }, today)
+      if (session) saveEvent(newId('events'), session)
+      save({ trainer: { name: text('educateur-nom'), phone: text('educateur-tel') } })
+    }
     else if (id === 'vaccin') {
       const date = careDate(id)
       if (date === null) return
@@ -361,6 +371,18 @@ export default function Questionnaire() {
               <span className={label}>Son téléphone</span>
               <input type="tel" inputMode="tel" value={draft[`${step.id}-tel`] ?? ''} onChange={(e) => set(`${step.id}-tel`, e.target.value)} autoComplete="off" className={input} />
             </label>
+            {step.id === 'educateur' && (
+              <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
+                <legend className={`${label} mb-2 p-0`}>
+                  Prochaine séance <span className="font-normal text-muted">(facultatif)</span>
+                </legend>
+                <div className="grid grid-cols-[1fr_auto] gap-2">
+                  <input aria-label="Date de la prochaine séance" type="date" min={today} value={draft['educateur-date'] ?? ''} onChange={(e) => set('educateur-date', e.target.value)} className={`${input} min-w-0 px-3`} />
+                  <input aria-label="Heure de la prochaine séance" type="time" value={draft['educateur-heure'] ?? ''} onChange={(e) => set('educateur-heure', e.target.value)} className={`${input} w-[120px] px-3`} />
+                </div>
+                <p className="text-[15px] text-muted">Elle s'ajoutera dans Santé.</p>
+              </fieldset>
+            )}
           </>
         )}
 

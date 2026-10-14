@@ -87,3 +87,26 @@ export const matchesFilter = (event: { type: string; title: string }, filter: Ca
 
 /** « 2 soins à venir », « 1 vaccin à venir ». */
 export const filterSummary = (filter: CareFilter, count: number) => `${count} ${count > 1 ? filterInfo(filter).many : filterInfo(filter).one}`
+
+/** La prochaine séance avec l'éducateur déjà prévue (pour pré-remplir le questionnaire). */
+export function nextTrainerSession<E extends { type: string; date: string; time?: string; done: boolean }>(events: E[], today: string): E | undefined {
+  return events.filter((e) => e.type === 'educateur' && !e.done && e.date >= today).sort((a, b) => a.date.localeCompare(b.date))[0]
+}
+
+/**
+ * Questionnaire « Avez-vous un éducateur ? » + prochaine séance : le rendez-vous à créer dans Santé, ou rien
+ * (pas de date, date passée, ou une séance déjà prévue ce jour-là).
+ */
+export function trainerSession(events: { type: string; date: string; done: boolean }[], answer: { date: string; time?: string; name?: string }, today: string) {
+  if (!answer.date || answer.date < today) return undefined
+  if (events.some((e) => e.type === 'educateur' && !e.done && e.date === answer.date)) return undefined
+  const name = answer.name?.trim()
+  return {
+    title: name ? `Séance avec ${name}` : EVENT_TYPES.educateur.title,
+    type: 'educateur' as const,
+    date: answer.date,
+    ...(answer.time ? { time: answer.time } : {}),
+    recurrence: 'none' as const,
+    done: false,
+  }
+}

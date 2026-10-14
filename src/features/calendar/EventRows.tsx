@@ -59,9 +59,10 @@ export function CalendarEventRow({ event, today, first }: { event: Event; today:
   const toggle = useToggleDone()
   const overdue = isOverdue(event, today)
   const info = typeInfo(event.type)
+  // Un rendez-vous avec une heure l'affiche en premier, sous son titre : « 10 h 30 · … ».
   const details = [
-    overdue ? 'En retard' : '',
     event.time ? formatTime(event.time) : '',
+    overdue ? 'En retard' : '',
     RECURRENCE_LABEL[event.recurrence],
     !event.time && event.recurrence === 'none' && !overdue ? info.label : '',
   ].filter(Boolean)
@@ -72,18 +73,18 @@ export function CalendarEventRow({ event, today, first }: { event: Event; today:
     <div className={`flex flex-col gap-2.5 px-4 py-3.5 ${overdue ? 'bg-danger-soft' : ''} ${first ? '' : 'border-t border-divider'}`}>
       <Link to={`/evenement/${event.id}`} className="flex min-h-12 min-w-0 items-center gap-3.5 text-text no-underline">
         {event.date ? (
-          <span className="flex w-11 shrink-0 flex-col text-center">
+          <span className="flex w-[52px] shrink-0 flex-col items-center text-center leading-[1.15] whitespace-nowrap">
             <span className={`text-xs font-semibold ${overdue ? 'text-danger' : 'text-muted'}`}>{weekdayAbbr(event.date)}</span>
             <span className={`text-xl font-bold ${dateTone}`}>{parseISO(event.date).d}</span>
             {otherMonth && (
-              <span className="text-[11px] text-muted">
+              <span className="text-xs text-muted">
                 {monthAbbr(event.date)}
                 {parseISO(event.date).y !== parseISO(today).y ? ` ${String(parseISO(event.date).y).slice(2)}` : ''}
               </span>
             )}
           </span>
         ) : (
-          <span className="flex w-11 shrink-0 justify-center text-xl font-bold text-milestone">?</span>
+          <span className="flex w-[52px] shrink-0 justify-center text-xl font-bold text-milestone">?</span>
         )}
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className={`truncate text-base font-semibold ${event.done ? 'text-muted line-through' : ''}`}>{event.title}</span>

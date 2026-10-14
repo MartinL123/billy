@@ -7,6 +7,7 @@ import { markedSpotsOn } from '../../firebase/community'
 import { addPoint, buildRoute, closeLoop, defaultRouteName, distanceToRoute, DURATIONS, durationLabel, formatRouteDistance, moveAt, NEAR_ROUTE, removeAt, removeLast, routeDistance, routeMomentInfo, ROUTE_MOMENTS, withMarkMoments, type Route, type RouteMoment, type RoutePoint } from '../../lib/route'
 import type { ISODate } from '../../lib/dates'
 import { streetName } from '../../lib/street'
+import { MAX_GPX_BYTES, parseGpx, thin } from '../../lib/gpx'
 
 const PARIS: RoutePoint = [48.8566, 2.3522]
 
@@ -71,7 +72,10 @@ export function Tracer({ date, initial, onDone, onCancel }: { date: ISODate; ini
     if (!group) return
     group.clearLayers()
     if (points.length > 1) L.polyline(points, { color: '#9A4413', weight: 5 }).addTo(group)
+    // Un tracé importé (GPX) a beaucoup de points : seulement le départ et l'arrivée, pour garder la carte lisible.
+    const many = points.length > 40
     points.forEach((p, i) => {
+      if (many && i !== 0 && i !== points.length - 1) return
       const color = i === 0 ? '#1E5A50' : '#FFFFFF'
       const icon = L.divIcon({ className: '', html: `<span style="display:block;width:22px;height:22px;border-radius:50%;background:${color};border:3px solid ${i === 0 ? '#fff' : '#9A4413'};box-shadow:0 1px 4px rgba(0,0,0,.3);transform:translate(-50%,-50%)"></span>`, iconSize: [0, 0] })
       const marker = L.marker(p, { icon, draggable: true, title: i === 0 ? 'Départ' : `Point ${i + 1}` }).addTo(group)
@@ -83,6 +87,17 @@ export function Tracer({ date, initial, onDone, onCancel }: { date: ISODate; ini
     })
     for (const mo of moments) L.marker([mo.lat, mo.lng], { icon: L.divIcon({ className: '', html: `<span style="display:block;width:20px;height:20px;border-radius:50%;background:${routeMomentInfo(mo.type).color};border:3px solid #fff;transform:translate(-50%,-50%)"></span>`, iconSize: [0, 0] }), interactive: false }).addTo(group)
   }, [points, moments])
+
+  // Un fichier GPX (montre, appli de course) depuis l'app Fichiers : ses points remplacent le tracé vide.
+  const importGpx = async (file: File | undefined) => {
+    if (!file) return
+    if (file.size > MAX_GPX_BYTES) return setHint('Ce fichier est trop lourd (5 Mo au maximum).')
+    const imported = thin(parseGpx(await file.text()))
+    if (imported.length < 2) return setHint('Ce fichier ne contient pas de trajet. Choisissez un fichier .gpx.')
+    setHint('')
+    setPoints(imported)
+    map.current?.fitBounds(L.polyline(imported).getBounds(), { padding: [40, 40] })
+  }
 
   const done = () => onDone({ route: withMarkMoments(buildRoute(points, moments, duration, keeping ? undefined : initial?.savedRouteId), marked), keep: keeping ? name.trim() || defaultRouteName(date) : null })
   const round = 'flex size-[52px] items-center justify-center rounded-full border-2 border-solid border-[#9A4413] bg-surface text-[#9A4413] shadow-[0_2px_8px_rgba(24,32,30,0.2)] disabled:opacity-40'
@@ -146,6 +161,12 @@ export function Tracer({ date, initial, onDone, onCancel }: { date: ISODate; ini
             <input type="checkbox" checked={keeping} onChange={(e) => setKeep(e.target.checked)} aria-label="Garder comme trajet habituel" className="size-6 shrink-0 accent-primary" />
             <input value={name} disabled={!keeping} onChange={(e) => setName(e.target.value)} aria-label="Nom du trajet habituel" className="field min-h-11 min-w-0 flex-1 text-base disabled:opacity-50" />
           </div>
+        )}
+        {points.length === 0 && (
+          <label className="btn btn-quiet min-h-11 cursor-pointer text-[15px] text-[#9A4413]">
+            Importer un fichier GPX
+            <input type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml" className="sr-only" onChange={(e) => importGpx(e.target.files?.[0])} />
+          </label>
         )}
         <button type="button" onClick={done} disabled={points.length < 2} className="btn btn-main min-h-[54px] disabled:opacity-50">
           Terminé{points.length >= 2 ? ` · ${formatRouteDistance(distance)}` : ''}

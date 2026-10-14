@@ -411,7 +411,7 @@ function SpotSheet({ spot, meters, addedBy, passed, passedToday, calm, canMark, 
         </p>
       )}
       <fieldset className="m-0 border-0 p-0">
-        <legend className="mb-2 p-0 text-[15px] font-bold">{slot === 'matin' ? 'Ce matin' : slot === 'midi' ? 'Cet après-midi' : 'Ce soir'}, c'était…</legend>
+        <legend className="mb-2 p-0 text-[15px] font-bold">{slot === 'tot' || slot === 'matin' ? 'Ce matin' : slot === 'midi' ? 'Cet après-midi' : 'Ce soir'}, c'était…</legend>
         <div className="grid grid-cols-3 gap-2">
           {CALM_LEVELS.map((l) => (
             <button

@@ -31,7 +31,20 @@ describe('la meute', () => {
     ])!
     expect(summary).toEqual({ headline: 'Plutôt calme le matin', detail: 'avis de 3 membres' })
     expect(`${summary.headline} ${summary.detail}`).not.toMatch(/\d+ ?h|\d{1,2}:\d{2}/)
-    expect([7, 12, 20].map(slotOf)).toEqual(['matin', 'midi', 'soir'])
+    expect([7, 10, 12, 20].map(slotOf)).toEqual(['tot', 'matin', 'midi', 'soir'])
+  })
+
+  it('« Plutôt calme le matin avant 9 h » quand la plupart des avis du matin sont d’avant 9 h', () => {
+    const early = calmSummary([
+      { level: 'calme', slot: 'tot' },
+      { level: 'calme', slot: 'tot' },
+      { level: 'calme', slot: 'matin' },
+      { level: 'anime', slot: 'soir' },
+    ])!
+    expect(early.headline).toBe('Plutôt calme le matin avant 9 h')
+    // Jamais d'heure précise : seulement cette tranche.
+    expect(early.headline.replace('avant 9 h', '')).not.toMatch(/\d/)
+    expect(calmSummary([{ level: 'calme', slot: 'tot' }, { level: 'calme', slot: 'matin' }, { level: 'calme', slot: 'matin' }])!.headline).toBe('Plutôt calme le matin')
   })
 
   it('chaque chien garde sa couleur', () => {

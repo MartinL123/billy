@@ -18,17 +18,18 @@ export const categoryInfo = (id: string) => SPOT_CATEGORIES.find((c) => c.id ===
 export const SPOT_INFOS = ['Point d’eau', 'Laisse obligatoire', 'Ombre', 'Fermé la nuit']
 
 export type CalmLevel = 'calme' | 'moyen' | 'anime'
-export type CalmSlot = 'matin' | 'midi' | 'soir'
+/** « tot » : le matin avant 9 h (créneau ajouté après coup ; les anciens avis « matin » restent valables). */
+export type CalmSlot = 'tot' | 'matin' | 'midi' | 'soir'
 export const CALM_LEVELS: { id: CalmLevel; label: string }[] = [
   { id: 'calme', label: 'Calme' },
   { id: 'moyen', label: 'Moyen' },
   { id: 'anime', label: 'Animé' },
 ]
-const SLOT_WORDS: Record<CalmSlot, string> = { matin: 'le matin', midi: 'en journée', soir: 'le soir' }
+const SLOT_WORDS: Record<Exclude<CalmSlot, 'tot'>, string> = { matin: 'le matin', midi: 'en journée', soir: 'le soir' }
 const LEVEL_WORDS: Record<CalmLevel, string> = { calme: 'Plutôt calme', moyen: 'Moyennement fréquenté', anime: 'Plutôt animé' }
 
 /** Le créneau d'un avis, d'après l'heure locale (l'heure elle-même n'est jamais enregistrée). */
-export const slotOf = (hour: number): CalmSlot => (hour < 11 ? 'matin' : hour < 17 ? 'midi' : 'soir')
+export const slotOf = (hour: number): CalmSlot => (hour < 9 ? 'tot' : hour < 11 ? 'matin' : hour < 17 ? 'midi' : 'soir')
 
 /** « Plutôt calme le matin » : l'avis le plus fréquent, et le créneau le plus cité pour cet avis. */
 export function calmSummary(votes: { level: CalmLevel; slot: CalmSlot }[]): { headline: string; detail: string } | undefined {
@@ -36,8 +37,12 @@ export function calmSummary(votes: { level: CalmLevel; slot: CalmSlot }[]): { he
   const count = <T extends string>(items: T[]) => items.reduce<Record<string, number>>((acc, x) => ({ ...acc, [x]: (acc[x] ?? 0) + 1 }), {})
   const top = <T extends string>(counts: Record<string, number>, order: T[]) => order.reduce((best, x) => ((counts[x] ?? 0) > (counts[best] ?? 0) ? x : best), order[0]!)
   const level = top(count(votes.map((v) => v.level)), ['calme', 'moyen', 'anime'] as CalmLevel[])
-  const slot = top(count(votes.filter((v) => v.level === level).map((v) => v.slot)), ['matin', 'midi', 'soir'] as CalmSlot[])
-  return { headline: `${LEVEL_WORDS[level]} ${SLOT_WORDS[slot]}`, detail: `avis de ${votes.length} membre${votes.length > 1 ? 's' : ''}` }
+  const same = votes.filter((v) => v.level === level)
+  // « avant 9 h » compte comme le matin ; on le précise quand la plupart des avis du matin sont d'avant 9 h.
+  const slot = top(count(same.map((v) => (v.slot === 'tot' ? 'matin' : v.slot))), ['matin', 'midi', 'soir'] as const)
+  const morning = same.filter((v) => v.slot === 'tot' || v.slot === 'matin')
+  const early = slot === 'matin' && morning.filter((v) => v.slot === 'tot').length * 2 > morning.length
+  return { headline: `${LEVEL_WORDS[level]} ${SLOT_WORDS[slot]}${early ? ' avant 9 h' : ''}`, detail: `avis de ${votes.length} membre${votes.length > 1 ? 's' : ''}` }
 }
 
 /** Distance en mètres entre deux points (formule de haversine). */

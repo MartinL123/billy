@@ -12,6 +12,7 @@ import Billy from './features/billy/Billy'
 import Shop from './features/shop/Shop'
 import Territory from './features/meute/Territory'
 import { CommunitySync } from './features/meute/CommunitySync'
+import { BonesBackfill } from './features/shop/BonesBackfill'
 import DogPublic from './features/meute/DogPublic'
 // La carte (Leaflet) n'est chargée qu'en ouvrant l'onglet Meute.
 const Meute = lazy(() => import('./features/meute/Meute'))
@@ -92,6 +93,7 @@ export default function App() {
         <DressageAwards />
         <AppTheme />
         <CommunitySync />
+        <BonesBackfill />
         <HashRouter>
           <OpenOnLogo />
           <ScrollToTop />

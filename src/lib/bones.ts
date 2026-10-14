@@ -102,3 +102,43 @@ export const HOW_TO_EARN: { label: string; amount: number }[] = [
   { label: 'Marquer un spot (nouveau : +10)', amount: BONES.mark },
   { label: 'Défi de la meute tenu', amount: BONES.packChallenge },
 ]
+
+/**
+ * Os rétroactifs, une seule fois : ce qui a été fait avant l'arrivée des os, au barème actuel.
+ * Moments notés (3 par jour), étapes acquises dans l'app (pas « avant l'app »), missions du jour, jours de repos,
+ * questionnaire terminé. Les identifiants sont ceux des gains habituels : rien n'est jamais compté deux fois.
+ */
+export function backfillBones(
+  done: {
+    entries: { id: string; date: ISODate }[]
+    xpLog: { id: string; date: ISODate; kind: string; key?: string }[]
+    questionnaireDoneOn?: ISODate
+  },
+  existing: (Bone & { id: string })[],
+): BoneWithId[] {
+  const out: BoneWithId[] = []
+  const known = new Set(existing.map((b) => b.id))
+  const add = (gain: BoneWithId) => {
+    if (known.has(gain.id)) return
+    known.add(gain.id)
+    out.push(gain)
+  }
+
+  const notesByDay = new Map<ISODate, number>()
+  for (const b of existing) if (b.reason === 'note') notesByDay.set(b.date, (notesByDay.get(b.date) ?? 0) + 1)
+  for (const entry of [...done.entries].sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id))) {
+    if (known.has(boneId('note', entry.id)) || (notesByDay.get(entry.date) ?? 0) >= NOTES_PER_DAY) continue
+    notesByDay.set(entry.date, (notesByDay.get(entry.date) ?? 0) + 1)
+    add(bone('note', entry.id, entry.date, BONES.note))
+  }
+
+  for (const xp of done.xpLog) {
+    const step = /^palier-(.+)-(\d)$/.exec(xp.id)
+    if (xp.kind === 'palier' && step && xp.key !== 'avant') add(bone('etape', `${step[1]}-${step[2]}`, xp.date, BONES.step))
+    if (xp.kind === 'quete' && xp.id === `quete-jour-${xp.date}`) add(bone('mission', xp.date, xp.date, BONES.mission))
+    if (xp.kind === 'repos' && xp.id === `repos-${xp.date}`) add(bone('repos', xp.date, xp.date, BONES.rest))
+  }
+
+  if (done.questionnaireDoneOn) add(questionnaireBone(done.questionnaireDoneOn))
+  return out
+}

@@ -64,6 +64,8 @@ export interface Dog {
   cosmetics?: Cosmetics
   /** Le mot de passe donné par Martin a été changé, ou la proposition fermée. */
   passwordPromptDone?: boolean
+  /** Os rétroactifs déjà versés (le jour où c'est fait). */
+  bonesBackfilled?: ISODate
   /** Compétences en cours choisies par le maître (3 au plus). Absent : l'app propose les 3 premières non maîtrisées. */
   activeSkills?: string[]
   /** Calculé à la lecture, jamais enregistré : le nom n'a pas encore été donné (on affiche « Votre chien »). */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { balance, BONES, boneId, challengeBone, earned, missionBones, momentBones, purchaseBone, questionnaireBone, regularWeekBone } from './bones'
+import { backfillBones, balance, BONES, boneId, challengeBone, earned, missionBones, momentBones, purchaseBone, questionnaireBone, regularWeekBone } from './bones'
 import { weekOf } from './rhythm'
 
 describe('les os', () => {
@@ -54,3 +54,34 @@ describe('les os', () => {
     expect(purchaseBone('bandana-rouge', 60, '2026-10-14').id).toBe('achat-bandana-rouge')
   })
 })
+
+describe('os rétroactifs', () => {
+  const entries = [
+    { id: 'a', date: '2026-09-01' },
+    { id: 'b', date: '2026-09-01' },
+    { id: 'c', date: '2026-09-01' },
+    { id: 'd', date: '2026-09-01' },
+    { id: 'e', date: '2026-09-02' },
+  ]
+  const xpLog = [
+    { id: 'palier-lien-1', date: '2026-09-01', kind: 'palier' },
+    { id: 'palier-calme-2', date: '2026-08-20', kind: 'palier', key: 'avant' },
+    { id: 'quete-jour-2026-09-02', date: '2026-09-02', kind: 'quete' },
+    { id: 'repos-2026-09-03', date: '2026-09-03', kind: 'repos', key: 'repos' },
+    { id: 'seance-x', date: '2026-09-03', kind: 'seance' },
+  ]
+
+  it('compte notes (3 par jour), étapes de l’app, missions, repos et questionnaire', () => {
+    const gains = backfillBones({ entries, xpLog, questionnaireDoneOn: '2026-08-15' }, [])
+    expect(gains.map((g) => g.id)).toEqual(['note-a', 'note-b', 'note-c', 'note-e', 'etape-lien-1', 'mission-2026-09-02', 'repos-2026-09-03', 'questionnaire-depart'])
+    expect(balance(gains)).toBe(4 * 3 + 25 + 10 + 5 + 50)
+  })
+
+  it('jamais deux fois, et le plafond du jour tient compte de l’existant', () => {
+    const first = backfillBones({ entries, xpLog }, [])
+    expect(backfillBones({ entries, xpLog }, first)).toEqual([])
+    const already = [{ id: 'note-x', date: '2026-09-01', amount: 3, reason: 'note' as const, refId: 'x' }, { id: 'note-y', date: '2026-09-01', amount: 3, reason: 'note' as const, refId: 'y' }]
+    expect(backfillBones({ entries, xpLog: [] }, already).map((g) => g.id)).toEqual(['note-a', 'note-e'])
+  })
+})
+

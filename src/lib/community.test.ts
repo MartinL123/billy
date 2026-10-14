@@ -1,0 +1,48 @@
+import { describe, expect, it } from 'vitest'
+import { markBone, packChallengeBone } from './bones'
+import { calmSummary, distanceMeters, dogColor, formatDistance, markId, nearbySpots, packScore, slotOf } from './community'
+import { weekOf } from './rhythm'
+
+describe('la meute', () => {
+  const parc = { id: 'parc', lat: 48.8566, lng: 2.3522 }
+  it('mesure les distances et ne propose que les spots à moins de 300 m', () => {
+    const near = { id: 'near', lat: 48.8584, lng: 2.3522 } // ~200 m
+    const far = { id: 'far', lat: 48.8616, lng: 2.3522 } // ~560 m
+    expect(Math.round(distanceMeters(parc, near))).toBeGreaterThan(190)
+    expect(Math.round(distanceMeters(parc, near))).toBeLessThan(210)
+    expect(nearbySpots([far, near], parc).map((s) => s.id)).toEqual(['near'])
+    expect(nearbySpots([], parc)).toEqual([])
+    expect(formatDistance(83)).toBe('à 80 m')
+    expect(formatDistance(1234)).toBe('à 1,2 km')
+  })
+
+  it('une marque par spot et par jour, et +5 os (+10 pour un nouveau spot)', () => {
+    expect(markId('u1', 'parc', '2026-10-14')).toBe('u1_parc_2026-10-14')
+    expect(markBone('parc', '2026-10-14', false)).toMatchObject({ id: 'marque-parc-2026-10-14', amount: 5 })
+    expect(markBone('parc', '2026-10-14', true).amount).toBe(10)
+  })
+
+  it('résume le calme sans jamais donner d’heure', () => {
+    expect(calmSummary([])).toBeUndefined()
+    const summary = calmSummary([
+      { level: 'calme', slot: 'matin' },
+      { level: 'calme', slot: 'matin' },
+      { level: 'anime', slot: 'soir' },
+    ])!
+    expect(summary).toEqual({ headline: 'Plutôt calme le matin', detail: 'avis de 3 membres' })
+    expect(`${summary.headline} ${summary.detail}`).not.toMatch(/\d+ ?h|\d{1,2}:\d{2}/)
+    expect([7, 12, 20].map(slotOf)).toEqual(['matin', 'midi', 'soir'])
+  })
+
+  it('chaque chien garde sa couleur', () => {
+    expect(dogColor('abc')).toBe(dogColor('abc'))
+    expect(dogColor('abc')).toMatch(/^#[0-9A-F]{6}$/)
+  })
+
+  it('défi de la meute : jours de mission de la semaine, plafonnés à 5, +40 os une fois', () => {
+    const week = weekOf('2026-10-14')
+    expect(packScore(['2026-10-12', '2026-10-13', '2026-10-13', '2026-10-01'], week)).toBe(2)
+    expect(packScore(week, week)).toBe(5)
+    expect(packChallengeBone('2026-10-12', '2026-10-17')).toMatchObject({ id: 'meute-2026-10-12', amount: 40 })
+  })
+})

@@ -21,12 +21,17 @@ export const BONES = {
   rest: 5,
   /** Questionnaire de départ terminé, une fois. */
   questionnaire: 50,
+  /** Marquer un spot (une fois par spot et par jour) ; un spot jamais marqué par ce chien : +10. */
+  mark: 5,
+  newSpot: 10,
+  /** Défi de la meute tenu. */
+  packChallenge: 40,
 }
 
 export const NOTES_PER_DAY = 3
 export const REGULAR_DAYS = 5
 
-export type BoneReason = 'mission' | 'note' | 'reussite' | 'etape' | 'defi' | 'semaine' | 'repos' | 'questionnaire' | 'achat'
+export type BoneReason = 'mission' | 'note' | 'reussite' | 'etape' | 'defi' | 'semaine' | 'repos' | 'questionnaire' | 'marque' | 'meute' | 'achat'
 
 /** users/{uid}/bones/{id} */
 export interface Bone {
@@ -75,6 +80,12 @@ export function regularWeekBone(week: ISODate[], notedDays: ISODate[], date: ISO
   return days >= REGULAR_DAYS ? bone('semaine', week[0]!, date, BONES.regularWeek) : undefined
 }
 
+/** Marquer un spot : +5, ou +10 si ce chien ne l'avait jamais marqué. Une fois par spot et par jour. */
+export const markBone = (spotId: string, date: ISODate, firstTime: boolean) => bone('marque', `${spotId}-${date}`, date, firstTime ? BONES.newSpot : BONES.mark)
+
+/** Défi de la meute tenu : +40, une fois par semaine. */
+export const packChallengeBone = (week: ISODate, date: ISODate) => bone('meute', week, date, BONES.packChallenge)
+
 /** Un achat dans la boutique : la seule façon de dépenser des os. Une fois par objet. */
 export const purchaseBone = (itemId: string, price: number, date: ISODate) => bone('achat', itemId, date, -price)
 
@@ -88,4 +99,6 @@ export const HOW_TO_EARN: { label: string; amount: number }[] = [
   { label: 'Semaine régulière (5 jours notés)', amount: BONES.regularWeek },
   { label: 'Jour de repos respecté', amount: BONES.rest },
   { label: 'Questionnaire de départ terminé', amount: BONES.questionnaire },
+  { label: 'Marquer un spot (nouveau : +10)', amount: BONES.mark },
+  { label: 'Défi de la meute tenu', amount: BONES.packChallenge },
 ]

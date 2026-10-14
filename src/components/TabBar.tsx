@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useData } from '../firebase/store'
-import { HeartIcon, HomeIcon, PawIcon, PhotoIcon, PlusIcon } from './Icons'
+import { HeartIcon, HomeIcon, PawIcon, PhotoIcon, PinIcon, PlusIcon } from './Icons'
 
 /** Hauteur de la barre (hors zone sûre) et dépassement du rond de l'accueil au-dessus d'elle. */
 const BAR = 88
@@ -24,8 +24,7 @@ function SideTab({ to, label, icon, className = '' }: { to: string; label: strin
 }
 
 /**
- * Carnet · Santé · ACCUEIL · Billy (spec V3 § 5.2). L'accueil est au centre, en gros : un rond qui dépasse de la barre.
- * Grille de 5 colonnes : tant que l'onglet Meute n'existe pas, Billy occupe les 2 dernières pour garder l'accueil au milieu.
+ * Carnet · Santé · ACCUEIL · Billy · Meute (spec V3 § 5.2). L'accueil est au centre, en gros : un rond qui dépasse de la barre.
  */
 function TabBar() {
   const { dog } = useData()
@@ -51,7 +50,8 @@ function TabBar() {
             </>
           )}
         </NavLink>
-        <SideTab to="/billy" label={dog.unnamed ? 'Mon chien' : dog.name} icon={<PawIcon size={24} color="currentColor" />} className="col-span-2" />
+        <SideTab to="/billy" label={dog.unnamed ? 'Mon chien' : dog.name} icon={<PawIcon size={24} color="currentColor" />} />
+        <SideTab to="/meute" label="Meute" icon={<PinIcon />} />
       </div>
     </nav>
   )

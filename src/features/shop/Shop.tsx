@@ -86,7 +86,7 @@ export default function Shop() {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          {SHOP.filter((i) => i.category === category).map((item) => {
+          {SHOP.filter((i) => i.category === category && (!i.earned || owned(i.id))).map((item) => {
             const state = buttonState(item, owned(item.id), worn(item), solde)
             return (
               <div key={item.id} className="card flex flex-col items-center gap-2 p-3 text-center">

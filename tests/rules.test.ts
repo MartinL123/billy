@@ -76,4 +76,29 @@ describe('firestore.rules : deux comptes', () => {
     await assertFails(getDoc(doc(alice, 'users/bob')))
     await assertFails(getDocs(collection(alice, 'users')))
   })
+
+  it('la meute : lisible par les comptes connectés, chacun ne modifie que ce qu’il a créé', async () => {
+    const alice = env.authenticatedContext('alice').firestore()
+    const bob = env.authenticatedContext('bob').firestore()
+    const visitor = env.unauthenticatedContext().firestore()
+    await assertSucceeds(setDoc(doc(alice, 'community/meute/members/alice'), { dogName: 'Rex' }))
+    await assertFails(setDoc(doc(alice, 'community/meute/members/bob'), { dogName: 'Piraté' }))
+    await assertSucceeds(getDoc(doc(bob, 'community/meute/members/alice')))
+    await assertFails(getDoc(doc(visitor, 'community/meute/members/alice')))
+
+    await assertSucceeds(setDoc(doc(alice, 'community/meute/spots/parc'), { name: 'Parc', createdBy: 'alice' }))
+    await assertFails(setDoc(doc(alice, 'community/meute/spots/faux'), { name: 'Faux', createdBy: 'bob' }))
+    await assertFails(setDoc(doc(bob, 'community/meute/spots/parc'), { name: 'Renommé', createdBy: 'bob' }))
+    await assertSucceeds(setDoc(doc(bob, 'community/meute/spots/parc/calm/bob'), { level: 'calme', slot: 'matin' }))
+    await assertFails(setDoc(doc(bob, 'community/meute/spots/parc/calm/alice'), { level: 'anime', slot: 'soir' }))
+
+    await assertSucceeds(setDoc(doc(bob, 'community/meute/marks/bob_parc_2026-10-14'), { uid: 'bob', spotId: 'parc', date: '2026-10-14' }))
+    await assertFails(setDoc(doc(bob, 'community/meute/marks/alice_parc_2026-10-14'), { uid: 'alice', spotId: 'parc', date: '2026-10-14' }))
+    await assertFails(deleteDoc(doc(alice, 'community/meute/marks/bob_parc_2026-10-14')))
+    await assertSucceeds(getDocs(collection(alice, 'community/meute/marks')))
+
+    await assertSucceeds(setDoc(doc(alice, 'community/meute/challenges/2026-10-12/rows/alice'), { days: [] }))
+    await assertFails(setDoc(doc(alice, 'community/meute/challenges/2026-10-12/rows/bob'), { days: [] }))
+    await assertFails(getDocs(collection(visitor, 'community/meute/spots')))
+  })
 })

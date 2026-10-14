@@ -11,6 +11,40 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == uid;
     }
 
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // La meute (docs/specs/communaute.md) : lisible par tout compte connecté de l'app, jamais par un visiteur.
+    // Chacun ne crée ou ne modifie que ce qui porte son uid. Les données privées restent sous users/{uid}.
+    match /community/meute/members/{memberId} {
+      allow read: if signedIn();
+      allow write: if isOwner(memberId);
+    }
+    match /community/meute/spots/{spotId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.createdBy == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.createdBy == request.auth.uid;
+      match /calm/{memberId} {
+        allow read: if signedIn();
+        allow write: if isOwner(memberId);
+      }
+    }
+    match /community/meute/marks/{markId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+    match /community/meute/feed/{itemId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+    match /community/meute/challenges/{week}/rows/{memberId} {
+      allow read: if signedIn();
+      allow write: if isOwner(memberId);
+    }
+
     match /users/{uid}/{document=**} {
       allow read, delete: if isOwner(uid);
       // Garde-fou : aucun document au-delà de 1 000 000 d'octets de données binaires.

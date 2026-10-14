@@ -13,7 +13,7 @@ const contrast = (a: string, b: string) => {
 describe('la boutique', () => {
   it('respecte les prix de départ de la spec', () => {
     const range = (cat: string) => SHOP.filter((i) => i.category === cat).map((i) => i.price)
-    expect(range('sticker').every((p) => p === 40)).toBe(true)
+    expect(SHOP.filter((i) => i.category === 'sticker' && !i.earned).every((i) => i.price === 40)).toBe(true)
     expect(range('accessoire').every((p) => p >= 60 && p <= 300)).toBe(true)
     expect(range('cadre').every((p) => p >= 80 && p <= 120)).toBe(true)
     expect(range('fond').every((p) => p >= 200 && p <= 250)).toBe(true)

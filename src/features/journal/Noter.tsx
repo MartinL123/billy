@@ -4,6 +4,7 @@ import { FilePicker } from '../../components/FilePicker'
 import { CheckIcon, PhotoIcon } from '../../components/Icons'
 import { useToast } from '../../components/Toast'
 import { SKILLS, stepPhrase } from '../../content/phrases'
+import { shareMoment } from '../../firebase/community'
 import { answerQuestion } from '../../firebase/db'
 import { saveImage } from '../../firebase/files'
 import { useData } from '../../firebase/store'
@@ -63,6 +64,8 @@ export default function Noter() {
   // La compétence est connue (fiche, exercice) : pas de grille, sauf si on touche « Changer ».
   const [choosing, setChoosing] = useState(() => !fromQuest && skills.length === 0)
   const [movedAway, setMovedAway] = useState(false)
+  // Partager avec la meute : un choix explicite à chaque fois, désactivé par défaut.
+  const [share, setShare] = useState(false)
   const [yes, setYes] = useState<Record<string, boolean>>({})
   const [progress, setProgress] = useState('')
   const [error, setError] = useState('')
@@ -126,6 +129,7 @@ export default function Noter() {
       if (fromQuest) completeQuest(today, { kind: today0.quest.kind, bossId: today0.quest.bossId, exerciseId: today0.quest.planned?.exercise.id }, today0.skips, QUEST_XP)
       // Souvenir des premières semaines : l'écran de résultat du questionnaire le retrouve.
       if (params.get('retour') === 'questionnaire') answerQuestion('souvenir', result.entryId, { 'questionnaire.souvenirs': [...(dog.questionnaire?.souvenirs ?? []), result.entryId] })
+      if (share) shareMoment(result.entryId, { dogName: dog.name, text: text.trim() || today0.note, date, skills })
       setOutcome(result)
     } catch (err) {
       setSaving(false)
@@ -372,6 +376,14 @@ export default function Noter() {
         {!askable && stepSkills.length > 0 && (
           <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[15px] leading-snug text-[#1D3F73]">Les jours difficiles comptent aussi. La prochaine étape attendra un meilleur jour.</p>
         )}
+
+        <label className="flex min-h-16 items-center gap-3.5 rounded-[18px] border-2 border-solid border-border bg-surface px-4 py-3">
+          <input type="checkbox" role="switch" checked={share} onChange={(e) => setShare(e.target.checked)} className="size-7 shrink-0 accent-primary" />
+          <span className="flex flex-col gap-0.5">
+            <span className="text-[17px] font-bold">Partager avec la meute</span>
+            <span className="text-[15px] text-muted">Le texte seulement, sans photo ni heure</span>
+          </span>
+        </label>
 
         {error && (
           <p role="alert" className="rounded-[18px] bg-danger-soft px-4 py-3 text-[15px] font-semibold text-danger">

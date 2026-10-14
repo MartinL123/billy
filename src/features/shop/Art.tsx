@@ -113,6 +113,13 @@ const STICKERS: Record<string, ReactNode> = {
       </g>
     </g>
   ),
+  'sticker-meute': (
+    <g>
+      <circle cx="12" cy="12" r="10" fill="#1E5A50" />
+      <path d="M12 6.5c-2.200 0-4 1.800-4 4 0 3 4 7 4 7s4-4 4-7c0-2.200-1.800-4-4-4z" fill="#FFFFFF" />
+      <circle cx="12" cy="10.5" r="1.5" fill="#1E5A50" />
+    </g>
+  ),
   'sticker-soleil': (
     <g stroke="#E0A21B" strokeWidth="2" strokeLinecap="round">
       <circle cx="12" cy="12" r="4.5" fill="#F2B544" />

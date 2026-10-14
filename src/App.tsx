@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { HashRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { TabLayout } from './components/TabBar'
 import { ToastProvider } from './components/Toast'
@@ -10,6 +10,10 @@ import EntryForm from './features/journal/EntryForm'
 import EntryView from './features/journal/EntryView'
 import Billy from './features/billy/Billy'
 import Shop from './features/shop/Shop'
+import { CommunitySync } from './features/meute/CommunitySync'
+import DogPublic from './features/meute/DogPublic'
+// La carte (Leaflet) n'est chargée qu'en ouvrant l'onglet Meute.
+const Meute = lazy(() => import('./features/meute/Meute'))
 import { AppTheme } from './features/shop/Theme'
 import { InstallGuide } from './features/account/Install'
 import { useBack } from './lib/useBack'
@@ -86,6 +90,7 @@ export default function App() {
       <ToastProvider>
         <DressageAwards />
         <AppTheme />
+        <CommunitySync />
         <HashRouter>
           <OpenOnLogo />
           <ScrollToTop />
@@ -94,6 +99,14 @@ export default function App() {
               <Route index element={<Today />} />
               <Route path="sante" element={<Calendar />} />
               <Route path="billy" element={<Billy />} />
+              <Route
+                path="meute"
+                element={
+                  <Suspense fallback={<p className="px-5 text-muted">Chargement de la carte…</p>}>
+                    <Meute />
+                  </Suspense>
+                }
+              />
               <Route path="carnet" element={<Journal />} />
               <Route path="journal" element={<Navigate to="/carnet" replace />} />
             </Route>
@@ -104,6 +117,7 @@ export default function App() {
             <Route path="competence/:id" element={<Skill />} />
             <Route path="en-cours" element={<EnCours />} />
             <Route path="boutique" element={<Shop />} />
+            <Route path="meute/chien/:id" element={<DogPublic />} />
             <Route path="installer" element={<InstallRoute />} />
             <Route path="profil" element={<Profile />} />
             <Route path="profil/modifier" element={<ProfileEditScreen />} />

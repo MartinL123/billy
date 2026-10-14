@@ -1,0 +1,506 @@
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { BonesGained } from '../../components/BoneIcon'
+import { CheckIcon, ChevronRightIcon, PinIcon } from '../../components/Icons'
+import { Sheet } from '../../components/Sheet'
+import { useToast } from '../../components/Toast'
+import { auth } from '../../firebase/app'
+import { addSpot, markSpot, voteCalm, type Spot, type WithId } from '../../firebase/community'
+import { useData } from '../../firebase/store'
+import { markBone } from '../../lib/bones'
+import { calmSummary, CALM_LEVELS, categoryInfo, dogColor, formatDistance, markId, MARK_DAYS_ON_MAP, nearbySpots, packScore, PACK_CHALLENGE_LABEL, PACK_CHALLENGE_TARGET, slotOf, SPOT_CATEGORIES, SPOT_INFOS, type CalmLevel, type SpotCategory } from '../../lib/community'
+import { diffDays } from '../../lib/dates'
+import { weekId, weekOf } from '../../lib/rhythm'
+import { useToday } from '../../lib/useToday'
+import { MemberAvatar } from './MemberAvatar'
+import { MeuteMap, type LatLng } from './MeuteMap'
+import { usePack } from './usePack'
+
+/** Sans position : la carte part du centre de Paris, ou des spots de la meute s'il y en a. */
+const DEFAULT_CENTER: LatLng = { lat: 48.8566, lng: 2.3522 }
+const WELCOME_KEY = 'billy.meute.bienvenue'
+const LETTERS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
+
+const readFlag = (key: string) => {
+  try {
+    return localStorage.getItem(key) === '1'
+  } catch {
+    return false
+  }
+}
+const writeFlag = (key: string) => {
+  try {
+    localStorage.setItem(key, '1')
+  } catch {
+    // Stockage indisponible : l'accueil de la meute reviendra, rien de grave.
+  }
+}
+
+type Filter = 'tout' | 'calme' | SpotCategory | 'territoire'
+
+/** L'onglet Meute (docs/specs/communaute.md § 3) : la carte des spots, Marquer, le fil du jour, les chiens, le défi. */
+export default function Meute() {
+  const { dog } = useData()
+  const today = useToday()
+  const toast = useToast()
+  const me = auth.currentUser?.uid ?? ''
+  const week = weekId(today)
+  const { members, spots, marks, feed, rows, calm } = usePack(week)
+
+  const [welcome, setWelcome] = useState(() => !readFlag(WELCOME_KEY))
+  const [position, setPosition] = useState<LatLng | null>(null)
+  const [center, setCenter] = useState<LatLng>(DEFAULT_CENTER)
+  const [recenter, setRecenter] = useState(0)
+  const [filter, setFilter] = useState<Filter>('tout')
+  const [openSpot, setOpenSpot] = useState<string | null>(null)
+  const [marking, setMarking] = useState(false)
+  const [newSpot, setNewSpot] = useState<LatLng | null>(null)
+  const [marked, setMarked] = useState<{ spot: string; bones: number; first: boolean } | null>(null)
+  const [locating, setLocating] = useState('')
+
+  const memberOf = (uid: string) => members.find((m) => m.id === uid)
+  const mine = marks.filter((m) => m.uid === me)
+  const territory = useMemo(() => new Set(mine.map((m) => m.spotId)), [mine])
+  const recent = marks.filter((m) => diffDays(m.date, today) < MARK_DAYS_ON_MAP)
+  const drops = useMemo(() => {
+    const out: Record<string, string[]> = {}
+    for (const m of recent) out[m.spotId] = [...new Set([...(out[m.spotId] ?? []), memberOf(m.uid)?.color ?? dogColor(m.uid)])]
+    return out
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recent.length, members])
+  const calmOf = (id: string) => calmSummary(calm[id] ?? [])
+  const shown = spots.filter((s) => filter === 'tout' || (filter === 'calme' ? calmOf(s.id)?.headline.startsWith('Plutôt calme') : filter === 'territoire' ? territory.has(s.id) : s.category === filter))
+
+  // « Ma position » : centre la carte, sans rien partager ni enregistrer.
+  const locate = (then?: (here: LatLng) => void) => {
+    if (!('geolocation' in navigator)) return setLocating('La position n’est pas disponible sur cet appareil.')
+    setLocating('Recherche de votre position…')
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        const here = { lat: p.coords.latitude, lng: p.coords.longitude }
+        setPosition(here)
+        setCenter(here)
+        setRecenter((n) => n + 1)
+        setLocating('')
+        then?.(here)
+      },
+      () => setLocating('Position refusée : vous pouvez choisir le spot dans la liste.'),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    )
+  }
+
+  const mark = (spot: WithId<Spot>) => {
+    const id = markId(me, spot.id, today)
+    if (marks.some((m) => m.id === id)) {
+      setMarking(false)
+      return toast(`${dog.name} a déjà marqué ce spot aujourd'hui.`)
+    }
+    const first = !territory.has(spot.id)
+    const gain = markBone(spot.id, today, first)
+    markSpot(id, { spotId: spot.id, uid: me, dogName: dog.name, date: today }, gain)
+    setMarking(false)
+    setOpenSpot(null)
+    setMarked({ spot: spot.name, bones: gain.amount, first })
+  }
+
+  const close = () => {
+    writeFlag(WELCOME_KEY)
+    setWelcome(false)
+  }
+
+  if (welcome) {
+    return (
+      <div className="flex flex-col gap-5 px-5">
+        <h1 className="font-display text-[32px] font-extrabold">La meute</h1>
+        <p className="text-[17px] leading-snug text-[#3F4946]">La meute, ce sont les amis qui ont un compte Billy. Pas d'invitation, pas de classement.</p>
+        <ul className="card m-0 flex list-none flex-col gap-3.5 p-4">
+          {[
+            ['Les bons spots', 'Les balades, parcs et cafés que la meute aime, avec leur niveau de calme.'],
+            ['Marquer', 'Comme un chien qui marque son passage : on choisit un spot proche, et on gagne des os.'],
+            ['Rien de public', 'Seule la meute voit les marques, avec le jour, jamais l’heure ni votre position.'],
+          ].map(([title, text]) => (
+            <li key={title} className="flex gap-3">
+              <CheckIcon size={22} className="mt-0.5 shrink-0 text-primary" />
+              <span className="flex flex-col gap-0.5">
+                <span className="text-[17px] font-bold">{title}</span>
+                <span className="text-[15px] leading-snug text-muted">{text}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="text-[15px] leading-snug text-muted">Votre position sert seulement à centrer la carte et à proposer les spots proches. Elle n'est jamais enregistrée ni partagée.</p>
+        <button
+          type="button"
+          onClick={() => {
+            close()
+            locate()
+          }}
+          className="btn btn-main"
+        >
+          Autoriser ma position
+        </button>
+        <button type="button" onClick={close} className="btn btn-outline">
+          Plus tard
+        </button>
+      </div>
+    )
+  }
+
+  const nearby = position ? nearbySpots(spots, position) : [...spots].sort((a, b) => a.name.localeCompare(b.name)).map((s) => ({ ...s, meters: NaN }))
+  const todayMarks = marks.filter((m) => m.date === today)
+  const others = members.filter((m) => m.id !== me)
+  const spotName = (id: string) => spots.find((s) => s.id === id)?.name ?? 'un spot'
+  const open = spots.find((s) => s.id === openSpot)
+  const weekDays = weekOf(today)
+
+  return (
+    <div className="flex flex-col gap-4">
+      <header className="flex flex-col gap-0.5 px-5">
+        <h1 className="font-display text-[32px] font-extrabold">La meute</h1>
+        <p className="text-[15px] text-muted">
+          {members.length} chien{members.length > 1 ? 's' : ''} · seulement les amis qui ont un compte
+        </p>
+      </header>
+
+      {/* `isolate` : les calques de Leaflet (z-index 400+) restent sous les panneaux du bas et la barre d'onglets. */}
+      <section aria-label="Carte" className="relative isolate h-[55vh] overflow-hidden border-y border-divider bg-placeholder">
+        <MeuteMap spots={shown} drops={drops} highlight={filter === 'territoire' ? territory : undefined} center={center} recenter={recenter} onSpot={setOpenSpot} onLongPress={setNewSpot} onMove={setCenter} />
+        <button type="button" onClick={() => locate()} className="absolute bottom-3 left-3 z-[500] flex min-h-12 items-center gap-1.5 rounded-full border-2 border-solid border-primary bg-surface px-4 text-[15px] font-bold text-primary shadow-[0_2px_8px_rgba(24,32,30,0.18)]">
+          <PinIcon size={18} />
+          Ma position
+        </button>
+        <button type="button" onClick={() => setMarking(true)} className="absolute right-3 bottom-3 z-[500] flex min-h-14 items-center gap-2 rounded-full border-0 bg-action px-5 text-[17px] font-extrabold text-white shadow-[0_4px_12px_rgba(194,87,26,0.4)]">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 3s-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11z" />
+          </svg>
+          Marquer
+        </button>
+      </section>
+      {locating && (
+        <p role="status" className="px-5 text-[15px] text-muted">
+          {locating}
+        </p>
+      )}
+
+      <div role="group" aria-label="Filtrer les spots" className="scroll-row flex gap-2 px-5 pb-1">
+        {([['tout', 'Tout'], ['calme', 'Calme'], ...SPOT_CATEGORIES.filter((c) => c.id !== 'eviter').map((c) => [c.id, c.filter]), ['territoire', `Territoire de ${dog.name}`]] as [Filter, string][]).map(([id, label]) => (
+          <button key={id} type="button" aria-pressed={filter === id} onClick={() => setFilter(id)} className={`min-h-12 shrink-0 rounded-full px-4 text-[15px] font-bold whitespace-nowrap ${filter === id ? 'border-0 bg-primary text-white' : 'border-2 border-solid border-border bg-surface text-text'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Sans heure, jamais : « aujourd'hui », c'est tout. */}
+      <section className="flex flex-col gap-2.5 px-5">
+        <h2 className="text-xl font-bold">Aujourd'hui dans la meute</h2>
+        <div className="card flex flex-col p-1">
+          {todayMarks.length === 0 && feed.filter((f) => diffDays(f.date, today) <= 1).length === 0 ? (
+            <p className="px-3 py-3 text-[15px] text-muted">Rien encore aujourd'hui. Touchez « Marquer » pendant votre balade.</p>
+          ) : (
+            <>
+              {todayMarks.map((m) => {
+                const together = m.uid !== me && todayMarks.some((x) => x.uid === me && x.spotId === m.spotId)
+                const member = memberOf(m.uid)
+                return (
+                  <p key={m.id} className="flex items-center gap-3 px-3 py-2.5 text-[15px] leading-snug">
+                    {member && <MemberAvatar member={member} size={32} />}
+                    <span>{together ? `${dog.name} et ${m.dogName} sont passés au même spot aujourd'hui · ${spotName(m.spotId)}` : `${m.dogName} a marqué ${spotName(m.spotId)} aujourd'hui`}</span>
+                  </p>
+                )
+              })}
+              {feed
+                .filter((f) => diffDays(f.date, today) <= 1)
+                .map((f) => {
+                  const member = memberOf(f.uid)
+                  return (
+                    <p key={f.id} className="flex items-start gap-3 px-3 py-2.5 text-[15px] leading-snug">
+                      {member && <MemberAvatar member={member} size={32} />}
+                      <span>
+                        <strong>{f.dogName}</strong> · {f.date === today ? "aujourd'hui" : 'hier'} : {f.text}
+                      </span>
+                    </p>
+                  )
+                })}
+            </>
+          )}
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-2.5 px-5">
+        <h2 className="text-xl font-bold">La meute</h2>
+        {others.length === 0 && <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[15px] leading-snug text-[#1D3F73]">Vous êtes seul pour l'instant. Martin peut créer un compte pour un ami.</p>}
+        <div className="flex flex-col gap-2">
+          {members.map((m) => (
+            <Link key={m.id} to={`/meute/chien/${m.id}`} className="card-link">
+              <MemberAvatar member={m} />
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="text-[17px] font-bold">
+                  {m.dogName}
+                  {m.id === me ? ' (vous)' : ''}
+                </span>
+                <span className="text-sm text-muted">Niveau {m.level}</span>
+              </span>
+              <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section aria-label="Défi de la meute" className="mx-5 flex flex-col gap-3 rounded-[22px] border-2 border-solid border-gold bg-[#FFF8E6] p-4">
+        <h2 className="text-[13px] font-extrabold tracking-[0.6px] text-gold-dark uppercase">Défi de la meute</h2>
+        <p className="text-[17px] leading-snug font-semibold">{PACK_CHALLENGE_LABEL}</p>
+        {rows.length === 0 && <p className="text-[15px] text-muted">Faites votre mission du jour : votre ligne apparaîtra ici.</p>}
+        {rows.map((row) => (
+          <div key={row.id} className="flex items-center gap-3">
+            <span className="w-20 shrink-0 truncate text-[15px] font-bold">{row.dogName}</span>
+            <span className="flex flex-1 justify-between" aria-label={`${row.dogName} : ${packScore(row.days, weekDays)} jours sur ${PACK_CHALLENGE_TARGET}`}>
+              {weekDays.map((d, i) => (
+                <span key={d} className="flex flex-col items-center gap-0.5">
+                  <span className={`size-5 rounded-full ${row.days.includes(d) ? '' : 'border-2 border-dashed border-[#B9C2BE]'}`} style={row.days.includes(d) ? { background: row.color } : undefined} />
+                  <span className="text-[11px] text-muted">{LETTERS[i]}</span>
+                </span>
+              ))}
+            </span>
+            <span className="w-9 shrink-0 text-right text-[15px] font-bold">
+              {packScore(row.days, weekDays)}/{PACK_CHALLENGE_TARGET}
+            </span>
+          </div>
+        ))}
+      </section>
+
+      {open && (
+        <SpotSheet
+          spot={open}
+          meters={position ? nearbySpots([open], position)[0]?.meters ?? Infinity : undefined}
+          addedBy={memberOf(open.createdBy)?.dogName}
+          passed={[...new Set(marks.filter((m) => m.spotId === open.id && weekDays.includes(m.date)).map((m) => m.dogName))]}
+          passedToday={marks.some((m) => m.spotId === open.id && m.date === today)}
+          calm={calmOf(open.id)}
+          canMark={!position || nearbySpots([open], position).length > 0}
+          onVote={(level) => voteCalm(open.id, { level, slot: slotOf(new Date().getHours()), date: today })}
+          onMark={() => mark(open)}
+          onClose={() => setOpenSpot(null)}
+        />
+      )}
+
+      {marking && (
+        <Sheet label={`Où ${dog.name} marque-t-il ?`} onClose={() => setMarking(false)}>
+          <h2 className="mt-1 font-display text-[24px] font-extrabold">Où {dog.name} marque-t-il ?</h2>
+          <p className="text-[15px] text-muted">{position ? 'Les spots de la meute à moins de 300 m.' : 'Sans votre position, choisissez le spot où vous êtes.'}</p>
+          {position === null && (
+            <button type="button" onClick={() => locate()} className="btn btn-outline">
+              <PinIcon size={18} />
+              Utiliser ma position
+            </button>
+          )}
+          <div className="flex flex-col gap-2">
+            {nearby.length === 0 && <p className="rounded-[14px] bg-bg px-3.5 py-3 text-[15px]">Aucun spot de la meute ici. Créez-le !</p>}
+            {nearby.map((s) => (
+              <button key={s.id} type="button" onClick={() => mark(s)} className="flex min-h-14 items-center gap-3 rounded-[18px] border-2 border-solid border-border bg-surface px-4 text-left">
+                <span className="size-3 shrink-0 rounded-full" style={{ background: categoryInfo(s.category).color }} />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="text-[17px] font-bold">{s.name}</span>
+                  <span className="text-sm text-muted">
+                    {categoryInfo(s.category).label}
+                    {Number.isFinite(s.meters) ? ` · ${formatDistance(s.meters)}` : ''}
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setMarking(false)
+              setNewSpot(position ?? center)
+            }}
+            className="btn btn-outline"
+          >
+            Nouveau spot ici
+          </button>
+          <p className="text-[13px] leading-snug text-muted">Seule votre meute voit les marques, avec le jour, jamais l'heure ni votre position.</p>
+        </Sheet>
+      )}
+
+      {newSpot && (
+        <NewSpotSheet
+          onCancel={() => setNewSpot(null)}
+          onCreate={(spot, calmNow) => {
+            const id = addSpot({ ...spot, lat: newSpot.lat, lng: newSpot.lng })
+            if (calmNow) voteCalm(id, { level: calmNow, slot: slotOf(new Date().getHours()), date: today })
+            setNewSpot(null)
+            mark({ ...spot, lat: newSpot.lat, lng: newSpot.lng, id, createdBy: me, createdAt: '' })
+          }}
+        />
+      )}
+
+      {marked && (
+        <div role="dialog" aria-modal="true" aria-label="Spot marqué" onClick={() => setMarked(null)} className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-primary-dark px-8 text-center text-white">
+          <svg width="96" height="96" viewBox="0 0 24 24" aria-hidden="true" className="cel-badge">
+            <path d="M12 3s-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11z" fill="#F2B544" />
+          </svg>
+          <h1 className="cel-text font-display text-[30px] leading-tight font-extrabold">
+            {dog.name} a marqué {marked.spot} !
+          </h1>
+          {marked.first && <p className="cel-text text-[17px] text-[#F7D58A]">Nouveau spot pour {dog.name}</p>}
+          <p className="cel-text text-xl">
+            <BonesGained amount={marked.bones} />
+          </p>
+          <button type="button" onClick={() => setMarked(null)} className="mt-6 flex min-h-[60px] w-full max-w-[360px] items-center justify-center rounded-full border-0 bg-gold text-[19px] font-extrabold text-gold-dark">
+            Continuer
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SpotSheet({ spot, meters, addedBy, passed, passedToday, calm, canMark, onVote, onMark, onClose }: {
+  spot: WithId<Spot>
+  meters?: number
+  addedBy?: string
+  passed: string[]
+  passedToday: boolean
+  calm?: { headline: string; detail: string }
+  canMark: boolean
+  onVote: (level: CalmLevel) => void
+  onMark: () => void
+  onClose: () => void
+}) {
+  const info = categoryInfo(spot.category)
+  const [voted, setVoted] = useState<CalmLevel | null>(null)
+  const slot = slotOf(new Date().getHours())
+  return (
+    <Sheet label={spot.name} onClose={onClose}>
+      <h2 className="mt-1 font-display text-[24px] leading-tight font-extrabold">{spot.name}</h2>
+      <p className="text-[15px] text-muted">{[info.label, meters !== undefined && Number.isFinite(meters) ? formatDistance(meters) : '', addedBy ? `ajouté par ${addedBy}` : ''].filter(Boolean).join(' · ')}</p>
+      <section className="rounded-[18px] bg-bg p-3.5">
+        <h3 className="text-[13px] font-bold tracking-[0.5px] text-muted uppercase">Niveau de calme</h3>
+        {calm ? (
+          <>
+            <p className="text-[17px] font-bold">{calm.headline}</p>
+            <p className="text-sm text-muted">{calm.detail}</p>
+          </>
+        ) : (
+          <p className="text-[15px]">Pas encore d'avis.</p>
+        )}
+      </section>
+      {spot.info.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {spot.info.map((i) => (
+            <span key={i} className="rounded-xl bg-primary-soft px-2.5 py-1 text-sm font-semibold text-primary-dark">
+              {i}
+            </span>
+          ))}
+        </div>
+      )}
+      {passed.length > 0 && (
+        <p className="text-[15px]">
+          <strong>Passés ici cette semaine :</strong> {passed.join(', ')}
+          {passedToday ? ' · dont aujourd’hui' : ''}
+        </p>
+      )}
+      <fieldset className="m-0 border-0 p-0">
+        <legend className="mb-2 p-0 text-[15px] font-bold">{slot === 'matin' ? 'Ce matin' : slot === 'midi' ? 'Cet après-midi' : 'Ce soir'}, c'était…</legend>
+        <div className="grid grid-cols-3 gap-2">
+          {CALM_LEVELS.map((l) => (
+            <button
+              key={l.id}
+              type="button"
+              aria-pressed={voted === l.id}
+              onClick={() => {
+                setVoted(l.id)
+                onVote(l.id)
+              }}
+              className={`btn px-2 ${voted === l.id ? 'btn-on' : 'btn-outline'}`}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      <a href={`https://maps.apple.com/?daddr=${spot.lat},${spot.lng}`} target="_blank" rel="noopener noreferrer" className="btn btn-outline">
+        Y aller
+        <span className="sr-only">(ouvre Plans)</span>
+      </a>
+      {canMark ? (
+        <button type="button" onClick={onMark} className="btn btn-main">
+          Marquer ce spot
+        </button>
+      ) : (
+        <p className="rounded-[14px] bg-bg px-3.5 py-3 text-center text-[15px] text-muted">Approchez-vous à moins de 300 m pour marquer ce spot.</p>
+      )}
+    </Sheet>
+  )
+}
+
+function NewSpotSheet({ onCancel, onCreate }: { onCancel: () => void; onCreate: (spot: Omit<Spot, 'lat' | 'lng' | 'createdBy' | 'createdAt'>, calmNow: CalmLevel | null) => void }) {
+  const [name, setName] = useState('')
+  const [category, setCategory] = useState<SpotCategory>('balade')
+  const [calmNow, setCalmNow] = useState<CalmLevel | null>(null)
+  const [info, setInfo] = useState<string[]>([])
+  const [error, setError] = useState('')
+  const create = () => {
+    if (!name.trim()) return setError('Donnez un nom au spot.')
+    if (/maison|chez moi|domicile/i.test(name)) return setError('Un spot est un lieu public, jamais un domicile.')
+    onCreate({ name: name.trim(), category, info }, calmNow)
+  }
+  return (
+    <Sheet label="Nouveau spot" onClose={onCancel}>
+      <h2 className="mt-1 font-display text-[24px] font-extrabold">Nouveau spot</h2>
+      <p className="text-[15px] text-muted">Un lieu public que la meute peut retrouver. Jamais un domicile.</p>
+      <label className="flex flex-col gap-1.5">
+        <span className="text-[15px] font-semibold">Son nom</span>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Grand Parc des Docks" autoComplete="off" className={`field ${error ? 'border-danger' : ''}`} />
+      </label>
+      {error && (
+        <p role="alert" className="text-[15px] font-semibold text-danger">
+          {error}
+        </p>
+      )}
+      <fieldset className="m-0 border-0 p-0">
+        <legend className="mb-2 p-0 text-[15px] font-semibold">Catégorie</legend>
+        <div className="grid grid-cols-2 gap-2">
+          {SPOT_CATEGORIES.map((c) => (
+            <button key={c.id} type="button" aria-pressed={category === c.id} onClick={() => setCategory(c.id)} className={`flex min-h-12 items-center gap-2 rounded-[14px] border-2 border-solid px-3 text-left text-[15px] font-bold ${category === c.id ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}>
+              <span className="size-3 shrink-0 rounded-full" style={{ background: category === c.id ? '#FFFFFF' : c.color }} />
+              {c.label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset className="m-0 border-0 p-0">
+        <legend className="mb-2 p-0 text-[15px] font-semibold">En ce moment, c'est…</legend>
+        <div className="grid grid-cols-3 gap-2">
+          {CALM_LEVELS.map((l) => (
+            <button key={l.id} type="button" aria-pressed={calmNow === l.id} onClick={() => setCalmNow(calmNow === l.id ? null : l.id)} className={`btn px-2 ${calmNow === l.id ? 'btn-on' : 'btn-outline'}`}>
+              {l.label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset className="m-0 border-0 p-0">
+        <legend className="mb-2 p-0 text-[15px] font-semibold">
+          Infos <span className="font-normal text-muted">(facultatif)</span>
+        </legend>
+        <div className="flex flex-wrap gap-2">
+          {SPOT_INFOS.map((i) => {
+            const on = info.includes(i)
+            return (
+              <button key={i} type="button" aria-pressed={on} onClick={() => setInfo(on ? info.filter((x) => x !== i) : [...info, i])} className={`min-h-11 rounded-full border-2 border-solid px-3.5 text-[15px] font-semibold ${on ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}>
+                {i}
+              </button>
+            )
+          })}
+        </div>
+      </fieldset>
+      <button type="button" onClick={create} className="btn btn-main mt-1">
+        Créer et marquer ce spot
+      </button>
+      <button type="button" onClick={onCancel} className="btn btn-outline">
+        Annuler
+      </button>
+    </Sheet>
+  )
+}
+

@@ -16,6 +16,8 @@ export interface ShopItem {
   category: ShopCategory
   name: string
   price: number
+  /** Objet gagné, pas acheté : visible seulement quand on l'a. */
+  earned?: boolean
 }
 
 /** Prix de départ : stickers 40, accessoires 60 à 300, cadres 80 à 120, fonds 200 à 250, couleurs 300. */
@@ -36,6 +38,8 @@ export const SHOP: ShopItem[] = [
   { id: 'sticker-coeur', category: 'sticker', name: 'Cœur', price: 40 },
   { id: 'sticker-os', category: 'sticker', name: 'Os', price: 40 },
   { id: 'sticker-soleil', category: 'sticker', name: 'Soleil', price: 40 },
+  // Gagné au premier défi de la meute tenu : il ne s'achète pas (n'apparaît qu'une fois gagné).
+  { id: 'sticker-meute', category: 'sticker', name: 'Meute', price: 0, earned: true },
   { id: 'couleur-nuit', category: 'couleur', name: 'Bleu nuit', price: 300 },
   { id: 'couleur-prune', category: 'couleur', name: 'Prune', price: 300 },
 ]

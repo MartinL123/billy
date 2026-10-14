@@ -5,6 +5,7 @@ import { Pending } from '../../components/Pending'
 import { ConfirmSheet, Sheet } from '../../components/Sheet'
 import { auth } from '../../firebase/app'
 import { authErrorMessage, confirmPassword, deleteAccount, logOut } from '../../firebase/auth'
+import { leavePack } from '../../firebase/community'
 import { eraseUserData, setClosingAccount } from '../../firebase/erase'
 import { setUsage, storageUsed } from '../../firebase/files'
 import { ALMOST_FULL_MESSAGE, FULL_MESSAGE, USER_QUOTA, usageLabel, usageLevel } from '../../lib/usage'
@@ -89,6 +90,7 @@ function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; onl
     try {
       // Tant que la suppression est en cours, l'app ne recrée pas de profil vide.
       setClosingAccount(true)
+      await leavePack(auth.currentUser?.uid ?? '')
       await eraseUserData()
       await deleteAccount()
     } catch {

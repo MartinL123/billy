@@ -89,11 +89,6 @@ export default function Journal() {
               <button type="button" aria-pressed={tag === null && skill === null} onClick={() => choose({})} className={chip(tag === null && skill === null)}>
                 Tous
               </button>
-              {tags.map((t) => (
-                <button key={t} type="button" aria-pressed={tag === t} onClick={() => choose({ tag: tag === t ? null : t })} className={chip(tag === t)}>
-                  {t}
-                </button>
-              ))}
               {skills.map((s) => {
                 const territory = territoryOf(s.id)
                 const on = skill === s.id
@@ -111,6 +106,11 @@ export default function Journal() {
                   </button>
                 )
               })}
+              {tags.map((t) => (
+                <button key={t} type="button" aria-pressed={tag === t} onClick={() => choose({ tag: tag === t ? null : t })} className={chip(tag === t)}>
+                  {t}
+                </button>
+              ))}
             </div>
           )}
 

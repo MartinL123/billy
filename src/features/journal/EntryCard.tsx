@@ -74,7 +74,8 @@ export function EntryCard({ entry, today, activeTag, onOpenPhoto }: EntryCardPro
           <span className="text-sm font-semibold text-muted">{entryDateLabel(entry.date, today)}</span>
           <Pending show={entry.pending} />
         </span>
-        {entry.text && <span className="text-[17px] leading-[1.45] whitespace-pre-wrap">{entry.text}</span>}
+        {/* Le texte complet est dans le détail : sur la carte, 4 lignes au plus. */}
+        {entry.text && <span className="line-clamp-4 text-[17px] leading-[1.45] whitespace-pre-wrap">{entry.text}</span>}
         <MomentChips entry={entry} activeTag={activeTag} />
       </span>
       {!entry.readOnly && <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />}

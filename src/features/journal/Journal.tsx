@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { FilePicker } from '../../components/FilePicker'
 import { ImportIcon, PhotoIcon } from '../../components/Icons'
 import { PageHeader } from '../../components/PageHeader'
+import { Sticker } from '../shop/Art'
 import { inkOn, SKILLS, territoryOf } from '../../content/phrases'
 import { Fab } from '../../components/TabBar'
 import { useData } from '../../firebase/store'
@@ -35,7 +36,7 @@ function EmptyJournal({ onPhotos }: { onPhotos: (files: File[]) => void }) {
 }
 
 export default function Journal() {
-  const { entries: written, sessions, exposures } = useData()
+  const { dog, entries: written, sessions, exposures } = useData()
   // Le Carnet est la seule liste : moments notés, et anciennes séances et situations en lecture seule.
   const legacy: Moment[] = [...sessions.map(sessionAsMoment), ...exposures.map(exposureAsMoment)].map((m) => ({ ...m, tags: [], photos: [], pending: false, readOnly: true }))
   const entries: Moment[] = [...written.map(modernCard), ...legacy].sort(byRecency)
@@ -78,14 +79,14 @@ export default function Journal() {
   return (
     // Marge sous la liste : le bouton « + » (64 px, à 92 px du bas) ne recouvre jamais la dernière carte.
     <div className="flex flex-col gap-5 pb-[calc(64px+16px)]">
-      <PageHeader title="Carnet" className="px-5" />
+      <PageHeader title="Carnet" className="px-5" after={<Sticker id={dog.cosmetics?.sticker} size={30} />} />
 
       {entries.length === 0 ? (
         <EmptyJournal onPhotos={importPhotos} />
       ) : (
         <>
           {(tags.length > 0 || skills.length > 0) && (
-            <div role="group" aria-label="Filtrer le Carnet" className="flex gap-2 overflow-x-auto px-5 [scrollbar-width:none]">
+            <div role="group" aria-label="Filtrer le Carnet" className="scroll-row flex gap-2 px-5">
               <button type="button" aria-pressed={tag === null && skill === null} onClick={() => choose({})} className={chip(tag === null && skill === null)}>
                 Tous
               </button>

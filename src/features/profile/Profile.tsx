@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FileImage } from '../../components/FileImage'
 import { ChevronLeftIcon, ChevronRightIcon, CloudCheckIcon, CloudPendingIcon, NoteIcon, PhoneIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
 import { ConfirmSheet, Sheet } from '../../components/Sheet'
@@ -19,6 +18,7 @@ import { formatBytes } from '../../lib/image'
 import { sortMeals } from '../../lib/feeding'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
+import { DogPhoto } from '../shop/DogPhoto'
 import { EveningReminder } from './EveningReminder'
 import { ProfileEdit } from './ProfileEdit'
 
@@ -166,9 +166,7 @@ export default function Profile() {
       </header>
 
       <div className="flex flex-col items-center gap-2 text-center">
-        <span className="flex size-[120px] items-center justify-center overflow-hidden rounded-full border-4 border-solid border-white bg-milestone-soft font-display text-5xl font-bold text-milestone-dark shadow-[0_2px_8px_rgba(24,32,30,0.12)]">
-          {dog.photoThumbFileId ? <FileImage fileId={dog.photoThumbFileId} alt={`Photo de ${dog.name}`} className="size-full" eager /> : dog.name.charAt(0).toUpperCase()}
-        </span>
+        <DogPhoto size={120} alt={`Photo de ${dog.name}`} className="rounded-full shadow-[0_2px_8px_rgba(24,32,30,0.12)]" />
         <h1 className="mt-1 font-display text-[32px] leading-none font-extrabold">{dog.name}</h1>
         <p className="text-base text-muted">
           {[formatAgeShort(dog.birthDate, today), `Niveau ${level.level}`, levelTitle(level.level)].filter(Boolean).join(' · ')}

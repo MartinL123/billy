@@ -9,6 +9,8 @@ import EventForm from './features/calendar/EventForm'
 import EntryForm from './features/journal/EntryForm'
 import EntryView from './features/journal/EntryView'
 import Billy from './features/billy/Billy'
+import Shop from './features/shop/Shop'
+import { AppTheme } from './features/shop/Theme'
 import EnCours from './features/billy/EnCours'
 import Skill from './features/billy/Skill'
 import Journal from './features/journal/Journal'
@@ -76,6 +78,7 @@ export default function App() {
     >
       <ToastProvider>
         <DressageAwards />
+        <AppTheme />
         <HashRouter>
           <OpenOnLogo />
           <ScrollToTop />
@@ -93,6 +96,7 @@ export default function App() {
             <Route path="raconter" element={<Navigate to="/noter" replace />} />
             <Route path="competence/:id" element={<Skill />} />
             <Route path="en-cours" element={<EnCours />} />
+            <Route path="boutique" element={<Shop />} />
             <Route path="profil" element={<Profile />} />
             <Route path="profil/modifier" element={<ProfileEditScreen />} />
             {/* Anciennes adresses : rien n'est perdu, tout a une nouvelle place. */}

@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { FileImage } from '../../components/FileImage'
 import { CheckIcon, ChevronRightIcon, NoteIcon, TargetIcon } from '../../components/Icons'
 import { levelTitle, SKILLS } from '../../content/phrases'
 import { useData } from '../../firebase/store'
@@ -8,13 +7,15 @@ import { challengeProgress, weekChallenge } from '../../lib/challenge'
 import { diffDays, formatDayHeading, formatLong, formatRelative, formatTime } from '../../lib/dates'
 import { typeInfo, upcoming } from '../../lib/events'
 import { nextMealIndex, portion, sortMeals } from '../../lib/feeding'
-import { bossById } from '../../content/training'
+import { BoneIcon } from '../../components/BoneIcon'
+import { BONES } from '../../lib/bones'
 import { questionnaireStatus } from '../../lib/questionnaire'
 import { weekId } from '../../lib/rhythm'
 import { lastSuccess } from '../../lib/skills'
 import { useToday } from '../../lib/useToday'
 import { dogLevel, nextLevelLabel } from '../../lib/level'
 import { Badge } from '../billy/Badge'
+import { DogPhoto } from '../shop/DogPhoto'
 import { DailyIdeas } from './DailyIdeas'
 import { QuestCard } from './QuestCard'
 
@@ -49,8 +50,8 @@ export default function Today() {
             <circle cx="52" cy="52" r="46" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="8" />
             <circle cx="52" cy="52" r="46" fill="none" stroke="#F2B544" strokeWidth="8" strokeLinecap="round" strokeDasharray={RING} strokeDashoffset={RING * (1 - ratio)} className="transition-[stroke-dashoffset] duration-700" />
           </svg>
-          <span className="absolute inset-3 flex items-center justify-center overflow-hidden rounded-full bg-milestone-soft font-display text-4xl font-bold text-milestone-dark">
-            {dog.photoThumbFileId ? <FileImage fileId={dog.photoThumbFileId} alt="" className="size-full" eager /> : dog.name.charAt(0).toUpperCase()}
+          <span className="absolute inset-3">
+            <DogPhoto size={80} />
           </span>
           <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 rounded-xl bg-gold px-2.5 py-[3px] font-display text-[13px] font-extrabold whitespace-nowrap text-gold-dark">Niv. {level.level}</span>
         </span>
@@ -95,7 +96,11 @@ export default function Today() {
       <Link to={`/exercice?competence=${challenge.bossId}`} aria-label={`Défi de la semaine : ${challenge.label}. Ouvrir l'exercice`} className="card flex flex-col gap-3 rounded-[22px] p-4 text-text no-underline">
         <span className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <span className="text-[13px] font-bold tracking-[0.6px] text-milestone-dark uppercase">Défi de la semaine</span>
-          <span className="text-sm font-bold text-primary">▲ {bossById(challenge.bossId)?.name}</span>
+          <span className="flex items-center gap-1 rounded-[10px] bg-[#FFF8E6] px-2.5 py-[3px] text-[13px] font-extrabold text-gold-dark">
+            +{BONES.challenge}
+            <BoneIcon size={16} />
+            <span className="sr-only">os</span>
+          </span>
         </span>
         <span className="flex items-center gap-3">
           <span className="flex-1 text-[17px] leading-snug font-semibold">{challenge.label}</span>
@@ -116,7 +121,7 @@ export default function Today() {
             Son arbre
           </Link>
         </div>
-        <div className="-mx-5 flex gap-2.5 overflow-x-auto px-5 pt-0.5 pb-1.5">
+        <div className="scroll-row -mx-5 flex gap-2.5 px-5 pt-0.5 pb-1.5">
           {SKILLS.map((skill) => (
             <Link key={skill.id} to={`/competence/${skill.id}`} className="flex w-[92px] shrink-0 flex-col items-center gap-1.5 rounded-2xl border border-solid border-border bg-surface px-1 py-2.5 text-text no-underline">
               <Badge bossId={skill.id} acquired={bossProgress[skill.id]?.level ?? 0} size={68} />

@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { FileImage } from '../../components/FileImage'
 import { CheckIcon, ChevronRightIcon } from '../../components/Icons'
 import { levelTitle, SKILLS, stepShort, TERRITORIES, type Territory } from '../../content/phrases'
 import { MAX_LEVEL } from '../../content/training'
@@ -10,6 +9,10 @@ import { notedDays, programWeek, type DayState } from '../../lib/rhythm'
 import { currentExercise, LONG_SESSION_MINUTES, longSessionsDate, sessionMinutes } from '../../lib/training-plan'
 import { useToday } from '../../lib/useToday'
 import { dogLevel, nextLevelLabel } from '../../lib/level'
+import { BoneIcon } from '../../components/BoneIcon'
+import { balance } from '../../lib/bones'
+import { BACKGROUNDS } from '../shop/Art'
+import { DogPhoto } from '../shop/DogPhoto'
 import { Badge } from './Badge'
 
 const DAY_NAMES = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
@@ -116,7 +119,7 @@ function Floor({ territory, active }: { territory: Territory; active: string[] }
 
 /** Onglet Billy : l'arbre de compétences. Trois étages, dix badges, aucun chiffre. */
 export default function Billy() {
-  const { dog, entries, sessions, exposures, bossProgress, xpLog } = useData()
+  const { dog, entries, sessions, exposures, bossProgress, xpLog, bones } = useData()
   const today = useToday()
 
   const level = dogLevel(bossProgress)
@@ -127,11 +130,11 @@ export default function Billy() {
 
   return (
     <div className="flex flex-col gap-[22px] px-4">
+      {/* Fond de l'arbre acheté dans la boutique : derrière tout, les cartes restent blanches. */}
+      {dog.cosmetics?.background && BACKGROUNDS[dog.cosmetics.background] && <div aria-hidden="true" className="fixed inset-0 -z-10" style={BACKGROUNDS[dog.cosmetics.background]} />}
       <header className="flex items-center gap-3.5 px-1">
         <Link to="/profil" aria-label={`Voir le profil de ${dog.name}`} className="relative size-[72px] shrink-0 no-underline">
-          <span className="flex size-[72px] items-center justify-center overflow-hidden rounded-full border-[3px] border-solid border-gold bg-milestone-soft font-display text-3xl font-bold text-milestone-dark">
-            {dog.photoThumbFileId ? <FileImage fileId={dog.photoThumbFileId} alt="" className="size-full" eager /> : dog.name.charAt(0).toUpperCase()}
-          </span>
+          <DogPhoto size={72} className="rounded-full ring-[3px] ring-gold" />
           <span className="absolute -right-2 -bottom-2 rounded-full border-[3px] border-solid border-bg bg-primary px-2 py-0.5 text-xs font-bold text-white">profil</span>
         </Link>
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -144,6 +147,21 @@ export default function Billy() {
           </div>
         </div>
       </header>
+
+      {/* Les os : l'effort du maître, à côté du niveau (ce que le chien sait faire). Toute la carte ouvre la boutique. */}
+      <Link to="/boutique" aria-label={`${balance(bones)} os, pour vos efforts. Ouvrir la boutique`} className="flex min-h-[76px] items-center gap-3.5 rounded-[22px] border-2 border-solid border-gold bg-[#FFF8E6] px-4 py-3 text-text no-underline">
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-white shadow-[0_1px_3px_rgba(24,32,30,0.12)]">
+          <BoneIcon size={30} />
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="font-display text-[24px] leading-tight font-extrabold">{balance(bones)} os</span>
+          <span className="truncate text-sm font-semibold text-gold-dark">Pour vos efforts</span>
+        </span>
+        <span className="flex min-h-11 shrink-0 items-center gap-0.5 rounded-full border-2 border-solid border-gold-dark px-3.5 text-[15px] font-bold text-gold-dark">
+          Boutique
+          <ChevronRightIcon size={18} />
+        </span>
+      </Link>
 
       <div className="flex flex-col gap-2.5">
         <p className="px-1 text-[15px] leading-snug text-[#3F4946]">Ses compétences poussent en 3 étages, de la maison au grand monde. Touchez-en une pour voir son chemin et vous entraîner.</p>

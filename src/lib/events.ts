@@ -1,4 +1,4 @@
-import { diffDays, type ISODate } from './dates'
+import { addDays, addMonths, diffDays, type ISODate } from './dates'
 import type { Recurrence } from './recurrence'
 
 export type EventType = 'vaccin' | 'vermifuge' | 'antiparasitaire' | 'veto' | 'educateur' | 'sejour' | 'etape' | 'autre'
@@ -109,4 +109,20 @@ export function trainerSession(events: { type: string; date: string; done: boole
     recurrence: 'none' as const,
     done: false,
   }
+}
+
+/** Réponse « C'est prévu » à « Est-il stérilisé ? ». */
+export const STERILISATION_PLANNED = 'C’est prévu'
+const STERILISATION = /st[ée]rilisation/i
+
+/**
+ * « C'est prévu » → un rappel dans Santé (questionnaire-depart.md, partie 1). Avec une date : « Stérilisation » ce jour-là.
+ * Sans date : « Prendre rendez-vous pour la stérilisation » à ses 6 mois, ou dans un mois s'il les a déjà.
+ * Rien si un rappel de stérilisation est déjà prévu.
+ */
+export function sterilisationReminder(events: { title: string; done: boolean }[], date: ISODate | '', birthDate: ISODate | '' | undefined, today: ISODate) {
+  if (events.some((e) => !e.done && STERILISATION.test(e.title))) return undefined
+  const sixMonths = birthDate ? addMonths(birthDate, 6) : ''
+  const when = date && date >= today ? date : sixMonths && sixMonths > today ? sixMonths : addDays(today, 30)
+  return { title: date && date >= today ? 'Stérilisation' : 'Prendre rendez-vous pour la stérilisation', type: 'veto' as const, date: when, recurrence: 'none' as const, done: false }
 }

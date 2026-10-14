@@ -59,6 +59,8 @@ export interface Dog {
   reactions?: Reaction[]
   /** À la maison, il est plutôt calme, joueur, très excité. */
   homeMood?: string
+  /** Ce que le chien porte (boutique). */
+  cosmetics?: Cosmetics
   /** Compétences en cours choisies par le maître (3 au plus). Absent : l'app propose les 3 premières non maîtrisées. */
   activeSkills?: string[]
   /** Calculé à la lecture, jamais enregistré : le nom n'a pas encore été donné (on affiche « Votre chien »). */
@@ -220,6 +222,24 @@ export type WithId<T> = T & {
   id: string
   /** Écriture locale pas encore envoyée au serveur. */
   pending: boolean
+}
+
+/** users/{uid}/bones/{id} : les os, la monnaie de l'effort (gains et achats). */
+export type { Bone } from '../lib/bones'
+
+/** users/{uid}/inventory/{itemId} : un objet acheté dans la boutique. */
+export interface InventoryItem {
+  boughtAt: string
+  price: number
+}
+
+/** Ce que le chien porte et les choix d'affichage achetés dans la boutique. Tous facultatifs. */
+export interface Cosmetics {
+  accessory?: string
+  frame?: string
+  background?: string
+  sticker?: string
+  theme?: string
 }
 
 /** users/{uid}/dailyQuest/{date} — la quête du jour : ce qui a été fait, et combien de fois on a demandé une autre idée. */

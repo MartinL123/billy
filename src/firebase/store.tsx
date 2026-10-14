@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ensureProfile, watchAll, watchCollection, watchDog } from './db'
 import { isClosingAccount } from './erase'
-import { isExposure, isTrainingSession, type BillyDocument, type BillyEvent, type BossProgress, type DailyQuestDoc, type Dog, type Entry, type Exposure, type Place, type QuestWeek, type TrainingSession, type Weight, type WithId, type XpEntry } from './types'
+import type { Bone } from '../lib/bones'
+import { isExposure, isTrainingSession, type BillyDocument, type BillyEvent, type BossProgress, type DailyQuestDoc, type Dog, type InventoryItem, type Entry, type Exposure, type Place, type QuestWeek, type TrainingSession, type Weight, type WithId, type XpEntry } from './types'
 
 interface Data {
   dog: WithId<Dog>
@@ -18,8 +19,12 @@ interface Data {
   /** Journal d'XP, en ajout seul. */
   xpLog: WithId<XpEntry>[]
   questWeeks: WithId<QuestWeek>[]
-  /** Quêtes du jour, les plus récentes d'abord. */
+  /** Missions du jour, les plus récentes d'abord. */
   dailyQuests: WithId<DailyQuestDoc>[]
+  /** Os gagnés et dépensés. */
+  bones: WithId<Bone>[]
+  /** Objets achetés dans la boutique. */
+  inventory: WithId<InventoryItem>[]
   /** Nombre d'éléments écrits localement et pas encore envoyés. */
   pendingCount: number
   online: boolean
@@ -65,6 +70,8 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   const [xpLog, setXpLog] = useState<WithId<XpEntry>[]>()
   const [questWeeks, setQuestWeeks] = useState<WithId<QuestWeek>[]>()
   const [dailyQuests, setDailyQuests] = useState<WithId<DailyQuestDoc>[]>()
+  const [bones, setBones] = useState<WithId<Bone>[]>()
+  const [inventory, setInventory] = useState<WithId<InventoryItem>[]>()
 
   useEffect(() => {
     const stops = [
@@ -81,6 +88,8 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
       watchCollection<XpEntry>('xpLog', 'desc', setXpLog),
       watchCollection<QuestWeek>('quests', 'desc', setQuestWeeks),
       watchCollection<DailyQuestDoc>('dailyQuest', 'desc', setDailyQuests),
+      watchCollection<Bone>('bones', 'desc', setBones),
+      watchAll<InventoryItem>('inventory', setInventory),
     ]
     return () => stops.forEach((stop) => stop())
   }, [])
@@ -92,13 +101,13 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   }, [dog, online])
 
   const data = useMemo<Data | null>(() => {
-    if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures || !bossProgress || !places || !xpLog || !questWeeks || !dailyQuests) return null
+    if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures || !bossProgress || !places || !xpLog || !questWeeks || !dailyQuests || !bones || !inventory) return null
     const pendingCount = [dog, ...events, ...weights, ...entries, ...documents, ...sessions, ...exposures, ...bossProgress, ...places].filter((item) => item.pending).length
     const progressById = Object.fromEntries(bossProgress.map((p) => [p.id, p]))
     // Tant que le nom n'est pas donné, l'interface dit « Votre chien ».
     const named = dog.name?.trim() ? dog : { ...dog, name: 'Votre chien', unnamed: true }
-    return { dog: named, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, places, xpLog, questWeeks, dailyQuests, pendingCount, online }
-  }, [dog, events, weights, entries, documents, sessions, exposures, bossProgress, places, xpLog, questWeeks, dailyQuests, online])
+    return { dog: named, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, places, xpLog, questWeeks, dailyQuests, bones, inventory, pendingCount, online }
+  }, [dog, events, weights, entries, documents, sessions, exposures, bossProgress, places, xpLog, questWeeks, dailyQuests, bones, inventory, online])
 
   if (!data) return <>{fallback(dog === null && !online)}</>
   return <DataContext.Provider value={data}>{children}</DataContext.Provider>

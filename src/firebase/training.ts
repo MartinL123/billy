@@ -6,6 +6,7 @@ import { bossById } from '../content/training'
 import { addValidation, checkStep, EMPTY_PROGRESS, markPreApp, uncheckPreApp, uncheckStep } from '../lib/bossProgress'
 import type { ISODate } from '../lib/dates'
 import { MOMENT_XP, previewMoment } from '../lib/moment'
+import { boneId, BONES, missionBones, momentBones, type Bone, type BoneWithId } from '../lib/bones'
 import { levelForSteps, stepsAcquired } from '../lib/level'
 import { XP } from '../lib/xp'
 import { levelTitle, stepPhrase, stepPhraseLower } from '../content/phrases'
@@ -15,6 +16,12 @@ const now = () => new Date().toISOString()
 // Les gains d'XP ont des identifiants fixes quand ils ne peuvent arriver qu'une fois (palier, étoile, validation du jour) :
 // rejouer la même écriture, ou la faire depuis deux appareils, ne les compte jamais deux fois.
 const xpRef = (id: string) => userDoc('xpLog', id)
+const boneData = ({ date, amount, reason, refId }: BoneWithId): Bone => ({ date, amount, reason, refId })
+
+/** Un gain d'os unique (défi, semaine régulière, questionnaire) : l'identifiant fixe empêche tout doublon. */
+export function awardBone(gain: BoneWithId): void {
+  send(setDoc(userDoc('bones', gain.id), boneData(gain)))
+}
 
 function strip<T extends object>(value: T): DocumentData {
   return Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined))
@@ -78,12 +85,14 @@ export function recordSession(session: TrainingSession, validations: ValidationI
     restore.push(() => (current ? setDoc(progressRef, strip(current)) : deleteDoc(progressRef)))
     const target = result.levelGained ?? Math.min(before.level + 1, 5)
     xp += XP.validation
+    add(userDoc('bones', boneId('reussite', `${bossId}-${target}-${session.date}`)), { date: session.date, amount: BONES.success, reason: 'reussite', refId: `${bossId}-${target}-${session.date}` } satisfies Bone)
     add(xpRef(`validation-${bossId}-${target}-${session.date}`), strip<XpEntry>({ date: session.date, kind: 'validation', xp: XP.validation, bossId, createdAt: now() }))
     if (result.levelGained && boss) {
       const level = boss.levels[result.levelGained - 1]!
       xp += XP.level
       add(xpRef(`palier-${boss.id}-${result.levelGained}`), strip<XpEntry>({ date: session.date, kind: 'palier', xp: XP.level, bossId: boss.id, label: `${boss.name} · ${level.title}`, createdAt: now() }))
       add(userDoc('entries', `palier-${boss.id}-${result.levelGained}`), levelCard(session.date, boss.id, result.levelGained))
+      add(userDoc('bones', boneId('etape', `${boss.id}-${result.levelGained}`)), { date: session.date, amount: BONES.step, reason: 'etape', refId: `${boss.id}-${result.levelGained}` } satisfies Bone)
     }
   }
   send(batch.commit())
@@ -189,7 +198,7 @@ export function declareRest(date: ISODate, sniff: boolean, xp: number): { undo: 
   return { undo: () => removeAward(id) }
 }
 
-// ——— Quête du jour (V3 § 5.9) ———
+// ——— Mission du jour (V3 § 5.9) ———
 
 /** « Autre idée » : on retient combien de fois on l'a demandé aujourd'hui. */
 export function skipQuest(date: ISODate, skips: number): void {
@@ -197,17 +206,18 @@ export function skipQuest(date: ISODate, skips: number): void {
 }
 
 /**
- * Quête du jour faite : +15 XP, une seule fois par jour (identifiant fixe).
+ * Mission du jour faite : +15 XP, une seule fois par jour (identifiant fixe).
  * Une journée de repos compte comme une vraie action, et s'ajoute au Carnet.
  */
 export function completeQuest(date: ISODate, quest: { kind: 'exercice' | 'revision' | 'repos'; bossId?: string; exerciseId?: string }, skips: number, xp: number): void {
   const batch = writeBatch(db)
   batch.set(userDoc('dailyQuest', date), strip<DailyQuestDoc>({ date, kind: quest.kind, bossId: quest.bossId, exerciseId: quest.exerciseId, done: true, skips }))
+  for (const gain of missionBones(date, quest.kind === 'repos')) batch.set(userDoc('bones', gain.id), boneData(gain))
   if (quest.kind === 'repos') {
     batch.set(xpRef(`repos-${date}`), strip<XpEntry>({ date, kind: 'repos', xp, key: 'repos', label: 'Jour de repos', createdAt: now() }))
     batch.set(userDoc('entries', `repos-${date}`), { date, text: 'Jour de repos.', tags: [], photos: [], createdAt: now() } satisfies Entry)
   } else {
-    batch.set(xpRef(`quete-jour-${date}`), strip<XpEntry>({ date, kind: 'quete', xp, bossId: quest.bossId, label: 'Quête du jour', createdAt: now() }))
+    batch.set(xpRef(`quete-jour-${date}`), strip<XpEntry>({ date, kind: 'quete', xp, bossId: quest.bossId, label: 'Mission du jour', createdAt: now() }))
   }
   send(batch.commit())
 }
@@ -215,6 +225,8 @@ export function completeQuest(date: ISODate, quest: { kind: 'exercice' | 'revisi
 // ——— Noter ce qu'on a fait (V3) ———
 
 export interface MomentOutcome {
+  /** Os gagnés par ce moment. */
+  bones: number
   /** Identifiant du moment dans le Carnet. */
   entryId: string
   xp: number
@@ -229,7 +241,7 @@ export interface MomentOutcome {
  * Enregistre un moment raconté : une entrée du Carnet, son XP, et les « oui, c'est réussi » qui comptent.
  * Une étape acquise et un passage de niveau ajoutent chacun une carte au Carnet.
  */
-export function recordMoment(entry: Entry, yes: string[], progress: Record<string, BossProgress | undefined>, dogName: string): MomentOutcome {
+export function recordMoment(entry: Entry, yes: string[], progress: Record<string, BossProgress | undefined>, dogName: string, bones: Bone[] = []): MomentOutcome {
   const preview = previewMoment({ feeling: entry.feeling, fear: Boolean(entry.fear), movedAway: Boolean(entry.movedAway) }, yes, progress, entry.date)
   const batch = writeBatch(db)
   const created: ReturnType<typeof userDoc>[] = []
@@ -266,6 +278,10 @@ export function recordMoment(entry: Entry, yes: string[], progress: Record<strin
   }
 
   const stepsBefore = stepsAcquired(progress)
+  // Os de l'effort : +3 pour la note (3 par jour), +5 par réussite, +25 par étape acquise dans l'app.
+  const validatedLevels = preview.validated.map((bossId) => ({ bossId, level: (progress[bossId]?.level ?? 0) + 1 }))
+  const gains = momentBones(entryId, entry.date, validatedLevels, preview.steps, bones)
+  for (const gain of gains) add(userDoc('bones', gain.id), boneData(gain))
   const levelBefore = levelForSteps(stepsBefore)
   const levelAfter = levelForSteps(stepsBefore + preview.steps.length)
   if (levelAfter > levelBefore) {
@@ -280,6 +296,7 @@ export function recordMoment(entry: Entry, yes: string[], progress: Record<strin
   send(batch.commit())
 
   return {
+    bones: gains.reduce((sum, g) => sum + g.amount, 0),
     entryId,
     xp: preview.xp,
     steps: preview.steps,

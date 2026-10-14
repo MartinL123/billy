@@ -4,6 +4,7 @@ import type { EventType } from '../lib/events'
 import type { Feeding } from '../lib/feeding'
 import type { Feeling } from '../lib/moment'
 import type { Questionnaire, Reaction } from '../lib/questionnaire'
+import type { StoredRoute } from '../lib/route'
 import type { Recurrence } from '../lib/recurrence'
 import type { Decision } from '../lib/xp'
 import type { Trait } from '../content/training'
@@ -115,6 +116,8 @@ export interface Entry {
   /** Compétences où « oui, c'est réussi » a compté ce jour-là. */
   validations?: string[]
   xp?: number
+  /** Le trajet de la balade, tracé après coup (docs/specs/trajets.md). */
+  route?: StoredRoute
 }
 
 export type DocumentCategory = 'sante' | 'veto' | 'administratif' | 'autre'

@@ -5,6 +5,7 @@ import { setKnownUsage } from './files'
 import { accountDoc } from './paths'
 import { isClosingAccount } from './erase'
 import type { Bone } from '../lib/bones'
+import type { StoredSavedRoute } from '../lib/route'
 import { isExposure, isTrainingSession, type BillyDocument, type BillyEvent, type BossProgress, type DailyQuestDoc, type Dog, type InventoryItem, type Entry, type Exposure, type Place, type QuestWeek, type TrainingSession, type Weight, type WithId, type XpEntry } from './types'
 
 interface Data {
@@ -26,6 +27,8 @@ interface Data {
   dailyQuests: WithId<DailyQuestDoc>[]
   /** Espace utilisé par les photos et documents (octets), connu même hors ligne. */
   usage: number
+  /** Trajets habituels (20 au plus). */
+  routes: WithId<StoredSavedRoute>[]
   /** Os gagnés et dépensés. */
   bones: WithId<Bone>[]
   /** Objets achetés dans la boutique. */
@@ -78,6 +81,7 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   const [bones, setBones] = useState<WithId<Bone>[]>()
   const [usage, setUsageState] = useState(0)
   const [inventory, setInventory] = useState<WithId<InventoryItem>[]>()
+  const [routes, setRoutes] = useState<WithId<StoredSavedRoute>[]>()
 
   useEffect(() => {
     const stops = [
@@ -101,6 +105,7 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
         setKnownUsage(bytes)
       }, () => undefined),
       watchAll<InventoryItem>('inventory', setInventory),
+      watchAll<StoredSavedRoute>('routes', (items) => setRoutes([...items].sort((a, b) => b.lastUsedAt.localeCompare(a.lastUsedAt)))),
     ]
     return () => stops.forEach((stop) => stop())
   }, [])
@@ -112,13 +117,13 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   }, [dog, online])
 
   const data = useMemo<Data | null>(() => {
-    if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures || !bossProgress || !places || !xpLog || !questWeeks || !dailyQuests || !bones || !inventory) return null
+    if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures || !bossProgress || !places || !xpLog || !questWeeks || !dailyQuests || !bones || !inventory || !routes) return null
     const pendingCount = [dog, ...events, ...weights, ...entries, ...documents, ...sessions, ...exposures, ...bossProgress, ...places].filter((item) => item.pending).length
     const progressById = Object.fromEntries(bossProgress.map((p) => [p.id, p]))
     // Tant que le nom n'est pas donné, l'interface dit « Votre chien ».
     const named = dog.name?.trim() ? dog : { ...dog, name: 'Votre chien', unnamed: true }
-    return { dog: named, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, places, xpLog, questWeeks, dailyQuests, bones, inventory, usage, pendingCount, online }
-  }, [dog, events, weights, entries, documents, sessions, exposures, bossProgress, places, xpLog, questWeeks, dailyQuests, bones, inventory, usage, online])
+    return { dog: named, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, places, xpLog, questWeeks, dailyQuests, bones, inventory, routes, usage, pendingCount, online }
+  }, [dog, events, weights, entries, documents, sessions, exposures, bossProgress, places, xpLog, questWeeks, dailyQuests, bones, inventory, routes, usage, online])
 
   if (!data) return <>{fallback(dog === null && !online)}</>
   return <DataContext.Provider value={data}>{children}</DataContext.Provider>

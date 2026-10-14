@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addPoint, buildRoute, closeLoop, distanceToRoute, formatRouteDistance, moveAt, removeAt, removeLast, routeDistance, routeFromSaved, routesToDrop, simplify, type RoutePoint } from './route'
+import { addPoint, buildRoute, closeLoop, distanceToRoute, formatRouteDistance, moveAt, removeAt, removeLast, routeDistance, routeFromSaved, routesToDrop, simplify, momentReaction, hasReaction, type RoutePoint } from './route'
 
 const A: RoutePoint = [48.8566, 2.3522]
 const B: RoutePoint = [48.8584, 2.3522] // ~200 m au nord
@@ -65,5 +65,13 @@ describe('enregistrement d’un trajet', () => {
     expect(stored.points.every((p) => !Array.isArray(p))).toBe(true)
     expect(readRoute(stored)).toEqual(route)
     expect(readRoute(undefined)).toBeUndefined()
+  })
+
+  it('peur et grogne deviennent une réaction, seulement sur demande', () => {
+    expect(momentReaction({ lat: 0, lng: 0, type: 'peur', note: 'Un vélo est passé très près.' })).toEqual({ situation: 'un vélo est passé très près', reaction: 'peur' })
+    expect(momentReaction({ lat: 0, lng: 0, type: 'grogne', street: 'Rue de Lobau' })).toEqual({ situation: 'il passe rue de Lobau', reaction: 'peur' })
+    expect(momentReaction({ lat: 0, lng: 0, type: 'grogne' })?.situation).toBe('il est en balade')
+    expect(momentReaction({ lat: 0, lng: 0, type: 'rappel' })).toBeUndefined()
+    expect(hasReaction([{ situation: 'il passe rue de Lobau', reaction: 'peur' }], { situation: 'il passe rue de Lobau', reaction: 'peur' })).toBe(true)
   })
 })

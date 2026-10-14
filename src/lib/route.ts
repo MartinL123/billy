@@ -1,5 +1,6 @@
 import { distanceMeters } from './community'
 import { formatShort, type ISODate } from './dates'
+import type { Reaction } from './questionnaire'
 
 // Les trajets de balade (docs/specs/trajets.md) : tracés après coup sur la carte, jamais suivis en direct.
 
@@ -128,3 +129,19 @@ export const toStored = (points: RoutePoint[]): StoredPoint[] => points.map(([la
 export const fromStored = (points: StoredPoint[] | undefined): RoutePoint[] => (points ?? []).map((p) => [p.lat, p.lng])
 export const storeRoute = (route: Route): StoredRoute => ({ ...route, points: toStored(route.points) })
 export const readRoute = (route: StoredRoute | undefined): Route | undefined => (route ? { ...route, points: fromStored(route.points), moments: route.moments ?? [] } : undefined)
+
+const lowerFirst = (text: string) => text.replace(/^./, (c) => c.toLocaleLowerCase('fr'))
+
+/**
+ * « A eu peur » / « A grogné » → une ligne de « Comment il réagit », seulement si on le choisit (trajets.md § 3).
+ * La situation vient du mot noté, sinon de la rue : « Quand il passe rue de Lobau, il a peur. »
+ */
+export function momentReaction(moment: RouteMoment): Reaction | undefined {
+  if (moment.type !== 'peur' && moment.type !== 'grogne') return undefined
+  const note = moment.note?.trim().replace(/[.!]+$/, '')
+  const situation = note ? lowerFirst(note) : moment.street ? `il passe ${lowerFirst(moment.street)}` : 'il est en balade'
+  return { situation, reaction: 'peur' }
+}
+
+/** Déjà dans le profil ? */
+export const hasReaction = (reactions: Reaction[] | undefined, reaction: Reaction) => (reactions ?? []).some((r) => r.situation === reaction.situation)

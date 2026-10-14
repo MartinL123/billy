@@ -1,8 +1,10 @@
 import { lazy, Suspense, useState } from 'react'
-import { updateEntryRoute } from '../../firebase/db'
+import { updateDog, updateEntryRoute } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import type { ISODate } from '../../lib/dates'
-import { durationLabel, formatRouteDistance, routeMomentInfo, storeRoute, type Route } from '../../lib/route'
+import { deriveTraits, reactionsFromFears } from '../../lib/questionnaire'
+import { useToday } from '../../lib/useToday'
+import { durationLabel, formatRouteDistance, hasReaction, momentReaction, routeMomentInfo, storeRoute, type Route } from '../../lib/route'
 import { keepRoute } from './keepRoute'
 
 const RouteMap = lazy(() => import('./RouteMap').then((m) => ({ default: m.RouteMap })))
@@ -24,11 +26,12 @@ export function RouteDetail({ entryId, date, route }: { entryId: string; date: I
       {route.moments.length > 0 && (
         <ul className="card m-0 flex list-none flex-col p-0">
           {route.moments.map((m, i) => (
-            <li key={i} className={`flex items-center gap-3 px-4 py-3 ${i ? 'border-t border-divider' : ''}`}>
-              <span className="size-4 shrink-0 rounded-full" style={{ background: routeMomentInfo(m.type).color }} />
-              <span className="flex flex-col">
+            <li key={i} className={`flex items-start gap-3 px-4 py-3 ${i ? 'border-t border-divider' : ''}`}>
+              <span className="mt-1.5 size-4 shrink-0 rounded-full" style={{ background: routeMomentInfo(m.type).color }} />
+              <span className="flex min-w-0 flex-1 flex-col">
                 <span className="text-[17px] font-semibold">{routeMomentInfo(m.type).label}</span>
                 {(m.street || m.note) && <span className="text-[15px] text-muted">{[m.street, m.note].filter(Boolean).join(' · ')}</span>}
+                <ToProfile reaction={momentReaction(m)} />
               </span>
             </li>
           ))}
@@ -52,5 +55,23 @@ export function RouteDetail({ entryId, date, route }: { entryId: string; date: I
         </Suspense>
       )}
     </section>
+  )
+}
+
+/** « A eu peur » / « A grogné » : l'ajouter à « Comment il réagit », seulement si on le choisit. */
+function ToProfile({ reaction }: { reaction: ReturnType<typeof momentReaction> }) {
+  const { dog } = useData()
+  const today = useToday()
+  if (!reaction) return null
+  const current = dog.reactions ?? reactionsFromFears(dog.fears ?? [])
+  if (hasReaction(current, reaction)) return <span className="mt-1 text-[15px] font-semibold text-primary">✓ Dans « Comment il réagit »</span>
+  const add = () => {
+    const reactions = [...current, reaction]
+    updateDog({ reactions, traits: deriveTraits(dog.traits ?? [], reactions, dog.homeMood, dog.birthDate, today) })
+  }
+  return (
+    <button type="button" onClick={add} className="mt-1 -ml-1 flex min-h-11 items-center self-start rounded-full border-0 bg-transparent px-1 text-left text-[15px] font-bold text-primary underline">
+      Ajouter à « Comment il réagit »
+    </button>
   )
 }

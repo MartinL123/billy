@@ -6,7 +6,7 @@ export interface ImagePreset {
   quality: number
 }
 
-export const PHOTO: ImagePreset = { maxSide: 1600, quality: 0.75 }
+export const PHOTO: ImagePreset = { maxSide: 1280, quality: 0.75 }
 export const DOCUMENT_PAGE: ImagePreset = { maxSide: 2000, quality: 0.8 }
 export const THUMBNAIL: ImagePreset = { maxSide: 400, quality: 0.7 }
 

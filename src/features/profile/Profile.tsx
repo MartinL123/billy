@@ -6,7 +6,9 @@ import { ConfirmSheet, Sheet } from '../../components/Sheet'
 import { auth } from '../../firebase/app'
 import { authErrorMessage, confirmPassword, deleteAccount, logOut } from '../../firebase/auth'
 import { eraseUserData, setClosingAccount } from '../../firebase/erase'
-import { QUOTA_BYTES, storageUsed } from '../../firebase/files'
+import { setUsage, storageUsed } from '../../firebase/files'
+import { ALMOST_FULL_MESSAGE, FULL_MESSAGE, USER_QUOTA, usageLabel, usageLevel } from '../../lib/usage'
+import { PasswordSheet } from '../account/PasswordSheet'
 import { useData } from '../../firebase/store'
 import type { Contact } from '../../firebase/types'
 import { formatAgeShort } from '../../lib/age'
@@ -14,7 +16,6 @@ import { formatLong, formatShort, formatTime, isValidISO } from '../../lib/dates
 import { levelTitle } from '../../content/phrases'
 import { questionnaireStatus, reactionSentence, reactionsFromFears, statusLabel } from '../../lib/questionnaire'
 import { dogLevel } from '../../lib/level'
-import { formatBytes } from '../../lib/image'
 import { sortMeals } from '../../lib/feeding'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
@@ -22,8 +23,6 @@ import { DogPhoto } from '../shop/DogPhoto'
 import { EveningReminder } from './EveningReminder'
 import { ProfileEdit } from './ProfileEdit'
 
-/** Alerte d'espace au-delà de 70 % du quota gratuit. */
-const STORAGE_ALERT = 0.7
 
 function InfoRow({ label, value, first }: { label: string; value: string; first?: boolean }) {
   return (
@@ -129,18 +128,24 @@ function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; onl
 
 /** Le profil du chien : on l'ouvre en touchant sa photo dans son onglet. */
 export default function Profile() {
-  const { dog, documents, weights, bossProgress, pendingCount, online } = useData()
+  const { dog, documents, weights, bossProgress, usage, pendingCount, online } = useData()
   const today = useToday()
   const back = useBack('/billy')
   const [confirmLogout, setConfirmLogout] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [changingPassword, setChangingPassword] = useState(false)
   const [used, setUsed] = useState<number>()
 
   useEffect(() => {
     if (!online) return
     let alive = true
     storageUsed()
-      .then((bytes) => alive && setUsed(bytes))
+      .then((bytes) => {
+        if (!alive) return
+        setUsed(bytes)
+        // Une fois par ouverture : le compteur du compte repart de ce qui est vraiment enregistré.
+        if (bytes !== usage) setUsage(bytes)
+      })
       .catch(() => undefined)
     return () => {
       alive = false
@@ -148,7 +153,8 @@ export default function Profile() {
   }, [online, documents.length])
 
   const email = auth.currentUser?.email ?? ''
-  const usedRatio = used === undefined ? 0 : used / QUOTA_BYTES
+  const space = used ?? usage
+  const spaceLevel = usageLevel(space)
   const level = dogLevel(bossProgress)
   const sentences = (dog.reactions ?? reactionsFromFears(dog.fears ?? [])).map(reactionSentence)
   const lastWeight = weights[0]
@@ -270,18 +276,20 @@ export default function Profile() {
             )}
             {!online && <span className="text-[13px] text-muted">Hors ligne</span>}
           </div>
-          {usedRatio >= STORAGE_ALERT && used !== undefined && (
-            <div role="alert" className="flex flex-col gap-2 border-t border-divider py-3.5">
-              <div className="text-[15px] font-semibold text-milestone-dark">
-                Espace utilisé : {Math.round(usedRatio * 100)} % ({formatBytes(used)} sur 1 Go)
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-milestone-soft">
-                <div className="h-full rounded-full bg-milestone" style={{ width: `${Math.min(100, usedRatio * 100)}%` }} />
-              </div>
-              <p className="text-[13px] leading-snug text-muted">L'espace gratuit se remplit. Pensez à supprimer des documents ou des photos en double.</p>
+          <div className="flex flex-col gap-2 border-t border-divider py-3.5">
+            <div className={`text-[15px] font-semibold ${spaceLevel === 'ok' ? 'text-text' : 'text-milestone-dark'}`}>{usageLabel(space)}</div>
+            <div className="h-2.5 overflow-hidden rounded-full bg-placeholder" role="img" aria-label={usageLabel(space)}>
+              <div className={`h-full rounded-full ${spaceLevel === 'ok' ? 'bg-primary' : 'bg-milestone'}`} style={{ width: `${Math.min(100, Math.max(2, (space / USER_QUOTA) * 100))}%` }} />
             </div>
-          )}
+            {spaceLevel !== 'ok' && <p role="status" className="text-[15px] leading-snug text-milestone-dark">{spaceLevel === 'plein' ? FULL_MESSAGE : ALMOST_FULL_MESSAGE}</p>}
+          </div>
         </div>
+        <button type="button" onClick={() => setChangingPassword(true)} className="btn btn-outline">
+          Changer mon mot de passe
+        </button>
+        <Link to="/installer" className="btn btn-outline">
+          Mettre l'app sur mon téléphone
+        </Link>
         <button type="button" onClick={() => setConfirmLogout(true)} className="btn btn-quiet">
           Se déconnecter
         </button>
@@ -295,6 +303,7 @@ export default function Profile() {
         Version du {new Date(__BUILD_TIME__).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
       </p>
 
+      {changingPassword && <PasswordSheet onClose={() => setChangingPassword(false)} />}
       {deleting && <DeleteAccountSheet dogName={dog.name} online={online} onClose={() => setDeleting(false)} />}
 
       {confirmLogout && (

@@ -10,6 +10,8 @@ export function uid(): string {
 // Tout est rangé sous users/{uid}/…
 export const userCol = (name: string) => collection(db, 'users', uid(), name)
 export const userDoc = (name: string, id: string) => doc(db, 'users', uid(), name, id)
+/** users/{uid} : le document du compte lui-même (compteur d'espace utilisé). */
+export const accountDoc = () => doc(db, 'users', uid())
 export const newId = (name: string) => doc(userCol(name)).id
 
 /**

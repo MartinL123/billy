@@ -52,7 +52,7 @@ export default function DocumentForm() {
     try {
       if (pdf) {
         if (pdf.size > MAX_PDF_SIZE) {
-          return setError(`Ce PDF fait ${formatBytes(pdf.size)} : la limite est de 8 Mo. Rescanne-le en qualité plus basse, ou importe-le en plusieurs parties.`)
+          return setError(`Ce PDF fait ${formatBytes(pdf.size)} : la limite est de ${formatBytes(MAX_PDF_SIZE)}. Scannez-le en qualité plus basse, ou importez les pages en photos.`)
         }
         setProgress('Lecture du PDF…')
         const bytes = new Uint8Array(await pdf.arrayBuffer())

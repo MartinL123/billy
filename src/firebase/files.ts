@@ -8,15 +8,35 @@ import {
   getDocFromCache,
   getDocs,
   getDocsFromCache,
+  increment,
   setDoc,
   sum,
   type DocumentSnapshot,
 } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
-import { newId, send, userCol, userDoc } from './paths'
+import { accountDoc, newId, send, userCol, userDoc } from './paths'
 import type { StoredFile } from './types'
 import { joinBytes, MAX_PDF_SIZE, splitBytes } from '../lib/chunks'
 import { MAX_IMAGE_BYTES } from '../lib/image'
+import { fits, FULL_MESSAGE } from '../lib/usage'
+
+// Espace utilisé par le compte (users/{uid}.usage.bytes), tenu à jour par le store : sert à refuser un ajout
+// quand les 80 Mo sont pleins, même hors ligne. Le texte reste toujours possible.
+let knownUsage = 0
+export const setKnownUsage = (bytes: number) => {
+  knownUsage = bytes
+}
+
+function track(delta: number): void {
+  knownUsage += delta
+  send(setDoc(accountDoc(), { usage: { bytes: increment(delta) } }, { merge: true }))
+}
+
+/** Recalcule l'espace à partir des fichiers enregistrés (comptes d'avant le compteur, ou pour corriger). */
+export function setUsage(bytes: number): void {
+  knownUsage = bytes
+  send(setDoc(accountDoc(), { usage: { bytes } }, { merge: true }))
+}
 
 /** Quota gratuit du plan Spark. */
 export const QUOTA_BYTES = 1024 * 1024 * 1024
@@ -26,21 +46,25 @@ const chunksCol = (fileId: string) => collection(userDoc('files', fileId), 'chun
 /** Enregistre une image déjà compressée (< 900 Ko) dans son propre document. */
 export async function saveImage(blob: Blob): Promise<string> {
   if (blob.size > MAX_IMAGE_BYTES) throw new Error('Image trop lourde')
+  if (!fits(knownUsage, blob.size)) throw new Error(FULL_MESSAGE)
   const id = newId('files')
   const data = Bytes.fromUint8Array(new Uint8Array(await blob.arrayBuffer()))
   const file: StoredFile = { mimeType: blob.type || 'image/jpeg', size: blob.size, data }
   send(setDoc(userDoc('files', id), file))
+  track(blob.size)
   return id
 }
 
 /** Enregistre un PDF découpé en morceaux de 750 Ko. */
 export function savePdf(bytes: Uint8Array): string {
   if (bytes.length > MAX_PDF_SIZE) throw new Error('PDF trop lourd')
+  if (!fits(knownUsage, bytes.length)) throw new Error(FULL_MESSAGE)
   const id = newId('files')
   const parts = splitBytes(bytes)
   parts.forEach((part, n) => send(setDoc(doc(chunksCol(id), String(n)), { data: Bytes.fromUint8Array(part) })))
   const file: StoredFile = { mimeType: 'application/pdf', size: bytes.length, chunkCount: parts.length }
   send(setDoc(userDoc('files', id), file))
+  track(bytes.length)
   return id
 }
 
@@ -78,6 +102,7 @@ export function deleteFile(id: string | undefined): void {
   getFileDoc(id)
     .then((snap) => {
       const count = snap.exists() ? ((snap.data() as StoredFile).chunkCount ?? 0) : 0
+      if (snap.exists()) track(-((snap.data() as StoredFile).size ?? 0))
       for (let n = 0; n < count; n++) send(deleteDoc(doc(chunksCol(id), String(n))))
     })
     .catch(() => undefined)

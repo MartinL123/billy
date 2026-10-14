@@ -1,7 +1,7 @@
-import { getDocsFromServer, writeBatch, type DocumentReference } from 'firebase/firestore'
+import { deleteDoc, getDocsFromServer, writeBatch, type DocumentReference } from 'firebase/firestore'
 import { collection } from 'firebase/firestore'
 import { db } from './app'
-import { userCol } from './paths'
+import { accountDoc, userCol } from './paths'
 
 /** Toutes les collections d'un compte, sous users/{uid}/… */
 export const USER_COLLECTIONS = ['dog', 'events', 'weights', 'entries', 'documents', 'sessions', 'exposures', 'bossProgress', 'places', 'xpLog', 'quests', 'dailyQuest', 'push', 'files']
@@ -39,4 +39,6 @@ export async function eraseUserData(): Promise<void> {
     }
     await deleteAll(snap.docs.map((d) => d.ref))
   }
+  // Le document du compte lui-même (compteur d'espace).
+  await deleteDoc(accountDoc())
 }

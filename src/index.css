@@ -216,3 +216,75 @@ input::-webkit-date-and-time-value {
     scroll-behavior: auto !important;
   }
 }
+
+/* ——— « C'est réussi ! » : animation en CSS seul, ~1,5 s (spec V3 § 5.7) ———
+   Le badge rebondit, le segment gagné de l'anneau se remplit, des confettis tombent, puis le texte apparaît.
+   `.cel-skip` (un toucher sur l'écran) amène tout à l'état final. Réduire les animations : simple fondu. */
+.cel-badge {
+  animation: cel-bounce 0.6s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+.cel-ring {
+  animation: cel-fill 0.55s ease-out 0.45s both;
+}
+.cel-text {
+  animation: cel-appear 0.45s ease-out 1.05s both;
+}
+.cel-confetti {
+  position: absolute;
+  top: -16px;
+  animation: cel-fall 1.2s cubic-bezier(0.25, 0.6, 0.6, 1) var(--delay, 0s) both;
+}
+.cel-skip .cel-badge,
+.cel-skip .cel-ring,
+.cel-skip .cel-text,
+.cel-skip .cel-confetti {
+  animation-duration: 1ms;
+  animation-delay: 0s;
+}
+@keyframes cel-bounce {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes cel-fill {
+  from {
+    stroke-dashoffset: var(--seg-len);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes cel-appear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes cel-fall {
+  from {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--dx, 0px), var(--fall, 40vh)) rotate(var(--rot, 180deg));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cel-badge,
+  .cel-ring,
+  .cel-text {
+    animation: fade-in 0.3s ease-out both;
+  }
+  .cel-confetti {
+    display: none;
+  }
+}

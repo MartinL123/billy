@@ -8,6 +8,8 @@ import type { Entry, WithId } from '../../firebase/types'
 import { formatRelative, formatShort, formatWeekdayShort, diffDays, parseISO, type ISODate } from '../../lib/dates'
 import { feelingLabel } from '../../lib/moment'
 import { Face } from './Face'
+import { formatRouteDistance, readRoute } from '../../lib/route'
+import { RouteThumb } from '../trajets/RouteThumb'
 
 /** « Hier · 12 oct. », « Lun. 5 oct. » */
 export function entryDateLabel(date: ISODate, today: ISODate): string {
@@ -66,14 +68,20 @@ export function MomentChips({ entry, activeTag }: { entry: Moment; activeTag?: s
 export function EntryCard({ entry, today, activeTag, onOpenPhoto }: EntryCardProps) {
   // Une carte sans photo n'a pas de zone photo ; une photo sans fichier non plus.
   const photos = entry.photos.filter((p) => p.thumbFileId)
+  const route = readRoute(entry.route)
   const photoButton = 'block w-full border-0 bg-transparent p-0'
   const body = (
     <>
       <span className="flex min-w-0 flex-1 flex-col gap-2.5">
         <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          {/* Avec des photos, le trajet est une petite vignette ronde à côté de la date. */}
+          {route && photos.length > 0 && <RouteThumb points={route.points} moments={route.moments} size={36} round />}
           <span className="text-sm font-semibold text-muted">{entryDateLabel(entry.date, today)}</span>
+          {route && <span className="text-sm font-bold text-[#9A4413]">{formatRouteDistance(route.distanceM)}</span>}
           <Pending show={entry.pending} />
         </span>
+        {/* Sans photo, la mini-carte du trajet prend la place de la photo. */}
+        {route && photos.length === 0 && <RouteThumb points={route.points} moments={route.moments} size={120} />}
         {/* Le texte complet est dans le détail : sur la carte, 4 lignes au plus. */}
         {entry.text && <span className="line-clamp-4 text-[17px] leading-[1.45] whitespace-pre-wrap">{entry.text}</span>}
         <MomentChips entry={entry} activeTag={activeTag} />

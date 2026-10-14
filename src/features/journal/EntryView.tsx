@@ -9,6 +9,8 @@ import { formatLong } from '../../lib/dates'
 import { useBack } from '../../lib/useBack'
 import { MomentChips } from './EntryCard'
 import { PhotoViewer } from './PhotoViewer'
+import { readRoute } from '../../lib/route'
+import { RouteDetail } from '../trajets/RouteDetail'
 
 /** Le détail d'un moment du Carnet. C'est ici que se trouve « Modifier ». */
 export default function EntryView() {
@@ -29,6 +31,7 @@ export default function EntryView() {
     )
   }
   const entry = modernCard(found)
+  const route = readRoute(entry.route)
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
@@ -43,6 +46,7 @@ export default function EntryView() {
         <Pending show={entry.pending} />
         {entry.text && <p className="text-[19px] leading-[1.45] whitespace-pre-wrap">{entry.text}</p>}
         <MomentChips entry={entry} />
+        {route && <RouteDetail entryId={entry.id} date={entry.date} route={route} />}
         {entry.photos.length > 0 && (
           <div className={`grid gap-1.5 ${entry.photos.length > 1 ? 'grid-cols-2' : ''}`}>
             {entry.photos.map((photo, i) => (

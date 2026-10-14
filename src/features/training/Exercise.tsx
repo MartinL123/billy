@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, TargetIcon } from '../../components/Icons'
 import { Sheet } from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
-import { stepPhrase, territoryOf } from '../../content/phrases'
+import { inkOn, stepPhrase, territoryOf } from '../../content/phrases'
 import { bossById, EXERCISES, exerciseById, MAX_LEVEL, type Exercise as ExerciseInfo } from '../../content/training'
 import { useData } from '../../firebase/store'
 import { completeQuest } from '../../firebase/training'
@@ -214,7 +214,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
       <main className="flex flex-col gap-5 px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+170px)]">
         {exercise.scene && <Illustration scene={exercise.scene} className="h-[150px] bg-surface" />}
 
-        <section className="flex flex-col gap-2">
+        <section className="card flex flex-col gap-2 p-4">
           <h2 className={sectionTitle}>Ce qu'il faut</h2>
           <p className="text-[17px] leading-snug">
             {neededTreats(dog.treats)}
@@ -226,11 +226,12 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
           <h2 className={sectionTitle}>Comment faire</h2>
           <ol className="m-0 flex list-none flex-col gap-2.5 p-0">
             {exercise.steps.map((text, i) => (
-              <li key={text} className="flex gap-3">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-full text-[15px] font-bold" style={{ background: territory.soft, color: territory.color }}>
+              <li key={text} className="flex items-start gap-3">
+                {/* Rond de 28 px, centré sur la première ligne : le texte a un interligne de 28 px. */}
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full text-[15px] leading-none font-extrabold text-white" style={{ background: inkOn(territory) }}>
                   {i + 1}
                 </span>
-                <span className="text-[17px] leading-snug">{text}</span>
+                <span className="text-[17px] leading-7">{text}</span>
               </li>
             ))}
           </ol>
@@ -250,7 +251,20 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
           </section>
         )}
 
-        <p className="text-[13px] text-muted">Source : {exercise.source.name}</p>
+        <p className="flex min-h-11 flex-wrap items-center gap-x-1 px-1 text-[13px] text-muted">
+          Source :{' '}
+          {exercise.source.url ? (
+            <a href={exercise.source.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 font-semibold underline" style={{ color: inkOn(territory) }}>
+              {exercise.source.name}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
+              </svg>
+              <span className="sr-only">(nouvel onglet)</span>
+            </a>
+          ) : (
+            exercise.source.name
+          )}
+        </p>
 
         {!fromQuest && (
           <>

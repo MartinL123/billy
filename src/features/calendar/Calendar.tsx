@@ -124,7 +124,7 @@ export default function Calendar() {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-[19px] font-bold">À venir</h2>
-        <div role="group" aria-label="Filtrer par catégorie" className="-mx-5 flex gap-2 overflow-x-auto px-5 pt-0.5 pb-1">
+        <div role="group" aria-label="Filtrer par catégorie" className="scroll-row -mx-5 flex gap-2 px-5 pt-0.5 pb-1">
           {CARE_FILTERS.map((item) => {
             const on = filter === item.id
             const count = allNext.filter((e) => matchesFilter(e, item.id)).length

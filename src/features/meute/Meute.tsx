@@ -6,10 +6,12 @@ import { Sheet } from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
 import { auth } from '../../firebase/app'
 import { addSpot, markSpot, voteCalm, type Spot, type WithId } from '../../firebase/community'
+import { updateEntryRoute } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { markBone } from '../../lib/bones'
 import { calmSummary, CALM_LEVELS, categoryInfo, dogColor, formatDistance, markId, MARK_DAYS_ON_MAP, nearbySpots, packScore, PACK_CHALLENGE_LABEL, PACK_CHALLENGE_TARGET, slotOf, SPOT_CATEGORIES, SPOT_INFOS, type CalmLevel, type SpotCategory } from '../../lib/community'
 import { diffDays } from '../../lib/dates'
+import { readRoute, storeRoute, withMarkMoments } from '../../lib/route'
 import { weekId, weekOf } from '../../lib/rhythm'
 import { useToday } from '../../lib/useToday'
 import { MemberAvatar } from './MemberAvatar'
@@ -40,7 +42,7 @@ type Filter = 'tout' | 'calme' | SpotCategory | 'territoire'
 
 /** L'onglet Meute (docs/specs/communaute.md § 3) : la carte des spots, Marquer, le fil du jour, les chiens, le défi. */
 export default function Meute() {
-  const { dog } = useData()
+  const { dog, entries } = useData()
   const today = useToday()
   const toast = useToast()
   const me = auth.currentUser?.uid ?? ''
@@ -98,6 +100,12 @@ export default function Meute() {
     const first = !territory.has(spot.id)
     const gain = markBone(spot.id, today, first)
     markSpot(id, { spotId: spot.id, uid: me, dogName: dog.name, date: today }, gain)
+    // Une balade d'aujourd'hui déjà tracée qui passe par ce spot : « A marqué » s'y ajoute tout seul.
+    for (const entry of entries) {
+      const route = entry.date === today ? readRoute(entry.route) : undefined
+      const next = route && withMarkMoments(route, [spot])
+      if (route && next && next !== route) updateEntryRoute(entry.id, storeRoute(next))
+    }
     setMarking(false)
     setOpenSpot(null)
     setMarked({ spot: spot.name, bones: gain.amount, first })

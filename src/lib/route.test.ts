@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addPoint, buildRoute, closeLoop, distanceToRoute, formatRouteDistance, moveAt, removeAt, removeLast, routeDistance, routeFromSaved, routesToDrop, simplify, momentReaction, hasReaction, type RoutePoint } from './route'
+import { addPoint, buildRoute, closeLoop, distanceToRoute, formatRouteDistance, moveAt, removeAt, removeLast, routeDistance, routeFromSaved, routesToDrop, simplify, momentReaction, hasReaction, withMarkMoments, type RoutePoint } from './route'
 
 const A: RoutePoint = [48.8566, 2.3522]
 const B: RoutePoint = [48.8584, 2.3522] // ~200 m au nord
@@ -73,5 +73,14 @@ describe('enregistrement d’un trajet', () => {
     expect(momentReaction({ lat: 0, lng: 0, type: 'grogne' })?.situation).toBe('il est en balade')
     expect(momentReaction({ lat: 0, lng: 0, type: 'rappel' })).toBeUndefined()
     expect(hasReaction([{ situation: 'il passe rue de Lobau', reaction: 'peur' }], { situation: 'il passe rue de Lobau', reaction: 'peur' })).toBe(true)
+  })
+
+  it('« A marqué » ajouté pour un spot marqué près du trajet, une seule fois', () => {
+    const route = buildRoute([A, B], [])
+    const near = { lat: 48.8575, lng: 2.3524, name: 'Square du Temple' } // ~15 m de la ligne
+    const far = { lat: 48.8575, lng: 2.36, name: 'Loin' }
+    const once = withMarkMoments(route, [near, far])
+    expect(once.moments).toEqual([{ lat: near.lat, lng: near.lng, type: 'marque', note: 'Square du Temple' }])
+    expect(withMarkMoments(once, [near])).toBe(once)
   })
 })

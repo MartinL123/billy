@@ -145,3 +145,15 @@ export function momentReaction(moment: RouteMoment): Reaction | undefined {
 
 /** Déjà dans le profil ? */
 export const hasReaction = (reactions: Reaction[] | undefined, reaction: Reaction) => (reactions ?? []).some((r) => r.situation === reaction.situation)
+
+/** Un spot marqué ce jour-là à moins de 60 m du trajet devient un moment « A marqué » (communaute.md § 5). */
+export const MARK_NEAR = 60
+
+/** Ajoute les « A marqué » manquants ; renvoie le même trajet s'il n'y a rien à ajouter. */
+export function withMarkMoments(route: Route, spots: { lat: number; lng: number; name: string }[]): Route {
+  const added = spots
+    .filter((s) => distanceToRoute(s, route.points) <= MARK_NEAR)
+    .filter((s) => !route.moments.some((m) => m.type === 'marque' && m.lat === s.lat && m.lng === s.lng))
+    .map((s): RouteMoment => ({ lat: s.lat, lng: s.lng, type: 'marque', note: s.name }))
+  return added.length ? { ...route, moments: [...route.moments, ...added] } : route
+}

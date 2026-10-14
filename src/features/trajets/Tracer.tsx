@@ -3,7 +3,8 @@ import 'leaflet/dist/leaflet.css'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Sheet } from '../../components/Sheet'
-import { addPoint, buildRoute, closeLoop, defaultRouteName, distanceToRoute, DURATIONS, durationLabel, formatRouteDistance, moveAt, NEAR_ROUTE, removeAt, removeLast, routeDistance, routeMomentInfo, ROUTE_MOMENTS, type Route, type RouteMoment, type RoutePoint } from '../../lib/route'
+import { markedSpotsOn } from '../../firebase/community'
+import { addPoint, buildRoute, closeLoop, defaultRouteName, distanceToRoute, DURATIONS, durationLabel, formatRouteDistance, moveAt, NEAR_ROUTE, removeAt, removeLast, routeDistance, routeMomentInfo, ROUTE_MOMENTS, withMarkMoments, type Route, type RouteMoment, type RoutePoint } from '../../lib/route'
 import type { ISODate } from '../../lib/dates'
 import { streetName } from '../../lib/street'
 
@@ -29,6 +30,10 @@ export function Tracer({ date, initial, onDone, onCancel }: { date: ISODate; ini
   const [placing, setPlacing] = useState<{ lat: number; lng: number } | null>(null)
   const [deleting, setDeleting] = useState<number | null>(null)
   const [hint, setHint] = useState('')
+  const [marked, setMarked] = useState<{ name: string; lat: number; lng: number }[]>([])
+  useEffect(() => {
+    markedSpotsOn(date).then(setMarked)
+  }, [date])
   const host = useRef<HTMLDivElement>(null)
   const map = useRef<any>(null) // eslint-disable-line @typescript-eslint/no-explicit-any
   const layer = useRef<any>(null) // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -79,7 +84,7 @@ export function Tracer({ date, initial, onDone, onCancel }: { date: ISODate; ini
     for (const mo of moments) L.marker([mo.lat, mo.lng], { icon: L.divIcon({ className: '', html: `<span style="display:block;width:20px;height:20px;border-radius:50%;background:${routeMomentInfo(mo.type).color};border:3px solid #fff;transform:translate(-50%,-50%)"></span>`, iconSize: [0, 0] }), interactive: false }).addTo(group)
   }, [points, moments])
 
-  const done = () => onDone({ route: buildRoute(points, moments, duration, keeping ? undefined : initial?.savedRouteId), keep: keeping ? name.trim() || defaultRouteName(date) : null })
+  const done = () => onDone({ route: withMarkMoments(buildRoute(points, moments, duration, keeping ? undefined : initial?.savedRouteId), marked), keep: keeping ? name.trim() || defaultRouteName(date) : null })
   const round = 'flex size-[52px] items-center justify-center rounded-full border-2 border-solid border-[#9A4413] bg-surface text-[#9A4413] shadow-[0_2px_8px_rgba(24,32,30,0.2)] disabled:opacity-40'
 
   return createPortal(

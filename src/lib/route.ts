@@ -21,6 +21,8 @@ export interface RouteMoment {
   lng: number
   type: RouteMomentType
   note?: string
+  /** Nom de la rue, si OpenStreetMap le connaît. */
+  street?: string
 }
 
 /** entries/{id}.route */

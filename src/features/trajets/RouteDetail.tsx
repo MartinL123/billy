@@ -28,7 +28,7 @@ export function RouteDetail({ entryId, date, route }: { entryId: string; date: I
               <span className="size-4 shrink-0 rounded-full" style={{ background: routeMomentInfo(m.type).color }} />
               <span className="flex flex-col">
                 <span className="text-[17px] font-semibold">{routeMomentInfo(m.type).label}</span>
-                {m.note && <span className="text-[15px] text-muted">{m.note}</span>}
+                {(m.street || m.note) && <span className="text-[15px] text-muted">{[m.street, m.note].filter(Boolean).join(' · ')}</span>}
               </span>
             </li>
           ))}

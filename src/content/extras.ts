@@ -7,6 +7,8 @@ export interface Idea {
   steps: string[]
   /** Illustration (voir Illustration.tsx). */
   scene: string
+  /** Idées à mâcher : les mots qui, cités dans « Une allergie ? », la retirent. */
+  ingredients?: string[]
 }
 
 export const GAMES: Idea[] = [
@@ -18,14 +20,23 @@ export const GAMES: Idea[] = [
 ]
 
 export const CHEWS: Idea[] = [
-  { id: 'carotte', name: 'Carotte congelée', detail: 'À préparer au congélateur', scene: 'macher-froid', steps: ['Lavez une carotte entière et mettez-la 2 h au congélateur.', 'Donnez-la entière : le froid soulage les dents qui poussent.'] },
-  { id: 'kong', name: 'Jouet fourré glacé', detail: 'À préparer au congélateur', scene: 'macher-froid', steps: ['Mélangez une part de ses croquettes avec du yaourt nature, sans sucre ni édulcorant.', 'Remplissez un jouet à fourrer et laissez une nuit au congélateur.'] },
-  { id: 'concombre', name: 'Bâtonnets de concombre', detail: 'Prêt tout de suite', scene: 'macher', steps: ['Coupez un tronçon de concombre en gros bâtonnets.', 'Deux ou trois suffisent.'] },
-  { id: 'haricots', name: 'Haricots verts glacés', detail: 'À préparer au congélateur', scene: 'macher-froid', steps: ['Haricots verts nature, sans sel ni sauce.', 'Une petite poignée, encore congelés.'] },
-  { id: 'lecher', name: 'Assiette à lécher', detail: 'À préparer au congélateur', scene: 'macher-froid', steps: ['Étalez du yaourt nature ou de la purée de courgette sur une assiette.', 'Congelez une heure : lécher l’apaise.'] },
+  { id: 'carotte', name: 'Carotte congelée', detail: 'À préparer au congélateur', scene: 'macher-froid', ingredients: ['carotte'], steps: ['Lavez une carotte entière et mettez-la 2 h au congélateur.', 'Donnez-la entière : le froid soulage les dents qui poussent.'] },
+  { id: 'kong', name: 'Jouet fourré glacé', detail: 'À préparer au congélateur', scene: 'macher-froid', ingredients: ['yaourt', 'lait', 'laitier', 'lactose'], steps: ['Mélangez une part de ses croquettes avec du yaourt nature, sans sucre ni édulcorant.', 'Remplissez un jouet à fourrer et laissez une nuit au congélateur.'] },
+  { id: 'concombre', name: 'Bâtonnets de concombre', detail: 'Prêt tout de suite', scene: 'macher', ingredients: ['concombre'], steps: ['Coupez un tronçon de concombre en gros bâtonnets.', 'Deux ou trois suffisent.'] },
+  { id: 'haricots', name: 'Haricots verts glacés', detail: 'À préparer au congélateur', scene: 'macher-froid', ingredients: ['haricot'], steps: ['Haricots verts nature, sans sel ni sauce.', 'Une petite poignée, encore congelés.'] },
+  { id: 'lecher', name: 'Assiette à lécher', detail: 'À préparer au congélateur', scene: 'macher-froid', ingredients: ['yaourt', 'lait', 'laitier', 'lactose', 'courgette'], steps: ['Étalez du yaourt nature ou de la purée de courgette sur une assiette.', 'Congelez une heure : lécher l’apaise.'] },
 ]
 
 export const CHEW_RULES = 'Toujours sous surveillance, et compté dans sa ration. Jamais de raisin, oignon, ail, avocat, chocolat ni os cuit. À valider avec le vétérinaire en cas de doute.'
 
 /** Une idée par jour, la même toute la journée : elle change le lendemain. */
 export const ideaOfTheDay = (ideas: Idea[], dayNumber: number, shift = 0): Idea => ideas[(((dayNumber + shift) % ideas.length) + ideas.length) % ideas.length]!
+
+const plain = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+
+/** Les idées à mâcher sans ce qui est cité dans « Une allergie ? » (questionnaire-depart.md, partie 2). */
+export function chewsFor(allergies: string | undefined, chews: Idea[] = CHEWS): Idea[] {
+  const text = plain(allergies ?? '')
+  if (!text.trim()) return chews
+  return chews.filter((idea) => !(idea.ingredients ?? []).some((word) => text.includes(plain(word))))
+}

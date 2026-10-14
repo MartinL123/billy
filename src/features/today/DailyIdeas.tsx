@@ -1,16 +1,20 @@
 import { useState } from 'react'
 import { ChevronRightIcon } from '../../components/Icons'
-import { CHEW_RULES, CHEWS, GAMES, ideaOfTheDay, type Idea } from '../../content/extras'
+import { CHEW_RULES, chewsFor, GAMES, ideaOfTheDay, type Idea } from '../../content/extras'
+import { useData } from '../../firebase/store'
 import { dayNumber, type ISODate } from '../../lib/dates'
 import { Illustration } from '../training/Illustration'
 
 /** Occupation du jour : une idée de jeu et une idée à mâcher, renouvelées chaque jour. Rien à enregistrer. */
 export function DailyIdeas({ today }: { today: ISODate }) {
+  const { dog } = useData()
   const [open, setOpen] = useState<string | null>(null)
   const day = dayNumber(today)
+  // Une allergie notée au questionnaire retire les idées qui la contiennent.
+  const chews = chewsFor(dog.allergies)
   const ideas: { kind: string; idea: Idea }[] = [
     { kind: 'Jeu', idea: ideaOfTheDay(GAMES, day) },
-    { kind: 'À mâcher', idea: ideaOfTheDay(CHEWS, day, 2) },
+    ...(chews.length ? [{ kind: 'À mâcher', idea: ideaOfTheDay(chews, day, 2) }] : []),
   ]
   return (
     <section className="flex flex-col gap-3">

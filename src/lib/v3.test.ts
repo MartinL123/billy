@@ -518,9 +518,10 @@ describe('son programme : la semaine en 7 pastilles', () => {
     expect(today).toMatchObject({ state: 'repos', today: true })
   })
 
-  it('un jour de repos où l’on a aussi noté un moment est coché ; un jour vide n’est jamais « raté »', () => {
-    const week = programWeek('2026-10-15', notedDays([{ id: 'a', date: '2026-10-13' }]), ['2026-10-13', '2026-10-14'])
-    expect(week.map((d) => d.state)).toEqual(['attente', 'fait', 'repos', 'attente', 'attente', 'attente', 'attente'])
+  it('un jour de repos déclaré garde sa lune même avec un moment noté ; un jour vide n’est jamais « raté »', () => {
+    // Mardi 13 : premier jour de repos déclaré, et un moment noté le même jour.
+    const week = programWeek('2026-10-15', notedDays([{ id: 'a', date: '2026-10-13' }, { id: 'b', date: '2026-10-12' }]), ['2026-10-13', '2026-10-14'])
+    expect(week.map((d) => d.state)).toEqual(['fait', 'repos', 'repos', 'attente', 'attente', 'attente', 'attente'])
     expect(week[3]!.today).toBe(true)
   })
 })
@@ -672,5 +673,14 @@ describe('tout en français', () => {
     expect(old.text).toContain('Look At That')
     const plain = { text: 'Balade au parc.', tags: [] }
     expect(modernCard(plain)).toBe(plain)
+  })
+})
+
+describe('sources des exercices', () => {
+  it('une adresse de source est toujours un lien https ; sans adresse, la source reste du texte', () => {
+    for (const exercise of EXERCISES) {
+      expect(exercise.source.name.length, exercise.id).toBeGreaterThan(0)
+      if (exercise.source.url) expect(exercise.source.url, exercise.id).toMatch(/^https:\/\//)
+    }
   })
 })

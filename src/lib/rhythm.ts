@@ -52,7 +52,7 @@ export interface ProgramDay {
 const LETTERS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
 
 /**
- * La semaine en 7 pastilles : coche = au moins un moment noté ce jour-là, lune = jour de repos,
+ * La semaine en 7 pastilles : lune = jour de repos déclaré, coche = au moins un moment noté ce jour-là,
  * pointillé = à venir ou jour sans rien. Rien n'est jamais « raté ».
  * Les dates sont des jours ISO sans heure : aucun décalage de fuseau possible.
  */
@@ -60,7 +60,8 @@ export function programWeek(today: ISODate, noted: ISODate[], rests: ISODate[]):
   return weekOf(today).map((date, i) => ({
     date,
     letter: LETTERS[i]!,
-    state: noted.includes(date) ? 'fait' : rests.includes(date) ? 'repos' : 'attente',
+    // Un jour de repos déclaré reste un jour de repos (la lune), même si un moment a aussi été noté.
+    state: rests.includes(date) ? 'repos' : noted.includes(date) ? 'fait' : 'attente',
     today: date === today,
   }))
 }

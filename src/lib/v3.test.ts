@@ -441,7 +441,7 @@ describe('quête du jour', () => {
     expect(quest.planned!.exercise.bossIds).toContain(quest.bossId)
     expect(dailyQuest(base)).toEqual(quest)
     const mission = questMission(quest, 3)
-    expect(mission.detail).toMatch(/^3 minutes · /)
+    expect(mission.detail).toMatch(/^3 min · /)
     expect(`${mission.title} ${mission.detail} ${questNote(quest, 3)}`).not.toMatch(BANNED)
   })
 

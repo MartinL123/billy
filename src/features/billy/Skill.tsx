@@ -1,6 +1,5 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { FileImage } from '../../components/FileImage'
 import { CheckIcon, ChevronLeftIcon, TargetIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
 import { Sheet } from '../../components/Sheet'
@@ -15,6 +14,7 @@ import { dogLevel, levelForSteps, stepsAcquired } from '../../lib/level'
 import { sessionMinutes } from '../../lib/training-plan'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
+import { DogPhoto } from '../shop/DogPhoto'
 import { BossIcon } from '../training/BossIcon'
 
 // Le sentier, dans un repère de 390 × 760 : l'étape 1 en bas, le trophée en haut.
@@ -124,11 +124,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
     toast(`${checked ? (many ? `${changed.length} étapes cochées` : 'Étape cochée') : many ? `${changed.length} étapes décochées` : 'Étape décochée'}${recalculated}`, { label: 'Annuler', run: undo })
   }
 
-  const photo = (size: number) => (
-    <span className="flex items-center justify-center overflow-hidden rounded-full bg-milestone-soft font-display text-3xl font-bold text-milestone-dark" style={{ width: size, height: size }}>
-      {dog.photoThumbFileId ? <FileImage fileId={dog.photoThumbFileId} alt="" className="size-full" eager /> : dog.name.charAt(0).toUpperCase()}
-    </span>
-  )
+  const photo = (size: number) => <DogPhoto size={size} />
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px] bg-bg">
@@ -225,7 +221,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
           })}
         </ol>
 
-        {mastered && <p className="mx-5 rounded-[20px] bg-gold-soft px-4 py-3 text-[17px] leading-snug font-semibold text-[#5C4410]">À entretenir : elle revient de temps en temps dans la quête du jour.</p>}
+        {mastered && <p className="mx-5 rounded-[20px] bg-gold-soft px-4 py-3 text-[17px] leading-snug font-semibold text-[#5C4410]">À entretenir : elle revient de temps en temps dans la mission du jour.</p>}
       </main>
 
       {!overlay && (

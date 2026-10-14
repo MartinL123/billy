@@ -4,7 +4,7 @@ import { addDays, dayNumber, type ISODate } from './dates'
 import { weekOf } from './rhythm'
 import { exercisesForStep, type PlannedExercise } from './training-plan'
 
-/** Quête du jour (spec V3 § 5.9) : une seule chose à faire, toujours courte. */
+/** Mission du jour (spec V3 § 5.9) : une seule chose à faire, toujours courte. */
 export type QuestKind = 'exercice' | 'revision' | 'repos'
 
 export const QUEST_XP = 15
@@ -94,7 +94,7 @@ export function questMission(quest: Quest, minutes: number): { title: string; de
     return { title: 'Journée de repos', detail: quest.afterHardDay ? `Hier était difficile : aujourd'hui, on souffle. ${quest.idea}.` : `${quest.idea}. Aucun exercice aujourd'hui.` }
   }
   const { exercise, setting } = quest.planned
-  return { title: quest.kind === 'revision' ? `Révision : ${exercise.name}` : exercise.name, detail: `${minutes} minutes · ${setting}` }
+  return { title: quest.kind === 'revision' ? `Révision : ${exercise.name}` : exercise.name, detail: `${minutes} min · ${setting.charAt(0).toLocaleLowerCase('fr')}${setting.slice(1)}` }
 }
 
 /** Texte pré-rempli de la note quand on touche « C'est fait ! ». */

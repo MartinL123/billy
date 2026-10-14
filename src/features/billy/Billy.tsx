@@ -9,6 +9,7 @@ import { notedDays, programWeek, type DayState } from '../../lib/rhythm'
 import { currentExercise, LONG_SESSION_MINUTES, longSessionsDate, sessionMinutes } from '../../lib/training-plan'
 import { useToday } from '../../lib/useToday'
 import { WalksCard } from '../trajets/WalksCard'
+import { TerritoryLink } from '../meute/TerritoryLink'
 import { dogLevel, nextLevelLabel } from '../../lib/level'
 import { BoneIcon } from '../../components/BoneIcon'
 import { balance } from '../../lib/bones'
@@ -194,6 +195,7 @@ export default function Billy() {
         <Floor key={territory.tier} territory={territory} active={active} />
       ))}
 
+      <TerritoryLink />
       <WalksCard />
     </div>
   )

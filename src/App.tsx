@@ -10,6 +10,7 @@ import EntryForm from './features/journal/EntryForm'
 import EntryView from './features/journal/EntryView'
 import Billy from './features/billy/Billy'
 import Shop from './features/shop/Shop'
+import Territory from './features/meute/Territory'
 import { CommunitySync } from './features/meute/CommunitySync'
 import DogPublic from './features/meute/DogPublic'
 // La carte (Leaflet) n'est chargée qu'en ouvrant l'onglet Meute.
@@ -118,6 +119,7 @@ export default function App() {
             <Route path="en-cours" element={<EnCours />} />
             <Route path="boutique" element={<Shop />} />
             <Route path="meute/chien/:id" element={<DogPublic />} />
+            <Route path="territoire" element={<Territory />} />
             <Route path="installer" element={<InstallRoute />} />
             <Route path="profil" element={<Profile />} />
             <Route path="profil/modifier" element={<ProfileEditScreen />} />

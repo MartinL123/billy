@@ -16,6 +16,7 @@ import { useToday } from '../../lib/useToday'
 import { dogLevel, nextLevelLabel } from '../../lib/level'
 import { Badge } from '../billy/Badge'
 import { DogPhoto } from '../shop/DogPhoto'
+import { InstallBanner, PasswordPrompt } from '../account/HomeNotices'
 import { DailyIdeas } from './DailyIdeas'
 import { QuestCard } from './QuestCard'
 
@@ -80,6 +81,8 @@ export default function Today() {
           </Link>
         </section>
       )}
+
+      <PasswordPrompt />
 
       <QuestCard />
 
@@ -176,6 +179,8 @@ export default function Today() {
       </section>
 
       <DailyIdeas today={today} />
+
+      <InstallBanner />
     </div>
   )
 }

@@ -11,6 +11,8 @@ import EntryView from './features/journal/EntryView'
 import Billy from './features/billy/Billy'
 import Shop from './features/shop/Shop'
 import { AppTheme } from './features/shop/Theme'
+import { InstallGuide } from './features/account/Install'
+import { useBack } from './lib/useBack'
 import EnCours from './features/billy/EnCours'
 import Skill from './features/billy/Skill'
 import Journal from './features/journal/Journal'
@@ -47,6 +49,11 @@ function OpenOnLogo() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return null
+}
+
+function InstallRoute() {
+  const back = useBack('/profil')
+  return <InstallGuide onBack={back} />
 }
 
 export default function App() {
@@ -97,6 +104,7 @@ export default function App() {
             <Route path="competence/:id" element={<Skill />} />
             <Route path="en-cours" element={<EnCours />} />
             <Route path="boutique" element={<Shop />} />
+            <Route path="installer" element={<InstallRoute />} />
             <Route path="profil" element={<Profile />} />
             <Route path="profil/modifier" element={<ProfileEditScreen />} />
             {/* Anciennes adresses : rien n'est perdu, tout a une nouvelle place. */}

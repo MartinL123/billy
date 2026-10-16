@@ -6,6 +6,7 @@ import { accountDoc } from './paths'
 import { isClosingAccount } from './erase'
 import type { Bone } from '../lib/bones'
 import type { StoredSavedRoute } from '../lib/route'
+import type { WalkDay } from '../lib/walks'
 import { isExposure, isTrainingSession, type BillyDocument, type BillyEvent, type BossProgress, type DailyQuestDoc, type Dog, type InventoryItem, type Entry, type Exposure, type Place, type QuestWeek, type TrainingSession, type Weight, type WithId, type XpEntry } from './types'
 import { setNoGarden } from '../lib/garden'
 
@@ -34,6 +35,8 @@ interface Data {
   bones: WithId<Bone>[]
   /** Objets achetés dans la boutique. */
   inventory: WithId<InventoryItem>[]
+  /** Sorties du jour cochées, un document par jour, les plus récents d'abord. */
+  walks: WithId<WalkDay>[]
   /** Nombre d'éléments écrits localement et pas encore envoyés. */
   pendingCount: number
   online: boolean
@@ -83,6 +86,7 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   const [usage, setUsageState] = useState(0)
   const [inventory, setInventory] = useState<WithId<InventoryItem>[]>()
   const [routes, setRoutes] = useState<WithId<StoredSavedRoute>[]>()
+  const [walks, setWalks] = useState<WithId<WalkDay>[]>()
 
   useEffect(() => {
     const stops = [
@@ -100,6 +104,7 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
       watchCollection<QuestWeek>('quests', 'desc', setQuestWeeks),
       watchCollection<DailyQuestDoc>('dailyQuest', 'desc', setDailyQuests),
       watchCollection<Bone>('bones', 'desc', setBones),
+      watchCollection<WalkDay>('walks', 'desc', setWalks),
       onSnapshot(accountDoc(), (snap) => {
         const bytes = Math.max(0, Number((snap.data() as { usage?: { bytes?: number } } | undefined)?.usage?.bytes ?? 0))
         setUsageState(bytes)
@@ -118,15 +123,15 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   }, [dog, online])
 
   const data = useMemo<Data | null>(() => {
-    if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures || !bossProgress || !places || !xpLog || !questWeeks || !dailyQuests || !bones || !inventory || !routes) return null
+    if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures || !bossProgress || !places || !xpLog || !questWeeks || !dailyQuests || !bones || !inventory || !routes || !walks) return null
     const pendingCount = [dog, ...events, ...weights, ...entries, ...documents, ...sessions, ...exposures, ...bossProgress, ...places].filter((item) => item.pending).length
     const progressById = Object.fromEntries(bossProgress.map((p) => [p.id, p]))
     // Tant que le nom n'est pas donné, l'interface dit « Votre chien ».
     const named = dog.name?.trim() ? dog : { ...dog, name: 'Votre chien', unnamed: true }
     // Sans jardin : les textes du dressage parlent de couloir, palier, parc vide.
     setNoGarden(dog.garden === 'Non')
-    return { dog: named, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, places, xpLog, questWeeks, dailyQuests, bones, inventory, routes, usage, pendingCount, online }
-  }, [dog, events, weights, entries, documents, sessions, exposures, bossProgress, places, xpLog, questWeeks, dailyQuests, bones, inventory, routes, usage, online])
+    return { dog: named, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, places, xpLog, questWeeks, dailyQuests, bones, inventory, routes, walks, usage, pendingCount, online }
+  }, [dog, events, weights, entries, documents, sessions, exposures, bossProgress, places, xpLog, questWeeks, dailyQuests, bones, inventory, routes, walks, usage, online])
 
   if (!data) return <>{fallback(dog === null && !online)}</>
   return <DataContext.Provider value={data}>{children}</DataContext.Provider>

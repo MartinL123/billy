@@ -1,4 +1,4 @@
-// Rappel du soir : reçu même quand l'app est fermée. Chargé par le service worker généré (vite.config.ts).
+// Rappels (soir et sorties) : reçus même quand l'app est fermée. Chargé par le service worker généré (vite.config.ts).
 self.addEventListener('push', (event) => {
   let data = {}
   try {
@@ -11,15 +11,16 @@ self.addEventListener('push', (event) => {
       body: data.body || '',
       icon: 'icons/icon-192.png',
       badge: 'icons/icon-192.png',
-      tag: 'rappel-soir',
+      tag: data.tag || 'rappel-soir',
+      data: { url: data.url || './#/noter?depuis=rappel' },
     }),
   )
 })
 
-// Toucher la notification ouvre l'app sur « Noter ce qu'on a fait ».
+// Toucher la notification ouvre l'app : « Noter ce qu'on a fait » pour le soir, l'accueil pour une sortie.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  const url = new URL('./#/noter?depuis=rappel', self.registration.scope).href
+  const url = new URL(event.notification.data?.url || './#/noter?depuis=rappel', self.registration.scope).href
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
       for (const client of windows) {

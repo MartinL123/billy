@@ -393,6 +393,17 @@ horizontalement : **Tout** · Soins · Vaccins · Véto · Éducateur · Étapes
 - Les anniversaires et « Billy a 6 mois / 1 an » sont rangés dans **Étapes**.
 - Le dernier filtre choisi est retenu sur l'appareil (préférence d'affichage, pas une donnée).
 
+### 5.11 Sorties du jour (décision du 16 octobre)
+Un programme fixe pour ne pas sauter de sortie : **3 sorties par jour, hors du jardin** (le jardin ne compte pas).
+- **Créneaux** : Matin 8 h · Midi 13 h · Soir 19 h par défaut, réglables dans Profil › Sorties (`dog.walkTimes`).
+- **Accueil**, sous « Faire un exercice » : carte « Sorties du jour » avec 3 pastilles (≥ 44 px). **Un tap = sortie faite**
+  (« Fait à 8 h 12 », vert) ; un second tap la décoche. Heure passée et pas cochée : pastille orange « À faire ».
+- **Simple coche** : une sortie ne crée pas de moment dans le Carnet. +2 os par sortie, jamais retirés.
+- **Notification** (Profil › Sorties › « Me prévenir à l'heure des sorties ») : à l'heure du créneau si la sortie n'est pas
+  cochée, une seule par créneau et par jour, jusqu'à 90 min de retard ; jamais de reproche. Elle ouvre l'accueil.
+  Même abonnement push et même tâche planifiée que le rappel du soir ; les deux s'activent séparément.
+- Données : `users/{uid}/walks/{date}` → `{ date, done: { matin?: 'HH:MM', midi?, soir? } }`.
+
 ## 6. Règles d'interface (pour une personne peu technophile)
 
 1. **Tout ce qui est cliquable ressemble à un bouton** : bouton plein, bouton contour de 2 px, ou carte blanche avec

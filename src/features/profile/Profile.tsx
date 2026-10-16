@@ -22,6 +22,7 @@ import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { DogPhoto } from '../shop/DogPhoto'
 import { EveningReminder } from './EveningReminder'
+import { WalkSettings } from './WalkSettings'
 import { ProfileEdit } from './ProfileEdit'
 
 
@@ -239,6 +240,8 @@ export default function Profile() {
           <ContactRow role="Éducateur" callLabel="Appeler l'éducateur" contact={dog.trainer} />
         </div>
       </section>
+
+      <WalkSettings />
 
       <EveningReminder dogName={dog.name} />
 

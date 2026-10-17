@@ -48,3 +48,23 @@ export function neededTreats(treats: string | undefined): string {
   const name = (treats ?? '').trim().replace(/\.$/, '')
   return name && !NO_TREAT.test(name) ? `Ses friandises préférées (${name})` : 'Ses friandises préférées'
 }
+
+// Mots anglais qui arrivent parfois dans le questionnaire (clavier ou correction automatique en anglais).
+const ENGLISH: Record<string, string> = { treat: 'friandises', treats: 'friandises', cheese: 'fromage', chicken: 'poulet', beef: 'bœuf', fish: 'poisson', ham: 'jambon', carrot: 'carotte', carrots: 'carottes', apple: 'pomme', kibble: 'croquettes', biscuit: 'biscuits', biscuits: 'biscuits' }
+
+/** « Il adore » dans le profil : la réponse en français ; un mot générique devient « les friandises ». */
+export function treatsLabel(treats: string | undefined): string | undefined {
+  const name = (treats ?? '').trim().replace(/\.$/, '')
+  if (!name) return undefined
+  const french = name.replace(/[A-Za-z]+/g, (word) => ENGLISH[word.toLowerCase()] ?? word)
+  const text = NO_TREAT.test(name) || NO_TREAT.test(french) ? 'les friandises' : french
+  return text.replace(/^./, (c) => c.toLocaleUpperCase('fr'))
+}
+
+/** « Ses jeux » : sans « Autre » seul (il ne dit rien) ; en minuscules, séparés par des virgules. */
+export function gamesLabel(games: string[] | undefined): string | undefined {
+  const named = (games ?? []).filter((g) => g.trim() && g.trim().toLocaleLowerCase('fr') !== 'autre')
+  if (named.length === 0) return undefined
+  const more = named.length < (games ?? []).length ? ' et d’autres' : ''
+  return named.join(', ').toLocaleLowerCase('fr').replace(/^./, (c) => c.toLocaleUpperCase('fr')) + more
+}

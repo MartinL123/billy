@@ -24,6 +24,7 @@ import { DogPhoto } from '../shop/DogPhoto'
 import { EveningReminder } from './EveningReminder'
 import { WalkSettings } from './WalkSettings'
 import { ProfileEdit } from './ProfileEdit'
+import { gamesLabel, treatsLabel } from '../../lib/training-plan'
 
 
 function InfoRow({ label, value, first }: { label: string; value: string; first?: boolean }) {
@@ -207,8 +208,8 @@ export default function Profile() {
           <div className="card px-4 py-1">
             <InfoRow first label="Ration" value={`${dog.feeding.gramsPerDay} g par jour`} />
             <InfoRow label="Repas" value={sortMeals(dog.feeding.meals).map((m) => formatTime(m.time)).join(' · ') || 'À compléter'} />
-            {dog.treats && <InfoRow label="Il adore" value={dog.treats} />}
-            {dog.games?.length ? <InfoRow label="Ses jeux" value={dog.games.join(', ').toLocaleLowerCase('fr')} /> : null}
+            {treatsLabel(dog.treats) && <InfoRow label="Il adore" value={treatsLabel(dog.treats)!} />}
+            {gamesLabel(dog.games) ? <InfoRow label="Ses jeux" value={gamesLabel(dog.games)!} /> : null}
             {dog.aloneTime && <InfoRow label="Seul" value={`${dog.aloneTime.toLocaleLowerCase('fr')}${dog.aloneTime === 'Jamais' ? '' : ' par jour'}`} />}
           </div>
         </section>

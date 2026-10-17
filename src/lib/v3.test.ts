@@ -666,3 +666,22 @@ describe('sources des exercices', () => {
     }
   })
 })
+
+import { gamesLabel, treatsLabel } from './training-plan'
+
+describe('profil : friandises et jeux en français', () => {
+  it('« Treat » et les mots génériques deviennent « Les friandises »', () => {
+    expect(treatsLabel('Treat')).toBe('Les friandises')
+    expect(treatsLabel('treats.')).toBe('Les friandises')
+    expect(treatsLabel('cheese')).toBe('Fromage')
+    expect(treatsLabel('Fromage et poulet séché')).toBe('Fromage et poulet séché')
+    expect(treatsLabel('  ')).toBeUndefined()
+  })
+
+  it('« Autre » seul ne s’affiche pas', () => {
+    expect(gamesLabel(['Autre'])).toBeUndefined()
+    expect(gamesLabel(['Balle', 'Autre'])).toBe('Balle et d’autres')
+    expect(gamesLabel(['Balle', 'Corde'])).toBe('Balle, corde')
+    expect(gamesLabel(undefined)).toBeUndefined()
+  })
+})

@@ -61,7 +61,8 @@ function useCardContent(card: NowCard) {
         title: `La sortie de ${formatHour(card.time)}`,
         text: 'Hors du jardin, même 15 minutes. Elle se cochera toute seule avec votre balade Strava.',
         scene: undefined,
-        action: { label: 'Ajouter la balade', to: '/ajouter-balade' },
+        // Pas de bouton : la balade arrive avec l'import Strava, rien à faire d'ici (pas d'export depuis l'iPhone).
+        action: undefined,
       }
     default: {
       const last = walkItems(entries)[0]
@@ -123,7 +124,7 @@ export default function Today() {
         {content.scene && <Illustration scene={content.scene} className="h-[130px] bg-bg" />}
         <h1 className="font-display text-[26px] leading-tight font-extrabold">{content.title}</h1>
         <p className="line-clamp-2 text-[17px] leading-snug text-[#3F4946]">{content.text}</p>
-        {'to' in content.action ? (
+        {!content.action ? null : 'to' in content.action ? (
           <Link to={content.action.to!} className="btn btn-main min-h-[56px]">
             {content.action.label}
           </Link>

@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { ChevronLeftIcon } from '../../components/Icons'
 import { useBack } from '../../lib/useBack'
 import { ImportFooter } from './ImportFooter'
@@ -48,9 +47,6 @@ export default function ImportStrava() {
           ))}
         </ol>
         <p className="rounded-[18px] bg-primary-soft px-4 py-3 text-[15px] leading-snug text-primary-dark">Billy garde le trajet et la durée. Le rythme cardiaque n’est jamais enregistré. Votre carte reste privée.</p>
-        <Link to="/ajouter-balade" className="flex min-h-12 items-center text-[17px] font-bold text-primary">
-          Une seule balade ? L’ajouter en 3 étapes
-        </Link>
       </main>
       <ImportFooter label="Choisir les fichiers" />
     </div>

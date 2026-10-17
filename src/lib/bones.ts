@@ -105,7 +105,6 @@ export const HOW_TO_EARN: { label: string; amount: number }[] = [
   { label: 'Questionnaire de départ terminé', amount: BONES.questionnaire },
   { label: 'Marquer un spot (nouveau : +10)', amount: BONES.mark },
   { label: 'Défi de la meute tenu', amount: BONES.packChallenge },
-  { label: 'Nouvelle zone découverte en balade (50 par balade)', amount: 1 },
 ]
 
 /**
@@ -148,5 +147,3 @@ export function backfillBones(
   return out
 }
 
-/** Zones découvertes par une balade : 1 os par zone, 50 au plus (exploration). Une fois par balade. */
-export const zonesBone = (entryId: string, date: ISODate, amount: number) => bone('zone', entryId, date, amount)

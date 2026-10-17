@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import type { GeoJSONSource } from 'maplibre-gl'
 import { createMap, fitPoints, whenReady, type LatLng } from '../../components/maplibre'
 // Brouillard à 0,72 : les rues restent lisibles dessous, même quand rien n'est encore découvert (carte « toute grise » du 17 octobre).
-import { fogShape } from '../../lib/exploration'
+import { fogShape } from '../../lib/fogShape'
 
 /** Le brouillard : partout, sauf sur les cellules découvertes. */
 export function FogMap({ cells, center }: { cells: Set<string>; /** Sans zone découverte : la dernière balade (ou Paris). */ center?: LatLng }) {

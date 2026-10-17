@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react'
-import type { GeoJSONSource } from 'maplibre-gl'
 import { addMarker, createMap, fitPoints, set3D, setLine, setSatellite, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
-import { fogShape } from '../../lib/fogShape'
+import { fogLayout, type FogLayout } from '../../lib/fogCanvas'
 
 export interface MapPlace {
   id: string
@@ -26,6 +25,65 @@ interface Props {
 
 const FOG = { plan: { color: '#22332F', opacity: 0.86 }, satellite: { color: '#FFFFFF', opacity: 0.72 } }
 const TRACK = { plan: '#D9661F', satellite: '#FFB23F' }
+
+const rectangle = ([s, w, n, e]: [number, number, number, number]): [number, number][] => [
+  [w, s],
+  [w, n],
+  [e, n],
+  [e, s],
+  [w, s],
+]
+
+/** Petit hasard reproductible : la texture des nuages ne bouge pas d'un affichage à l'autre. */
+function seeded(seed: number) {
+  let x = seed || 1
+  return () => {
+    x = (x * 16807) % 2147483647
+    return x / 2147483647
+  }
+}
+
+/**
+ * Le brouillard en image : un voile de la couleur du mode, une texture de nuages légère, puis une trouée ronde
+ * aux bords flous sur chaque case découverte (les trouées voisines se fondent en un chemin).
+ */
+function drawFog(layout: FogLayout, color: string, opacity: number): HTMLCanvasElement {
+  const canvas = document.createElement('canvas')
+  canvas.width = layout.width
+  canvas.height = layout.height
+  const ctx = canvas.getContext('2d')!
+  ctx.globalAlpha = opacity
+  ctx.fillStyle = color
+  ctx.fillRect(0, 0, layout.width, layout.height)
+  // Nuages : de grandes taches un peu plus claires ou plus sombres.
+  const random = seeded(Math.round(layout.bbox[0] * 1e4))
+  const blobs = Math.round((layout.width * layout.height) / 9000)
+  for (let k = 0; k < blobs; k++) {
+    const x = random() * layout.width
+    const y = random() * layout.height
+    const r = 20 + random() * 60
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r)
+    const tint = random() > 0.5 ? '255,255,255' : '0,0,0'
+    g.addColorStop(0, `rgba(${tint},0.10)`)
+    g.addColorStop(1, `rgba(${tint},0)`)
+    ctx.globalAlpha = 1
+    ctx.fillStyle = g
+    ctx.fillRect(x - r, y - r, r * 2, r * 2)
+  }
+  // Les trouées.
+  ctx.globalAlpha = 1
+  ctx.globalCompositeOperation = 'destination-out'
+  const r = layout.radius
+  for (const [x, y] of layout.holes) {
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r)
+    g.addColorStop(0, 'rgba(0,0,0,1)')
+    g.addColorStop(0.5, 'rgba(0,0,0,0.9)')
+    g.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = g
+    ctx.fillRect(x - r, y - r, r * 2, r * 2)
+  }
+  return canvas
+}
 
 /**
  * La carte qui se découvre : le brouillard (un seul polygone troué, bords adoucis), les trajets en pointillés,
@@ -76,23 +134,42 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, o
     if (!m) return
     whenReady(m, () => {
       const mode = satellite ? 'satellite' : 'plan'
-      const data = { type: 'Feature' as const, properties: {}, geometry: fogShape(cells).polygon }
-      const source = m.getSource('brouillard') as GeoJSONSource | undefined
-      if (source) source.setData(data)
-      else {
-        m.addSource('brouillard', { type: 'geojson', data })
-        m.addLayer({ id: 'brouillard', type: 'fill', source: 'brouillard', paint: { 'fill-color': FOG[mode].color, 'fill-opacity': FOG[mode].opacity } })
-        // Bords flous autour des zones découvertes.
-        m.addLayer({ id: 'brouillard-bord', type: 'line', source: 'brouillard', paint: { 'line-color': FOG[mode].color, 'line-width': 14, 'line-blur': 12, 'line-opacity': FOG[mode].opacity * 0.8 } })
+      const layout = fogLayout(cells)
+      for (const id of ['brouillard-image', 'brouillard']) {
+        if (m.getLayer(id)) m.removeLayer(id)
+        if (m.getSource(id)) m.removeSource(id)
       }
-      m.setPaintProperty('brouillard', 'fill-color', FOG[mode].color)
-      m.setPaintProperty('brouillard', 'fill-opacity', FOG[mode].opacity)
-      m.setPaintProperty('brouillard-bord', 'line-color', FOG[mode].color)
+      // Hors de l'image : un aplat, troué exactement là où l'image commence.
+      const world: [number, number][] = [
+        [-180, -85],
+        [180, -85],
+        [180, 85],
+        [-180, 85],
+        [-180, -85],
+      ]
+      const rings = layout ? [world, rectangle(layout.bbox)] : [world]
+      m.addSource('brouillard', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: rings } } })
+      m.addLayer({ id: 'brouillard', type: 'fill', source: 'brouillard', paint: { 'fill-color': FOG[mode].color, 'fill-opacity': FOG[mode].opacity, 'fill-antialias': false } })
+      if (layout) {
+        const [south, west, north, east] = layout.bbox
+        m.addSource('brouillard-image', {
+          type: 'canvas',
+          canvas: drawFog(layout, FOG[mode].color, FOG[mode].opacity),
+          animate: false,
+          coordinates: [
+            [west, north],
+            [east, north],
+            [east, south],
+            [west, south],
+          ],
+        })
+        m.addLayer({ id: 'brouillard-image', type: 'raster', source: 'brouillard-image', paint: { 'raster-fade-duration': 0, 'raster-resampling': 'linear' } })
+      }
       setLine(m, 'trajets', tracks, { color: TRACK[mode], width: 4 })
       m.setPaintProperty('trajets', 'line-color', TRACK[mode])
       m.setPaintProperty('trajets', 'line-dasharray', [1.2, 1.4])
-      // Les satellites et le brouillard restent sous les trajets.
-      if (m.getLayer('trajets')) m.moveLayer('trajets')
+      // Les trajets restent au-dessus du brouillard.
+      m.moveLayer('trajets')
     })
   }, [cells, tracks, satellite])
 

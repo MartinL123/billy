@@ -115,8 +115,9 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, o
     const all = tracks.flat()
     if (all.length) {
       // Les boutons du haut et le panneau du bas couvrent la carte : on cadre dans ce qui reste visible.
-      fitPoints(m, all, { top: 190, bottom: 300, left: 40, right: 40 })
+      // Une fois le style chargé : avant, le cadrage est perdu.
       framed.current = true
+      whenReady(m, () => fitPoints(m, all, { top: 130, bottom: 340, left: 40, right: 40 }))
     } else if (center) m.jumpTo({ center: [center[1], center[0]] })
   }, [tracks, center])
 

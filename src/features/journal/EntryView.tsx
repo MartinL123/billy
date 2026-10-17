@@ -3,7 +3,9 @@ import { Link, useParams } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { ChevronLeftIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
-import { unshareMoment, watchShared } from '../../firebase/community'
+import { Bytes } from 'firebase/firestore'
+import { shareMoment, unshareMoment, watchShared } from '../../firebase/community'
+import { loadFile } from '../../firebase/files'
 import { useData } from '../../firebase/store'
 import { modernCard } from '../../lib/carnet'
 import { formatLong } from '../../lib/dates'
@@ -16,7 +18,7 @@ import { RouteDetail } from '../trajets/RouteDetail'
 /** Le détail d'un moment du Carnet. C'est ici que se trouve « Modifier ». */
 export default function EntryView() {
   const { id } = useParams()
-  const { entries } = useData()
+  const { entries, dog } = useData()
   const back = useBack('/carnet')
   const [viewer, setViewer] = useState<number | null>(null)
   const found = entries.find((e) => e.id === id)
@@ -57,7 +59,7 @@ export default function EntryView() {
             ))}
           </div>
         )}
-        <SharedWithPack entryId={entry.id} />
+        <SharedWithPack entry={entry} dogName={dog.name} />
         <Link to={`/souvenir/${entry.id}/modifier`} className="btn btn-outline mt-2">
           Modifier
         </Link>
@@ -67,15 +69,34 @@ export default function EntryView() {
   )
 }
 
-/** Partagé avec la meute : on peut le retirer d'un toucher. */
-function SharedWithPack({ entryId }: { entryId: string }) {
+/**
+ * Partager avec la meute, toujours par un choix explicite (désactivé par défaut) : le texte, le jour et la miniature
+ * de la première photo. Ni heure, ni lieu, ni ressenti, ni trajet. On peut le retirer d'un toucher.
+ */
+function SharedWithPack({ entry, dogName }: { entry: { id: string; date: string; text: string; photos: { thumbFileId: string }[] }; dogName: string }) {
   const [shared, setShared] = useState(false)
-  useEffect(() => watchShared(entryId, setShared), [entryId])
-  if (!shared) return null
+  const [busy, setBusy] = useState(false)
+  useEffect(() => watchShared(entry.id, setShared), [entry.id])
+  const share = async () => {
+    setBusy(true)
+    try {
+      const first = entry.photos[0]
+      const thumb = first ? Bytes.fromUint8Array(new Uint8Array(await (await loadFile(first.thumbFileId)).arrayBuffer())) : undefined
+      shareMoment(entry.id, { dogName, text: entry.text, date: entry.date, ...(thumb ? { photo: thumb } : {}) })
+    } finally {
+      setBusy(false)
+    }
+  }
+  if (!shared)
+    return (
+      <button type="button" disabled={busy} onClick={share} className="btn btn-quiet min-h-12 self-start px-2 text-[15px] text-primary underline">
+        Partager avec la meute
+      </button>
+    )
   return (
     <div className="flex items-center gap-3 rounded-[18px] bg-primary-soft px-4 py-2">
       <span className="flex-1 text-[15px] font-semibold text-primary-dark">Partagé avec la meute</span>
-      <button type="button" onClick={() => unshareMoment(entryId)} className="btn btn-quiet min-h-11 px-3 text-[15px]">
+      <button type="button" onClick={() => unshareMoment(entry.id)} className="btn btn-quiet min-h-11 px-3 text-[15px]">
         Retirer
       </button>
     </div>

@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FilePicker } from '../../components/FilePicker'
-import { CheckIcon, PhotoIcon } from '../../components/Icons'
+import { PhotoIcon } from '../../components/Icons'
 import { useToast } from '../../components/Toast'
 import { SKILLS, stepPhrase } from '../../content/phrases'
-import { Bytes } from 'firebase/firestore'
-import { shareMoment } from '../../firebase/community'
 import { cancelZoneBones, discoverZones } from '../../firebase/exploration'
 import { answerQuestion } from '../../firebase/db'
 import { saveImage } from '../../firebase/files'
@@ -13,28 +11,26 @@ import { useData } from '../../firebase/store'
 import { completeQuest, recordMoment, type MomentOutcome } from '../../firebase/training'
 import type { EntryPhoto } from '../../firebase/types'
 import { EMPTY_PROGRESS, remaining } from '../../lib/bossProgress'
-import { addDays, formatLong, isValidISO } from '../../lib/dates'
+import { formatLong, isValidISO } from '../../lib/dates'
 import { compressImage, PHOTO } from '../../lib/image'
-import { canAskStep, FEELINGS, hasNextStep, isFearMoment, tileOrder, type Feeling } from '../../lib/moment'
+import { canAskStep, FEELINGS, hasNextStep, isFearMoment, type Feeling } from '../../lib/moment'
 import { QUEST_XP } from '../../lib/quest'
 import { useToday } from '../../lib/useToday'
 import { BonesGained } from '../../components/BoneIcon'
 import { BONES } from '../../lib/bones'
 import { SkillPill } from '../billy/SkillPill'
-import { RouteCard } from '../trajets/RouteCard'
+import { RouteThumb } from '../trajets/RouteThumb'
 import type { Route } from '../../lib/route'
-import { storeRoute } from '../../lib/route'
+import { formatRouteDistance, storeRoute } from '../../lib/route'
 import { useQuest } from '../today/useQuest'
-import { BossIcon } from '../training/BossIcon'
 import { LevelUp, StepSuccess } from '../training/Celebration'
 import { takeDraftPhotos, takeDraftWalk } from './draft'
-import { placePhoto, type PhotoClue } from '../../lib/balade'
+import { formatDuration, placePhoto, type PhotoClue } from '../../lib/balade'
 import { readPhotoClue } from '../../lib/photoClue'
 import { Face } from './Face'
 import { errorText } from '../../firebase/errors'
 
 const MAX_PHOTOS = 10
-type When = 'aujourdhui' | 'hier' | 'autre'
 interface Photo {
   key: string
   full: Blob
@@ -53,7 +49,7 @@ const choice = (on: boolean) => `btn px-2 ${on ? 'btn-on' : 'btn-outline'}`
  */
 export default function Noter() {
   const [params] = useSearchParams()
-  const { dog, entries, sessions, bossProgress, bones, exploration } = useData()
+  const { dog, bossProgress, bones, exploration } = useData()
   const today = useToday()
   const toast = useToast()
   const navigate = useNavigate()
@@ -68,18 +64,15 @@ export default function Noter() {
   const walkDate = walk?.walk.date && walk.walk.date <= today ? walk.walk.date : undefined
   const [text, setText] = useState(fromQuest ? today0.note : (walk?.name ?? ''))
   const [photos, setPhotos] = useState<Photo[]>([])
-  const [when, setWhen] = useState<When>(walkDate && walkDate !== today ? (walkDate === addDays(today, -1) ? 'hier' : 'autre') : params.get('quand') === 'autre' ? 'autre' : 'aujourdhui')
-  const [otherDate, setOtherDate] = useState(walkDate ?? (params.get('quand') === 'autre' && isValidISO(dog.adoptionDate) ? dog.adoptionDate : today))
+  // La date : aujourd'hui (ou le jour de la balade importée, ou de l'adoption pour un souvenir du questionnaire).
+  // Elle se change ensuite dans le détail du moment.
+  const [date] = useState(() => walkDate ?? (params.get('quand') === 'autre' && isValidISO(dog.adoptionDate) ? dog.adoptionDate : today))
   const [feeling, setFeeling] = useState<Feeling>()
-  // Seule une compétence demandée explicitement (fiche d'une compétence, exercice terminé) arrive cochée.
-  const [skills, setSkills] = useState<string[]>(() => asked.filter((id) => SKILLS.some((s) => s.id === id)))
-  // La compétence est connue (fiche, exercice) : pas de grille, sauf si on touche « Changer ».
-  const [choosing, setChoosing] = useState(() => !fromQuest && skills.length === 0)
+  // Plus de grille de compétences : seule une compétence demandée (fiche, exercice terminé, mission) compte.
+  const [skills] = useState<string[]>(() => asked.filter((id) => SKILLS.some((s) => s.id === id)))
   const [movedAway, setMovedAway] = useState(false)
-  // Partager avec la meute : un choix explicite à chaque fois, désactivé par défaut.
-  const [share, setShare] = useState(false)
-  // Le trajet de la balade, tracé après coup (facultatif).
-  const [trace, setTrace] = useState<Route | null>(() =>
+  // Le trajet de la balade importée (fichier GPX).
+  const [trace] = useState<Route | null>(() =>
     walk
       ? {
           points: walk.walk.points,
@@ -103,10 +96,6 @@ export default function Noter() {
 
   const photosRef = useRef(photos)
   photosRef.current = photos
-  // L'ordre des tuiles est figé à l'ouverture : il ne bouge pas pendant la saisie.
-  const [order] = useState(() =>
-    tileOrder([...entries.map((e) => ({ date: e.date, createdAt: e.createdAt, skills: e.skills ?? [] })), ...sessions.map((s) => ({ date: s.date, createdAt: s.createdAt, skills: s.bossIds ?? [s.bossId] }))]),
-  )
 
   const addPhotos = async (files: File[]) => {
     setError('')
@@ -131,7 +120,6 @@ export default function Noter() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const date = when === 'aujourdhui' ? today : when === 'hier' ? addDays(today, -1) : otherDate
   // Aucune question « Il a eu peur ? » : un moment difficile sur une compétence de peur en est une.
   const fear = isFearMoment(feeling, skills)
   const input = { feeling, fear, movedAway: fear && movedAway }
@@ -163,11 +151,6 @@ export default function Noter() {
       // Souvenir des premières semaines : l'écran de résultat du questionnaire le retrouve.
       if (params.get('retour') === 'questionnaire') answerQuestion('souvenir', result.entryId, { 'questionnaire.souvenirs': [...(dog.questionnaire?.souvenirs ?? []), result.entryId] })
       if (trace) setZones(discoverZones(trace.points, exploration, { entryId: result.entryId, date }))
-      // Ce que la meute voit : le texte, le jour, la 1re photo en miniature. Ni heure, ni lieu, ni ressenti, ni compétences.
-      if (share) {
-        const thumb = photos[0] ? Bytes.fromUint8Array(new Uint8Array(await photos[0].thumb.arrayBuffer())) : undefined
-        shareMoment(result.entryId, { dogName: dog.name, text: text.trim() || today0.note, date, ...(thumb ? { photo: thumb } : {}) })
-      }
       setOutcome(result)
     } catch (err) {
       setSaving(false)
@@ -277,33 +260,16 @@ export default function Noter() {
           )}
         </div>
 
-        <RouteCard route={trace} onChange={setTrace} />
-
-        {!fromQuest && (
-          <fieldset className="m-0 border-0 p-0">
-            <legend className={legend}>Quand ?</legend>
-            <div className="grid grid-cols-3 gap-2">
-              {(
-                [
-                  ['aujourdhui', 'Aujourd’hui'],
-                  ['hier', 'Hier'],
-                  ['autre', 'Autre date'],
-                ] as [When, string][]
-              ).map(([value, label]) => (
-                <button key={value} type="button" aria-pressed={when === value} onClick={() => setWhen(value)} className={choice(when === value)}>
-                  {label}
-                </button>
-              ))}
-            </div>
-            {when === 'autre' && (
-              <label className="mt-2.5 flex flex-col gap-1.5">
-                <span className="text-[15px] font-semibold">Quel jour ?</span>
-                <input type="date" max={today} value={otherDate} onChange={(e) => setOtherDate(e.target.value)} className="field min-h-14 px-3 text-[17px]" />
-                {isValidISO(otherDate) && <span className="text-[15px] text-muted">Le {formatLong(otherDate)}</span>}
-              </label>
-            )}
-          </fieldset>
+        {trace && (
+          <div className="card flex items-center gap-3 p-3.5">
+            <RouteThumb points={trace.points} size={64} />
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="text-[17px] font-bold">Balade importée</span>
+              <span className="text-[15px] text-muted">{[formatRouteDistance(trace.distanceM), trace.durationMin ? formatDuration(trace.durationMin) : '', formatLong(date)].filter(Boolean).join(' · ')}</span>
+            </span>
+          </div>
         )}
+
 
         <fieldset className="m-0 border-0 p-0">
           <legend className={legend}>Comment ça s'est passé ?</legend>
@@ -325,47 +291,6 @@ export default function Noter() {
             })}
           </div>
         </fieldset>
-
-        {!fromQuest && !choosing && (
-          <div className="card flex items-center gap-3 p-3.5">
-            <span className="flex min-w-0 flex-1 flex-col gap-2">
-              {skills.map((id) => (
-                <SkillPill key={id} bossId={id} />
-              ))}
-            </span>
-            <button type="button" onClick={() => setChoosing(true)} className="btn btn-outline min-h-12 shrink-0 px-4">
-              Changer
-            </button>
-          </div>
-        )}
-
-        {!fromQuest && choosing && (
-          <fieldset className="m-0 border-0 p-0">
-            <legend className="mb-1 p-0 text-lg font-bold">Vous avez travaillé quoi ?</legend>
-            <p className="mb-2.5 text-[15px] text-muted">Touchez une ou plusieurs cases. Facultatif.</p>
-            <div className="grid grid-cols-2 gap-2">
-              {order.map((id) => {
-                const skill = SKILLS.find((s) => s.id === id)!
-                const on = skills.includes(id)
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    role="checkbox"
-                    aria-checked={on}
-                    onClick={() => setSkills(on ? skills.filter((s) => s !== id) : [...skills, id])}
-                    className={`flex min-h-16 items-center gap-2.5 rounded-[18px] border-2 border-solid px-3 text-left text-[17px] leading-tight font-bold ${on ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}
-                  >
-                    <span className={`flex size-9 shrink-0 items-center justify-center rounded-full ${on ? 'bg-white text-primary' : 'bg-primary-soft text-primary-dark'}`}>
-                      {on ? <CheckIcon size={20} /> : <BossIcon bossId={id} size={20} />}
-                    </span>
-                    {skill.short}
-                  </button>
-                )
-              })}
-            </div>
-          </fieldset>
-        )}
 
         {fear && (
           <fieldset className="m-0 flex flex-col gap-2.5 border-0 p-0">
@@ -422,26 +347,6 @@ export default function Noter() {
           <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[15px] leading-snug text-[#1D3F73]">Les jours difficiles comptent aussi. La prochaine étape attendra un meilleur jour.</p>
         )}
 
-        <label className="flex min-h-16 items-center gap-3.5 rounded-[18px] border-2 border-solid border-border bg-surface px-4 py-3">
-          <input type="checkbox" role="switch" checked={share} onChange={(e) => setShare(e.target.checked)} className="size-7 shrink-0 accent-primary" />
-          <span className="flex flex-col gap-0.5">
-            <span className="text-[17px] font-bold">Partager avec la meute</span>
-            <span className="text-[15px] text-muted">Désactivé par défaut. Vous pourrez le retirer.</span>
-          </span>
-        </label>
-        {share && (
-          <section aria-label="Ce que la meute verra" className="flex flex-col gap-2 rounded-[18px] bg-primary-soft px-4 py-3">
-            <h2 className="text-[13px] font-bold tracking-[0.6px] text-primary-dark uppercase">Ce que la meute verra</h2>
-            <div className="flex items-start gap-3">
-              {photos[0] && <img src={photos[0].previewUrl} alt="" className="size-14 shrink-0 rounded-[12px] object-cover" />}
-              <p className="line-clamp-3 min-w-0 flex-1 text-[15px] leading-snug">
-                <strong>{dog.name}</strong> · {date === today ? "aujourd'hui" : date === addDays(today, -1) ? 'hier' : formatLong(date)} : {text.trim() || today0.note || '…'}
-              </p>
-            </div>
-            <p className="text-sm text-[#3F4946]">{photos.length > 1 ? 'La première photo seulement, en petit. ' : ''}Pas l'heure, pas le lieu exact, pas le ressenti ni les compétences.</p>
-          </section>
-        )}
-
         {error && (
           <p role="alert" className="rounded-[18px] bg-danger-soft px-4 py-3 text-[15px] font-semibold text-danger">
             {error}
@@ -452,7 +357,7 @@ export default function Noter() {
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto max-w-[430px] px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           <button type="submit" disabled={saving || Boolean(progress)} className="btn btn-main min-h-[60px] w-full px-6 text-[19px] disabled:opacity-60">
-            <span>{saving ? 'Enregistrement…' : share ? 'Enregistrer et partager' : 'Enregistrer'}</span>
+            <span>{saving ? 'Enregistrement…' : 'Enregistrer'}</span>
           </button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { isFearSkill, SKILLS } from '../content/phrases'
+import { isFearSkill } from '../content/phrases'
 import { MAX_LEVEL } from '../content/training'
 import { addValidation, EMPTY_PROGRESS, type ProgressMap } from './bossProgress'
 import type { ISODate } from './dates'
@@ -81,26 +81,6 @@ export function previewMoment(input: MomentInput, yes: string[], progress: Progr
 
 /** Une compétence a encore une étape à travailler. */
 export const hasNextStep = (progress: ProgressMap, bossId: string) => (progress[bossId]?.level ?? 0) < MAX_LEVEL
-
-interface Usage {
-  date: ISODate
-  createdAt?: string
-  skills: string[]
-}
-
-/**
- * Ordre des 10 tuiles : les 3 compétences utilisées le plus récemment d'abord, puis les autres des bases vers le monde.
- * Aucune n'est jamais présélectionnée.
- */
-export function tileOrder(usages: Usage[]): string[] {
-  const recent: string[] = []
-  const sorted = [...usages].sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
-  for (const usage of sorted) {
-    for (const skill of usage.skills) if (!recent.includes(skill) && recent.length < 3) recent.push(skill)
-    if (recent.length >= 3) break
-  }
-  return [...recent, ...SKILLS.map((s) => s.id).filter((id) => !recent.includes(id))]
-}
 
 /** Anciennes données (réaction 0–4) lues comme un ressenti : 0 super, 1 bien, 2 à 4 difficile. */
 export const feelingOfReaction = (reaction: number | undefined): Feeling | undefined =>

@@ -137,7 +137,7 @@ describe('ce qu’il sait déjà faire', () => {
 })
 
 import { EMPTY_PROGRESS } from './bossProgress'
-import { canAskStep, feelingOfReaction, momentBaseXp, previewMoment, tileOrder } from './moment'
+import { canAskStep, feelingOfReaction, momentBaseXp, previewMoment } from './moment'
 
 describe('XP d’un moment raconté', () => {
   const calm = { fear: false, movedAway: false }
@@ -176,24 +176,6 @@ describe('XP d’un moment raconté', () => {
 
   it('compte un moment passé comme un moment du jour', () => {
     expect(previewMoment({ ...calm, feeling: 'super' }, ['rappel'], {}, '2026-09-20').xp).toBe(25)
-  })
-})
-
-describe('tuiles des compétences', () => {
-  it('suivent l’ordre des bases vers le monde quand rien n’a été raconté', () => {
-    expect(tileOrder([])).toEqual(SKILLS.map((s) => s.id))
-  })
-
-  it('remontent les 3 compétences utilisées le plus récemment', () => {
-    const order = tileOrder([
-      { date: '2026-10-10', skills: ['ville'] },
-      { date: '2026-10-12', skills: ['rappel', 'lien'] },
-      { date: '2026-10-11', skills: ['calme'] },
-      { date: '2026-10-01', skills: ['soins'] },
-    ])
-    expect(order.slice(0, 3)).toEqual(['rappel', 'lien', 'calme'])
-    expect(order).toHaveLength(10)
-    expect(new Set(order).size).toBe(10)
   })
 })
 

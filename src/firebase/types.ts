@@ -8,6 +8,7 @@ import type { StoredRoute } from '../lib/route'
 import type { Recurrence } from '../lib/recurrence'
 import type { Decision } from '../lib/xp'
 import type { Trait } from '../content/training'
+import type { WalkTimes } from '../lib/walks'
 
 // Modèle de données de docs/specs/spec-v1.md. Tout champ ajouté après coup reste optionnel.
 
@@ -29,6 +30,8 @@ export interface Dog {
   trainer?: Contact
   /** Ration quotidienne et heures des repas. */
   feeding?: Feeding
+  /** Heures des 3 sorties du jour (Profil › Sorties). Absent : 8 h, 13 h, 19 h. */
+  walkTimes?: Partial<WalkTimes>
   /** Traits du chien : ils adaptent le chemin du dressage, jamais les objectifs. */
   traits?: Trait[]
   /** Questionnaire de départ : chaque réponse est enregistrée au fur et à mesure. */

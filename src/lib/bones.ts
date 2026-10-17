@@ -26,12 +26,14 @@ export const BONES = {
   newSpot: 10,
   /** Défi de la meute tenu. */
   packChallenge: 40,
+  /** Une sortie du jour cochée (matin, midi ou soir). */
+  walk: 2,
 }
 
 export const NOTES_PER_DAY = 3
 export const REGULAR_DAYS = 5
 
-export type BoneReason = 'mission' | 'note' | 'reussite' | 'etape' | 'defi' | 'semaine' | 'repos' | 'questionnaire' | 'marque' | 'meute' | 'zone' | 'achat'
+export type BoneReason = 'mission' | 'note' | 'reussite' | 'etape' | 'defi' | 'semaine' | 'repos' | 'questionnaire' | 'marque' | 'meute' | 'sortie' | 'zone' | 'achat'
 
 /** users/{uid}/bones/{id} */
 export interface Bone {
@@ -72,6 +74,8 @@ export function missionBones(date: ISODate, rest: boolean): BoneWithId[] {
 }
 
 export const challengeBone = (week: ISODate, date: ISODate) => bone('defi', week, date, BONES.challenge)
+/** Sortie cochée : +2, une fois par créneau et par jour (la décocher ne retire rien). */
+export const walkBone = (date: ISODate, slot: string) => bone('sortie', `${date}-${slot}`, date, BONES.walk)
 export const questionnaireBone = (date: ISODate) => bone('questionnaire', 'depart', date, BONES.questionnaire)
 
 /** Semaine régulière : dès que 5 jours de la semaine ont un moment noté. */

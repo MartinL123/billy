@@ -19,6 +19,7 @@ import { DogPhoto } from '../shop/DogPhoto'
 import { InstallBanner, PasswordPrompt } from '../account/HomeNotices'
 import { DailyIdeas } from './DailyIdeas'
 import { QuestCard } from './QuestCard'
+import { WalksCard } from './WalksCard'
 
 const RING = 2 * Math.PI * 46
 
@@ -94,6 +95,8 @@ export default function Today() {
         <TargetIcon size={22} />
         Faire un exercice
       </Link>
+
+      <WalksCard today={today} />
 
       {/* Le défi vient après « Noter », qui doit rester visible sans défiler. Toute la carte ouvre l'exercice du défi. */}
       <Link to={`/exercice?competence=${challenge.bossId}`} aria-label={`Défi de la semaine : ${challenge.label}. Ouvrir l'exercice`} className="card flex flex-col gap-3 rounded-[22px] p-4 text-text no-underline">

@@ -18,7 +18,7 @@ import { deleteFile } from './files'
 import { unshareMoment } from './community'
 export { newId } from './paths'
 import { lifeMilestones } from '../lib/milestones'
-import type { StoredRoute, StoredSavedRoute } from '../lib/route'
+import type { StoredRoute } from '../lib/route'
 import type { BillyDocument, BillyEvent, Dog, Entry, Weight, WithId } from './types'
 import { todayISO, type ISODate } from '../lib/dates'
 import { nextOccurrence } from '../lib/recurrence'
@@ -189,12 +189,6 @@ export function deleteWeight(id: string): void {
 }
 
 // ——— Journal ———
-
-/** Trajets habituels : enregistrer ou reprendre (on garde au plus les 20 plus récemment utilisés). */
-export function saveRoute(id: string, route: StoredSavedRoute, drop: string[] = []): void {
-  send(setDoc(userDoc('routes', id), route as DocumentData))
-  for (const old of drop) send(deleteDoc(userDoc('routes', old)))
-}
 
 /** Modifier le trajet d'un moment déjà noté. */
 export function updateEntryRoute(id: string, route: StoredRoute): void {

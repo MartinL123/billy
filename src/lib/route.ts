@@ -40,6 +40,7 @@ export interface Route {
   points: RoutePoint[]
   distanceM: number
   durationMin?: number
+  /** Ancien « trajet habituel » repris (avant le 17 octobre) : gardé en lecture. */
   savedRouteId?: string
   moments: RouteMoment[]
   /** Balade importée d'un fichier GPX (Strava, montre) : ses heures de début et de fin. */
@@ -48,15 +49,6 @@ export interface Route {
   endTime?: string
 }
 
-/** users/{uid}/routes/{id} : un trajet habituel. */
-export interface SavedRoute {
-  name: string
-  points: RoutePoint[]
-  distanceM: number
-  lastUsedAt: string
-}
-
-export const MAX_SAVED_ROUTES = 20
 export const durationLabel = (min: number) => (min >= 60 ? '1 h +' : `${min} min`)
 
 const at = ([lat, lng]: RoutePoint) => ({ lat, lng })
@@ -104,18 +96,9 @@ export function distanceToRoute(p: { lat: number; lng: number }, points: RoutePo
 /** Toucher « près » du trajet : à moins de 40 m. */
 export const NEAR_ROUTE = 40
 
-/** Reprendre un trajet habituel tel quel : mêmes points, même distance, sans moments. */
-export const routeFromSaved = (id: string, saved: SavedRoute): Route => ({ points: saved.points, distanceM: saved.distanceM, savedRouteId: id, moments: [] })
-
-/** Les trajets habituels à garder : au plus 20, les moins utilisés récemment partent en premier. */
-export function routesToDrop<T extends { id: string; lastUsedAt: string }>(routes: T[]): string[] {
-  return [...routes].sort((a, b) => b.lastUsedAt.localeCompare(a.lastUsedAt)).slice(MAX_SAVED_ROUTES).map((r) => r.id)
-}
-
 // Firestore refuse les tableaux de tableaux : on enregistre les points en { lat, lng }.
 export type StoredPoint = { lat: number; lng: number }
 export type StoredRoute = Omit<Route, 'points'> & { points: StoredPoint[] }
-export type StoredSavedRoute = Omit<SavedRoute, 'points'> & { points: StoredPoint[] }
 export const toStored = (points: RoutePoint[]): StoredPoint[] => points.map(([lat, lng]) => ({ lat, lng }))
 export const fromStored = (points: StoredPoint[] | undefined): RoutePoint[] => (points ?? []).map((p) => [p.lat, p.lng])
 export const storeRoute = (route: Route): StoredRoute => ({ ...route, points: toStored(route.points) })

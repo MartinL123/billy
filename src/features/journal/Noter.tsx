@@ -21,9 +21,8 @@ import { useToday } from '../../lib/useToday'
 import { BonesGained } from '../../components/BoneIcon'
 import { BONES } from '../../lib/bones'
 import { SkillPill } from '../billy/SkillPill'
-import { keepRoute } from '../trajets/keepRoute'
 import { RouteCard } from '../trajets/RouteCard'
-import type { TraceResult } from '../trajets/RouteCard'
+import type { Route } from '../../lib/route'
 import { storeRoute } from '../../lib/route'
 import { useQuest } from '../today/useQuest'
 import { BossIcon } from '../training/BossIcon'
@@ -54,7 +53,7 @@ const choice = (on: boolean) => `btn px-2 ${on ? 'btn-on' : 'btn-outline'}`
  */
 export default function Noter() {
   const [params] = useSearchParams()
-  const { dog, entries, sessions, bossProgress, bones, routes, exploration } = useData()
+  const { dog, entries, sessions, bossProgress, bones, exploration } = useData()
   const today = useToday()
   const toast = useToast()
   const navigate = useNavigate()
@@ -80,19 +79,16 @@ export default function Noter() {
   // Partager avec la meute : un choix explicite à chaque fois, désactivé par défaut.
   const [share, setShare] = useState(false)
   // Le trajet de la balade, tracé après coup (facultatif).
-  const [trace, setTrace] = useState<TraceResult | null>(() =>
+  const [trace, setTrace] = useState<Route | null>(() =>
     walk
       ? {
-          route: {
-            points: walk.walk.points,
-            distanceM: walk.walk.distanceM,
-            moments: [],
-            source: 'gpx',
-            ...(walk.walk.durationMin ? { durationMin: walk.walk.durationMin } : {}),
-            ...(walk.walk.startTime ? { startTime: walk.walk.startTime } : {}),
-            ...(walk.walk.endTime ? { endTime: walk.walk.endTime } : {}),
-          },
-          keep: null,
+          points: walk.walk.points,
+          distanceM: walk.walk.distanceM,
+          moments: [],
+          source: 'gpx',
+          ...(walk.walk.durationMin ? { durationMin: walk.walk.durationMin } : {}),
+          ...(walk.walk.startTime ? { startTime: walk.walk.startTime } : {}),
+          ...(walk.walk.endTime ? { endTime: walk.walk.endTime } : {}),
         }
       : null,
   )
@@ -153,11 +149,11 @@ export default function Noter() {
       const saved: EntryPhoto[] = []
       for (const photo of photos) {
         // Une photo prise pendant la balade se place sur le tracé (GPS de la photo, ou heure de la trace GPX).
-        const at = trace ? placePhoto(photo.clue, trace.route.points, walk?.raw) : undefined
+        const at = trace ? placePhoto(photo.clue, trace.points, walk?.raw) : undefined
         saved.push({ fileId: await saveImage(photo.full), thumbFileId: await saveImage(photo.thumb), ...(at ? { lat: at.lat, lng: at.lng } : {}) })
       }
       const result = recordMoment(
-        { date, text: text.trim() || today0.note, tags: [], photos: saved, skills, feeling, fear, movedAway: input.movedAway, ...(trace ? { route: storeRoute(trace.route) } : {}) },
+        { date, text: text.trim() || today0.note, tags: [], photos: saved, skills, feeling, fear, movedAway: input.movedAway, ...(trace ? { route: storeRoute(trace) } : {}) },
         yesIds,
         bossProgress,
         dog.name,
@@ -166,10 +162,7 @@ export default function Noter() {
       if (fromQuest) completeQuest(today, { kind: today0.quest.kind, bossId: today0.quest.bossId, exerciseId: today0.quest.planned?.exercise.id }, today0.skips, QUEST_XP)
       // Souvenir des premières semaines : l'écran de résultat du questionnaire le retrouve.
       if (params.get('retour') === 'questionnaire') answerQuestion('souvenir', result.entryId, { 'questionnaire.souvenirs': [...(dog.questionnaire?.souvenirs ?? []), result.entryId] })
-      if (trace) {
-        keepRoute(trace, routes)
-        setZones(discoverZones(trace.route.points, exploration, { entryId: result.entryId, date }))
-      }
+      if (trace) setZones(discoverZones(trace.points, exploration, { entryId: result.entryId, date }))
       // Ce que la meute voit : le texte, le jour, la 1re photo en miniature. Ni heure, ni lieu, ni ressenti, ni compétences.
       if (share) {
         const thumb = photos[0] ? Bytes.fromUint8Array(new Uint8Array(await photos[0].thumb.arrayBuffer())) : undefined
@@ -284,7 +277,7 @@ export default function Noter() {
           )}
         </div>
 
-        <RouteCard value={trace} onChange={setTrace} />
+        <RouteCard route={trace} onChange={setTrace} />
 
         {!fromQuest && (
           <fieldset className="m-0 border-0 p-0">

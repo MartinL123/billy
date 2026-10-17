@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { distanceToRoute, formatRouteDistance, routeDistance, routeFromSaved, routesToDrop, simplify, momentReaction, hasReaction, withMarkMoments, walksOfMonth, isHardMoment, type Route, type RouteMoment, type RoutePoint } from './route'
+import { distanceToRoute, formatRouteDistance, routeDistance, simplify, momentReaction, hasReaction, withMarkMoments, walksOfMonth, isHardMoment, type Route, type RouteMoment, type RoutePoint } from './route'
 
 const A: RoutePoint = [48.8566, 2.3522]
 const B: RoutePoint = [48.8584, 2.3522] // ~200 m au nord
@@ -29,16 +29,7 @@ describe('les trajets', () => {
     expect(distanceToRoute({ lat: 48.8575, lng: 2.3600 }, [A, B])).toBeGreaterThan(500)
   })
 
-  it('reprend un trajet habituel tel quel', () => {
-    const saved = { name: 'Tour du parc', points: [A, B], distanceM: 200, lastUsedAt: '2026-10-14' }
-    expect(routeFromSaved('r1', saved)).toEqual({ points: [A, B], distanceM: 200, savedRouteId: 'r1', moments: [] })
-  })
 
-  it('garde au plus 20 trajets habituels, les plus récemment utilisés', () => {
-    const routes = Array.from({ length: 22 }, (_, i) => ({ id: `r${i}`, lastUsedAt: `2026-10-${String(i + 1).padStart(2, '0')}` }))
-    expect(routesToDrop(routes).sort()).toEqual(['r0', 'r1'])
-    expect(routesToDrop(routes.slice(0, 5))).toEqual([])
-  })
 })
 
 import { readRoute, storeRoute } from './route'

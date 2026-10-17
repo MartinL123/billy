@@ -94,7 +94,7 @@ export default function Explorer() {
       {/* En haut : retour, import, réglages de la carte, filtres. */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col gap-2 px-3 pt-[calc(env(safe-area-inset-top)+8px)]">
         <div className="flex items-start justify-between gap-2">
-          <button type="button" onClick={() => navigate('/billy')} className="pointer-events-auto btn min-h-11 gap-1 rounded-full bg-surface px-3.5 text-[15px] shadow-[0_2px_8px_rgba(24,32,30,0.25)]">
+          <button type="button" onClick={() => navigate('/billy/arbre')} className="pointer-events-auto btn min-h-11 gap-1 rounded-full bg-surface px-3.5 text-[15px] shadow-[0_2px_8px_rgba(24,32,30,0.25)]">
             <ChevronLeftIcon size={18} />
             L’arbre
           </button>

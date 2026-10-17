@@ -9,6 +9,7 @@ import EventForm from './features/calendar/EventForm'
 import EntryForm from './features/journal/EntryForm'
 import EntryView from './features/journal/EntryView'
 import Billy from './features/billy/Billy'
+import Tree from './features/billy/Tree'
 import Shop from './features/shop/Shop'
 import Explorer from './features/balades/Explorer'
 import Ideas from './features/balades/Ideas'
@@ -112,6 +113,7 @@ export default function App() {
               <Route index element={<Today />} />
               <Route path="sante" element={<Calendar />} />
               <Route path="billy" element={<Billy />} />
+              <Route path="billy/arbre" element={<Tree />} />
               <Route
                 path="meute"
                 element={

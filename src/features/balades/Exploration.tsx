@@ -9,9 +9,15 @@ const FogMap = lazy(() => import('./FogMap').then((m) => ({ default: m.FogMap })
 
 /** L'exploration : le brouillard se lève là où vous êtes passés. On compte des zones, jamais des kilomètres. */
 export default function Exploration() {
-  const { dog, exploration } = useData()
+  const { dog, exploration, entries } = useData()
   const back = useBack('/billy')
   const cells = useMemo(() => knownCells(exploration), [exploration])
+  // Centre de la carte : le départ de la dernière balade (les zones, elles, recadrent la carte s'il y en a).
+  const center = useMemo(() => {
+    const last = [...entries].sort((a, b) => b.date.localeCompare(a.date)).find((e) => e.route?.points?.length)
+    const p = last?.route?.points[0]
+    return p ? ([p.lat, p.lng] as [number, number]) : undefined
+  }, [entries])
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col">
@@ -27,7 +33,7 @@ export default function Exploration() {
       </div>
       <div className="relative min-h-[360px] flex-1 overflow-hidden bg-placeholder">
         <Suspense fallback={null}>
-          <FogMap cells={cells} />
+          <FogMap cells={cells} center={center} />
         </Suspense>
       </div>
       <div className="flex flex-col gap-2.5 border-t border-divider bg-bg px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">

@@ -22,6 +22,7 @@ export function RouteDetail({ entryId, date, route, photos, onPhoto }: { entryId
   // Un toucher sur le tracé : un repère à cet endroit (rencontre, jeu, pipi, stress…).
   const [placing, setPlacing] = useState<{ lat: number; lng: number } | null>(null)
   const [missed, setMissed] = useState(false)
+  const [replaying, setReplaying] = useState(false)
   const placed = useMemo(() => (photos ?? []).flatMap((p, index) => (p.lat !== undefined && p.lng !== undefined ? [{ index, thumbFileId: p.thumbFileId, lat: p.lat, lng: p.lng }] : [])), [photos])
   const saveMoments = (moments: Route['moments']) => updateEntryRoute(entryId, storeRoute({ ...route, moments }))
   const stats = [formatRouteDistance(route.distanceM), route.durationMin ? (route.source === 'gpx' ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} repère${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
@@ -38,10 +39,20 @@ export function RouteDetail({ entryId, date, route, photos, onPhoto }: { entryId
               setPlacing(at)
             }}
             onMissRoute={() => setMissed(true)}
+            replaying={replaying}
+            onReplayEnd={() => setReplaying(false)}
           />
         </Suspense>
       </div>
-      <p className={`-mt-1 text-[15px] ${missed ? 'font-semibold text-danger' : 'text-muted'}`}>{missed ? 'Touchez le tracé lui-même (ou tout près) pour y placer un repère.' : 'Touchez le tracé pour ajouter un repère.'}</p>
+      {route.points.length > 1 && (
+        <button type="button" onClick={() => setReplaying(!replaying)} className="btn btn-outline -mt-1 gap-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            {replaying ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />}
+          </svg>
+          {replaying ? 'Arrêter' : 'Revoir la balade'}
+        </button>
+      )}
+      <p className={`text-[15px] ${missed ? 'font-semibold text-danger' : 'text-muted'}`}>{missed ? 'Touchez le tracé lui-même (ou tout près) pour y placer un repère.' : 'Touchez le tracé pour ajouter un repère.'}</p>
       <p className="text-[17px] font-bold">{stats}</p>
       {route.moments.length > 0 && (
         <ul className="card m-0 flex list-none flex-col p-0">

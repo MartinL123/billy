@@ -69,11 +69,11 @@ export function addMarker(map: MapLibreMap, at: LatLng, element: HTMLElement, op
 }
 
 /** Cadre la carte sur des points (un seul point : zoom de quartier). */
-export function fitPoints(map: MapLibreMap, points: LatLng[], padding = 32, animate = false): void {
+export function fitPoints(map: MapLibreMap, points: LatLng[], padding = 32, animate = false, camera: { pitch?: number; bearing?: number } = {}): void {
   if (points.length === 0) return
-  if (points.length === 1) return void map.jumpTo({ center: lngLat(points[0]!), zoom: 16 })
+  if (points.length === 1) return void map.jumpTo({ center: lngLat(points[0]!), zoom: 16, ...camera })
   const bounds = points.reduce((b, p) => b.extend(lngLat(p)), new LngLatBounds(lngLat(points[0]!), lngLat(points[0]!)))
-  map.fitBounds(bounds, { padding, maxZoom: 17, animate })
+  map.fitBounds(bounds, { padding, maxZoom: 17, animate, ...camera })
 }
 
 /** Un toucher sur un repère ne compte pas comme un toucher sur la carte. */

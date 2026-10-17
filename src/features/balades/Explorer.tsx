@@ -86,7 +86,7 @@ export default function Explorer() {
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[#22332F]">
+    <div className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
         <ExplorerMap cells={cells} tracks={tracks} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} onPlace={() => navigate('/territoire/idees')} />
       </Suspense>
@@ -145,7 +145,7 @@ export default function Explorer() {
           if (dragFrom !== null && y !== undefined && Math.abs(y - dragFrom) > 40) setCollapsed(y > dragFrom)
           setDragFrom(null)
         }}
-        className="absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-[430px] flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+16px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]"
+        className="absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-[430px] flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 pb-9 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]"
       >
         <button type="button" onClick={() => setCollapsed(!collapsed)} aria-expanded={!collapsed} aria-label={collapsed ? 'Afficher le panneau' : 'Réduire le panneau'} className="mx-auto flex min-h-11 w-24 items-center justify-center border-0 bg-transparent">
           <span className="h-1.5 w-11 rounded-full bg-[#C9CFCC]" />

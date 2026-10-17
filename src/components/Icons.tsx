@@ -31,6 +31,13 @@ export const PinIcon = icon(
   </>,
 )
 
+export const MapIcon = icon(
+  <>
+    <path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z" />
+    <path d="M9 4v13.5M15 6.5V20" />
+  </>,
+)
+
 export const HomeIcon = icon(
   <>
     <path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z" />

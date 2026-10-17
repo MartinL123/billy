@@ -1,6 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { useData } from '../firebase/store'
-import { HeartIcon, HomeIcon, PawIcon, PhotoIcon, PinIcon, PlusIcon } from './Icons'
+import { HeartIcon, HomeIcon, MapIcon, PlusIcon } from './Icons'
 
 /** Hauteur de la barre (hors zone sûre) et dépassement du rond de l'accueil au-dessus d'elle. */
 const BAR = 88
@@ -12,7 +11,7 @@ const side = (isActive: boolean) =>
 
 function SideTab({ to, label, icon, className = '' }: { to: string; label: string; icon: React.ReactNode; className?: string }) {
   return (
-    <NavLink to={to} end className={({ isActive }) => `${side(isActive)} ${className}`}>
+    <NavLink to={to} className={({ isActive }) => `${side(isActive)} ${className}`}>
       {({ isActive }) => (
         <>
           <span className={`flex h-8 w-[60px] items-center justify-center rounded-full ${isActive ? 'bg-primary-soft' : ''}`}>{icon}</span>
@@ -24,19 +23,15 @@ function SideTab({ to, label, icon, className = '' }: { to: string; label: strin
 }
 
 /**
- * Carnet · Santé · ACCUEIL · Billy · Meute (spec V3 § 5.2). L'accueil est au centre, en gros : un rond qui dépasse de la barre.
+ * Balades · AUJOURD'HUI · Santé (spec V4 § 1). Aujourd'hui est au centre, en gros : un rond qui dépasse de la barre.
+ * Le Carnet, Billy et la Meute restent ouverts depuis les écrans (photo de Billy, Balades), plus depuis la barre.
  */
 function TabBar() {
-  const { dog } = useData()
   return (
-    <nav
-      aria-label="Navigation principale"
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-divider bg-surface pb-[env(safe-area-inset-bottom)]"
-    >
-      <div className="mx-auto grid max-w-[430px] grid-cols-5" style={{ height: BAR }}>
-        <SideTab to="/carnet" label="Carnet" icon={<PhotoIcon />} />
-        <SideTab to="/sante" label="Santé" icon={<HeartIcon />} />
-        <NavLink to="/" end aria-label="Accueil" className={({ isActive }) => `relative flex flex-col items-center justify-end gap-1 pb-[14px] text-[13px] no-underline ${isActive ? 'font-bold text-primary' : 'font-semibold text-[#3F4946]'}`}>
+    <nav aria-label="Navigation principale" className="fixed inset-x-0 bottom-0 z-20 border-t border-divider bg-surface pb-[env(safe-area-inset-bottom)]">
+      <div className="mx-auto grid max-w-[430px] grid-cols-3" style={{ height: BAR }}>
+        <SideTab to="/territoire" label="Balades" icon={<MapIcon />} />
+        <NavLink to="/" end aria-label="Aujourd'hui" className={({ isActive }) => `relative flex flex-col items-center justify-end gap-1 pb-[14px] text-[13px] no-underline ${isActive ? 'font-bold text-primary' : 'font-semibold text-[#3F4946]'}`}>
           {({ isActive }) => (
             <>
               <span
@@ -46,12 +41,11 @@ function TabBar() {
               >
                 <HomeIcon size={30} />
               </span>
-              <span>Accueil</span>
+              <span>Aujourd’hui</span>
             </>
           )}
         </NavLink>
-        <SideTab to="/billy" label={dog.unnamed ? 'Mon chien' : dog.name} icon={<PawIcon size={24} color="currentColor" />} />
-        <SideTab to="/meute" label="Meute" icon={<PinIcon />} />
+        <SideTab to="/sante" label="Santé" icon={<HeartIcon />} />
       </div>
     </nav>
   )

@@ -116,6 +116,7 @@ export default function App() {
                 }
               />
               <Route path="carnet" element={<Journal />} />
+              <Route path="territoire" element={<Explorer />} />
               <Route path="journal" element={<Navigate to="/carnet" replace />} />
             </Route>
             <Route path="ouverture" element={<Opening />} />
@@ -126,7 +127,6 @@ export default function App() {
             <Route path="en-cours" element={<EnCours />} />
             <Route path="boutique" element={<Shop />} />
             <Route path="meute/chien/:id" element={<DogPublic />} />
-            <Route path="territoire" element={<Explorer />} />
             <Route path="territoire/idees" element={<Ideas />} />
             <Route path="balades" element={<Walks />} />
             <Route path="exploration" element={<Navigate to="/territoire" replace />} />

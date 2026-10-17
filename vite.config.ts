@@ -12,6 +12,8 @@ export default defineConfig({
     // Affichée dans le profil, pour savoir quelle version tourne sur l'iPhone.
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
   },
+  // MapLibre trouve son worker à côté de son propre fichier : en dev, on ne le pré-empaquette pas.
+  optimizeDeps: { exclude: ['maplibre-gl'] },
   plugins: [
     react(),
     tailwindcss(),

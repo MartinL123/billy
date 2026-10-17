@@ -1,27 +1,47 @@
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { addMarker, createMap, dot, fitPoints, set3D, setLine, whenReady, type MapLibreMap } from '../../components/maplibre'
+import { Map3DToggle } from '../../components/Map3DToggle'
+import { distanceMeters } from '../../lib/community'
 import { routeMomentInfo, type Route } from '../../lib/route'
 
-const dot = (color: string, size: number) => L.divIcon({ className: '', html: `<span style="display:block;width:${size}px;height:${size}px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);transform:translate(-50%,-50%)"></span>`, iconSize: [0, 0] })
-
-/** La grande carte d'un trajet, dans le détail d'un moment : le chemin, le départ en vert, les moments en couleur. */
+/** La grande carte d'un trajet : le chemin, le départ en vert, l'arrivée, les moments en couleur. Bouton 2D/3D. */
 export function RouteMap({ route, onMoment }: { route: Route; onMoment?: (index: number) => void }) {
   const host = useRef<HTMLDivElement>(null)
+  const map = useRef<MapLibreMap | null>(null)
+  const [is3D, setIs3D] = useState(false)
+
   useEffect(() => {
     if (!host.current) return
-    const map = L.map(host.current, { zoomControl: false })
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map)
-    const line = L.polyline(route.points, { color: '#9A4413', weight: 5 }).addTo(map)
-    if (route.points[0]) L.marker(route.points[0], { icon: dot('#1E5A50', 18), interactive: false }).addTo(map)
-    route.moments.forEach((m, i) => {
-      const marker = L.marker([m.lat, m.lng], { icon: dot(routeMomentInfo(m.type).color, 20), title: routeMomentInfo(m.type).label }).addTo(map)
-      marker.on('click', () => onMoment?.(i))
+    const m = createMap(host.current, { center: route.points[0] })
+    map.current = m
+    fitPoints(m, route.points, 36)
+    whenReady(m, () => setLine(m, 'trajet', [route.points], { color: '#9A4413', width: 5 }))
+    const first = route.points[0]
+    const last = route.points[route.points.length - 1]
+    if (first) addMarker(m, first, dot('#1E5A50', 18, 'Départ'))
+    // Une boucle (arrivée à moins de 30 m du départ) : seulement le départ.
+    if (first && last && route.points.length > 1 && distanceMeters({ lat: first[0], lng: first[1] }, { lat: last[0], lng: last[1] }) > 30) addMarker(m, last, dot('#18201E', 16, 'Arrivée'))
+    route.moments.forEach((mo, i) => {
+      const el = dot(routeMomentInfo(mo.type).color, 20, routeMomentInfo(mo.type).label)
+      el.addEventListener('click', () => onMoment?.(i))
+      addMarker(m, [mo.lat, mo.lng], el)
     })
-    if (route.points.length > 1) map.fitBounds(line.getBounds(), { padding: [28, 28] })
-    else if (route.points[0]) map.setView(route.points[0], 16)
-    return () => map.remove()
+    return () => {
+      m.remove()
+      map.current = null
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route])
-  return <div ref={host} role="img" aria-label="Carte du trajet" className="isolate size-full" />
+
+  const toggle = (on: boolean) => {
+    setIs3D(on)
+    if (map.current) set3D(map.current, on)
+  }
+
+  return (
+    <div className="relative isolate size-full">
+      <div ref={host} role="img" aria-label="Carte du trajet" className="size-full" />
+      <Map3DToggle on={is3D} onChange={toggle} />
+    </div>
+  )
 }

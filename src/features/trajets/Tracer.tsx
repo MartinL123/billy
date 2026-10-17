@@ -1,5 +1,3 @@
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Sheet } from '../../components/Sheet'
@@ -7,9 +5,10 @@ import { markedSpotsOn } from '../../firebase/community'
 import { addPoint, buildRoute, closeLoop, defaultRouteName, distanceToRoute, DURATIONS, durationLabel, formatRouteDistance, moveAt, NEAR_ROUTE, removeAt, removeLast, routeDistance, routeMomentInfo, ROUTE_MOMENTS, withMarkMoments, type Route, type RouteMoment, type RoutePoint } from '../../lib/route'
 import type { ISODate } from '../../lib/dates'
 import { streetName } from '../../lib/street'
-import { MAX_GPX_BYTES, parseGpx, thin } from '../../lib/gpx'
+import { MAX_GPX_BYTES, readGpx } from '../../lib/gpx'
+import { simplifyWalk } from '../../lib/balade'
+import { addMarker, createMap, dot, fitPoints, onMarker, PARIS, setLine, whenReady, type MapLibreMap, type Marker } from '../../components/maplibre'
 
-const PARIS: RoutePoint = [48.8566, 2.3522]
 
 export interface TraceResult {
   route: Route
@@ -36,8 +35,8 @@ export function Tracer({ date, initial, onDone, onCancel }: { date: ISODate; ini
     markedSpotsOn(date).then(setMarked)
   }, [date])
   const host = useRef<HTMLDivElement>(null)
-  const map = useRef<any>(null) // eslint-disable-line @typescript-eslint/no-explicit-any
-  const layer = useRef<any>(null) // eslint-disable-line @typescript-eslint/no-explicit-any
+  const map = useRef<MapLibreMap | null>(null)
+  const markers = useRef<Marker[]>([])
   const state = useRef({ mode, points })
   state.current = { mode, points }
 
@@ -47,12 +46,11 @@ export function Tracer({ date, initial, onDone, onCancel }: { date: ISODate; ini
 
   useEffect(() => {
     if (!host.current) return
-    const start = initial?.points[0] ?? PARIS
-    const m = L.map(host.current, { zoomControl: false }).setView(start, 16)
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(m)
-    layer.current = L.layerGroup().addTo(m)
-    m.on('click', (e: { latlng: { lat: number; lng: number } }) => {
-      const p = e.latlng
+    const m = createMap(host.current, { center: initial?.points[0] ?? PARIS, zoom: 16 })
+    m.on('click', (e) => {
+      // Un toucher sur un point (le déplacer, le supprimer) n'ajoute rien.
+      if (onMarker(e.originalEvent)) return
+      const p = { lat: e.lngLat.lat, lng: e.lngLat.lng }
       if (state.current.mode === 'chemin') return setPoints((pts) => addPoint(pts, [p.lat, p.lng]))
       if (distanceToRoute(p, state.current.points) > NEAR_ROUTE) return setHint('Touchez le trajet (ou tout près) pour y placer un moment.')
       setHint('')
@@ -60,46 +58,67 @@ export function Tracer({ date, initial, onDone, onCancel }: { date: ISODate; ini
     })
     map.current = m
     // Centrer sur la position actuelle, une seule fois, si elle est autorisée. Rien n'est enregistré.
-    if (!initial && 'geolocation' in navigator) navigator.geolocation.getCurrentPosition((pos) => m.setView([pos.coords.latitude, pos.coords.longitude], 16), () => undefined, { timeout: 8000, maximumAge: 300000 })
-    else if (initial && initial.points.length > 1) m.fitBounds(L.polyline(initial.points).getBounds(), { padding: [40, 40] })
-    return () => m.remove()
+    if (!initial && 'geolocation' in navigator) navigator.geolocation.getCurrentPosition((pos) => m.jumpTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 16 }), () => undefined, { timeout: 8000, maximumAge: 300000 })
+    else if (initial && initial.points.length > 1) fitPoints(m, initial.points, 40)
+    return () => {
+      m.remove()
+      map.current = null
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Le tracé : la ligne, des points glissables (le premier en vert), les moments en couleur.
   useEffect(() => {
-    const group = layer.current
-    if (!group) return
-    group.clearLayers()
-    if (points.length > 1) L.polyline(points, { color: '#9A4413', weight: 5 }).addTo(group)
+    const m = map.current
+    if (!m) return
+    whenReady(m, () => setLine(m, 'trace', [points], { color: '#9A4413', width: 5 }))
+    markers.current.forEach((marker) => marker.remove())
     // Un tracé importé (GPX) a beaucoup de points : seulement le départ et l'arrivée, pour garder la carte lisible.
     const many = points.length > 40
+    const next: Marker[] = []
     points.forEach((p, i) => {
       if (many && i !== 0 && i !== points.length - 1) return
-      const color = i === 0 ? '#1E5A50' : '#FFFFFF'
-      const icon = L.divIcon({ className: '', html: `<span style="display:block;width:22px;height:22px;border-radius:50%;background:${color};border:3px solid ${i === 0 ? '#fff' : '#9A4413'};box-shadow:0 1px 4px rgba(0,0,0,.3);transform:translate(-50%,-50%)"></span>`, iconSize: [0, 0] })
-      const marker = L.marker(p, { icon, draggable: true, title: i === 0 ? 'Départ' : `Point ${i + 1}` }).addTo(group)
+      const el = dot(i === 0 ? '#1E5A50' : '#FFFFFF', 24, i === 0 ? 'Départ' : `Point ${i + 1}`)
+      if (i !== 0) el.style.borderColor = '#9A4413'
+      const marker = addMarker(m, p, el, { draggable: true })
+      let dragged = false
+      marker.on('dragstart', () => (dragged = true))
       marker.on('dragend', () => {
-        const ll = marker.getLatLng()
+        const ll = marker.getLngLat()
         setPoints((pts) => moveAt(pts, i, [ll.lat, ll.lng]))
       })
-      marker.on('click', () => setDeleting(i))
+      el.addEventListener('click', (e) => {
+        e.stopPropagation()
+        if (dragged) return void (dragged = false)
+        setDeleting(i)
+      })
+      next.push(marker)
     })
-    for (const mo of moments) L.marker([mo.lat, mo.lng], { icon: L.divIcon({ className: '', html: `<span style="display:block;width:20px;height:20px;border-radius:50%;background:${routeMomentInfo(mo.type).color};border:3px solid #fff;transform:translate(-50%,-50%)"></span>`, iconSize: [0, 0] }), interactive: false }).addTo(group)
+    for (const mo of moments) {
+      const el = dot(routeMomentInfo(mo.type).color, 20, routeMomentInfo(mo.type).label)
+      el.style.pointerEvents = 'none'
+      next.push(addMarker(m, [mo.lat, mo.lng], el))
+    }
+    markers.current = next
   }, [points, moments])
 
   // Un fichier GPX (montre, appli de course) depuis l'app Fichiers : ses points remplacent le tracé vide.
   const importGpx = async (file: File | undefined) => {
     if (!file) return
     if (file.size > MAX_GPX_BYTES) return setHint('Ce fichier est trop lourd (5 Mo au maximum).')
-    const imported = thin(parseGpx(await file.text()))
+    const imported = simplifyWalk(readGpx(await file.text()).points.map((p): RoutePoint => [p.lat, p.lng]))
     if (imported.length < 2) return setHint('Ce fichier ne contient pas de trajet. Choisissez un fichier .gpx.')
     setHint('')
     setPoints(imported)
-    map.current?.fitBounds(L.polyline(imported).getBounds(), { padding: [40, 40] })
+    if (map.current) fitPoints(map.current, imported, 40, true)
   }
 
-  const done = () => onDone({ route: withMarkMoments(buildRoute(points, moments, duration, keeping ? undefined : initial?.savedRouteId), marked), keep: keeping ? name.trim() || defaultRouteName(date) : null })
+  const done = () => {
+    const built = buildRoute(points, moments, duration, keeping ? undefined : initial?.savedRouteId)
+    // Une balade importée garde ses heures (photos, revoir la balade).
+    const route = initial?.source === 'gpx' ? { ...built, source: 'gpx' as const, ...(initial.startTime ? { startTime: initial.startTime } : {}), ...(initial.endTime ? { endTime: initial.endTime } : {}) } : built
+    onDone({ route: withMarkMoments(route, marked), keep: keeping ? name.trim() || defaultRouteName(date) : null })
+  }
   const round = 'flex size-[52px] items-center justify-center rounded-full border-2 border-solid border-[#9A4413] bg-surface text-[#9A4413] shadow-[0_2px_8px_rgba(24,32,30,0.2)] disabled:opacity-40'
 
   return createPortal(

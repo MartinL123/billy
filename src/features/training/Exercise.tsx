@@ -185,7 +185,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
   const minutes = sessionMinutes(dog.birthDate, today)
   const timer = useTimer(minutes)
 
-  // Le réglage vient de l'étape en cours ; pour un autre exercice, celui du mode précis.
+  // Le réglage vient de l'étape en cours ; pour un autre exercice, celui de sa dernière séance.
   const planned = (fromQuest && quest.planned?.exercise.id === exercise.id ? quest.planned : undefined) ?? exercisesForStep(skillId, acquired).find((p) => p.exercise.id === exercise.id)
   const level = planned?.level ?? currentDifficulty(sessions, exercise.id)
   const setting = place(exercise.levels[level - 1] ?? '')
@@ -279,13 +279,6 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
               <span className="flex-1 text-[17px] font-semibold">Choisir un autre exercice</span>
               <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
             </button>
-            <label className="flex min-h-16 items-center gap-3.5 rounded-[20px] border-2 border-solid border-border bg-surface px-4 py-3">
-              <input type="checkbox" role="switch" checked={false} onChange={() => navigate(`/seance?boss=${skill}&exercice=${exercise.id}`)} className="size-7 shrink-0 accent-primary" />
-              <span className="flex flex-col gap-0.5">
-                <span className="text-[17px] font-bold">Mode précis</span>
-                <span className="text-[15px] text-muted">Compter 5 essais, un par un</span>
-              </span>
-            </label>
           </>
         )}
       </main>

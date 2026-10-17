@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { bossById } from '../content/training'
 import { addValidation, EMPTY_PROGRESS, levelsAcquired, linkLit, markPreApp, remaining, softAdvice, starsEarned, type BossProgress } from './bossProgress'
 import { recommendSession, sessionLink } from './recommend'
-import { applyDecision, canValidate, currentDifficulty, lastSession, suggest } from './session'
+import { applyDecision, currentDifficulty } from './session'
 import { exercisesFor, featuredBosses, guards, levelFourUnadvised, suggestedBosses } from './traits'
 import { bossReactions, weather } from './weather'
 import { exposureXp, globalLevel, rank, restXp, sessionXp, totalXp, xpByBoss, xpByStat, xpForLevel } from './xp'
@@ -95,19 +95,7 @@ describe('niveau global et rang', () => {
   })
 })
 
-describe('suggestion de fin de séance', () => {
-  it('suit le score : 5/5 monter, 3–4/5 rester, ≤ 2/5 baisser', () => {
-    expect(suggest([T, T, T, T, T], true)).toBe('monter')
-    expect(suggest([T, T, T, T, F], true)).toBe('rester')
-    expect(suggest([T, T, T, F, F], true)).toBe('rester')
-    expect(suggest([T, T, F, F, F], true)).toBe('baisser')
-    expect(suggest([F, F, F, F, F], true)).toBe('baisser')
-  })
-
-  it('propose toujours de baisser s’il n’a pas pris ses friandises', () => {
-    expect(suggest([T, T, T, T, T], false)).toBe('baisser')
-  })
-
+describe('difficulté des exercices', () => {
   it('règle la difficulté entre N1 et N5', () => {
     expect(applyDecision(2, 'monter')).toBe(3)
     expect(applyDecision(2, 'rester')).toBe(2)
@@ -125,17 +113,8 @@ describe('suggestion de fin de séance', () => {
     expect(currentDifficulty(sessions, 'prenom')).toBe(3)
     expect(currentDifficulty(sessions, 'tapis')).toBe(3)
     expect(currentDifficulty(sessions, 'touche')).toBe(1)
-    expect(lastSession(sessions)?.exerciseId).toBe('prenom')
-    expect(lastSession([])).toBeUndefined()
   })
 
-  it('ne laisse valider un critère que s’il a mangé et que la réaction est ≤ 1', () => {
-    expect(canValidate(true, 0)).toBe(true)
-    expect(canValidate(true, 1)).toBe(true)
-    expect(canValidate(true, 2)).toBe(false)
-    expect(canValidate(false, 0)).toBe(false)
-    expect(canValidate(true, undefined)).toBe(false)
-  })
 })
 
 describe('validation des paliers', () => {

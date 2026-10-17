@@ -33,7 +33,6 @@ import Questionnaire from './features/start/Questionnaire'
 import Today from './features/today/Today'
 import { DressageAwards } from './features/training/DressageAwards'
 import Exercise from './features/training/Exercise'
-import Session from './features/training/Session'
 import { watchUser, type User } from './firebase/auth'
 import { setClosingAccount } from './firebase/erase'
 import { DataProvider } from './firebase/store'
@@ -140,7 +139,7 @@ export default function App() {
             <Route path="souvenir/:id" element={<EntryView />} />
             <Route path="souvenir/:id/modifier" element={<EntryForm />} />
             <Route path="exercice" element={<Exercise />} />
-            <Route path="seance" element={<Session />} />
+            <Route path="seance" element={<Navigate to="/exercice" replace />} />
             <Route path="document/nouveau" element={<DocumentForm />} />
             <Route path="document/:id" element={<DocumentView />} />
             <Route path="*" element={<Navigate to="/" replace />} />

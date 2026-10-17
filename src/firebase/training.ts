@@ -1,15 +1,15 @@
 import { deleteDoc, setDoc, writeBatch, type DocumentData } from 'firebase/firestore'
 import { db } from './app'
 import { newId, send, userDoc } from './paths'
-import type { BossProgress, DailyQuestDoc, Entry, Exposure, Place, TrainingSession, XpEntry } from './types'
+import type { BossProgress, DailyQuestDoc, Entry, Exposure, XpEntry } from './types'
 import { bossById } from '../content/training'
 import { addValidation, checkStep, EMPTY_PROGRESS, markPreApp, uncheckPreApp, uncheckStep } from '../lib/bossProgress'
 import type { ISODate } from '../lib/dates'
 import { MOMENT_XP, previewMoment } from '../lib/moment'
-import { boneId, BONES, missionBones, momentBones, type Bone, type BoneWithId } from '../lib/bones'
+import { missionBones, momentBones, type Bone, type BoneWithId } from '../lib/bones'
 import { levelForSteps, stepsAcquired } from '../lib/level'
 import { XP } from '../lib/xp'
-import { levelTitle, stepPhrase, stepPhraseLower } from '../content/phrases'
+import { levelTitle, stepPhraseLower } from '../content/phrases'
 
 const now = () => new Date().toISOString()
 
@@ -25,13 +25,6 @@ export function awardBone(gain: BoneWithId): void {
 
 function strip<T extends object>(value: T): DocumentData {
   return Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined))
-}
-
-export function addPlace(name: string, bossId: string): string {
-  const id = newId('places')
-  const place: Place = { name: name.trim(), bossId, createdAt: now() }
-  send(setDoc(userDoc('places', id), place))
-  return id
 }
 
 export interface BossOutcome {
@@ -54,60 +47,6 @@ export interface Outcome {
 export interface ValidationInput {
   bossId: string
   current: BossProgress | undefined
-}
-
-/**
- * Enregistre une séance, son XP, et — pour chaque boss où Martin a répondu « oui » — une validation du critère
- * du palier. Un palier acquis ajoute une carte souvenir au Journal.
- */
-export function recordSession(session: TrainingSession, validations: ValidationInput[] = []): Outcome {
-  const batch = writeBatch(db)
-  const created: ReturnType<typeof userDoc>[] = []
-  const restore: (() => Promise<unknown>)[] = []
-  const add = (ref: ReturnType<typeof userDoc>, data: DocumentData) => {
-    batch.set(ref, data)
-    created.push(ref)
-  }
-  let xp = session.xp
-  const sessionId = newId('sessions')
-  add(userDoc('sessions', sessionId), strip({ ...session, createdAt: now() }))
-  add(xpRef(sessionId), strip<XpEntry>({ date: session.date, kind: 'seance', xp: session.xp, bossId: session.bossId, bossIds: session.bossIds, createdAt: now() }))
-
-  const results: BossOutcome[] = []
-  for (const { bossId, current } of validations) {
-    const before = current ?? EMPTY_PROGRESS
-    const result = addValidation(before, session.date)
-    results.push({ bossId, ...result })
-    if (!result.validated) continue
-    const boss = bossById(bossId)
-    const progressRef = userDoc('bossProgress', bossId)
-    batch.set(progressRef, strip(result.progress))
-    restore.push(() => (current ? setDoc(progressRef, strip(current)) : deleteDoc(progressRef)))
-    const target = result.levelGained ?? Math.min(before.level + 1, 5)
-    xp += XP.validation
-    add(userDoc('bones', boneId('reussite', `${bossId}-${target}-${session.date}`)), { date: session.date, amount: BONES.success, reason: 'reussite', refId: `${bossId}-${target}-${session.date}` } satisfies Bone)
-    add(xpRef(`validation-${bossId}-${target}-${session.date}`), strip<XpEntry>({ date: session.date, kind: 'validation', xp: XP.validation, bossId, createdAt: now() }))
-    if (result.levelGained && boss) {
-      const level = boss.levels[result.levelGained - 1]!
-      xp += XP.level
-      add(xpRef(`palier-${boss.id}-${result.levelGained}`), strip<XpEntry>({ date: session.date, kind: 'palier', xp: XP.level, bossId: boss.id, label: `${boss.name} · ${level.title}`, createdAt: now() }))
-      add(userDoc('entries', `palier-${boss.id}-${result.levelGained}`), levelCard(session.date, boss.id, result.levelGained))
-      add(userDoc('bones', boneId('etape', `${boss.id}-${result.levelGained}`)), { date: session.date, amount: BONES.step, reason: 'etape', refId: `${boss.id}-${result.levelGained}` } satisfies Bone)
-    }
-  }
-  send(batch.commit())
-
-  const undo = () => {
-    const back = writeBatch(db)
-    for (const ref of created) back.delete(ref)
-    send(back.commit())
-    for (const put of restore) send(put())
-  }
-  return { xp, results, undo }
-}
-
-function levelCard(date: ISODate, bossId: string, level: number): Entry {
-  return { date, text: `C'est réussi ! ${stepPhrase(bossId, level)}.`, tags: [], photos: [], createdAt: now() }
 }
 
 /** Enregistre une exposition et son XP. La distance n'entre jamais dans le calcul. */

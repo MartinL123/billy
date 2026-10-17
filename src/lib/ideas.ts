@@ -158,6 +158,12 @@ export const metersLabel = (m: number) => (m < 1000 ? `${Math.round(m / 50) * 50
 /** Itinéraire à pied dans Plans (iPhone). */
 export const directionsUrl = (lat: number, lng: number) => `https://maps.apple.com/?daddr=${lat.toFixed(5)},${lng.toFixed(5)}&dirflg=w`
 
+/** Le créateur d'itinéraire de Strava, centré sur le lieu : on y trace soi-même la balade (Billy ne s'y connecte pas). */
+export const stravaRouteUrl = (lat: number, lng: number) => `https://www.strava.com/maps/create#15/${lat.toFixed(5)}/${lng.toFixed(5)}`
+
+/** La fiche OpenStreetMap du lieu (« node/123 », « way/456 »…) : la preuve qu'il existe. */
+export const osmUrl = (id: string) => `https://www.openstreetmap.org/${id}`
+
 /** La flèche vers un lieu hors de l'écran : ↑ ↗ → ↘ ↓ ↙ ← ↖ */
 export function arrowTo(from: { lat: number; lng: number }, to: { lat: number; lng: number }): string {
   const dy = to.lat - from.lat

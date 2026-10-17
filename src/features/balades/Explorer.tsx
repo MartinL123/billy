@@ -1,15 +1,16 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ChevronRightIcon } from '../../components/Icons'
 import { auth } from '../../firebase/app'
 import { fetchCommune } from '../../firebase/communes'
-import { watchMarks, watchSpots, type Mark, type Spot, type WithId } from '../../firebase/community'
+import { removeSpot, watchMarks, watchSpots, type Mark, type Spot, type WithId } from '../../firebase/community'
 import { useData } from '../../firebase/store'
 import { communeAt } from '../../lib/commune'
 import { discoveredShare, inPolygon, knownFog, shareLabel } from '../../lib/fog'
 import { useToday } from '../../lib/useToday'
 import { filterWalks, FILTERS, walkItems, type WalkFilter } from '../../lib/walkList'
 import type { MapPlace } from './ExplorerMap'
+import { PlaceCard, type Selected } from './PlaceCard'
 import { useIdeas } from './useIdeas'
 import { arrowTo, KIND, metersLabel } from '../../lib/ideas'
 import { formatRelative } from '../../lib/dates'
@@ -139,7 +140,6 @@ const toggle = (on: boolean) => `min-h-11 rounded-full border-0 px-3.5 text-[15p
 export default function Explorer() {
   const { dog, entries, fog, communes } = useData()
   const today = useToday()
-  const navigate = useNavigate()
   const [prefs, setPrefs] = useState(readPrefs)
   // « Voir ces balades sur la carte » garde le filtre choisi dans la liste.
   const [params] = useSearchParams()
@@ -180,7 +180,18 @@ export default function Explorer() {
     const pack = packLayer ? spots.filter((s) => !mine.has(s.id)).map((s) => ({ id: `meute:${s.id}`, lat: s.lat, lng: s.lng, name: s.name, hidden: false, icon: '🐾' })) : []
     return [...marked, ...pack, ...found]
   }, [spots, marks, me, ideas, packLayer])
-  const openPlace = (id: string) => navigate(id.startsWith('meute:') ? `/meute?spot=${id.slice(6)}` : spots.some((s) => s.id === id) ? `/meute?spot=${id}` : '/territoire/idees')
+  // Un lieu touché : la carte s'y centre et la petite fenêtre dit ce que c'est.
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const selected = useMemo<Selected | undefined>(() => {
+    if (!selectedId) return undefined
+    const spotId = selectedId.replace(/^meute:/, '')
+    const spot = spots.find((s) => s.id === spotId)
+    if (spot) return { kind: 'spot', spot, mine: marks.filter((m) => m.spotId === spot.id && m.uid === me) }
+    const idea = ideas.find((i) => i.id === selectedId)
+    return idea ? { kind: 'idea', idea } : undefined
+  }, [selectedId, spots, marks, ideas, me])
+  const focusAt = selected ? (selected.kind === 'idea' ? selected.idea : selected.spot) : undefined
+  const focus = useMemo<[number, number] | undefined>(() => (focusAt ? [focusAt.lat, focusAt.lng] : undefined), [focusAt?.lat, focusAt?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const sheet = useSheet()
 
@@ -193,15 +204,15 @@ export default function Explorer() {
   return (
     <div className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
-        <ExplorerMap cells={cells} tracks={tracks} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} onPlace={openPlace} />
+        <ExplorerMap cells={cells} tracks={tracks} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={() => setSelectedId(null)} />
       </Suspense>
 
       {/* En haut : la prochaine découverte, puis les réglages de la carte. */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col gap-2 px-3 pt-[calc(env(safe-area-inset-top)+8px)]">
         {next && here && (
-          <Link to="/territoire/idees" className="pointer-events-auto btn min-h-11 self-start rounded-full bg-[#22332F] px-4 text-[15px] text-white shadow-[0_2px_8px_rgba(24,32,30,0.3)]">
-            {arrowTo(here, next)} {KIND[next.kind].label} · {metersLabel(next.meters)}
-          </Link>
+          <button type="button" onClick={() => setSelectedId(next.id)} className="pointer-events-auto btn min-h-11 self-start rounded-full border-0 bg-[#22332F] px-4 text-[15px] text-white shadow-[0_2px_8px_rgba(24,32,30,0.3)]">
+            À découvrir : {KIND[next.kind].label} · {metersLabel(next.meters)} {arrowTo(here, next)}
+          </button>
         )}
         <div className="flex flex-col items-end gap-2">
           <div role="group" aria-label="Fond de carte" className="pointer-events-auto flex rounded-full bg-surface p-1 shadow-[0_2px_6px_rgba(24,32,30,0.2)]">
@@ -229,7 +240,7 @@ export default function Explorer() {
         aria-label="Le territoire de Billy"
         {...sheet.handlers}
         style={sheet.style}
-        className="absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-[430px] touch-pan-x flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 pb-9 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]"
+        className={`absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-[430px] touch-pan-x ${selected ? 'invisible' : ''} flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 pb-9 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]`}
       >
         <button type="button" onClick={() => sheet.setCollapsed(!sheet.collapsed)} aria-expanded={!sheet.collapsed} aria-label={sheet.collapsed ? 'Afficher le panneau' : 'Réduire le panneau'} className="mx-auto -mb-2 flex min-h-11 w-24 items-center justify-center border-0 bg-transparent">
           <span className="h-1.5 w-11 rounded-full bg-[#C9CFCC]" />
@@ -280,6 +291,19 @@ export default function Explorer() {
           )}
         </div>
       </section>
+      {selected && (
+        <PlaceCard
+          key={selectedId}
+          selected={selected}
+          here={here}
+          me={me}
+          onClose={() => setSelectedId(null)}
+          onRemove={(spot, mine) => {
+            removeSpot(spot, mine.map((m) => m.id))
+            setSelectedId(null)
+          }}
+        />
+      )}
     </div>
   )
 }

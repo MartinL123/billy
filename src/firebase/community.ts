@@ -101,6 +101,17 @@ export function markSpot(id: string, mark: Mark, gain: BoneWithId): void {
   send(batch.commit())
 }
 
+/**
+ * Retirer un spot de sa carte : ses marques partent ; s'il l'a créé, le spot part aussi (pour toute la meute).
+ * Les os gagnés restent.
+ */
+export function removeSpot(spot: WithId<Spot>, myMarkIds: string[]): void {
+  const batch = writeBatch(db)
+  for (const id of myMarkIds) batch.delete(packDoc('marks', id))
+  if (spot.createdBy === uid()) batch.delete(packDoc('spots', spot.id))
+  send(batch.commit())
+}
+
 const feedId = (entryId: string) => `${uid()}_${entryId}`
 
 /** Le moment est-il partagé avec la meute ? (en direct) */

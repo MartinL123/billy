@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { addMarker, createMap, fitPoints, set3D, setLine, setSatellite, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
+import { addMarker, createMap, fitPoints, onMarker, set3D, setLine, setSatellite, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
 import { fogLayout, type FogLayout } from '../../lib/fogCanvas'
 
 export interface MapPlace {
@@ -20,6 +20,10 @@ interface Props {
   three: boolean
   /** Sans balade : la position (si autorisée) ou Paris. */
   center?: LatLng
+  /** Le lieu ouvert dans la petite fenêtre : la carte s'y centre, au-dessus de la fenêtre. */
+  focus?: LatLng
+  /** Un toucher sur la carte, hors des repères. */
+  onMapTap?: () => void
   onPlace?: (id: string) => void
 }
 
@@ -89,18 +93,21 @@ function drawFog(layout: FogLayout, color: string, opacity: number): HTMLCanvasE
  * La carte qui se découvre : le brouillard (un seul polygone troué, bords adoucis), les trajets en pointillés,
  * les lieux à découvrir. Plan ou satellite, 2D ou 3D.
  */
-export function ExplorerMap({ cells, tracks, places, satellite, three, center, onPlace }: Props) {
+export function ExplorerMap({ cells, tracks, places, satellite, three, center, focus, onPlace, onMapTap }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const markers = useRef<Marker[]>([])
-  const handlers = useRef({ onPlace })
-  handlers.current = { onPlace }
+  const handlers = useRef({ onPlace, onMapTap })
+  handlers.current = { onPlace, onMapTap }
   const framed = useRef(false)
 
   useEffect(() => {
     if (!host.current) return
     const m = createMap(host.current, { zoom: 15, ...(center ? { center } : {}) })
     map.current = m
+    m.on('click', (e) => {
+      if (!onMarker(e.originalEvent)) handlers.current.onMapTap?.()
+    })
     return () => {
       m.remove()
       map.current = null
@@ -120,6 +127,13 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, o
       whenReady(m, () => fitPoints(m, all, { top: 130, bottom: 340, left: 40, right: 40 }))
     } else if (center) m.jumpTo({ center: [center[1], center[0]] })
   }, [tracks, center])
+
+  // Centrer sur le lieu ouvert, dans la partie de carte au-dessus de la fenêtre.
+  useEffect(() => {
+    const m = map.current
+    if (!m || !focus) return
+    whenReady(m, () => m.easeTo({ center: [focus[1], focus[0]], zoom: Math.max(m.getZoom(), 16), padding: { top: 60, bottom: 320, left: 0, right: 0 }, duration: 700 }))
+  }, [focus?.[0], focus?.[1]]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (map.current) setSatellite(map.current, satellite)

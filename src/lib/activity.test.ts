@@ -1,6 +1,6 @@
 import { gzipSync } from 'node:zlib'
 import { describe, expect, it } from 'vitest'
-import { frenchName, ignoredLabel, importKey, isGpxFile, isWalk, parisDay, parisMinutes, parseActivity, readActivityFile, toImported, walkDistance } from './activity'
+import { frenchName, ignoredLabel, importKey, knownImportKeys, isGpxFile, isWalk, parisDay, parisMinutes, parseActivity, readActivityFile, toImported, walkDistance } from './activity'
 
 // Un GPX inventé, au format d'un export Strava (aucun vrai fichier de balade : le dépôt est public).
 const STRAVA = `<?xml version="1.0" encoding="UTF-8"?>
@@ -62,6 +62,9 @@ describe('lecture des fichiers Strava', () => {
     const points = parseActivity(STRAVA).points
     expect(importKey(points)).toBe('2026-10-12T14:00:00Z_45.0000_1.0000')
     expect(importKey(points)).toBe(importKey(parseActivity(STRAVA).points))
+    // Une balade importée avant la clé : retrouvée par son départ et son premier point.
+    const old = { route: { startTime: '2026-10-12T14:00:00Z', points: [{ lat: 45.00001, lng: 1 }] } }
+    expect(knownImportKeys([old, { importKey: 'x' }])).toEqual(new Set([importKey(points), 'x']))
   })
 
   it('distance : un point compte s’il est à 8 m ou plus du précédent', () => {

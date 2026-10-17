@@ -12,6 +12,8 @@ import Billy from './features/billy/Billy'
 import Shop from './features/shop/Shop'
 import Territory from './features/meute/Territory'
 import Exploration from './features/balades/Exploration'
+import ImportStrava from './features/balades/ImportStrava'
+import ImportResult from './features/balades/ImportResult'
 import { CommunitySync } from './features/meute/CommunitySync'
 import { BonesBackfill } from './features/shop/BonesBackfill'
 import { FogBackfill } from './features/balades/FogBackfill'
@@ -125,6 +127,8 @@ export default function App() {
             <Route path="meute/chien/:id" element={<DogPublic />} />
             <Route path="territoire" element={<Territory />} />
             <Route path="exploration" element={<Exploration />} />
+            <Route path="importer" element={<ImportStrava />} />
+            <Route path="importer/resultat" element={<ImportResult />} />
             <Route path="installer" element={<InstallRoute />} />
             <Route path="profil" element={<Profile />} />
             <Route path="profil/modifier" element={<ProfileEditScreen />} />

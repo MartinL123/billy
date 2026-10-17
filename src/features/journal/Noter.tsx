@@ -4,14 +4,13 @@ import { FilePicker } from '../../components/FilePicker'
 import { PhotoIcon } from '../../components/Icons'
 import { useToast } from '../../components/Toast'
 import { SKILLS, stepPhrase } from '../../content/phrases'
-import { revealFog } from '../../firebase/fog'
 import { answerQuestion } from '../../firebase/db'
 import { saveImage } from '../../firebase/files'
 import { useData } from '../../firebase/store'
 import { completeQuest, recordMoment, type MomentOutcome } from '../../firebase/training'
 import type { EntryPhoto } from '../../firebase/types'
 import { EMPTY_PROGRESS, remaining } from '../../lib/bossProgress'
-import { formatLong, isValidISO } from '../../lib/dates'
+import { isValidISO } from '../../lib/dates'
 import { compressImage, PHOTO } from '../../lib/image'
 import { canAskStep, FEELINGS, hasNextStep, isFearMoment, type Feeling } from '../../lib/moment'
 import { QUEST_XP } from '../../lib/quest'
@@ -19,14 +18,9 @@ import { useToday } from '../../lib/useToday'
 import { BonesGained } from '../../components/BoneIcon'
 import { BONES } from '../../lib/bones'
 import { SkillPill } from '../billy/SkillPill'
-import { RouteThumb } from '../trajets/RouteThumb'
-import type { Route } from '../../lib/route'
-import { formatRouteDistance, storeRoute } from '../../lib/route'
 import { useQuest } from '../today/useQuest'
 import { LevelUp, StepSuccess } from '../training/Celebration'
-import { takeDraftPhotos, takeDraftWalk } from './draft'
-import { formatDuration, placePhoto, type PhotoClue } from '../../lib/balade'
-import { readPhotoClue } from '../../lib/photoClue'
+import { takeDraftPhotos } from './draft'
 import { Face } from './Face'
 import { errorText } from '../../firebase/errors'
 
@@ -36,8 +30,6 @@ interface Photo {
   full: Blob
   thumb: Blob
   previewUrl: string
-  /** Position et heure lues dans l'EXIF, avant la compression qui les efface. */
-  clue: PhotoClue
 }
 
 const legend = 'mb-2.5 p-0 text-lg font-bold'
@@ -49,7 +41,7 @@ const choice = (on: boolean) => `btn px-2 ${on ? 'btn-on' : 'btn-outline'}`
  */
 export default function Noter() {
   const [params] = useSearchParams()
-  const { dog, bossProgress, bones, fog } = useData()
+  const { dog, bossProgress, bones } = useData()
   const today = useToday()
   const toast = useToast()
   const navigate = useNavigate()
@@ -59,40 +51,20 @@ export default function Noter() {
   // Depuis la quête du jour : la compétence vient de la quête, elle n'est pas modifiable.
   const [fromQuest] = useState(() => from === 'quete' && !today0.done && today0.quest.kind !== 'repos')
   const asked = fromQuest ? [today0.quest.bossId ?? ''] : (params.get('competences') ?? '').split(',')
-  // Balade importée depuis le Carnet (fichier GPX) : son jour, son nom et son tracé arrivent pré-remplis.
-  const [walk] = useState(() => (params.get('balade') ? takeDraftWalk() : null))
-  const walkDate = walk?.walk.date && walk.walk.date <= today ? walk.walk.date : undefined
-  const [text, setText] = useState(fromQuest ? today0.note : (walk?.name ?? ''))
+  const [text, setText] = useState(fromQuest ? today0.note : '')
   const [photos, setPhotos] = useState<Photo[]>([])
-  // La date : aujourd'hui (ou le jour de la balade importée, ou de l'adoption pour un souvenir du questionnaire).
-  // Elle se change ensuite dans le détail du moment.
-  const [date] = useState(() => walkDate ?? (params.get('quand') === 'autre' && isValidISO(dog.adoptionDate) ? dog.adoptionDate : today))
+  // La date : aujourd'hui (ou l'adoption pour un souvenir du questionnaire). Elle se change ensuite dans le détail.
+  const [date] = useState(() => (params.get('quand') === 'autre' && isValidISO(dog.adoptionDate) ? dog.adoptionDate : today))
   const [feeling, setFeeling] = useState<Feeling>()
   // Plus de grille de compétences : seule une compétence demandée (fiche, exercice terminé, mission) compte.
   const [skills] = useState<string[]>(() => asked.filter((id) => SKILLS.some((s) => s.id === id)))
   const [movedAway, setMovedAway] = useState(false)
-  // Le trajet de la balade importée (fichier GPX).
-  const [trace] = useState<Route | null>(() =>
-    walk
-      ? {
-          points: walk.walk.points,
-          distanceM: walk.walk.distanceM,
-          moments: [],
-          source: 'gpx',
-          ...(walk.walk.durationMin ? { durationMin: walk.walk.durationMin } : {}),
-          ...(walk.walk.startTime ? { startTime: walk.walk.startTime } : {}),
-          ...(walk.walk.endTime ? { endTime: walk.walk.endTime } : {}),
-        }
-      : null,
-  )
   const [yes, setYes] = useState<Record<string, boolean>>({})
   const [progress, setProgress] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [outcome, setOutcome] = useState<MomentOutcome | null>(null)
   const [shown, setShown] = useState(0)
-  // Cases du brouillard levées par la balade : annoncées avec les os.
-  const [cells, setCells] = useState(0)
 
   const photosRef = useRef(photos)
   photosRef.current = photos
@@ -103,9 +75,8 @@ export default function Noter() {
     for (const [i, file] of accepted.entries()) {
       setProgress(`Préparation des photos… ${i + 1} sur ${accepted.length}`)
       try {
-        const clue = await readPhotoClue(file)
         const { full, thumb } = await compressImage(file, PHOTO)
-        setPhotos((current) => [...current, { key: crypto.randomUUID(), full, thumb, previewUrl: URL.createObjectURL(thumb), clue }])
+        setPhotos((current) => [...current, { key: crypto.randomUUID(), full, thumb, previewUrl: URL.createObjectURL(thumb) }])
       } catch (err) {
         setError(errorText(err, 'Une photo n’a pas pu être ajoutée.'))
       }
@@ -135,13 +106,9 @@ export default function Noter() {
     setSaving(true)
     try {
       const saved: EntryPhoto[] = []
-      for (const photo of photos) {
-        // Une photo prise pendant la balade se place sur le tracé (GPS de la photo, ou heure de la trace GPX).
-        const at = trace ? placePhoto(photo.clue, trace.points, walk?.raw) : undefined
-        saved.push({ fileId: await saveImage(photo.full), thumbFileId: await saveImage(photo.thumb), ...(at ? { lat: at.lat, lng: at.lng } : {}) })
-      }
+      for (const photo of photos) saved.push({ fileId: await saveImage(photo.full), thumbFileId: await saveImage(photo.thumb) })
       const result = recordMoment(
-        { date, text: text.trim() || today0.note, tags: [], photos: saved, skills, feeling, fear, movedAway: input.movedAway, ...(trace ? { route: storeRoute(trace) } : {}) },
+        { date, text: text.trim() || today0.note, tags: [], photos: saved, skills, feeling, fear, movedAway: input.movedAway },
         yesIds,
         bossProgress,
         dog.name,
@@ -150,8 +117,6 @@ export default function Noter() {
       if (fromQuest) completeQuest(today, { kind: today0.quest.kind, bossId: today0.quest.bossId, exerciseId: today0.quest.planned?.exercise.id }, today0.skips, QUEST_XP)
       // Souvenir des premières semaines : l'écran de résultat du questionnaire le retrouve.
       if (params.get('retour') === 'questionnaire') answerQuestion('souvenir', result.entryId, { 'questionnaire.souvenirs': [...(dog.questionnaire?.souvenirs ?? []), result.entryId] })
-      // Le brouillard se lève sur les points complets du fichier (pas sur le trajet allégé).
-      if (trace) setCells(revealFog([walk?.raw.length ? walk.raw : trace.points.map(([lat, lng]) => ({ lat, lng }))], fog))
       setOutcome(result)
     } catch (err) {
       setSaving(false)
@@ -164,8 +129,7 @@ export default function Noter() {
   useEffect(() => {
     if (outcome && shown >= celebrations) {
       // « +10 os » avec l'os qui saute : les os du moment, plus ceux de la mission.
-      const label = cells ? `Noté ! +${cells} case${cells > 1 ? 's' : ''}` : 'Noté !'
-      toast(<BonesGained label={label} amount={outcome.bones + (fromQuest ? BONES.mission : 0)} />, fromQuest ? undefined : { label: 'Annuler', run: outcome.undo })
+      toast(<BonesGained label="Noté !" amount={outcome.bones + (fromQuest ? BONES.mission : 0)} />, fromQuest ? undefined : { label: 'Annuler', run: outcome.undo })
       leave()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -257,15 +221,6 @@ export default function Noter() {
           )}
         </div>
 
-        {trace && (
-          <div className="card flex items-center gap-3 p-3.5">
-            <RouteThumb points={trace.points} size={64} />
-            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="text-[17px] font-bold">Balade importée</span>
-              <span className="text-[15px] text-muted">{[formatRouteDistance(trace.distanceM), trace.durationMin ? formatDuration(trace.durationMin) : '', formatLong(date)].filter(Boolean).join(' · ')}</span>
-            </span>
-          </div>
-        )}
 
 
         <fieldset className="m-0 border-0 p-0">

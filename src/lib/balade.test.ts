@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { douglasPeucker, formatDuration, importWalk, placePhoto, simplifyWalk, type TimedPoint } from './balade'
+import { douglasPeucker, formatDuration, placePhoto, simplifyWalk, timesAlong, type TimedPoint } from './balade'
 import type { RoutePoint } from './route'
 
 describe('balade importée', () => {
@@ -18,21 +18,6 @@ describe('balade importée', () => {
     // Le pire cas pour Douglas-Peucker (chaque point est un virage), à la taille d'une longue balade.
     const zigzag: RoutePoint[] = Array.from({ length: 2000 }, (_, i) => [48.85 + i * 0.00005, 2.35 + (i % 2) * 0.0003])
     expect(simplifyWalk(zigzag).length).toBeLessThanOrEqual(500)
-  })
-
-  it('lit le jour, la durée et la distance', () => {
-    const raw: TimedPoint[] = [
-      { lat: 48.8566, lng: 2.3522, time: '2026-10-12T10:00:00Z' },
-      { lat: 48.8584, lng: 2.3522, time: '2026-10-12T10:20:00Z' },
-      { lat: 48.8584, lng: 2.3549, time: '2026-10-12T10:47:30Z' },
-    ]
-    const walk = importWalk(raw)
-    expect(walk.date).toBe('2026-10-12')
-    expect(walk.durationMin).toBe(48)
-    expect(walk.distanceM).toBeGreaterThan(390)
-    expect(walk.distanceM).toBeLessThan(410)
-    expect(walk.points).toHaveLength(3)
-    expect(importWalk([{ lat: 1, lng: 1 }, { lat: 1.001, lng: 1 }]).date).toBeUndefined()
   })
 
   it('écrit la durée', () => {
@@ -63,6 +48,20 @@ describe('photos de la balade', () => {
     expect(placePhoto({ time: Date.parse('2026-10-12T12:00:00Z') }, points, timed)).toBeUndefined()
     expect(placePhoto({ lat: 48.9, lng: 2.4 }, points, timed)).toBeUndefined()
     expect(placePhoto({}, points)).toBeUndefined()
+  })
+})
+
+describe('heures le long d’un trajet enregistré', () => {
+  it('réparties selon la distance', () => {
+    const points: RoutePoint[] = [
+      [48.85, 2.35],
+      [48.86, 2.35],
+      [48.87, 2.35],
+    ]
+    const timed = timesAlong(points, '2026-10-12T10:00:00Z', 20)
+    expect(timed[1]!.time).toBe('2026-10-12T10:10:00.000Z')
+    expect(timed[2]!.time).toBe('2026-10-12T10:20:00.000Z')
+    expect(timesAlong(points, undefined, 20)).toEqual([])
   })
 })
 

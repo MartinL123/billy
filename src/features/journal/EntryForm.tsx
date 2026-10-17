@@ -16,13 +16,16 @@ import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { takeDraftPhotos } from './draft'
 import { errorText } from '../../firebase/errors'
+import { placePhoto, timesAlong, type PhotoClue } from '../../lib/balade'
+import { readPhotoClue } from '../../lib/photoClue'
+import { readRoute } from '../../lib/route'
 
 const MAX_PHOTOS = 10
 
 /** Photo déjà enregistrée, ou photo tout juste importée (compressée, pas encore envoyée). */
 type Item =
   | { key: string; saved: EntryPhoto }
-  | { key: string; full: Blob; thumb: Blob; previewUrl: string }
+  | { key: string; full: Blob; thumb: Blob; previewUrl: string; clue: PhotoClue }
 
 export default function EntryForm() {
   const { id } = useParams()
@@ -32,6 +35,7 @@ export default function EntryForm() {
   const back = useBack('/carnet')
   const navigate = useNavigate()
   const existing = id ? entries.find((e) => e.id === id) : undefined
+  const route = readRoute(existing?.route)
 
   const [items, setItems] = useState<Item[]>(() => (existing?.photos ?? []).map((saved) => ({ key: saved.fileId, saved })))
   const [text, setText] = useState(existing?.text ?? '')
@@ -54,8 +58,10 @@ export default function EntryForm() {
     for (const [i, file] of accepted.entries()) {
       setProgress(`Préparation des photos… ${i + 1} sur ${accepted.length}`)
       try {
+        // Position et heure de la photo, lues avant la compression qui les efface.
+        const clue = await readPhotoClue(file)
         const { full, thumb } = await compressImage(file, PHOTO)
-        const item: Item = { key: crypto.randomUUID(), full, thumb, previewUrl: URL.createObjectURL(thumb) }
+        const item: Item = { key: crypto.randomUUID(), full, thumb, previewUrl: URL.createObjectURL(thumb), clue }
         setItems((current) => [...current, item])
       } catch (err) {
         setError(errorText(err, "Une photo n'a pas pu être importée."))
@@ -104,7 +110,11 @@ export default function EntryForm() {
       const photos: EntryPhoto[] = []
       for (const item of items) {
         if ('saved' in item) photos.push(item.saved)
-        else photos.push({ fileId: await saveImage(item.full), thumbFileId: await saveImage(item.thumb) })
+        else {
+          // Une photo prise pendant la balade se place sur le tracé (GPS de la photo, ou son heure).
+          const at = route ? placePhoto(item.clue, route.points, timesAlong(route.points, route.startTime, route.durationMin)) : undefined
+          photos.push({ fileId: await saveImage(item.full), thumbFileId: await saveImage(item.thumb), ...(at ? { lat: at.lat, lng: at.lng } : {}) })
+        }
       }
       const { id: _id, pending: _pending, ...kept } = existing ?? ({} as Partial<NonNullable<typeof existing>>)
       saveEntry(existing?.id ?? newId('entries'), {

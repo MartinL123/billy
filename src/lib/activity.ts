@@ -80,6 +80,17 @@ export function importKey(points: TimedPoint[]): string {
   return `${first.time ?? 'sans-heure'}_${first.lat.toFixed(4)}_${first.lng.toFixed(4)}`
 }
 
+/** Les clés des balades déjà dans Billy, y compris celles importées avant la clé de doublon (départ + 1er point). */
+export function knownImportKeys(entries: { importKey?: string; route?: { startTime?: string; points?: { lat: number; lng: number }[] } }[]): Set<string> {
+  const keys = new Set<string>()
+  for (const e of entries) {
+    if (e.importKey) keys.add(e.importKey)
+    const first = e.route?.points?.[0]
+    if (e.route?.startTime && first) keys.add(importKey([{ ...first, time: e.route.startTime }]))
+  }
+  return keys
+}
+
 /** Distance en mètres : on ne compte un point que s'il est à 8 m ou plus du précédent (les sauts du GPS à l'arrêt). */
 export function walkDistance(points: { lat: number; lng: number }[], minStep = 8): number {
   let total = 0

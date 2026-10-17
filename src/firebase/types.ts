@@ -128,8 +128,16 @@ export interface Entry {
   /** Compétences où « oui, c'est réussi » a compté ce jour-là. */
   validations?: string[]
   xp?: number
-  /** Le trajet de la balade, tracé après coup (docs/specs/trajets.md). */
+  /** Le trajet de la balade (docs/specs/trajets.md). */
   route?: StoredRoute
+  /** Balade importée d'un fichier Strava (carte-a-decouvrir.md § 6). */
+  source?: 'strava'
+  /** Clé de doublon : heure de départ + premier point. */
+  importKey?: string
+  /** Commune du premier point (Nominatim), gardée avec la balade. */
+  commune?: string
+  /** La sortie du jour à laquelle la balade est rattachée. */
+  walkSlot?: { date: ISODate; creneau: string }
 }
 
 export type DocumentCategory = 'sante' | 'veto' | 'administratif' | 'autre'

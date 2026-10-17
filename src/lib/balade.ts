@@ -1,4 +1,3 @@
-import type { ISODate } from './dates'
 import { distanceToRoute, routeDistance, simplify, type RoutePoint } from './route'
 
 // Une balade importée d'un fichier GPX (Strava, montre…) : jamais de GPS en direct dans l'app.
@@ -64,38 +63,6 @@ export function simplifyWalk(points: RoutePoint[], max = MAX_WALK_POINTS): Route
   return out
 }
 
-/** Le jour local d'une heure ISO (une balade à 0 h 30 heure de Paris est bien de ce jour-là). */
-export function localDay(time: string): ISODate {
-  const d = new Date(time)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
-export interface ImportedWalk {
-  date?: ISODate
-  startTime?: string
-  endTime?: string
-  durationMin?: number
-  /** Distance du tracé complet, avant simplification. */
-  distanceM: number
-  points: RoutePoint[]
-}
-
-/** Ce qu'on garde d'un fichier GPX : le jour, la durée, la distance, le tracé simplifié. */
-export function importWalk(raw: TimedPoint[]): ImportedWalk {
-  const full: RoutePoint[] = raw.map((p) => [p.lat, p.lng])
-  const times = raw.map((p) => p.time).filter((t): t is string => Boolean(t) && !Number.isNaN(Date.parse(t!)))
-  const startTime = times[0]
-  const endTime = times[times.length - 1]
-  const durationMin = startTime && endTime ? Math.round((Date.parse(endTime) - Date.parse(startTime)) / 60000) : undefined
-  return {
-    ...(startTime ? { date: localDay(startTime), startTime } : {}),
-    ...(endTime ? { endTime } : {}),
-    ...(durationMin ? { durationMin } : {}),
-    distanceM: Math.round(routeDistance(full)),
-    points: simplifyWalk(full),
-  }
-}
-
 /** « 47 min », « 1 h 12 », « 2 h » */
 export function formatDuration(min: number): string {
   if (min < 60) return `${min} min`
@@ -135,4 +102,19 @@ export function placePhoto(clue: PhotoClue, points: RoutePoint[], timed: TimedPo
   const b = track[i]!
   const f = b.t === a.t ? 0 : (clue.time - a.t) / (b.t - a.t)
   return { lat: a.lat + (b.lat - a.lat) * f, lng: a.lng + (b.lng - a.lng) * f }
+}
+
+/**
+ * Les heures le long d'un trajet enregistré (les heures de chaque point ne sont jamais gardées) : réparties selon la
+ * distance entre le départ et l'arrivée. Assez juste pour placer une photo prise pendant la balade.
+ */
+export function timesAlong(points: RoutePoint[], startTime: string | undefined, durationMin: number | undefined): TimedPoint[] {
+  const start = startTime ? Date.parse(startTime) : NaN
+  if (Number.isNaN(start) || !durationMin || points.length < 2) return []
+  const total = routeDistance(points) || 1
+  let done = 0
+  return points.map(([lat, lng], i) => {
+    if (i > 0) done += routeDistance([points[i - 1]!, [lat, lng]])
+    return { lat, lng, time: new Date(start + (done / total) * durationMin * 60000).toISOString() }
+  })
 }

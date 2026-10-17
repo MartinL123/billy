@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { importWalk } from '../../lib/balade'
-import { MAX_GPX_BYTES, readGpx } from '../../lib/gpx'
+import { MAX_GPX_BYTES, parseActivity, readActivityFile } from '../../lib/activity'
 import { setDraftWalk } from '../journal/draft'
 
 /** « Importer mes balades Strava » : un fichier .gpx (export Strava, montre…) depuis l'app Fichiers. Jamais de GPS en direct. */
@@ -13,7 +13,7 @@ export function ImportWalkButton({ main = false, className = 'px-5' }: { /** Act
     setError('')
     if (!file) return
     if (file.size > MAX_GPX_BYTES) return setError('Ce fichier est trop lourd (5 Mo au maximum).')
-    const { name, points } = readGpx(await file.text())
+    const { name, points } = parseActivity(await readActivityFile(file))
     if (points.length < 2) return setError('Ce fichier ne contient pas de balade. Choisissez un fichier .gpx exporté de Strava.')
     setDraftWalk({ name, walk: importWalk(points), raw: points })
     navigate('/noter?balade=1')

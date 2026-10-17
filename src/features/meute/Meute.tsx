@@ -9,7 +9,7 @@ import { addSpot, markSpot, voteCalm, type Spot, type WithId } from '../../fireb
 import { updateEntryRoute } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { markBone } from '../../lib/bones'
-import { calmSummary, CALM_LEVELS, categoryInfo, dogColor, formatDistance, markId, MARK_DAYS_ON_MAP, nearbySpots, packScore, PACK_CHALLENGE_LABEL, PACK_CHALLENGE_TARGET, slotOf, SPOT_CATEGORIES, SPOT_INFOS, type CalmLevel, type SpotCategory } from '../../lib/community'
+import { calmSummary, CALM_LEVELS, categoryInfo, dogColor, formatDistance, markId, MARK_DAYS_ON_MAP, nearbySpots, slotOf, SPOT_CATEGORIES, SPOT_INFOS, type CalmLevel, type SpotCategory } from '../../lib/community'
 import { diffDays } from '../../lib/dates'
 import { readRoute, storeRoute, withMarkMoments } from '../../lib/route'
 import { weekId, weekOf } from '../../lib/rhythm'
@@ -22,7 +22,6 @@ import { usePack } from './usePack'
 /** Sans position : la carte part du centre de Paris, ou des spots de la meute s'il y en a. */
 const DEFAULT_CENTER: LatLng = { lat: 48.8566, lng: 2.3522 }
 const WELCOME_KEY = 'billy.meute.bienvenue'
-const LETTERS = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
 
 const readFlag = (key: string) => {
   try {
@@ -48,7 +47,7 @@ export default function Meute() {
   const toast = useToast()
   const me = auth.currentUser?.uid ?? ''
   const week = weekId(today)
-  const { members, spots, marks, feed, rows, calm } = usePack(week)
+  const { members, spots, marks, feed, calm } = usePack(week)
 
   const [welcome, setWelcome] = useState(() => !readFlag(WELCOME_KEY))
   const [position, setPosition] = useState<LatLng | null>(null)
@@ -250,34 +249,12 @@ export default function Meute() {
                   {m.dogName}
                   {m.id === me ? ' (vous)' : ''}
                 </span>
-                <span className="text-sm text-muted">Niveau {m.level}</span>
+                {m.breed && <span className="text-sm text-muted">{m.breed}</span>}
               </span>
               <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
             </Link>
           ))}
         </div>
-      </section>
-
-      <section aria-label="Défi de la meute" className="mx-5 flex flex-col gap-3 rounded-[22px] border-2 border-solid border-gold bg-[#FFF8E6] p-4">
-        <h2 className="text-[13px] font-extrabold tracking-[0.6px] text-gold-dark uppercase">Défi de la meute</h2>
-        <p className="text-[17px] leading-snug font-semibold">{PACK_CHALLENGE_LABEL}</p>
-        {rows.length === 0 && <p className="text-[15px] text-muted">Faites votre mission du jour : votre ligne apparaîtra ici.</p>}
-        {rows.map((row) => (
-          <div key={row.id} className="flex items-center gap-3">
-            <span className="w-20 shrink-0 truncate text-[15px] font-bold">{row.dogName}</span>
-            <span className="flex flex-1 justify-between" aria-label={`${row.dogName} : ${packScore(row.days, weekDays)} jours sur ${PACK_CHALLENGE_TARGET}`}>
-              {weekDays.map((d, i) => (
-                <span key={d} className="flex flex-col items-center gap-0.5">
-                  <span className={`size-5 rounded-full ${row.days.includes(d) ? '' : 'border-2 border-dashed border-[#B9C2BE]'}`} style={row.days.includes(d) ? { background: row.color } : undefined} />
-                  <span className="text-[11px] text-muted">{LETTERS[i]}</span>
-                </span>
-              ))}
-            </span>
-            <span className="w-9 shrink-0 text-right text-[15px] font-bold">
-              {packScore(row.days, weekDays)}/{PACK_CHALLENGE_TARGET}
-            </span>
-          </div>
-        ))}
       </section>
 
       {open && (

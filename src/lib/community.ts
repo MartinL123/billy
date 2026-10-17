@@ -81,11 +81,6 @@ export function dogColor(uid: string): string {
   return DOG_COLORS[h % DOG_COLORS.length]!
 }
 
-/** Défi de la meute : chacun fait sa mission 5 jours cette semaine. */
-export const PACK_CHALLENGE_TARGET = 5
-export const PACK_CHALLENGE_LABEL = 'Chacun fait sa mission 5 jours cette semaine'
-/** « 3/5 » : jamais plus que la cible. */
-export const packScore = (days: ISODate[], week: ISODate[]) => Math.min(PACK_CHALLENGE_TARGET, new Set(days.filter((d) => week.includes(d))).size)
 
 /** Un exercice qui se fait « dans une rue calme », « un lieu calme », « parc vide »… : on peut proposer un spot calme. */
 export const needsCalmPlace = (setting: string | undefined) => Boolean(setting && /(rue|lieu|point) calme|calme dehors|parc vide|heure creuse/i.test(setting))

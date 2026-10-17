@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { levelTitle } from '../content/phrases'
 import { uncheckStep } from './bossProgress'
-import { dogLevel, levelForSteps, nextLevelLabel, stepsAcquired } from './level'
+import { dogLevel, levelForSteps, stepsAcquired } from './level'
 
 const skill = (level: number) => ({ level, validations: [], masteryPlaces: [], preApp: Array.from({ length: level }, (_, i) => i + 1) })
 
@@ -17,8 +17,6 @@ describe('niveau calculé sur les étapes acquises', () => {
     const progress = { lien: skill(3), rappel: { level: 2, validations: [], masteryPlaces: [] } }
     expect(stepsAcquired(progress)).toBe(5)
     expect(dogLevel(progress)).toEqual({ level: 3, toNext: 1, ratio: 0.5 })
-    expect(nextLevelLabel(dogLevel(progress))).toBe('Encore 1 étape avant le niveau 4')
-    expect(nextLevelLabel(dogLevel({}))).toBe('Encore 2 étapes avant le niveau 2')
   })
 
   it('décocher une étape fait baisser le niveau ; rien d’autre ne le fait', () => {
@@ -31,7 +29,6 @@ describe('niveau calculé sur les étapes acquises', () => {
   it('s’arrête à 26 quand tout l’arbre est maîtrisé', () => {
     const all = Object.fromEntries(['lien', 'calme', 'soins', 'laisse', 'rappel', 'manieres', 'nouveaute', 'ville', 'rencontres', 'congeneres'].map((id) => [id, skill(5)]))
     expect(dogLevel(all)).toEqual({ level: 26, toNext: 0, ratio: 1 })
-    expect(nextLevelLabel(dogLevel(all))).not.toMatch(/XP/)
   })
 
   it('donne le bon titre à chaque palier de niveaux', () => {

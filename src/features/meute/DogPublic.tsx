@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { ChevronLeftIcon } from '../../components/Icons'
-import { levelTitle, SKILLS } from '../../content/phrases'
 import { watchFeed, watchMarks, watchMembers, watchSpots, type FeedItem, type Mark, type Member, type Spot, type WithId } from '../../firebase/community'
 import { formatAgeShort } from '../../lib/age'
 import { formatShort } from '../../lib/dates'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
-import { Badge } from '../billy/Badge'
 import { FeedPhoto } from './FeedPhoto'
 import { MemberAvatar } from './MemberAvatar'
 
@@ -49,19 +47,8 @@ export default function DogPublic() {
         <div className="flex flex-col items-center gap-2 text-center">
           <MemberAvatar member={member} size={112} />
           <h1 className="font-display text-[30px] font-extrabold">{member.dogName}</h1>
-          <p className="text-[15px] text-muted">{[member.birthDate ? formatAgeShort(member.birthDate, today) : '', member.breed, `Niveau ${member.level} · ${levelTitle(member.level)}`].filter(Boolean).join(' · ')}</p>
+          <p className="text-[15px] text-muted">{[member.birthDate ? formatAgeShort(member.birthDate, today) : '', member.breed].filter(Boolean).join(' · ')}</p>
         </div>
-        <section className="flex flex-col gap-2.5">
-          <h2 className="text-xl font-bold">Ses badges</h2>
-          <div className="grid grid-cols-5 gap-2">
-            {SKILLS.map((s) => (
-              <span key={s.id} className="flex flex-col items-center gap-1" title={s.name}>
-                <Badge bossId={s.id} acquired={member.badges?.[s.id] ?? 0} size={56} />
-                <span className="text-center text-[11px] leading-tight font-semibold">{s.short}</span>
-              </span>
-            ))}
-          </div>
-        </section>
         <section className="flex flex-col gap-2">
           <h2 className="text-xl font-bold">Son territoire</h2>
           <p className="text-[17px]">{territory.length ? `${territory.length} spot${territory.length > 1 ? 's' : ''} marqué${territory.length > 1 ? 's' : ''} : ${territory.join(', ')}` : 'Aucun spot marqué pour l’instant.'}</p>

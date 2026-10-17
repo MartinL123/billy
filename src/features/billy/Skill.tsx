@@ -10,7 +10,6 @@ import { useData } from '../../firebase/store'
 import { setStepChecked } from '../../firebase/training'
 import { EMPTY_PROGRESS, remaining } from '../../lib/bossProgress'
 import { formatLong } from '../../lib/dates'
-import { dogLevel, levelForSteps, stepsAcquired } from '../../lib/level'
 import { sessionMinutes } from '../../lib/training-plan'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
@@ -119,9 +118,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
     const { changed, undo } = setStepChecked(skill.id, stored, step, checked)
     if (changed.length === 0) return
     const many = changed.length > 1
-    const after = levelForSteps(stepsAcquired(bossProgress) + (checked ? changed.length : -changed.length))
-    const recalculated = after !== dogLevel(bossProgress).level ? ' · Niveau recalculé' : ''
-    toast(`${checked ? (many ? `${changed.length} étapes cochées` : 'Étape cochée') : many ? `${changed.length} étapes décochées` : 'Étape décochée'}${recalculated}`, { label: 'Annuler', run: undo })
+    toast(`${checked ? (many ? `${changed.length} étapes cochées` : 'Étape cochée') : many ? `${changed.length} étapes décochées` : 'Étape décochée'}`, { label: 'Annuler', run: undo })
   }
 
   const photo = (size: number) => <DogPhoto size={size} />

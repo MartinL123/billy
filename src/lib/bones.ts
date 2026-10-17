@@ -87,8 +87,6 @@ export function regularWeekBone(week: ISODate[], notedDays: ISODate[], date: ISO
 /** Marquer un spot : +5, ou +10 si ce chien ne l'avait jamais marqué. Une fois par spot et par jour. */
 export const markBone = (spotId: string, date: ISODate, firstTime: boolean) => bone('marque', `${spotId}-${date}`, date, firstTime ? BONES.newSpot : BONES.mark)
 
-/** Défi de la meute tenu : +40, une fois par semaine. */
-export const packChallengeBone = (week: ISODate, date: ISODate) => bone('meute', week, date, BONES.packChallenge)
 
 /** Un achat dans la boutique : la seule façon de dépenser des os. Une fois par objet. */
 export const purchaseBone = (itemId: string, price: number, date: ISODate) => bone('achat', itemId, date, -price)

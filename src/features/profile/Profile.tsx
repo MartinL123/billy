@@ -14,9 +14,7 @@ import { useData } from '../../firebase/store'
 import type { Contact } from '../../firebase/types'
 import { formatAgeShort } from '../../lib/age'
 import { formatLong, formatShort, formatTime, isValidISO } from '../../lib/dates'
-import { levelTitle } from '../../content/phrases'
 import { questionnaireStatus, reactionSentence, reactionsFromFears, statusLabel } from '../../lib/questionnaire'
-import { dogLevel } from '../../lib/level'
 import { sortMeals } from '../../lib/feeding'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
@@ -132,7 +130,7 @@ function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; onl
 
 /** Le profil du chien : on l'ouvre en touchant sa photo dans son onglet. */
 export default function Profile() {
-  const { dog, documents, weights, bossProgress, usage, pendingCount, online } = useData()
+  const { dog, documents, weights, usage, pendingCount, online } = useData()
   const today = useToday()
   const back = useBack('/billy')
   const [confirmLogout, setConfirmLogout] = useState(false)
@@ -159,7 +157,6 @@ export default function Profile() {
   const email = auth.currentUser?.email ?? ''
   const space = used ?? usage
   const spaceLevel = usageLevel(space)
-  const level = dogLevel(bossProgress)
   const sentences = (dog.reactions ?? reactionsFromFears(dog.fears ?? [])).map(reactionSentence)
   const lastWeight = weights[0]
   const status = questionnaireStatus(dog.questionnaire)
@@ -179,7 +176,7 @@ export default function Profile() {
         <DogPhoto size={120} alt={`Photo de ${dog.name}`} className="rounded-full shadow-[0_2px_8px_rgba(24,32,30,0.12)]" />
         <h1 className="mt-1 font-display text-[32px] leading-none font-extrabold">{dog.name}</h1>
         <p className="text-base text-muted">
-          {[formatAgeShort(dog.birthDate, today), `Niveau ${level.level}`, levelTitle(level.level)].filter(Boolean).join(' · ')}
+          {[formatAgeShort(dog.birthDate, today)].filter(Boolean).join(' · ')}
         </p>
         <Link to="/profil/modifier" className="btn btn-outline mt-1">
           {dog.photoThumbFileId ? 'Changer la photo' : 'Ajouter une photo'}

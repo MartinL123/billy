@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { markBone, packChallengeBone } from './bones'
-import { calmSummary, distanceMeters, needsCalmPlace, pickCalmSpot, dogColor, formatDistance, markId, nearbySpots, packScore, slotOf } from './community'
-import { weekOf } from './rhythm'
+import { markBone } from './bones'
+import { calmSummary, distanceMeters, needsCalmPlace, pickCalmSpot, dogColor, formatDistance, markId, nearbySpots, slotOf } from './community'
 
 describe('la meute', () => {
   const parc = { id: 'parc', lat: 48.8566, lng: 2.3522 }
@@ -50,13 +49,6 @@ describe('la meute', () => {
   it('chaque chien garde sa couleur', () => {
     expect(dogColor('abc')).toBe(dogColor('abc'))
     expect(dogColor('abc')).toMatch(/^#[0-9A-F]{6}$/)
-  })
-
-  it('défi de la meute : jours de mission de la semaine, plafonnés à 5, +40 os une fois', () => {
-    const week = weekOf('2026-10-14')
-    expect(packScore(['2026-10-12', '2026-10-13', '2026-10-13', '2026-10-01'], week)).toBe(2)
-    expect(packScore(week, week)).toBe(5)
-    expect(packChallengeBone('2026-10-12', '2026-10-17')).toMatchObject({ id: 'meute-2026-10-12', amount: 40 })
   })
 
   it('propose un spot calme pour une mission « rue calme »', () => {

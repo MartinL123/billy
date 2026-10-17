@@ -77,15 +77,9 @@ export const watchMarks = (onData: (items: WithId<Mark>[]) => void) => listen<Ma
 export const watchFeed = (onData: (items: WithId<FeedItem>[]) => void) => listen<FeedItem>('feed', onData)
 export const watchCalm = (spotId: string, onData: (items: WithId<CalmVote>[]) => void) =>
   onSnapshot(collection(db, 'community', 'meute', 'spots', spotId, 'calm'), (snap) => onData(snap.docs.map((d) => ({ ...(d.data() as CalmVote), id: d.id }))), () => undefined)
-export const watchChallenge = (week: ISODate, onData: (items: WithId<ChallengeRow>[]) => void) =>
-  onSnapshot(collection(db, 'community', 'meute', 'challenges', week, 'rows'), (snap) => onData(snap.docs.map((d) => ({ ...(d.data() as ChallengeRow), id: d.id }))), () => undefined)
 
 export function saveMember(member: Member): void {
   send(setDoc(packDoc('members', uid()), member))
-}
-
-export function saveChallengeRow(week: ISODate, row: ChallengeRow): void {
-  send(setDoc(doc(db, 'community', 'meute', 'challenges', week, 'rows', uid()), row))
 }
 
 /** Un nouveau spot : un lieu public, jamais un domicile. Renvoie son identifiant. */

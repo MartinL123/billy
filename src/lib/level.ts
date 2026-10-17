@@ -29,9 +29,3 @@ export function dogLevel(progress: ProgressMap): DogLevel {
   const into = steps % STEPS_PER_LEVEL
   return { level, toNext: STEPS_PER_LEVEL - into, ratio: into / STEPS_PER_LEVEL }
 }
-
-/** « Encore 1 étape avant le niveau 9 ». */
-export function nextLevelLabel({ level, toNext }: DogLevel): string {
-  if (toNext === 0) return 'Tout l’arbre est maîtrisé'
-  return `Encore ${toNext} étape${toNext > 1 ? 's' : ''} avant le niveau ${level + 1}`
-}

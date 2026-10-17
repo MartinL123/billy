@@ -1,8 +1,7 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { levelTitle, stepPhraseLower, territoryOf } from '../../content/phrases'
+import { stepPhraseLower, territoryOf } from '../../content/phrases'
 import { Badge } from '../billy/Badge'
-import { DogPhoto } from '../shop/DogPhoto'
 import { bossById, MAX_LEVEL } from '../../content/training'
 
 /** Confettis aux couleurs du territoire : ils tombent dans le haut de l'écran, jamais sur les boutons. */
@@ -79,31 +78,6 @@ export function StepSuccess({ dogName, bossId, level, inCarnet = true, onClose }
         <div className="mt-4 mb-6 flex flex-wrap justify-center gap-2.5">
           <span className={pill}>▲ {boss?.name} avance</span>
           {inCarnet && <span className={pill}>Ajouté au Carnet</span>}
-        </div>
-        <button type="button" onClick={onClose} className={continueButton}>
-          Continuer
-        </button>
-      </div>
-    </FullScreen>
-  )
-}
-
-/** Nouveau niveau : la photo de Billy, son nouveau titre. */
-export function LevelUp({ dogName, level, onClose }: { dogName: string; level: number; /** Ancien paramètre : la photo vient maintenant du profil, avec ce que le chien porte. */ photoFileId?: string; onClose: () => void }) {
-  return (
-    <FullScreen label="Nouveau niveau">
-      <Confetti colors={['#F2B544', '#F7D58A', '#FFFFFF']} count={12} />
-      <span className="cel-badge flex size-44 shrink-0 items-center justify-center rounded-full border-[6px] border-solid border-gold bg-white/10">
-        <DogPhoto size={164} />
-      </span>
-      <div className="cel-text flex w-full flex-1 flex-col items-center" style={{ animationDelay: '0.5s' }}>
-        <p className="mt-7 text-[15px] font-bold tracking-[1px] text-[#F7D58A] uppercase">Nouveau niveau</p>
-        <h1 className="mt-3 font-display text-[40px] leading-tight font-extrabold">Niveau {level} !</h1>
-        <p className="mt-2 text-xl leading-snug">
-          {dogName} devient <span className="font-bold text-[#F7D58A]">{levelTitle(level)}</span>
-        </p>
-        <div className="mt-5 mb-6 flex justify-center">
-          <span className={pill}>Ajouté au Carnet</span>
         </div>
         <button type="button" onClick={onClose} className={continueButton}>
           Continuer

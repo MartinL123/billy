@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { CheckIcon } from '../../components/Icons'
 import { useToast } from '../../components/Toast'
-import { levelTitle, SKILLS, stepPhrase, TERRITORIES } from '../../content/phrases'
+import { SKILLS, stepPhrase, TERRITORIES } from '../../content/phrases'
 import { MAX_LEVEL } from '../../content/training'
 import { answerQuestion } from '../../firebase/db'
 import { useData } from '../../firebase/store'
@@ -9,7 +9,7 @@ import { declarePreApp, uncheckSteps } from '../../firebase/training'
 import { canUncheck, EMPTY_PROGRESS, markPreApp } from '../../lib/bossProgress'
 import { answerForSteps } from '../../lib/questionnaire'
 import { useToday } from '../../lib/useToday'
-import { dogLevel } from '../../lib/level'
+import { stepsAcquired } from '../../lib/level'
 import { Badge } from '../billy/Badge'
 
 const plural = (n: number, word: string) => `${n} étape${n > 1 ? 's' : ''} ${word}${n > 1 ? 's' : ''}`
@@ -24,7 +24,7 @@ export function Result() {
   const today = useToday()
   const toast = useToast()
   const navigate = useNavigate()
-  const level = dogLevel(bossProgress).level
+  const steps = stepsAcquired(bossProgress)
   const answers = dog.questionnaire?.answers ?? {}
 
   const uncheck = (skillId: string, name: string, step: number) => {
@@ -34,7 +34,7 @@ export function Result() {
     const { removed, undo } = uncheckSteps(skillId, current, step, xpLog)
     if (removed.length === 0) return
     answerQuestion(skillId, answerForSteps(step - 1))
-    toast(`${name} : ${plural(removed.length, 'décochée')}. Niveau recalculé.`, {
+    toast(`${name} : ${plural(removed.length, 'décochée')}.`, {
       label: 'Annuler',
       run: () => {
         undo()
@@ -49,7 +49,7 @@ export function Result() {
     const gained = declarePreApp(skillId, current, step, today)
     if (gained.length === 0) return
     answerQuestion(skillId, answerForSteps(step))
-    toast(`${name} : ${plural(gained.length, 'cochée')}. Niveau recalculé.`, {
+    toast(`${name} : ${plural(gained.length, 'cochée')}.`, {
       label: 'Annuler',
       run: () => {
         uncheckSteps(skillId, markPreApp(current ?? EMPTY_PROGRESS, step).progress, gained[0]!, [])
@@ -64,7 +64,7 @@ export function Result() {
   return (
     <>
       <h1 className="font-display text-[28px] leading-tight font-extrabold" aria-live="polite">
-        {dog.name} commence au niveau {level} · {levelTitle(level)}
+        {dog.name} commence avec {steps} étape{steps > 1 ? 's' : ''} déjà acquise{steps > 1 ? 's' : ''}
       </h1>
       <p className="rounded-2xl bg-[#FFF8E6] px-3.5 py-3 text-[15px] leading-[1.45] text-gold-dark">
         <strong>Vérifiez avant de commencer.</strong> Touchez une étape pour la décocher si on s'est trompé, ou pour cocher la suivante. Décocher une étape décoche aussi les plus difficiles de la même compétence.

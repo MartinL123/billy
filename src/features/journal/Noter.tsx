@@ -19,7 +19,7 @@ import { BonesGained } from '../../components/BoneIcon'
 import { BONES } from '../../lib/bones'
 import { SkillPill } from '../billy/SkillPill'
 import { useQuest } from '../today/useQuest'
-import { LevelUp, StepSuccess } from '../training/Celebration'
+import { StepSuccess } from '../training/Celebration'
 import { takeDraftPhotos } from './draft'
 import { Face } from './Face'
 import { errorText } from '../../firebase/errors'
@@ -136,8 +136,9 @@ export default function Noter() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auto, feeling])
 
-  // Après l'enregistrement : les réussites une à une, puis le nouveau niveau, puis retour.
-  const celebrations = outcome ? outcome.steps.length + (outcome.levelReached ? 1 : 0) : 0
+  // Après l'enregistrement : les réussites une à une, puis retour.
+  // Une seule récompense, les os : plus d'écran « Nouveau niveau ».
+  const celebrations = outcome ? outcome.steps.length : 0
   useEffect(() => {
     if (outcome && shown >= celebrations) {
       // « +10 os » avec l'os qui saute : les os du moment, plus ceux de la mission.
@@ -150,7 +151,6 @@ export default function Noter() {
   if (outcome) {
     const step = outcome.steps[shown]
     if (step) return <StepSuccess dogName={dog.name} bossId={step.bossId} level={step.level} onClose={() => setShown(shown + 1)} />
-    if (outcome.levelReached && shown < celebrations) return <LevelUp dogName={dog.name} level={outcome.levelReached} photoFileId={dog.photoThumbFileId} onClose={() => setShown(shown + 1)} />
     return null
   }
 

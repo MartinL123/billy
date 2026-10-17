@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { ChevronLeftIcon } from '../../components/Icons'
 import { useBack } from '../../lib/useBack'
 import { CheckIcon, ChevronRightIcon } from '../../components/Icons'
-import { levelTitle, SKILLS, stepShort, TERRITORIES, type Territory } from '../../content/phrases'
+import { SKILLS, stepShort, TERRITORIES, type Territory } from '../../content/phrases'
 import { MAX_LEVEL } from '../../content/training'
 import { useData } from '../../firebase/store'
 import { activeSkills } from '../../lib/active'
@@ -11,7 +11,6 @@ import { notedDays, programWeek, type DayState } from '../../lib/rhythm'
 import { currentExercise, LONG_SESSION_MINUTES, longSessionsDate, sessionMinutes } from '../../lib/training-plan'
 import { useToday } from '../../lib/useToday'
 import { WalksCard } from '../trajets/WalksCard'
-import { dogLevel, nextLevelLabel } from '../../lib/level'
 import { BoneIcon } from '../../components/BoneIcon'
 import { balance } from '../../lib/bones'
 import { BACKGROUNDS } from '../shop/Art'
@@ -126,7 +125,6 @@ export default function Tree() {
   const back = useBack('/billy')
   const today = useToday()
 
-  const level = dogLevel(bossProgress)
   const active = activeSkills(dog.activeSkills, dog.traits ?? [], bossProgress)
   const minutes = sessionMinutes(dog.birthDate, today)
   const rests = xpLog.filter((e) => e.kind === 'repos').map((e) => e.date)
@@ -147,12 +145,6 @@ export default function Tree() {
         </Link>
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <h1 className="font-display text-[28px] leading-none font-extrabold">L'arbre de {dog.name}</h1>
-          <p className="text-[15px] font-bold text-[#3F4946]">
-            Niveau {level.level} · {levelTitle(level.level)}
-          </p>
-          <div className="h-2.5 overflow-hidden rounded-full bg-placeholder" role="img" aria-label={nextLevelLabel(level)}>
-            <div className="h-full rounded-full bg-gold" style={{ width: `${Math.max(6, level.ratio * 100)}%` }} />
-          </div>
         </div>
       </header>
 

@@ -5,13 +5,29 @@ import { updateDog } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { questionnaireStatus, statusLabel } from '../../lib/questionnaire'
 
-/** Écran d'ouverture, à chaque lancement : on touche le logo pour entrer. */
+const SEEN_KEY = 'billy-ouverture-vue'
+
+/** L'écran d'ouverture a-t-il déjà été passé sur cet appareil ? (sans stockage : on le montre, ce n'est pas grave) */
+export function openingSeen(): boolean {
+  try {
+    return localStorage.getItem(SEEN_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+/** Écran d'ouverture, la première fois : on touche le logo pour entrer. Les fois suivantes, l'app ouvre l'accueil. */
 export default function Opening() {
   const { dog } = useData()
   const navigate = useNavigate()
   const status = questionnaireStatus(dog.questionnaire)
 
   const enter = () => {
+    try {
+      localStorage.setItem(SEEN_KEY, '1')
+    } catch {
+      // Stockage indisponible : l'ouverture reviendra au prochain lancement.
+    }
     // Tant que le questionnaire de départ n'est pas terminé, il s'ouvre tout seul. « Continuer plus tard » reste possible.
     if (!status.complete) {
       if (!dog.questionnaire?.startedAt) updateDog({ questionnaire: { answers: {}, ...dog.questionnaire, startedAt: new Date().toISOString() } })

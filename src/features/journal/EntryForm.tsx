@@ -32,7 +32,7 @@ export default function EntryForm() {
   const [params] = useSearchParams()
   const { entries } = useData()
   const today = useToday()
-  const back = useBack('/carnet')
+  const back = useBack('/balades')
   const navigate = useNavigate()
   const existing = id ? entries.find((e) => e.id === id) : undefined
   const route = readRoute(existing?.route)
@@ -82,7 +82,7 @@ export default function EntryForm() {
 
   if (id && !existing && !saving) {
     return (
-      <FormScreen title="Souvenir" submitLabel="Retour au journal" onCancel={back} onSubmit={back}>
+      <FormScreen title="Souvenir" submitLabel="Retour au souvenir" onCancel={back} onSubmit={back}>
         <p className="text-muted">Ce souvenir n'existe plus.</p>
       </FormScreen>
     )
@@ -281,8 +281,8 @@ export default function EntryForm() {
           onConfirm={() => {
             setSaving(true)
             deleteEntry(existing)
-            // Le détail n'existe plus : on revient au Carnet.
-            navigate('/carnet', { replace: true })
+            // Le détail n'existe plus : on revient à ses balades.
+            navigate('/balades', { replace: true })
           }}
         />
       )}

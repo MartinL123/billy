@@ -15,11 +15,11 @@ import { PhotoViewer } from './PhotoViewer'
 import { readRoute } from '../../lib/route'
 import { RouteDetail } from '../trajets/RouteDetail'
 
-/** Le détail d'un moment du Carnet. C'est ici que se trouve « Modifier ». */
+/** Le détail d'un souvenir (balade, photo ou note). C'est ici que se trouve « Modifier ». */
 export default function EntryView() {
   const { id } = useParams()
   const { entries, dog } = useData()
-  const back = useBack('/carnet')
+  const back = useBack('/balades')
   const [viewer, setViewer] = useState<number | null>(null)
   const found = entries.find((e) => e.id === id)
 
@@ -28,7 +28,7 @@ export default function EntryView() {
       <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col items-center justify-center gap-4 px-6 text-center">
         <p className="text-[17px] text-muted">Ce moment n'existe plus.</p>
         <button type="button" onClick={back} className="btn btn-main">
-          Retour au Carnet
+          Retour à ses balades
         </button>
       </main>
     )
@@ -41,7 +41,7 @@ export default function EntryView() {
       <header className="sticky top-0 z-10 flex items-center bg-bg px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5">
         <button type="button" onClick={back} className="btn btn-quiet min-h-12 px-4">
           <ChevronLeftIcon size={20} />
-          Carnet
+          Ses balades
         </button>
       </header>
       <main className="flex flex-col gap-4 px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+40px)]">

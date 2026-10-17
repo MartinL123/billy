@@ -32,7 +32,6 @@ import { InstallGuide } from './features/account/Install'
 import { useBack } from './lib/useBack'
 import EnCours from './features/billy/EnCours'
 import Skill from './features/billy/Skill'
-import Journal from './features/journal/Journal'
 import Noter from './features/journal/Noter'
 import DocumentForm from './features/profile/DocumentForm'
 import DocumentView from './features/profile/DocumentView'
@@ -122,9 +121,9 @@ export default function App() {
                   </Suspense>
                 }
               />
-              <Route path="carnet" element={<Journal />} />
               <Route path="territoire" element={<Explorer />} />
-              <Route path="journal" element={<Navigate to="/carnet" replace />} />
+              <Route path="journal" element={<Navigate to="/balades" replace />} />
+              <Route path="carnet" element={<Navigate to="/balades" replace />} />
             </Route>
             <Route path="ouverture" element={<Opening />} />
             <Route path="questionnaire" element={<Questionnaire />} />

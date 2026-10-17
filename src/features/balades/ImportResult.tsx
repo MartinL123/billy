@@ -53,7 +53,7 @@ export default function ImportResult() {
                 </li>
               ))}
             </ul>
-            {result.walks.length > 30 && <p className="text-[15px] text-muted">Et {result.walks.length - 30} autres, dans le Carnet.</p>}
+            {result.walks.length > 30 && <p className="text-[15px] text-muted">Et {result.walks.length - 30} autres, dans ses balades.</p>}
           </>
         )}
         <p className="text-[15px] text-muted">{result.line}</p>

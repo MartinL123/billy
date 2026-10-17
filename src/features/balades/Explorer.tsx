@@ -194,6 +194,9 @@ export default function Explorer() {
   const focus = useMemo<[number, number] | undefined>(() => (focusAt ? [focusAt.lat, focusAt.lng] : undefined), [focusAt?.lat, focusAt?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const sheet = useSheet()
+  // La boussole : l'aiguille suit la carte ; un toucher la remet face au nord.
+  const [bearing, setBearing] = useState(0)
+  const [north, setNorth] = useState(0)
 
   const setPref = (next: Partial<typeof prefs>) => {
     const value = { ...prefs, ...next }
@@ -204,7 +207,7 @@ export default function Explorer() {
   return (
     <div className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
-        <ExplorerMap cells={cells} tracks={tracks} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={() => setSelectedId(null)} />
+        <ExplorerMap cells={cells} tracks={tracks} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={() => setSelectedId(null)} onBearing={setBearing} north={north} />
       </Suspense>
 
       {/* En haut : la prochaine découverte, puis les réglages de la carte. */}
@@ -231,6 +234,12 @@ export default function Explorer() {
               3D
             </button>
           </div>
+          <button type="button" onClick={() => setNorth((n) => n + 1)} aria-label={`Remettre la carte face au nord${Math.round(bearing) ? ` (tournée de ${Math.round(((bearing % 360) + 360) % 360)}°)` : ''}`} className="pointer-events-auto flex size-12 items-center justify-center rounded-full border-0 bg-surface shadow-[0_2px_6px_rgba(24,32,30,0.2)]">
+            <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true" style={{ transform: `rotate(${-bearing}deg)`, transition: 'transform 0.1s linear' }}>
+              <path d="M13 2 L17 13 L13 11.5 L9 13 Z" fill="#C4423A" />
+              <path d="M13 24 L9 13 L13 14.5 L17 13 Z" fill="#8C9692" />
+            </svg>
+          </button>
         </div>
       </div>
 

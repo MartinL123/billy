@@ -25,6 +25,10 @@ interface Props {
   /** Un toucher sur la carte, hors des repères. */
   onMapTap?: () => void
   onPlace?: (id: string) => void
+  /** L'orientation de la carte (degrés), pour la boussole. */
+  onBearing?: (bearing: number) => void
+  /** Change à chaque toucher sur la boussole : la carte revient face au nord. */
+  north?: number
 }
 
 const FOG = { plan: { color: '#22332F', opacity: 0.86 }, satellite: { color: '#FFFFFF', opacity: 0.72 } }
@@ -93,18 +97,19 @@ function drawFog(layout: FogLayout, color: string, opacity: number): HTMLCanvasE
  * La carte qui se découvre : le brouillard (un seul polygone troué, bords adoucis), les trajets en pointillés,
  * les lieux à découvrir. Plan ou satellite, 2D ou 3D.
  */
-export function ExplorerMap({ cells, tracks, places, satellite, three, center, focus, onPlace, onMapTap }: Props) {
+export function ExplorerMap({ cells, tracks, places, satellite, three, center, focus, onPlace, onMapTap, onBearing, north }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const markers = useRef<Marker[]>([])
-  const handlers = useRef({ onPlace, onMapTap })
-  handlers.current = { onPlace, onMapTap }
+  const handlers = useRef({ onPlace, onMapTap, onBearing })
+  handlers.current = { onPlace, onMapTap, onBearing }
   const framed = useRef(false)
 
   useEffect(() => {
     if (!host.current) return
     const m = createMap(host.current, { zoom: 15, ...(center ? { center } : {}) })
     map.current = m
+    m.on('rotate', () => handlers.current.onBearing?.(m.getBearing()))
     m.on('click', (e) => {
       if (!onMarker(e.originalEvent)) handlers.current.onMapTap?.()
     })
@@ -127,6 +132,10 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
       whenReady(m, () => fitPoints(m, all, { top: 130, bottom: 340, left: 40, right: 40 }))
     } else if (center) m.jumpTo({ center: [center[1], center[0]] })
   }, [tracks, center])
+
+  useEffect(() => {
+    if (map.current && north) map.current.easeTo({ bearing: 0, duration: 500 })
+  }, [north])
 
   // Centrer sur le lieu ouvert, dans la partie de carte au-dessus de la fenêtre.
   useEffect(() => {

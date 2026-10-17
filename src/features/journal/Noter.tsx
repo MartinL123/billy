@@ -177,7 +177,7 @@ export default function Noter() {
         <button type="button" onClick={leave} className="btn btn-quiet min-h-12 px-4">
           Annuler
         </button>
-        <h1 className="text-lg font-bold">{fromQuest ? 'Mission réussie ?' : 'Noter ce qu’on a fait'}</h1>
+        <h1 className="text-lg font-bold">{fromQuest ? 'Mission réussie ?' : 'Un souvenir'}</h1>
         <div className="w-[92px]" />
       </header>
 
@@ -189,31 +189,12 @@ export default function Noter() {
           </div>
         )}
 
-        <div className={fromQuest ? 'card flex flex-col gap-2.5 p-4' : 'flex flex-col gap-2'}>
-          <label htmlFor="txt" className="text-lg font-bold">
-            {fromQuest ? (
-              <>
-                Ajouter des photos et/ou un commentaire <span className="font-normal text-muted">(facultatif)</span>
-              </>
-            ) : (
-              "Qu'avez-vous fait ?"
-            )}
-          </label>
-          <textarea
-            id="txt"
-            rows={3}
-            value={text}
-            onChange={(e) => {
-              setText(e.target.value)
-              setError('')
-            }}
-            placeholder={`Une balade, un jeu, un progrès de ${dog.name}…`}
-            className="resize-none rounded-[18px] border-2 border-solid border-primary bg-surface px-4 py-3.5 text-[17px] leading-[1.45] text-text"
-          />
+        {/* 1. La photo : une grande zone, la photothèque (jamais l'appareil photo). */}
+        <div className="flex flex-col gap-2">
           {photos.length > 0 && (
-            <div className="grid grid-cols-3 gap-2">
+            <div className={`grid gap-2 ${photos.length > 1 ? 'grid-cols-3' : ''}`}>
               {photos.map((photo, i) => (
-                <div key={photo.key} className="relative aspect-square overflow-hidden rounded-field bg-placeholder">
+                <div key={photo.key} className={`relative overflow-hidden rounded-[20px] bg-placeholder ${photos.length > 1 ? 'aspect-square' : 'h-[220px]'}`}>
                   <img src={photo.previewUrl} alt={`Photo ${i + 1}`} className="size-full object-cover" />
                   <button
                     type="button"
@@ -231,9 +212,9 @@ export default function Noter() {
             </div>
           )}
           {photos.length < MAX_PHOTOS && (
-            <FilePicker accept="image/*" onFiles={(files) => void addPhotos(files)} className="btn btn-outline">
-              <PhotoIcon size={22} />
-              Ajouter des photos
+            <FilePicker accept="image/*" onFiles={(files) => void addPhotos(files)} className={photos.length ? 'btn btn-outline' : 'flex h-[200px] flex-col items-center justify-center gap-2 rounded-[22px] border-2 border-dashed border-[#9AA39F] bg-surface text-[17px] font-bold text-primary'}>
+              <PhotoIcon size={photos.length ? 22 : 36} />
+              Ajouter une photo
             </FilePicker>
           )}
           {progress && (
@@ -243,10 +224,23 @@ export default function Noter() {
           )}
         </div>
 
-
+        {/* 2. Un mot. */}
+        <label className="flex flex-col gap-2">
+          <span className="text-lg font-bold">Un mot ?</span>
+          <textarea
+            rows={3}
+            value={text}
+            onChange={(e) => {
+              setText(e.target.value)
+              setError('')
+            }}
+            placeholder={`Une balade, un jeu, un progrès de ${dog.name}…`}
+            className="resize-none rounded-[18px] border-2 border-solid border-border bg-surface px-4 py-3.5 text-[17px] leading-[1.45] text-text focus:border-primary"
+          />
+        </label>
 
         <fieldset className="m-0 border-0 p-0">
-          <legend className={legend}>Comment ça s'est passé ?</legend>
+          <legend className={legend}>Comment c’était ?</legend>
           <div className="grid grid-cols-3 gap-2.5">
             {FEELINGS.map(({ value, label }) => {
               const on = feeling === value

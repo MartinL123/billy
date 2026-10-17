@@ -1,188 +1,173 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CheckIcon, ChevronRightIcon, NoteIcon, TargetIcon } from '../../components/Icons'
-import { levelTitle, SKILLS } from '../../content/phrases'
-import { useData } from '../../firebase/store'
-import { formatAgeShort, milestoneMessage, nextLifeStep } from '../../lib/age'
-import { challengeProgress, weekChallenge } from '../../lib/challenge'
-import { diffDays, formatDayHeading, formatLong, formatRelative, formatTime } from '../../lib/dates'
-import { typeInfo, upcoming } from '../../lib/events'
-import { nextMealIndex, portion, sortMeals } from '../../lib/feeding'
 import { BoneIcon } from '../../components/BoneIcon'
-import { BONES } from '../../lib/bones'
+import { ChevronRightIcon, PlusIcon } from '../../components/Icons'
+import { setEventDone } from '../../firebase/db'
+import { useData } from '../../firebase/store'
+import { skipQuest } from '../../firebase/training'
+import { balance } from '../../lib/bones'
+import { formatDayHeading, formatLong } from '../../lib/dates'
+import { portion, sortMeals } from '../../lib/feeding'
+import { contextLine, nextLines, nowCard, type NowCard, type NowInput } from '../../lib/nowCard'
 import { questionnaireStatus } from '../../lib/questionnaire'
-import { weekId } from '../../lib/rhythm'
-import { lastSuccess } from '../../lib/skills'
+import { formatRouteDistance } from '../../lib/route'
 import { useToday } from '../../lib/useToday'
-import { dogLevel, nextLevelLabel } from '../../lib/level'
-import { Badge } from '../billy/Badge'
-import { DogPhoto } from '../shop/DogPhoto'
+import { walkItems } from '../../lib/walkList'
+import { formatHour, walkTimes } from '../../lib/walks'
 import { InstallBanner, PasswordPrompt } from '../account/HomeNotices'
-import { DailyIdeas } from './DailyIdeas'
-import { QuestCard } from './QuestCard'
-import { WalksCard } from './WalksCard'
+import { DogPhoto } from '../shop/DogPhoto'
+import { Illustration } from '../training/Illustration'
+import { useQuest } from './useQuest'
 
-const RING = 2 * Math.PI * 46
+const nowMinutes = () => {
+  const d = new Date()
+  return d.getHours() * 60 + d.getMinutes()
+}
 
-/** Accueil : la partie. Le niveau de Billy, puis l'action principale : noter ce qu'on a fait. */
-export default function Today() {
-  const { dog, events, entries, sessions, bossProgress, xpLog } = useData()
+/** Ce que montre la carte « À faire maintenant » : une phrase, deux lignes, un seul bouton. */
+function useCardContent(card: NowCard) {
+  const { dog, events, entries } = useData()
+  const { quest, mission, minutes, canSkip, skips } = useQuest()
   const today = useToday()
+  switch (card.kind) {
+    case 'soin':
+      return {
+        badge: 'À faire maintenant',
+        title: card.event.title,
+        text: `C’est le jour : une minute, puis c’est noté dans Santé.`,
+        scene: undefined,
+        action: { label: 'C’est fait', run: () => setEventDone(events.find((e) => e.id === card.event.id)!, true) },
+      }
+    case 'repas':
+      return {
+        badge: `Repas de ${formatHour(card.time)}`,
+        title: `Le repas de ${formatHour(card.time)}`,
+        text: dog.feeding ? `${portion(dog.feeding)} g de croquettes. Un repas calme, sans le déranger.` : 'Un repas calme, sans le déranger.',
+        scene: undefined,
+        action: { label: 'Voir ses repas', to: '/sante' },
+      }
+    case 'mission':
+      return {
+        badge: `À faire maintenant · ${minutes} min`,
+        title: mission.title,
+        text: mission.detail,
+        scene: quest.planned?.exercise.scene,
+        action: { label: 'Commencer', to: '/exercice?depuis=quete' },
+        other: canSkip ? () => skipQuest(today, skips + 1) : undefined,
+      }
+    case 'sortie':
+      return {
+        badge: `Sortie de ${formatHour(card.time)}`,
+        title: `La sortie de ${formatHour(card.time)}`,
+        text: 'Hors du jardin, même 15 minutes. Elle se cochera toute seule avec votre balade Strava.',
+        scene: undefined,
+        action: { label: 'Ajouter la balade', to: '/importer' },
+      }
+    default: {
+      const last = walkItems(entries)[0]
+      return {
+        badge: 'Aujourd’hui',
+        title: 'Tout est fait pour aujourd’hui',
+        text: last ? `Dernière balade : ${last.name}, ${formatLong(last.date)} · ${formatRouteDistance(last.route.distanceM)}.` : 'Bravo à vous deux. Un souvenir à garder ?',
+        scene: undefined,
+        action: last ? { label: 'Revoir la balade', to: `/souvenir/${last.id}` } : { label: 'Noter un souvenir', to: '/noter' },
+      }
+    }
+  }
+}
 
-  const level = dogLevel(bossProgress)
-  const ratio = level.ratio
-  const life = nextLifeStep(dog.birthDate, today)
+/** Aujourd'hui (spec V4 § 2) : on comprend en 10 secondes quoi faire. Une carte, un bouton plein. */
+export default function Today() {
+  const { dog, events, bones, walks } = useData()
+  const today = useToday()
+  const { done: missionDone, minutes } = useQuest()
+  const [now, setNow] = useState(nowMinutes)
+  useEffect(() => {
+    const timer = setInterval(() => setNow(nowMinutes()), 60_000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const input: NowInput = {
+    today,
+    now,
+    care: events,
+    meals: sortMeals(dog.feeding?.meals ?? []),
+    mission: { done: missionDone, minutes },
+    walks: { times: walkTimes(dog.walkTimes), done: walks.find((w) => w.date === today)?.done ?? {} },
+  }
+  const card = nowCard(input)
+  const content = useCardContent(card)
+  const next = nextLines(input, card)
   const questionnaire = questionnaireStatus(dog.questionnaire)
-  const challenge = weekChallenge(weekId(today), bossProgress)
-  const done = challengeProgress(challenge, today, entries, sessions)
-  const success = lastSuccess(bossProgress, xpLog)
-  const celebration = milestoneMessage(dog.name, dog.birthDate, dog.adoptionDate, today)
-
-  const meals = sortMeals(dog.feeding?.meals ?? [])
-  const nextMeal = meals[nextMealIndex(meals, new Date().toTimeString().slice(0, 5)) ?? -1]
-  const grams = dog.feeding ? portion(dog.feeding) : undefined
-  const care = upcoming(events, today).slice(0, 2)
 
   return (
     <div className="flex flex-col gap-4 px-5">
-      <p className="text-[15px] font-medium text-muted">{formatDayHeading(today)}</p>
-
-      <Link to="/billy" aria-label={`${dog.name}, niveau ${level.level}, ${levelTitle(level.level)}. Voir ce qu'il sait faire`} className="flex items-center gap-[18px] rounded-[28px] bg-primary p-5 text-white no-underline shadow-[0_6px_18px_rgba(30,90,80,0.25)]">
-        <span className="relative size-[104px] shrink-0">
-          <svg viewBox="0 0 104 104" className="absolute inset-0 size-full -rotate-90" aria-hidden="true">
-            <circle cx="52" cy="52" r="46" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="8" />
-            <circle cx="52" cy="52" r="46" fill="none" stroke="#F2B544" strokeWidth="8" strokeLinecap="round" strokeDasharray={RING} strokeDashoffset={RING * (1 - ratio)} className="transition-[stroke-dashoffset] duration-700" />
-          </svg>
-          <span className="absolute inset-3">
-            <DogPhoto size={80} />
-          </span>
-          <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 rounded-xl bg-gold px-2.5 py-[3px] font-display text-[13px] font-extrabold whitespace-nowrap text-gold-dark">Niv. {level.level}</span>
+      <header className="flex items-center gap-3">
+        <Link to="/billy" aria-label={`Voir ${dog.name}`} className="shrink-0 overflow-hidden rounded-full border-[3px] border-solid border-milestone no-underline">
+          <DogPhoto size={52} />
+        </Link>
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="text-[15px] font-medium text-muted">{formatDayHeading(today)}</span>
+          <span className="font-display text-[24px] leading-tight font-extrabold">Bonjour</span>
         </span>
-        <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="font-display text-[28px] leading-none font-extrabold">{dog.name}</span>
-          <span className="text-[17px] font-bold text-[#F7D58A]">{levelTitle(level.level)}</span>
-          <span className="text-sm text-white/85">
-            {nextLevelLabel(level)}
-          </span>
-          {life && (
-            <span className="text-[13px] text-white/75">
-              {formatAgeShort(dog.birthDate, today)} · {life.label} le {formatLong(life.date).replace(/ \d{4}$/, '')}
-            </span>
-          )}
-        </span>
-        <ChevronRightIcon size={24} className="shrink-0" />
-      </Link>
+        <Link to="/boutique" aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[17px] font-extrabold text-gold-dark no-underline">
+          <BoneIcon size={20} />
+          {balance(bones)}
+        </Link>
+      </header>
 
-      {celebration && <p className="rounded-[20px] bg-primary-soft px-4 py-3 text-[15px] font-medium text-primary-dark">{celebration}</p>}
+      <p className="text-[17px] leading-snug">{contextLine(input, card)}</p>
 
-      {!questionnaire.complete && (
-        <section className="flex flex-col gap-3 rounded-[22px] bg-milestone-soft p-4">
-          <p className="text-[17px] leading-snug font-semibold text-[#5C2A08]">Terminez le questionnaire : {dog.name} gagnera ses premières étapes.</p>
-          <Link to="/questionnaire" className="btn btn-main">
-            Continuer le questionnaire
+      <section aria-label="À faire maintenant" className="card flex flex-col gap-3 rounded-[26px] p-4">
+        <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{content.badge}</span>
+        {content.scene && <Illustration scene={content.scene} className="h-[130px] bg-bg" />}
+        <h1 className="font-display text-[26px] leading-tight font-extrabold">{content.title}</h1>
+        <p className="line-clamp-2 text-[17px] leading-snug text-[#3F4946]">{content.text}</p>
+        {'to' in content.action ? (
+          <Link to={content.action.to!} className="btn btn-main min-h-[56px]">
+            {content.action.label}
           </Link>
+        ) : (
+          <button type="button" onClick={content.action.run} className="btn btn-main min-h-[56px]">
+            {content.action.label}
+          </button>
+        )}
+        {content.other && (
+          <button type="button" onClick={content.other} className="btn btn-quiet min-h-11 self-center px-4 text-[15px] text-primary">
+            Une autre idée
+          </button>
+        )}
+      </section>
+
+      {next.length > 0 && (
+        <section aria-labelledby="ensuite" className="card flex flex-col p-0">
+          <h2 id="ensuite" className="px-4 pt-3 text-[13px] font-extrabold tracking-[0.6px] text-muted uppercase">
+            Ensuite
+          </h2>
+          {next.map((line, i) => (
+            <Link key={line.key} to={line.to} className={`flex min-h-14 items-center gap-3 px-4 py-2.5 text-text no-underline ${i ? 'border-t border-divider' : ''}`}>
+              <span className="w-16 shrink-0 text-[15px] font-bold text-primary">{line.when}</span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="truncate text-[17px] font-semibold">{line.title}</span>
+                <span className="text-[15px] text-muted">{line.detail}</span>
+              </span>
+              <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
+            </Link>
+          ))}
         </section>
       )}
 
+      <Link to="/noter" className="flex min-h-12 items-center justify-center gap-2 text-[17px] font-bold text-primary no-underline">
+        <PlusIcon size={20} />
+        Noter un souvenir
+      </Link>
+      {!questionnaire.complete && (
+        <Link to="/questionnaire" className="text-center text-[15px] font-semibold text-muted underline">
+          Terminer le questionnaire de départ
+        </Link>
+      )}
+
       <PasswordPrompt />
-
-      <QuestCard />
-
-      <Link to="/noter" className={`btn min-h-[60px] text-[18px] ${questionnaire.complete ? 'btn-main shadow-[0_4px_12px_rgba(194,87,26,0.3)]' : 'btn-outline'}`}>
-        <NoteIcon size={24} />
-        Noter ce qu'on a fait
-      </Link>
-      <Link to="/exercice" className="btn btn-outline min-h-14">
-        <TargetIcon size={22} />
-        Faire un exercice
-      </Link>
-
-      <WalksCard today={today} />
-
-      {/* Le défi vient après « Noter », qui doit rester visible sans défiler. Toute la carte ouvre l'exercice du défi. */}
-      <Link to={`/exercice?competence=${challenge.bossId}`} aria-label={`Défi de la semaine : ${challenge.label}. Ouvrir l'exercice`} className="card flex flex-col gap-3 rounded-[22px] p-4 text-text no-underline">
-        <span className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-          <span className="text-[13px] font-bold tracking-[0.6px] text-milestone-dark uppercase">Défi de la semaine</span>
-          <span className="flex items-center gap-1 rounded-[10px] bg-[#FFF8E6] px-2.5 py-[3px] text-[13px] font-extrabold text-gold-dark">
-            +{BONES.challenge}
-            <BoneIcon size={16} />
-            <span className="sr-only">os</span>
-          </span>
-        </span>
-        <span className="flex items-center gap-3">
-          <span className="flex-1 text-[17px] leading-snug font-semibold">{challenge.label}</span>
-          <ChevronRightIcon size={22} className="shrink-0 text-primary" />
-        </span>
-        <span className="grid grid-cols-3 gap-1.5" aria-hidden="true">
-          {[0, 1, 2].map((i) => (
-            <span key={i} className={`h-2.5 rounded-full ${i < done ? 'bg-milestone' : 'bg-placeholder'}`} />
-          ))}
-        </span>
-        <span className="text-sm text-muted">{done >= challenge.target ? 'Défi réussi, bravo !' : "Rien n'est perdu si ce n'est pas fini dimanche."}</span>
-      </Link>
-
-      <section className="flex flex-col gap-2.5">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="font-display text-xl font-extrabold">Ses badges</h2>
-          <Link to="/billy" className="btn btn-outline min-h-12 px-4 text-[15px]">
-            Son arbre
-          </Link>
-        </div>
-        <div className="scroll-row -mx-5 flex gap-2.5 px-5 pt-0.5 pb-1.5">
-          {SKILLS.map((skill) => (
-            <Link key={skill.id} to={`/competence/${skill.id}`} className="flex w-[92px] shrink-0 flex-col items-center gap-1.5 rounded-2xl border border-solid border-border bg-surface px-1 py-2.5 text-text no-underline">
-              <Badge bossId={skill.id} acquired={bossProgress[skill.id]?.level ?? 0} size={68} />
-              <span className="text-center text-[13px] leading-tight font-bold">{skill.name}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {success?.date ? (
-        <Link to={`/competence/${success.bossId}`} className="card-link rounded-[22px]">
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-gold-soft text-[#8A6514]">
-            <CheckIcon size={24} />
-          </span>
-          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="text-[13px] font-bold tracking-[0.6px] text-[#8A6514] uppercase">Dernière réussite · {formatRelative(success.date, today)}</span>
-            <span className="text-base leading-snug font-semibold">{success.phrase}</span>
-          </span>
-          <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
-        </Link>
-      ) : null}
-
-      <section className="flex flex-col gap-2.5">
-        <h2 className="mt-1 text-[19px] font-bold">Aujourd'hui</h2>
-        <div className="card overflow-hidden">
-          {nextMeal && (
-            <div className="flex items-center gap-3 px-4 py-3.5">
-              <span className="size-2.5 shrink-0 rounded-full bg-primary" />
-              <span className="flex-1 text-base font-semibold">
-                Repas de {formatTime(nextMeal.time)}
-                {grams ? ` · ${grams} g` : ''}
-              </span>
-              <span className="text-sm text-muted">{nextMeal.label}</span>
-            </div>
-          )}
-          {care.map((event, i) => {
-            const late = diffDays(event.date, today) > 0
-            return (
-              <div key={event.id} className={`flex items-center gap-3 px-4 py-3.5 ${nextMeal || i ? 'border-t border-divider' : ''}`}>
-                <span className="size-2.5 shrink-0 rounded-full" style={{ background: typeInfo(event.type).color }} />
-                <span className="min-w-0 flex-1 truncate text-base font-semibold">{event.title}</span>
-                <span className={`shrink-0 text-sm ${late ? 'font-semibold text-danger' : 'text-muted'}`}>{late ? 'en retard' : formatRelative(event.date, today)}</span>
-              </div>
-            )
-          })}
-          {!nextMeal && care.length === 0 && <p className="px-4 py-3.5 text-base text-muted">Rien de prévu aujourd'hui.</p>}
-        </div>
-        <Link to="/sante" className="card-link">
-          <span className="flex-1 text-[17px] font-semibold">Voir la santé et les rendez-vous</span>
-          <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
-        </Link>
-      </section>
-
-      <DailyIdeas today={today} />
-
       <InstallBanner />
     </div>
   )

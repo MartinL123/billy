@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { streetFromNominatim } from './street'
+import { communeFromAddress, streetFromNominatim } from './street'
 
 describe('nom de la rue', () => {
   it('prend la rue, puis le chemin piéton, puis le parc', () => {
@@ -13,4 +13,10 @@ describe('nom de la rue', () => {
     expect(streetFromNominatim(null)).toBeUndefined()
     expect(streetFromNominatim({ address: { road: '  ' } })).toBeUndefined()
   })
+  it('nom de la commune', () => {
+    expect(communeFromAddress({ address: { village: 'Bourg-en-Test', county: 'Test' } })).toBe('Bourg-en-Test')
+    expect(communeFromAddress({ address: { city: 'Paris', suburb: 'Marais' } })).toBe('Paris')
+    expect(communeFromAddress({ address: {} })).toBeUndefined()
+  })
 })
+

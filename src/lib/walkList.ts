@@ -4,7 +4,8 @@ import { isHardMoment, readRoute, type Route, type StoredRoute } from './route'
 // Toutes les balades et leurs filtres (carte-a-decouvrir.md § 7 bis). Un filtre change les trajets dessinés et la
 // liste ; le brouillard, lui, reste calculé sur toutes les balades (on ne « reperd » jamais un territoire).
 
-export type WalkFilter = 'toutes' | 'mois' | 'peur' | 'long'
+/** Les filtres ; `commune:Saint-Briac` pour une commune visitée. */
+export type WalkFilter = 'toutes' | 'mois' | 'peur' | 'long' | `commune:${string}`
 
 export interface WalkItem {
   id: string
@@ -35,6 +36,7 @@ export function filterWalks(items: WalkItem[], filter: WalkFilter, today: ISODat
   if (filter === 'mois') return items.filter((w) => w.date.startsWith(today.slice(0, 7)))
   if (filter === 'peur') return items.filter((w) => w.route.moments.some(isHardMoment))
   if (filter === 'long') return items.filter((w) => w.route.distanceM > 3000)
+  if (filter.startsWith('commune:')) return items.filter((w) => w.commune === filter.slice(8))
   return items
 }
 
@@ -44,4 +46,20 @@ export function walksSummary(items: WalkItem[]): string {
   const min = items.reduce((s, w) => s + (w.route.durationMin ?? 0), 0)
   const time = min ? ` · ${Math.floor(min / 60) ? `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, '0')}` : `${min} min`} ensemble` : ''
   return `${items.length} balade${items.length > 1 ? 's' : ''} · ${km.toFixed(1).replace('.', ',')} km${time}`
+}
+
+/** Les communes visitées, de la plus fréquente à la moins fréquente. */
+export function communesOf(items: WalkItem[]): string[] {
+  const counts = new Map<string, number>()
+  for (const w of items) if (w.commune) counts.set(w.commune, (counts.get(w.commune) ?? 0) + 1)
+  return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([name]) => name)
+}
+
+/** Étiquettes d'une ligne : d'où vient le trajet, et ses moments (« 1 peur », « Super rappel »). */
+export function walkTags(item: WalkItem): string[] {
+  const tags = [item.source === 'strava' || item.route.source ? 'Strava' : 'Tracé à la main']
+  const fears = item.route.moments.filter((m) => m.type === 'peur' || m.type === 'grogne').length
+  if (fears) tags.push(`${fears} peur${fears > 1 ? 's' : ''}`)
+  if (item.route.moments.some((m) => m.type === 'rappel')) tags.push('Super rappel')
+  return tags
 }

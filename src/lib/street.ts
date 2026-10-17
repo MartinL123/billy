@@ -36,3 +36,24 @@ export async function streetName(lat: number, lng: number): Promise<string | und
     return undefined
   }
 }
+
+/** Le nom de la commune d'un point (Nominatim, zoom 10), ou rien. Une requête par seconde au plus (règle de Nominatim). */
+export function communeFromAddress(json: NominatimReverse | null | undefined): string | undefined {
+  const a = json?.address ?? {}
+  return a.village ?? a.town ?? a.city ?? a.municipality ?? undefined
+}
+
+let lastAsk = 0
+export async function communeName(lat: number, lng: number): Promise<string | undefined> {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return undefined
+  const wait = lastAsk + 1100 - Date.now()
+  if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait))
+  lastAsk = Date.now()
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=fr&lat=${lat.toFixed(4)}&lon=${lng.toFixed(4)}`
+    const response = await fetch(url, { signal: AbortSignal.timeout(6000) })
+    return response.ok ? communeFromAddress(await response.json()) : undefined
+  } catch {
+    return undefined
+  }
+}

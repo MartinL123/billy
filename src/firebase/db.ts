@@ -195,6 +195,11 @@ export function updateEntryRoute(id: string, route: StoredRoute): void {
   send(updateDoc(userDoc('entries', id), { route } as DocumentData))
 }
 
+/** La commune d'une balade (Nominatim), gardée avec elle pour la liste « Ses balades ». */
+export function setEntryCommune(id: string, commune: string): void {
+  send(updateDoc(userDoc('entries', id), { commune }))
+}
+
 export function saveEntry(id: string, entry: Entry): void {
   send(setDoc(userDoc('entries', id), entry as DocumentData))
 }

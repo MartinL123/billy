@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ChevronLeftIcon, ChevronRightIcon } from '../../components/Icons'
 import { auth } from '../../firebase/app'
 import { fetchCommune } from '../../firebase/communes'
@@ -40,7 +40,9 @@ export default function Explorer() {
   const today = useToday()
   const navigate = useNavigate()
   const [prefs, setPrefs] = useState(readPrefs)
-  const [filter, setFilter] = useState<WalkFilter>('toutes')
+  // « Voir ces balades sur la carte » garde le filtre choisi dans la liste.
+  const [params] = useSearchParams()
+  const [filter, setFilter] = useState<WalkFilter>(() => (params.get('filtre') as WalkFilter | null) ?? 'toutes')
   const [collapsed, setCollapsed] = useState(false)
   const [dragFrom, setDragFrom] = useState<number | null>(null)
   const [spots, setSpots] = useState<WithId<Spot>[]>([])

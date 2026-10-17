@@ -1,5 +1,6 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { ImportWalkButton } from '../balades/ImportWalkButton'
 import { ChevronRightIcon } from '../../components/Icons'
 import { knownCells, zonesLabel } from '../../lib/exploration'
 import { useData } from '../../firebase/store'
@@ -22,7 +23,7 @@ export function WalksCard() {
       <div className="flex flex-col gap-0.5">
         <h2 className="font-display text-lg font-extrabold">Ses balades</h2>
         <p className="text-sm leading-snug text-[#3F4946]">
-          {routes.length ? `Ses trajets en ${month}, superposés.` : `Ajoutez vos balades (fichier Strava) ou tracez-les dans Noter : vous verrez ici où ${dog.name} a peur et où tout va bien.`}
+          {routes.length ? `Ses trajets en ${month}, superposés.` : `Importez vos balades Strava : vous verrez ici où ${dog.name} a peur et où tout va bien.`}
         </p>
       </div>
       {routes.length > 0 ? (
@@ -44,9 +45,7 @@ export function WalksCard() {
           </div>
         </>
       ) : (
-        <Link to="/carnet" className="btn btn-outline">
-          Ajouter une balade
-        </Link>
+        <ImportWalkButton className="" />
       )}
       <Link to="/exploration" className="flex min-h-12 items-center justify-between rounded-[16px] bg-primary-soft px-4 text-[17px] font-bold text-primary-dark no-underline">
         <span>Exploration · {zonesLabel(cells)}</span>

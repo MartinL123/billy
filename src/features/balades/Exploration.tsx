@@ -1,9 +1,9 @@
 import { lazy, Suspense, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import { ChevronLeftIcon } from '../../components/Icons'
 import { useData } from '../../firebase/store'
 import { BONES_PER_ZONE, knownCells, MAX_ZONE_BONES, zonesLabel } from '../../lib/exploration'
 import { useBack } from '../../lib/useBack'
+import { ImportWalkButton } from './ImportWalkButton'
 
 const FogMap = lazy(() => import('./FogMap').then((m) => ({ default: m.FogMap })))
 
@@ -32,11 +32,9 @@ export default function Exploration() {
       </div>
       <div className="flex flex-col gap-2.5 border-t border-divider bg-bg px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
         <p className="text-[15px] leading-snug text-muted">
-          {cells.size ? `Chaque nouvelle zone rapporte ${BONES_PER_ZONE} os (${MAX_ZONE_BONES} au plus par balade). Prenez une autre rue la prochaine fois !` : 'Ajoutez une balade : le brouillard se lèvera là où vous êtes passés.'}
+          {cells.size ? `Chaque nouvelle zone rapporte ${BONES_PER_ZONE} os (${MAX_ZONE_BONES} au plus par balade). Prenez une autre rue la prochaine fois !` : 'Importez vos balades Strava : le brouillard se lèvera là où vous êtes passés.'}
         </p>
-        <Link to="/carnet" className="btn btn-main min-h-[54px]">
-          Ajouter une balade
-        </Link>
+        <ImportWalkButton main className="" />
       </div>
     </div>
   )

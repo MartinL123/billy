@@ -29,6 +29,8 @@ import { useQuest } from '../today/useQuest'
 import { BossIcon } from '../training/BossIcon'
 import { LevelUp, StepSuccess } from '../training/Celebration'
 import { takeDraftPhotos, takeDraftWalk } from './draft'
+import { placePhoto, type PhotoClue } from '../../lib/balade'
+import { readPhotoClue } from '../../lib/photoClue'
 import { Face } from './Face'
 import { errorText } from '../../firebase/errors'
 
@@ -39,6 +41,8 @@ interface Photo {
   full: Blob
   thumb: Blob
   previewUrl: string
+  /** Position et heure lues dans l'EXIF, avant la compression qui les efface. */
+  clue: PhotoClue
 }
 
 const legend = 'mb-2.5 p-0 text-lg font-bold'
@@ -114,8 +118,9 @@ export default function Noter() {
     for (const [i, file] of accepted.entries()) {
       setProgress(`Préparation des photos… ${i + 1} sur ${accepted.length}`)
       try {
+        const clue = await readPhotoClue(file)
         const { full, thumb } = await compressImage(file, PHOTO)
-        setPhotos((current) => [...current, { key: crypto.randomUUID(), full, thumb, previewUrl: URL.createObjectURL(thumb) }])
+        setPhotos((current) => [...current, { key: crypto.randomUUID(), full, thumb, previewUrl: URL.createObjectURL(thumb), clue }])
       } catch (err) {
         setError(errorText(err, 'Une photo n’a pas pu être ajoutée.'))
       }
@@ -146,7 +151,11 @@ export default function Noter() {
     setSaving(true)
     try {
       const saved: EntryPhoto[] = []
-      for (const photo of photos) saved.push({ fileId: await saveImage(photo.full), thumbFileId: await saveImage(photo.thumb) })
+      for (const photo of photos) {
+        // Une photo prise pendant la balade se place sur le tracé (GPS de la photo, ou heure de la trace GPX).
+        const at = trace ? placePhoto(photo.clue, trace.route.points, walk?.raw) : undefined
+        saved.push({ fileId: await saveImage(photo.full), thumbFileId: await saveImage(photo.thumb), ...(at ? { lat: at.lat, lng: at.lng } : {}) })
+      }
       const result = recordMoment(
         { date, text: text.trim() || today0.note, tags: [], photos: saved, skills, feeling, fear, movedAway: input.movedAway, ...(trace ? { route: storeRoute(trace.route) } : {}) },
         yesIds,

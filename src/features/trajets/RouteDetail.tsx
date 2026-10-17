@@ -1,6 +1,7 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { updateDog, updateEntryRoute } from '../../firebase/db'
 import { useData } from '../../firebase/store'
+import type { EntryPhoto } from '../../firebase/types'
 import type { ISODate } from '../../lib/dates'
 import { deriveTraits, reactionsFromFears } from '../../lib/questionnaire'
 import { useToday } from '../../lib/useToday'
@@ -15,12 +16,13 @@ const RouteMap = lazy(() => import('./RouteMap').then((m) => ({ default: m.Route
 const Tracer = lazy(() => import('./Tracer').then((m) => ({ default: m.Tracer })))
 
 /** Le trajet dans le détail d'un moment : grande carte, distance · durée · moments, la liste, « Modifier le trajet ». */
-export function RouteDetail({ entryId, date, route }: { entryId: string; date: ISODate; route: Route }) {
+export function RouteDetail({ entryId, date, route, photos, onPhoto }: { entryId: string; date: ISODate; route: Route; photos?: EntryPhoto[]; onPhoto?: (index: number) => void }) {
   const { routes, exploration } = useData()
   const [editing, setEditing] = useState(false)
   // Un toucher sur le tracé : un repère à cet endroit (rencontre, jeu, pipi, stress…).
   const [placing, setPlacing] = useState<{ lat: number; lng: number } | null>(null)
   const [missed, setMissed] = useState(false)
+  const placed = useMemo(() => (photos ?? []).flatMap((p, index) => (p.lat !== undefined && p.lng !== undefined ? [{ index, thumbFileId: p.thumbFileId, lat: p.lat, lng: p.lng }] : [])), [photos])
   const saveMoments = (moments: Route['moments']) => updateEntryRoute(entryId, storeRoute({ ...route, moments }))
   const stats = [formatRouteDistance(route.distanceM), route.durationMin ? (route.source === 'gpx' ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} repère${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
   return (
@@ -29,6 +31,8 @@ export function RouteDetail({ entryId, date, route }: { entryId: string; date: I
         <Suspense fallback={null}>
           <RouteMap
             route={route}
+            photos={placed}
+            onPhoto={onPhoto}
             onTapRoute={(at) => {
               setMissed(false)
               setPlacing(at)

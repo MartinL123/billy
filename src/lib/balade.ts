@@ -1,5 +1,5 @@
 import type { ISODate } from './dates'
-import { routeDistance, simplify, type RoutePoint } from './route'
+import { distanceToRoute, routeDistance, simplify, type RoutePoint } from './route'
 
 // Une balade importée d'un fichier GPX (Strava, montre…) : jamais de GPS en direct dans l'app.
 
@@ -102,4 +102,37 @@ export function formatDuration(min: number): string {
   const h = Math.floor(min / 60)
   const m = min % 60
   return m ? `${h} h ${String(m).padStart(2, '0')}` : `${h} h`
+}
+
+/** Ce qu'une photo dit d'elle-même (EXIF) : où et quand elle a été prise. */
+export interface PhotoClue {
+  lat?: number
+  lng?: number
+  /** Heure de prise de vue, en millisecondes. */
+  time?: number
+}
+
+/** Une photo prise à moins de 50 m du tracé s'y place ; on tolère 5 min avant le départ et après l'arrivée. */
+export const PHOTO_NEAR_ROUTE = 50
+const PHOTO_MARGIN_MS = 5 * 60 * 1000
+
+/**
+ * Où placer une photo sur la balade : sa position GPS si elle est près du tracé ; sinon, si elle a été prise
+ * pendant la balade, l'endroit où l'on était à cette heure-là (d'après les heures du fichier GPX).
+ */
+export function placePhoto(clue: PhotoClue, points: RoutePoint[], timed: TimedPoint[] = []): { lat: number; lng: number } | undefined {
+  if (clue.lat !== undefined && clue.lng !== undefined && distanceToRoute({ lat: clue.lat, lng: clue.lng }, points) <= PHOTO_NEAR_ROUTE) return { lat: clue.lat, lng: clue.lng }
+  if (clue.time === undefined) return undefined
+  const track = timed.flatMap((p) => (p.time ? [{ ...p, t: Date.parse(p.time) }] : [])).filter((p) => !Number.isNaN(p.t))
+  if (track.length < 2) return undefined
+  const first = track[0]!
+  const last = track[track.length - 1]!
+  if (clue.time < first.t - PHOTO_MARGIN_MS || clue.time > last.t + PHOTO_MARGIN_MS) return undefined
+  if (clue.time <= first.t) return { lat: first.lat, lng: first.lng }
+  if (clue.time >= last.t) return { lat: last.lat, lng: last.lng }
+  const i = track.findIndex((p) => p.t >= clue.time!)
+  const a = track[i - 1]!
+  const b = track[i]!
+  const f = b.t === a.t ? 0 : (clue.time - a.t) / (b.t - a.t)
+  return { lat: a.lat + (b.lat - a.lat) * f, lng: a.lng + (b.lng - a.lng) * f }
 }

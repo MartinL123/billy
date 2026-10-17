@@ -100,6 +100,9 @@ export interface Weight {
 export interface EntryPhoto {
   fileId: string
   thumbFileId: string
+  /** Où elle a été prise sur la balade (EXIF ou heure de la trace GPX), si on le sait. */
+  lat?: number
+  lng?: number
 }
 
 /** users/{uid}/entries/{id} */

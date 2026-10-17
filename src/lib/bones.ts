@@ -31,7 +31,7 @@ export const BONES = {
 export const NOTES_PER_DAY = 3
 export const REGULAR_DAYS = 5
 
-export type BoneReason = 'mission' | 'note' | 'reussite' | 'etape' | 'defi' | 'semaine' | 'repos' | 'questionnaire' | 'marque' | 'meute' | 'achat'
+export type BoneReason = 'mission' | 'note' | 'reussite' | 'etape' | 'defi' | 'semaine' | 'repos' | 'questionnaire' | 'marque' | 'meute' | 'zone' | 'achat'
 
 /** users/{uid}/bones/{id} */
 export interface Bone {
@@ -101,6 +101,7 @@ export const HOW_TO_EARN: { label: string; amount: number }[] = [
   { label: 'Questionnaire de départ terminé', amount: BONES.questionnaire },
   { label: 'Marquer un spot (nouveau : +10)', amount: BONES.mark },
   { label: 'Défi de la meute tenu', amount: BONES.packChallenge },
+  { label: 'Nouvelle zone découverte en balade (50 par balade)', amount: 1 },
 ]
 
 /**
@@ -142,3 +143,6 @@ export function backfillBones(
   if (done.questionnaireDoneOn) add(questionnaireBone(done.questionnaireDoneOn))
   return out
 }
+
+/** Zones découvertes par une balade : 1 os par zone, 50 au plus (exploration). Une fois par balade. */
+export const zonesBone = (entryId: string, date: ISODate, amount: number) => bone('zone', entryId, date, amount)

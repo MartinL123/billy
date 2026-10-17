@@ -1,5 +1,7 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { ChevronRightIcon } from '../../components/Icons'
+import { knownCells, zonesLabel } from '../../lib/exploration'
 import { useData } from '../../firebase/store'
 import { formatMonthYear } from '../../lib/dates'
 import { GOOD_COLOR, HARD_COLOR, walksOfMonth } from '../../lib/route'
@@ -9,7 +11,8 @@ const WalksMap = lazy(() => import('./WalksMap').then((m) => ({ default: m.Walks
 
 /** « Ses balades » (trajets.md § 4) : où il a peur, où ça se passe bien. Pas de chiffre à battre, pas de kilomètres. */
 export function WalksCard() {
-  const { dog, entries } = useData()
+  const { dog, entries, exploration } = useData()
+  const cells = useMemo(() => knownCells(exploration).size, [exploration])
   const today = useToday()
   const routes = useMemo(() => walksOfMonth(entries, today.slice(0, 7)), [entries, today])
   const month = formatMonthYear(today).split(' ')[0]!.toLocaleLowerCase('fr')
@@ -19,7 +22,7 @@ export function WalksCard() {
       <div className="flex flex-col gap-0.5">
         <h2 className="font-display text-lg font-extrabold">Ses balades</h2>
         <p className="text-sm leading-snug text-[#3F4946]">
-          {routes.length ? `Ses trajets en ${month}, superposés.` : `Tracez vos balades dans Noter : vous verrez ici où ${dog.name} a peur et où tout va bien.`}
+          {routes.length ? `Ses trajets en ${month}, superposés.` : `Ajoutez vos balades (fichier Strava) ou tracez-les dans Noter : vous verrez ici où ${dog.name} a peur et où tout va bien.`}
         </p>
       </div>
       {routes.length > 0 ? (
@@ -41,10 +44,14 @@ export function WalksCard() {
           </div>
         </>
       ) : (
-        <Link to="/noter" className="btn btn-outline">
-          Noter une balade
+        <Link to="/carnet" className="btn btn-outline">
+          Ajouter une balade
         </Link>
       )}
+      <Link to="/exploration" className="flex min-h-12 items-center justify-between rounded-[16px] bg-primary-soft px-4 text-[17px] font-bold text-primary-dark no-underline">
+        <span>Exploration · {zonesLabel(cells)}</span>
+        <ChevronRightIcon size={20} />
+      </Link>
     </section>
   )
 }

@@ -6,6 +6,7 @@ import { deriveTraits, reactionsFromFears } from '../../lib/questionnaire'
 import { useToday } from '../../lib/useToday'
 import { durationLabel, formatRouteDistance, hasReaction, momentReaction, routeMomentInfo, storeRoute, type Route } from '../../lib/route'
 import { keepRoute } from './keepRoute'
+import { discoverZones } from '../../firebase/exploration'
 import { formatDuration } from '../../lib/balade'
 
 const RouteMap = lazy(() => import('./RouteMap').then((m) => ({ default: m.RouteMap })))
@@ -13,7 +14,7 @@ const Tracer = lazy(() => import('./Tracer').then((m) => ({ default: m.Tracer })
 
 /** Le trajet dans le détail d'un moment : grande carte, distance · durée · moments, la liste, « Modifier le trajet ». */
 export function RouteDetail({ entryId, date, route }: { entryId: string; date: ISODate; route: Route }) {
-  const { routes } = useData()
+  const { routes, exploration } = useData()
   const [editing, setEditing] = useState(false)
   const stats = [formatRouteDistance(route.distanceM), route.durationMin ? (route.source === 'gpx' ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} moment${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
   return (
@@ -51,6 +52,7 @@ export function RouteDetail({ entryId, date, route }: { entryId: string; date: I
               setEditing(false)
               updateEntryRoute(entryId, storeRoute(result.route))
               keepRoute(result, routes)
+              discoverZones(result.route.points, exploration)
             }}
           />
         </Suspense>

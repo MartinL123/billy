@@ -6,6 +6,7 @@ import { useToast } from '../../components/Toast'
 import { SKILLS, stepPhrase } from '../../content/phrases'
 import { Bytes } from 'firebase/firestore'
 import { shareMoment } from '../../firebase/community'
+import { cancelZoneBones, discoverZones } from '../../firebase/exploration'
 import { answerQuestion } from '../../firebase/db'
 import { saveImage } from '../../firebase/files'
 import { useData } from '../../firebase/store'
@@ -49,7 +50,7 @@ const choice = (on: boolean) => `btn px-2 ${on ? 'btn-on' : 'btn-outline'}`
  */
 export default function Noter() {
   const [params] = useSearchParams()
-  const { dog, entries, sessions, bossProgress, bones, routes } = useData()
+  const { dog, entries, sessions, bossProgress, bones, routes, exploration } = useData()
   const today = useToday()
   const toast = useToast()
   const navigate = useNavigate()
@@ -97,6 +98,8 @@ export default function Noter() {
   const [saving, setSaving] = useState(false)
   const [outcome, setOutcome] = useState<MomentOutcome | null>(null)
   const [shown, setShown] = useState(0)
+  // Zones découvertes par la balade (exploration) : annoncées avec les os.
+  const [zones, setZones] = useState({ zones: 0, bones: 0 })
 
   const photosRef = useRef(photos)
   photosRef.current = photos
@@ -154,7 +157,10 @@ export default function Noter() {
       if (fromQuest) completeQuest(today, { kind: today0.quest.kind, bossId: today0.quest.bossId, exerciseId: today0.quest.planned?.exercise.id }, today0.skips, QUEST_XP)
       // Souvenir des premières semaines : l'écran de résultat du questionnaire le retrouve.
       if (params.get('retour') === 'questionnaire') answerQuestion('souvenir', result.entryId, { 'questionnaire.souvenirs': [...(dog.questionnaire?.souvenirs ?? []), result.entryId] })
-      if (trace) keepRoute(trace, routes)
+      if (trace) {
+        keepRoute(trace, routes)
+        setZones(discoverZones(trace.route.points, exploration, { entryId: result.entryId, date }))
+      }
       // Ce que la meute voit : le texte, le jour, la 1re photo en miniature. Ni heure, ni lieu, ni ressenti, ni compétences.
       if (share) {
         const thumb = photos[0] ? Bytes.fromUint8Array(new Uint8Array(await photos[0].thumb.arrayBuffer())) : undefined
@@ -172,7 +178,12 @@ export default function Noter() {
   useEffect(() => {
     if (outcome && shown >= celebrations) {
       // « +10 os » avec l'os qui saute : les os du moment, plus ceux de la mission.
-      toast(<BonesGained label="Noté !" amount={outcome.bones + (fromQuest ? BONES.mission : 0)} />, fromQuest ? undefined : { label: 'Annuler', run: outcome.undo })
+      const label = zones.zones ? `Noté ! +${zones.zones} zone${zones.zones > 1 ? 's' : ''}` : 'Noté !'
+      const undo = () => {
+        outcome.undo()
+        if (zones.bones) cancelZoneBones(outcome.entryId)
+      }
+      toast(<BonesGained label={label} amount={outcome.bones + zones.bones + (fromQuest ? BONES.mission : 0)} />, fromQuest ? undefined : { label: 'Annuler', run: undo })
       leave()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

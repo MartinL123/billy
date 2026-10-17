@@ -11,8 +11,10 @@ import EntryView from './features/journal/EntryView'
 import Billy from './features/billy/Billy'
 import Shop from './features/shop/Shop'
 import Territory from './features/meute/Territory'
+import Exploration from './features/balades/Exploration'
 import { CommunitySync } from './features/meute/CommunitySync'
 import { BonesBackfill } from './features/shop/BonesBackfill'
+import { ExplorationBackfill } from './features/balades/ExplorationBackfill'
 import DogPublic from './features/meute/DogPublic'
 // La carte (Leaflet) n'est chargée qu'en ouvrant l'onglet Meute.
 const Meute = lazy(() => import('./features/meute/Meute'))
@@ -94,6 +96,7 @@ export default function App() {
         <AppTheme />
         <CommunitySync />
         <BonesBackfill />
+        <ExplorationBackfill />
         <HashRouter>
           <OpenOnLogo />
           <ScrollToTop />
@@ -122,6 +125,7 @@ export default function App() {
             <Route path="boutique" element={<Shop />} />
             <Route path="meute/chien/:id" element={<DogPublic />} />
             <Route path="territoire" element={<Territory />} />
+            <Route path="exploration" element={<Exploration />} />
             <Route path="installer" element={<InstallRoute />} />
             <Route path="profil" element={<Profile />} />
             <Route path="profil/modifier" element={<ProfileEditScreen />} />

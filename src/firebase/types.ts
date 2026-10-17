@@ -66,6 +66,8 @@ export interface Dog {
   passwordPromptDone?: boolean
   /** Os rétroactifs déjà versés (le jour où c'est fait). */
   bonesBackfilled?: ISODate
+  /** Zones des balades d'avant l'exploration déjà ajoutées (sans os). */
+  explorationBackfilled?: ISODate
   /** Compétences en cours choisies par le maître (3 au plus). Absent : l'app propose les 3 premières non maîtrisées. */
   activeSkills?: string[]
   /** Calculé à la lecture, jamais enregistré : le nom n'a pas encore été donné (on affiche « Votre chien »). */
@@ -257,4 +259,9 @@ export interface DailyQuestDoc {
   exerciseId?: string
   done: boolean
   skips: number
+}
+
+/** users/{uid}/exploration/{carré de précision 5} : les cellules découvertes (suffixes de 3 caractères). */
+export interface ExplorationBlock {
+  cells: string[]
 }

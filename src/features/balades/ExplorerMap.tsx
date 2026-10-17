@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { addMarker, createMap, fitPoints, onMarker, set3D, setLine, setSatellite, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
 import { fogLayout, type FogLayout } from '../../lib/fogCanvas'
+import { distanceToRoute, NEAR_ROUTE, type Route } from '../../lib/route'
+import { replayWalk, showWalk, type WalkPhoto } from './walkLayer'
 
 export interface MapPlace {
   id: string
@@ -29,6 +31,17 @@ interface Props {
   onBearing?: (bearing: number) => void
   /** Change à chaque toucher sur la boussole : la carte revient face au nord. */
   north?: number
+  /** Une balade mise en avant (depuis un souvenir) : son tracé, ses repères, ses photos, le replay. */
+  walk?: {
+    route: Route
+    photos: WalkPhoto[]
+    replaying: boolean
+    onReplayEnd: () => void
+    /** Toucher le tracé (ou tout près) : y ajouter un repère. */
+    onTapRoute: (at: { lat: number; lng: number }) => void
+    onMissRoute: () => void
+    onPhoto: (index: number) => void
+  }
 }
 
 const FOG = { plan: { color: '#22332F', opacity: 0.86 }, satellite: { color: '#FFFFFF', opacity: 0.72 } }
@@ -97,12 +110,12 @@ function drawFog(layout: FogLayout, color: string, opacity: number): HTMLCanvasE
  * La carte qui se découvre : le brouillard (un seul polygone troué, bords adoucis), les trajets en pointillés,
  * les lieux à découvrir. Plan ou satellite, 2D ou 3D.
  */
-export function ExplorerMap({ cells, tracks, places, satellite, three, center, focus, onPlace, onMapTap, onBearing, north }: Props) {
+export function ExplorerMap({ cells, tracks, places, satellite, three, center, focus, onPlace, onMapTap, onBearing, north, walk }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const markers = useRef<Marker[]>([])
-  const handlers = useRef({ onPlace, onMapTap, onBearing })
-  handlers.current = { onPlace, onMapTap, onBearing }
+  const handlers = useRef({ onPlace, onMapTap, onBearing, walk })
+  handlers.current = { onPlace, onMapTap, onBearing, walk }
   const framed = useRef(false)
 
   useEffect(() => {
@@ -111,7 +124,13 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
     map.current = m
     m.on('rotate', () => handlers.current.onBearing?.(m.getBearing()))
     m.on('click', (e) => {
-      if (!onMarker(e.originalEvent)) handlers.current.onMapTap?.()
+      if (onMarker(e.originalEvent)) return
+      handlers.current.onMapTap?.()
+      const w = handlers.current.walk
+      if (!w) return
+      const at = { lat: e.lngLat.lat, lng: e.lngLat.lng }
+      if (distanceToRoute(at, w.route.points) <= NEAR_ROUTE) w.onTapRoute(at)
+      else w.onMissRoute()
     })
     return () => {
       m.remove()
@@ -123,7 +142,8 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
   // Cadrage : une fois, sur les balades (sinon le centre donné).
   useEffect(() => {
     const m = map.current
-    if (!m || framed.current) return
+    // Une balade mise en avant se cadre elle-même.
+    if (!m || framed.current || walk) return
     const all = tracks.flat()
     if (all.length) {
       // Les boutons du haut et le panneau du bas couvrent la carte : on cadre dans ce qui reste visible.
@@ -131,11 +151,28 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
       framed.current = true
       whenReady(m, () => fitPoints(m, all, { top: 130, bottom: 340, left: 40, right: 40 }))
     } else if (center) m.jumpTo({ center: [center[1], center[0]] })
-  }, [tracks, center])
+  }, [tracks, center]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (map.current && north) map.current.easeTo({ bearing: 0, duration: 500 })
   }, [north])
+
+  // La balade mise en avant, redessinée quand ses repères ou ses photos changent.
+  const walkRoute = walk?.route
+  const walkPhotos = walk?.photos
+  useEffect(() => {
+    const m = map.current
+    if (!m || !walkRoute) return
+    return showWalk(m, walkRoute, walkPhotos ?? [], (i) => handlers.current.walk?.onPhoto(i))
+  }, [walkRoute, walkPhotos])
+
+  const replaying = Boolean(walk?.replaying)
+  useEffect(() => {
+    const m = map.current
+    if (!m || !replaying || !walkRoute) return
+    const stop = replayWalk(m, walkRoute, () => handlers.current.walk?.onReplayEnd())
+    return stop
+  }, [replaying]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Centrer sur le lieu ouvert, dans la partie de carte au-dessus de la fenêtre.
   useEffect(() => {
@@ -194,6 +231,7 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
       m.setPaintProperty('trajets', 'line-dasharray', [1.2, 1.4])
       // Les trajets restent au-dessus du brouillard.
       m.moveLayer('trajets')
+      for (const id of ['balade', 'parcouru']) if (m.getLayer(id)) m.moveLayer(id)
     })
   }, [cells, tracks, satellite])
 

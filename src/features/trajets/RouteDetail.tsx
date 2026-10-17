@@ -1,52 +1,28 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ChevronRightIcon } from '../../components/Icons'
+import { RouteThumb } from './RouteThumb'
 import { updateDog, updateEntryRoute } from '../../firebase/db'
 import { useData } from '../../firebase/store'
-import type { EntryPhoto } from '../../firebase/types'
 import { deriveTraits, reactionsFromFears } from '../../lib/questionnaire'
 import { useToday } from '../../lib/useToday'
 import { durationLabel, formatRouteDistance, hasReaction, momentReaction, routeMomentInfo, storeRoute, type Route } from '../../lib/route'
-import { PlaceMoment } from './PlaceMoment'
 import { MomentIcon } from './momentIcons'
 import { formatDuration } from '../../lib/balade'
 
-const RouteMap = lazy(() => import('./RouteMap').then((m) => ({ default: m.RouteMap })))
-
-/** Le trajet dans le détail d'un moment : grande carte, distance · durée · moments, la liste, les repères à placer. */
-export function RouteDetail({ entryId, route, photos, onPhoto }: { entryId: string; route: Route; photos?: EntryPhoto[]; onPhoto?: (index: number) => void }) {
-  // Un toucher sur le tracé : un repère à cet endroit (rencontre, jeu, pipi, stress…).
-  const [placing, setPlacing] = useState<{ lat: number; lng: number } | null>(null)
-  const [missed, setMissed] = useState(false)
-  const [replaying, setReplaying] = useState(false)
-  const placed = useMemo(() => (photos ?? []).flatMap((p, index) => (p.lat !== undefined && p.lng !== undefined ? [{ index, thumbFileId: p.thumbFileId, lat: p.lat, lng: p.lng }] : [])), [photos])
+/** Le trajet dans le détail d'un moment : sa miniature, « Voir sur la carte » (la carte unique), les repères. */
+export function RouteDetail({ entryId, route }: { entryId: string; route: Route }) {
   const saveMoments = (moments: Route['moments']) => updateEntryRoute(entryId, storeRoute({ ...route, moments }))
   const stats = [formatRouteDistance(route.distanceM), route.durationMin ? (route.source === 'gpx' ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} repère${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
   return (
     <section className="flex flex-col gap-3">
-      <div className="h-[280px] overflow-hidden rounded-[20px] bg-placeholder">
-        <Suspense fallback={null}>
-          <RouteMap
-            route={route}
-            photos={placed}
-            onPhoto={onPhoto}
-            onTapRoute={(at) => {
-              setMissed(false)
-              setPlacing(at)
-            }}
-            onMissRoute={() => setMissed(true)}
-            replaying={replaying}
-            onReplayEnd={() => setReplaying(false)}
-          />
-        </Suspense>
-      </div>
-      {route.points.length > 1 && (
-        <button type="button" onClick={() => setReplaying(!replaying)} className="btn btn-outline -mt-1 gap-2">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            {replaying ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />}
-          </svg>
-          {replaying ? 'Arrêter' : 'Revoir la balade'}
-        </button>
-      )}
-      <p className={`text-[15px] ${missed ? 'font-semibold text-danger' : 'text-muted'}`}>{missed ? 'Touchez le tracé lui-même (ou tout près) pour y placer un repère.' : 'Touchez le tracé pour ajouter un repère.'}</p>
+      <Link to={`/territoire?balade=${entryId}`} className="flex items-center gap-3 rounded-[20px] bg-surface p-3 text-text no-underline shadow-[0_2px_8px_rgba(24,32,30,0.08)]">
+        <RouteThumb points={route.points} moments={route.moments} size={88} />
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="text-[17px] font-bold">Voir sur la carte</span>
+          <span className="text-[15px] leading-snug text-muted">La revoir, ajouter un repère, ses photos</span>
+        </span>
+        <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
+      </Link>
       <p className="text-[17px] font-bold">{stats}</p>
       {route.moments.length > 0 && (
         <ul className="card m-0 flex list-none flex-col p-0">
@@ -64,16 +40,6 @@ export function RouteDetail({ entryId, route, photos, onPhoto }: { entryId: stri
             </li>
           ))}
         </ul>
-      )}
-      {placing && (
-        <PlaceMoment
-          at={placing}
-          onCancel={() => setPlacing(null)}
-          onPlace={(type, note, street) => {
-            saveMoments([...route.moments, { ...placing, type, ...(note ? { note } : {}), ...(street ? { street } : {}) }])
-            setPlacing(null)
-          }}
-        />
       )}
     </section>
   )

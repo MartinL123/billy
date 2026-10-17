@@ -117,7 +117,7 @@ export default function App() {
               <Route
                 path="meute"
                 element={
-                  <Suspense fallback={<p className="px-5 text-muted">Chargement de la carte…</p>}>
+                  <Suspense fallback={<p className="px-5 text-muted">Chargement…</p>}>
                     <Meute />
                   </Suspense>
                 }

@@ -1,18 +1,15 @@
-import { lazy, Suspense, useMemo } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { formatDuration } from '../../lib/balade'
 import { formatLong } from '../../lib/dates'
-import { formatRouteDistance, type Route } from '../../lib/route'
+import { formatRouteDistance } from '../../lib/route'
+import { RouteThumb } from '../trajets/RouteThumb'
 import { takeImportResult } from './importRun'
-
-const WalksMap = lazy(() => import('../trajets/WalksMap').then((m) => ({ default: m.WalksMap })))
 
 const percent = (share: number) => (share > 0 && share < 0.01 ? 'moins de 1' : String(Math.round(share * 100)))
 
 /** « Le brouillard s'est levé ! » (maquette V3-ImportResultat). */
 export default function ImportResult() {
   const result = takeImportResult()
-  const routes = useMemo<Route[]>(() => (result?.walks ?? []).map((w) => ({ points: w.points, distanceM: w.distanceM, moments: [] })), [result])
   if (!result) return <Navigate to="/territoire" replace />
   const nothing = result.walks.length === 0
   const gained = result.share ? Math.round((result.share.after - result.share.before) * 100) : 0
@@ -26,16 +23,11 @@ export default function ImportResult() {
         </div>
         {!nothing && (
           <>
-            <div className="relative h-[220px] overflow-hidden rounded-[20px] bg-placeholder">
-              <Suspense fallback={null}>
-                <WalksMap routes={routes} />
-              </Suspense>
-              {result.share && (
-                <span className="absolute top-3 left-3 rounded-full bg-gold px-3 py-1.5 text-[15px] font-extrabold text-gold-dark shadow-[0_2px_8px_rgba(24,32,30,0.2)]">
-                  {gained >= 1 ? `+ ${gained} % découvert` : `${percent(result.share.after)} % de ${result.share.name}`}
-                </span>
-              )}
-            </div>
+            {result.share && (
+              <span className="self-start rounded-full bg-gold px-3 py-1.5 text-[15px] font-extrabold text-gold-dark">
+                {gained >= 1 ? `+ ${gained} % découvert` : `${percent(result.share.after)} % de ${result.share.name}`}
+              </span>
+            )}
             <div className="grid grid-cols-3 gap-2 text-center">
               {[
                 [String(result.walks.length), `balade${result.walks.length > 1 ? 's' : ''} ajoutée${result.walks.length > 1 ? 's' : ''}`],
@@ -51,9 +43,12 @@ export default function ImportResult() {
             <ul className="card m-0 flex list-none flex-col p-0">
               {result.walks.slice(0, 30).map((w, i) => (
                 <li key={w.entryId} className={i ? 'border-t border-divider' : ''}>
-                  <Link to={`/souvenir/${w.entryId}`} className="flex min-h-14 flex-col justify-center px-4 py-2.5 text-text no-underline">
-                    <span className="text-[17px] font-bold">{w.name}</span>
-                    <span className="text-[15px] text-muted">{[formatLong(w.date), formatRouteDistance(w.distanceM), w.durationMin ? formatDuration(w.durationMin) : '', 'ajoutée au Carnet'].filter(Boolean).join(' · ')}</span>
+                  <Link to={`/souvenir/${w.entryId}`} className="flex min-h-14 items-center gap-3 px-3 py-2.5 text-text no-underline">
+                    <RouteThumb points={w.points} size={48} />
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="text-[17px] font-bold">{w.name}</span>
+                      <span className="text-[15px] text-muted">{[formatLong(w.date), formatRouteDistance(w.distanceM), w.durationMin ? formatDuration(w.durationMin) : ''].filter(Boolean).join(' · ')}</span>
+                    </span>
                   </Link>
                 </li>
               ))}

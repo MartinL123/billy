@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ChevronRightIcon } from '../../components/Icons'
 import { auth } from '../../firebase/app'
 import { fetchCommune } from '../../firebase/communes'
@@ -11,6 +11,10 @@ import { useToday } from '../../lib/useToday'
 import { filterWalks, FILTERS, walkItems, type WalkFilter } from '../../lib/walkList'
 import type { MapPlace } from './ExplorerMap'
 import { PlaceCard, type Selected } from './PlaceCard'
+import { WalkPanel } from './WalkPanel'
+import { PlaceMoment } from '../trajets/PlaceMoment'
+import { updateEntryRoute } from '../../firebase/db'
+import { readRoute, storeRoute, type Route } from '../../lib/route'
 import { useIdeas } from './useIdeas'
 import { arrowTo, KIND, metersLabel } from '../../lib/ideas'
 import { formatRelative } from '../../lib/dates'
@@ -143,9 +147,11 @@ export default function Explorer() {
   const [prefs, setPrefs] = useState(readPrefs)
   // « Voir ces balades sur la carte » garde le filtre choisi dans la liste.
   const [params] = useSearchParams()
+  const navigate = useNavigate()
   const [filter, setFilter] = useState<WalkFilter>(() => (params.get('filtre') as WalkFilter | null) ?? 'toutes')
   // « Spots de la meute » : un calque de la carte (spec V4 § 1), activé d'un toucher.
-  const [packLayer, setPackLayer] = useState(false)
+  // Depuis la meute : « Voir sur la carte » (?meute=1) ou un spot précis (?spot=…).
+  const [packLayer, setPackLayer] = useState(() => params.has('meute') || params.has('spot'))
   const [spots, setSpots] = useState<WithId<Spot>[]>([])
   const [marks, setMarks] = useState<WithId<Mark>[]>([])
   useEffect(() => {
@@ -181,7 +187,7 @@ export default function Explorer() {
     return [...marked, ...pack, ...found]
   }, [spots, marks, me, ideas, packLayer])
   // Un lieu touché : la carte s'y centre et la petite fenêtre dit ce que c'est.
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(() => params.get('spot'))
   const selected = useMemo<Selected | undefined>(() => {
     if (!selectedId) return undefined
     const spotId = selectedId.replace(/^meute:/, '')
@@ -194,6 +200,31 @@ export default function Explorer() {
   const focus = useMemo<[number, number] | undefined>(() => (focusAt ? [focusAt.lat, focusAt.lng] : undefined), [focusAt?.lat, focusAt?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const sheet = useSheet()
+
+  // Une balade ouverte depuis son souvenir (?balade=…) : mise en avant, replay, repères à placer.
+  const walkId = params.get('balade')
+  const walkEntry = walkId ? entries.find((e) => e.id === walkId) : undefined
+  const walkRoute = useMemo(() => readRoute(walkEntry?.route), [walkEntry?.route])
+  const walkPhotos = useMemo(() => (walkEntry?.photos ?? []).flatMap((p, index) => (p.lat !== undefined && p.lng !== undefined ? [{ index, thumbFileId: p.thumbFileId, lat: p.lat, lng: p.lng }] : [])), [walkEntry?.photos])
+  const [replaying, setReplaying] = useState(false)
+  const [placing, setPlacing] = useState<{ lat: number; lng: number } | null>(null)
+  const [missed, setMissed] = useState(false)
+  const saveMoments = (moments: Route['moments']) => walkEntry && walkRoute && updateEntryRoute(walkEntry.id, storeRoute({ ...walkRoute, moments }))
+  const walk =
+    walkEntry && walkRoute
+      ? {
+          route: walkRoute,
+          photos: walkPhotos,
+          replaying,
+          onReplayEnd: () => setReplaying(false),
+          onTapRoute: (at: { lat: number; lng: number }) => {
+            setMissed(false)
+            setPlacing(at)
+          },
+          onMissRoute: () => setMissed(true),
+          onPhoto: () => navigate(`/souvenir/${walkEntry.id}`),
+        }
+      : undefined
   // La boussole : l'aiguille suit la carte ; un toucher la remet face au nord.
   const [bearing, setBearing] = useState(0)
   const [north, setNorth] = useState(0)
@@ -207,7 +238,7 @@ export default function Explorer() {
   return (
     <div className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
-        <ExplorerMap cells={cells} tracks={tracks} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={() => setSelectedId(null)} onBearing={setBearing} north={north} />
+        <ExplorerMap cells={cells} tracks={tracks} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={() => setSelectedId(null)} onBearing={setBearing} north={north} walk={walk} />
       </Suspense>
 
       {/* En haut : la prochaine découverte, puis les réglages de la carte. */}
@@ -249,7 +280,7 @@ export default function Explorer() {
         aria-label="Le territoire de Billy"
         {...sheet.handlers}
         style={sheet.style}
-        className={`absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-[430px] touch-pan-x ${selected ? 'invisible' : ''} flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 pb-9 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]`}
+        className={`absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-[430px] touch-pan-x ${selected || walk ? 'invisible' : ''} flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 pb-9 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]`}
       >
         <button type="button" onClick={() => sheet.setCollapsed(!sheet.collapsed)} aria-expanded={!sheet.collapsed} aria-label={sheet.collapsed ? 'Afficher le panneau' : 'Réduire le panneau'} className="mx-auto -mb-2 flex min-h-11 w-24 items-center justify-center border-0 bg-transparent">
           <span className="h-1.5 w-11 rounded-full bg-[#C9CFCC]" />
@@ -300,6 +331,17 @@ export default function Explorer() {
           )}
         </div>
       </section>
+      {walk && walkEntry && !selected && <WalkPanel entryId={walkEntry.id} name={walks.find((w) => w.id === walkEntry.id)?.name ?? 'La balade'} date={walkEntry.date} route={walk.route} replaying={replaying} missed={missed} onReplay={() => setReplaying(!replaying)} />}
+      {placing && walkRoute && (
+        <PlaceMoment
+          at={placing}
+          onCancel={() => setPlacing(null)}
+          onPlace={(type, note, street) => {
+            saveMoments([...walkRoute.moments, { ...placing, type, ...(note ? { note } : {}), ...(street ? { street } : {}) }])
+            setPlacing(null)
+          }}
+        />
+      )}
       {selected && (
         <PlaceCard
           key={selectedId}

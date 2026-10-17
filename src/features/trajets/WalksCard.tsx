@@ -1,14 +1,12 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { ImportWalkButton } from '../balades/ImportWalkButton'
 import { ChevronRightIcon } from '../../components/Icons'
 import { cellsLabel, knownFog } from '../../lib/fog'
 import { useData } from '../../firebase/store'
 import { formatMonthYear } from '../../lib/dates'
-import { GOOD_COLOR, HARD_COLOR, walksOfMonth } from '../../lib/route'
+import { walksOfMonth } from '../../lib/route'
 import { useToday } from '../../lib/useToday'
-
-const WalksMap = lazy(() => import('./WalksMap').then((m) => ({ default: m.WalksMap })))
 
 /** « Ses balades » (trajets.md § 4) : où il a peur, où ça se passe bien. Pas de chiffre à battre, pas de kilomètres. */
 export function WalksCard() {
@@ -23,32 +21,12 @@ export function WalksCard() {
       <div className="flex flex-col gap-0.5">
         <h2 className="font-display text-lg font-extrabold">Ses balades</h2>
         <p className="text-sm leading-snug text-[#3F4946]">
-          {routes.length ? `Ses trajets en ${month}, superposés.` : `Importez vos balades Strava : vous verrez ici où ${dog.name} a peur et où tout va bien.`}
+          {routes.length ? `${routes.length} balade${routes.length > 1 ? 's' : ''} en ${month}.` : `Importez vos balades Strava pour lever le brouillard sur le territoire de ${dog.name}.`}
         </p>
       </div>
-      {routes.length > 0 ? (
-        <>
-          <div className="h-[220px] overflow-hidden rounded-[16px] bg-placeholder">
-            <Suspense fallback={null}>
-              <WalksMap routes={routes} />
-            </Suspense>
-          </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm font-semibold text-[#3F4946]">
-            <span className="flex items-center gap-1.5">
-              <span className="size-3 rounded-full" style={{ background: HARD_COLOR }} />
-              Peurs et grognes
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="size-3 rounded-full" style={{ background: GOOD_COLOR }} />
-              Ce qui s'est bien passé
-            </span>
-          </div>
-        </>
-      ) : (
-        <ImportWalkButton className="" />
-      )}
+      {routes.length === 0 && <ImportWalkButton className="" />}
       <Link to="/territoire" className="flex min-h-12 items-center justify-between rounded-[16px] bg-primary-soft px-4 text-[17px] font-bold text-primary-dark no-underline">
-        <span>Le territoire · {cellsLabel(cells)}</span>
+        <span>Voir sur la carte · {cellsLabel(cells)}</span>
         <ChevronRightIcon size={20} />
       </Link>
     </section>

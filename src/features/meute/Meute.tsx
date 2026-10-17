@@ -9,18 +9,16 @@ import { addSpot, markSpot, voteCalm, type Spot, type WithId } from '../../fireb
 import { updateEntryRoute } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { markBone } from '../../lib/bones'
-import { calmSummary, CALM_LEVELS, categoryInfo, dogColor, formatDistance, markId, MARK_DAYS_ON_MAP, nearbySpots, slotOf, SPOT_CATEGORIES, SPOT_INFOS, type CalmLevel, type SpotCategory } from '../../lib/community'
+import { calmSummary, CALM_LEVELS, categoryInfo, distanceMeters, dogColor, formatDistance, markId, MARK_DAYS_ON_MAP, nearbySpots, slotOf, SPOT_CATEGORIES, SPOT_INFOS, type CalmLevel, type SpotCategory } from '../../lib/community'
 import { diffDays } from '../../lib/dates'
 import { readRoute, storeRoute, withMarkMoments } from '../../lib/route'
 import { weekId, weekOf } from '../../lib/rhythm'
 import { useToday } from '../../lib/useToday'
 import { FeedPhoto } from './FeedPhoto'
 import { MemberAvatar } from './MemberAvatar'
-import { MeuteMap, type LatLng } from './MeuteMap'
 import { usePack } from './usePack'
 
-/** Sans position : la carte part du centre de Paris, ou des spots de la meute s'il y en a. */
-const DEFAULT_CENTER: LatLng = { lat: 48.8566, lng: 2.3522 }
+type LatLng = { lat: number; lng: number }
 const WELCOME_KEY = 'billy.meute.bienvenue'
 
 const readFlag = (key: string) => {
@@ -40,7 +38,7 @@ const writeFlag = (key: string) => {
 
 type Filter = 'tout' | 'calme' | SpotCategory | 'territoire'
 
-/** L'onglet Meute (docs/specs/communaute.md § 3) : la carte des spots, Marquer, le fil du jour, les chiens, le défi. */
+/** La meute (docs/specs/communaute.md § 3) : les spots (sur la carte de Balades), Marquer, le fil du jour, les chiens. */
 export default function Meute() {
   const { dog, entries } = useData()
   const today = useToday()
@@ -51,8 +49,6 @@ export default function Meute() {
 
   const [welcome, setWelcome] = useState(() => !readFlag(WELCOME_KEY))
   const [position, setPosition] = useState<LatLng | null>(null)
-  const [center, setCenter] = useState<LatLng>(DEFAULT_CENTER)
-  const [recenter, setRecenter] = useState(0)
   const [filter, setFilter] = useState<Filter>('tout')
   // « Un spot calme pour ça » (depuis une mission) ouvre directement le spot.
   const [params] = useSearchParams()
@@ -83,8 +79,6 @@ export default function Meute() {
       (p) => {
         const here = { lat: p.coords.latitude, lng: p.coords.longitude }
         setPosition(here)
-        setCenter(here)
-        setRecenter((n) => n + 1)
         setLocating('')
         then?.(here)
       },
@@ -138,7 +132,7 @@ export default function Meute() {
             </li>
           ))}
         </ul>
-        <p className="text-[15px] leading-snug text-muted">Votre position sert seulement à centrer la carte et à proposer les spots proches. Elle n'est jamais enregistrée ni partagée.</p>
+        <p className="text-[15px] leading-snug text-muted">Votre position sert seulement à trier les spots par distance et à proposer ceux tout proches. Elle n'est jamais enregistrée ni partagée.</p>
         <button
           type="button"
           onClick={() => {
@@ -172,20 +166,18 @@ export default function Meute() {
         </p>
       </header>
 
-      {/* `isolate` : les calques de Leaflet (z-index 400+) restent sous les panneaux du bas et la barre d'onglets. */}
-      <section aria-label="Carte" className="relative isolate h-[55vh] overflow-hidden border-y border-divider bg-placeholder">
-        <MeuteMap spots={shown} drops={drops} highlight={filter === 'territoire' ? territory : undefined} center={center} recenter={recenter} onSpot={setOpenSpot} onLongPress={setNewSpot} onMove={setCenter} />
-        <button type="button" onClick={() => locate()} className="absolute bottom-3 left-3 z-[500] flex min-h-12 items-center gap-1.5 rounded-full border-2 border-solid border-primary bg-surface px-4 text-[15px] font-bold text-primary shadow-[0_2px_8px_rgba(24,32,30,0.18)]">
-          <PinIcon size={18} />
-          Ma position
-        </button>
-        <button type="button" onClick={() => setMarking(true)} className="absolute right-3 bottom-3 z-[500] flex min-h-14 items-center gap-2 rounded-full border-0 bg-action px-5 text-[17px] font-extrabold text-white shadow-[0_4px_12px_rgba(194,87,26,0.4)]">
+      {/* La carte des spots est celle de Balades (une seule carte dans l'app) : calque « Spots de la meute ». */}
+      <div className="flex gap-2 px-5">
+        <Link to="/territoire?meute=1" className="btn btn-outline min-h-14 flex-1">
+          Voir sur la carte
+        </Link>
+        <button type="button" onClick={() => setMarking(true)} className="btn btn-main min-h-14 flex-1 gap-2">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M12 3s-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11z" />
           </svg>
           Marquer
         </button>
-      </section>
+      </div>
       {locating && (
         <p role="status" className="px-5 text-[15px] text-muted">
           {locating}
@@ -199,6 +191,31 @@ export default function Meute() {
           </button>
         ))}
       </div>
+
+      <section aria-label="Les spots" className="flex flex-col gap-2 px-5">
+        {shown.length === 0 ? (
+          <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[15px] leading-snug text-[#1D3F73]">Aucun spot ici. Touchez « Marquer » puis « Nouveau spot ici » pendant une balade.</p>
+        ) : (
+          <ul className="card m-0 flex list-none flex-col p-0">
+            {(position ? shown.map((s) => ({ ...s, meters: distanceMeters(position, s) })).sort((a, b) => a.meters - b.meters) : [...shown].sort((a, b) => a.name.localeCompare(b.name)).map((s) => ({ ...s, meters: NaN }))).map((s, i) => (
+              <li key={s.id} className={i ? 'border-t border-divider' : ''}>
+                <button type="button" onClick={() => setOpenSpot(s.id)} className="flex min-h-14 w-full items-center gap-3 border-0 bg-transparent px-4 py-2 text-left text-text">
+                  <span className="size-3 shrink-0 rounded-full" style={{ background: categoryInfo(s.category).color }} />
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate text-[17px] font-bold">{s.name}</span>
+                    <span className="text-sm text-muted">
+                      {categoryInfo(s.category).label}
+                      {Number.isFinite(s.meters) ? ` · ${formatDistance(s.meters)}` : ''}
+                      {drops[s.id]?.length ? ' · marqué récemment' : ''}
+                    </span>
+                  </span>
+                  <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {/* Sans heure, jamais : « aujourd'hui », c'est tout. */}
       <section className="flex flex-col gap-2.5 px-5">
@@ -301,7 +318,9 @@ export default function Meute() {
             type="button"
             onClick={() => {
               setMarking(false)
-              setNewSpot(position ?? center)
+              // Le nouveau spot se pose là où vous êtes : la position est nécessaire.
+              if (position) setNewSpot(position)
+              else locate((here) => setNewSpot(here))
             }}
             className="btn btn-outline"
           >
@@ -408,10 +427,9 @@ function SpotSheet({ spot, meters, addedBy, passed, passedToday, calm, canMark, 
           ))}
         </div>
       </fieldset>
-      <a href={`https://maps.apple.com/?daddr=${spot.lat},${spot.lng}`} target="_blank" rel="noopener noreferrer" className="btn btn-outline">
-        Y aller
-        <span className="sr-only">(ouvre Plans)</span>
-      </a>
+      <Link to={`/territoire?spot=${spot.id}`} className="btn btn-outline">
+        Voir sur la carte
+      </Link>
       {canMark ? (
         <button type="button" onClick={onMark} className="btn btn-main">
           Marquer ce spot

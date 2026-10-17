@@ -6,6 +6,7 @@ import { deriveTraits, reactionsFromFears } from '../../lib/questionnaire'
 import { useToday } from '../../lib/useToday'
 import { durationLabel, formatRouteDistance, hasReaction, momentReaction, routeMomentInfo, storeRoute, type Route } from '../../lib/route'
 import { keepRoute } from './keepRoute'
+import { formatDuration } from '../../lib/balade'
 
 const RouteMap = lazy(() => import('./RouteMap').then((m) => ({ default: m.RouteMap })))
 const Tracer = lazy(() => import('./Tracer').then((m) => ({ default: m.Tracer })))
@@ -14,7 +15,7 @@ const Tracer = lazy(() => import('./Tracer').then((m) => ({ default: m.Tracer })
 export function RouteDetail({ entryId, date, route }: { entryId: string; date: ISODate; route: Route }) {
   const { routes } = useData()
   const [editing, setEditing] = useState(false)
-  const stats = [formatRouteDistance(route.distanceM), route.durationMin ? durationLabel(route.durationMin) : '', route.moments.length ? `${route.moments.length} moment${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
+  const stats = [formatRouteDistance(route.distanceM), route.durationMin ? (route.source === 'gpx' ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} moment${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
   return (
     <section className="flex flex-col gap-3">
       <div className="h-[280px] overflow-hidden rounded-[20px] bg-placeholder">

@@ -33,6 +33,10 @@ export interface Route {
   durationMin?: number
   savedRouteId?: string
   moments: RouteMoment[]
+  /** Balade importée d'un fichier GPX (Strava, montre) : ses heures de début et de fin. */
+  source?: 'gpx'
+  startTime?: string
+  endTime?: string
 }
 
 /** users/{uid}/routes/{id} : un trajet habituel. */

@@ -27,7 +27,7 @@ import { storeRoute } from '../../lib/route'
 import { useQuest } from '../today/useQuest'
 import { BossIcon } from '../training/BossIcon'
 import { LevelUp, StepSuccess } from '../training/Celebration'
-import { takeDraftPhotos } from './draft'
+import { takeDraftPhotos, takeDraftWalk } from './draft'
 import { Face } from './Face'
 import { errorText } from '../../firebase/errors'
 
@@ -59,10 +59,13 @@ export default function Noter() {
   // Depuis la quête du jour : la compétence vient de la quête, elle n'est pas modifiable.
   const [fromQuest] = useState(() => from === 'quete' && !today0.done && today0.quest.kind !== 'repos')
   const asked = fromQuest ? [today0.quest.bossId ?? ''] : (params.get('competences') ?? '').split(',')
-  const [text, setText] = useState(fromQuest ? today0.note : '')
+  // Balade importée depuis le Carnet (fichier GPX) : son jour, son nom et son tracé arrivent pré-remplis.
+  const [walk] = useState(() => (params.get('balade') ? takeDraftWalk() : null))
+  const walkDate = walk?.walk.date && walk.walk.date <= today ? walk.walk.date : undefined
+  const [text, setText] = useState(fromQuest ? today0.note : (walk?.name ?? ''))
   const [photos, setPhotos] = useState<Photo[]>([])
-  const [when, setWhen] = useState<When>(params.get('quand') === 'autre' ? 'autre' : 'aujourdhui')
-  const [otherDate, setOtherDate] = useState(params.get('quand') === 'autre' && isValidISO(dog.adoptionDate) ? dog.adoptionDate : today)
+  const [when, setWhen] = useState<When>(walkDate && walkDate !== today ? (walkDate === addDays(today, -1) ? 'hier' : 'autre') : params.get('quand') === 'autre' ? 'autre' : 'aujourdhui')
+  const [otherDate, setOtherDate] = useState(walkDate ?? (params.get('quand') === 'autre' && isValidISO(dog.adoptionDate) ? dog.adoptionDate : today))
   const [feeling, setFeeling] = useState<Feeling>()
   // Seule une compétence demandée explicitement (fiche d'une compétence, exercice terminé) arrive cochée.
   const [skills, setSkills] = useState<string[]>(() => asked.filter((id) => SKILLS.some((s) => s.id === id)))
@@ -72,7 +75,22 @@ export default function Noter() {
   // Partager avec la meute : un choix explicite à chaque fois, désactivé par défaut.
   const [share, setShare] = useState(false)
   // Le trajet de la balade, tracé après coup (facultatif).
-  const [trace, setTrace] = useState<TraceResult | null>(null)
+  const [trace, setTrace] = useState<TraceResult | null>(() =>
+    walk
+      ? {
+          route: {
+            points: walk.walk.points,
+            distanceM: walk.walk.distanceM,
+            moments: [],
+            source: 'gpx',
+            ...(walk.walk.durationMin ? { durationMin: walk.walk.durationMin } : {}),
+            ...(walk.walk.startTime ? { startTime: walk.walk.startTime } : {}),
+            ...(walk.walk.endTime ? { endTime: walk.walk.endTime } : {}),
+          },
+          keep: null,
+        }
+      : null,
+  )
   const [yes, setYes] = useState<Record<string, boolean>>({})
   const [progress, setProgress] = useState('')
   const [error, setError] = useState('')

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { FilePicker } from '../../components/FilePicker'
 import { ImportIcon, PhotoIcon } from '../../components/Icons'
 import { PageHeader } from '../../components/PageHeader'
+import { ImportWalkButton } from '../balades/ImportWalkButton'
 import { Sticker } from '../shop/Art'
 import { inkOn, SKILLS, territoryOf } from '../../content/phrases'
 import { Fab } from '../../components/TabBar'
@@ -80,6 +81,7 @@ export default function Journal() {
     // Marge sous la liste : le bouton « + » (64 px, à 92 px du bas) ne recouvre jamais la dernière carte.
     <div className="flex flex-col gap-5 pb-[calc(64px+16px)]">
       <PageHeader title="Carnet" className="px-5" after={<Sticker id={dog.cosmetics?.sticker} size={30} />} />
+      <ImportWalkButton />
 
       {entries.length === 0 ? (
         <EmptyJournal onPhotos={importPhotos} />

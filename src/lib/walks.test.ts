@@ -43,3 +43,15 @@ describe('sorties du jour', () => {
     expect(walkReminderText('', 'soir', '19:00').body).toContain('votre chien')
   })
 })
+
+import { slotForStart } from './walks'
+
+describe('sortie cochée par une balade importée', () => {
+  const times = { matin: '08:00', midi: '13:00', soir: '19:00' }
+  it('le créneau le plus proche du départ, à 3 h près', () => {
+    expect(slotForStart(times, 7 * 60 + 32)).toBe('matin')
+    expect(slotForStart(times, 14 * 60 + 10)).toBe('midi')
+    expect(slotForStart(times, 17 * 60)).toBe('soir')
+    expect(slotForStart(times, 2 * 60)).toBeUndefined()
+  })
+})

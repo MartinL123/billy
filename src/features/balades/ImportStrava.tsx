@@ -7,6 +7,7 @@ import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { runImport } from './importRun'
 import { knownImportKeys } from '../../lib/activity'
+import { walkTimes } from '../../lib/walks'
 
 const STEPS: { title: string; text: string; link?: { label: string; href: string } }[] = [
   {
@@ -20,7 +21,7 @@ const STEPS: { title: string; text: string; link?: { label: string; href: string
 
 /** « Importer vos balades Strava » (maquette V3-ImportStrava) : l'archive, ou une seule balade. Jamais de connexion à Strava. */
 export default function ImportStrava() {
-  const { entries, bones, fog, communes } = useData()
+  const { dog, entries, bones, fog, communes } = useData()
   const today = useToday()
   const navigate = useNavigate()
   const back = useBack('/territoire')
@@ -29,7 +30,7 @@ export default function ImportStrava() {
   const start = async (files: File[]) => {
     setProgress({ done: 0, total: files.length })
     const knownKeys = knownImportKeys(entries)
-    await runImport(files, { knownKeys, bones, fog, communes, today }, (done, total) => setProgress({ done, total }))
+    await runImport(files, { knownKeys, bones, fog, communes, today, times: walkTimes(dog.walkTimes) }, (done, total) => setProgress({ done, total }))
     navigate('/importer/resultat', { replace: true })
   }
 

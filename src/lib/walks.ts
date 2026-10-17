@@ -72,3 +72,12 @@ export function walkReminderText(dogName: string, slot: WalkSlot, time: string):
     url: './#/',
   }
 }
+
+/**
+ * Le créneau d'une balade importée (spec V4 § 1) : celui dont l'heure est la plus proche du départ, à 3 h près.
+ * Une balade à 2 h du matin ne coche rien.
+ */
+export function slotForStart(times: WalkTimes, startMinutes: number): WalkSlot | undefined {
+  const best = WALK_SLOTS.map((s) => ({ slot: s.id, gap: Math.abs(timeToMinutes(times[s.id]) - startMinutes) })).sort((a, b) => a.gap - b.gap)[0]
+  return best && best.gap <= 180 ? best.slot : undefined
+}

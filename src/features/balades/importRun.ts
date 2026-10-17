@@ -9,6 +9,7 @@ import type { ISODate } from '../../lib/dates'
 import { discoveredShare, inPolygon, knownFog, revealedCells } from '../../lib/fog'
 import { emptyTally, ignoredLine, tallyActivity } from '../../lib/importPlan'
 import type { RoutePoint } from '../../lib/route'
+import type { WalkTimes } from '../../lib/walks'
 
 /** Le résultat d'un import, pour l'écran « Le brouillard s'est levé ! ». */
 export interface ImportResult {
@@ -29,7 +30,7 @@ export const takeImportResult = () => last
  */
 export async function runImport(
   files: File[],
-  ctx: { knownKeys: Set<string>; bones: Bone[]; fog: WithId<FogZone>[]; communes: (Commune & { id: string })[]; today: ISODate },
+  ctx: { knownKeys: Set<string>; bones: Bone[]; fog: WithId<FogZone>[]; communes: (Commune & { id: string })[]; today: ISODate; times: WalkTimes },
   onProgress: (done: number, total: number) => void,
 ): Promise<ImportResult> {
   const tally = emptyTally()
@@ -48,7 +49,7 @@ export async function runImport(
     }
     const walk = tallyActivity(tally, activity, ctx.knownKeys)
     if (!walk) continue
-    const saved = saveImportedWalk(walk, bones, ctx.today)
+    const saved = saveImportedWalk(walk, bones, ctx.today, ctx.times)
     bones = [...bones, ...saved.bones]
     tracks.push(walk.full)
     walks.push({ entryId: saved.entryId, name: walk.name, date: walk.date ?? ctx.today, distanceM: walk.distanceM, ...(walk.durationMin ? { durationMin: walk.durationMin } : {}), points: walk.points })

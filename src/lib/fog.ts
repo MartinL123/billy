@@ -1,12 +1,15 @@
 import { distanceMeters } from './community'
 
 // Le brouillard de la carte qui se découvre (docs/specs/carte-a-decouvrir.md § 3).
-// Grille fixe d'environ 50 m ; une balade découvre toutes les cases dont le centre est à 50 m ou moins du trajet,
+// Grille fixe d'environ 25 m ; une balade découvre toutes les cases dont le centre est à 25 m ou moins du trajet,
 // calculé sur les points complets du fichier. Jamais de chiffre à battre.
+// (Jusqu'en octobre 2026 : cases de 50 m dans `fog/` ; elles ont été recalculées une fois dans `fog25/`.)
 
-export const CELL_LAT = 0.00045
-export const CELL_LNG = 0.0007
-export const REVEAL_M = 50
+export const CELL_LAT = 0.000225
+export const CELL_LNG = 0.00035
+export const REVEAL_M = 25
+/** La collection des cases de 25 m (users/{uid}/fog25/{zone}). */
+export const FOG_COLLECTION = 'fog25'
 /** Une zone de stockage : un carré de 0,05° (≈ 5 km), un document Firestore `fog/{zone}`. */
 export const ZONE_DEG = 0.05
 
@@ -40,7 +43,7 @@ function toSegment(p: LatLng, a: LatLng, b: LatLng): number {
   return distanceMeters(p, { lat: ay + t * dy, lng: (ax + t * dx) / k })
 }
 
-/** Les cases découvertes par un trajet : centre à 50 m ou moins d'un de ses segments. */
+/** Les cases découvertes par un trajet : centre à 25 m ou moins d'un de ses segments. */
 export function revealedCells(points: LatLng[], radius = REVEAL_M): Set<string> {
   const cells = new Set<string>()
   if (points.length === 0) return cells

@@ -30,7 +30,7 @@ interface Data {
   /** Espace utilisé par les photos et documents (octets), connu même hors ligne. */
   usage: number
   /** Trajets habituels (20 au plus). */
-  /** Brouillard : les cases de 50 m découvertes, par zone (users/{uid}/fog/{zone}). */
+  /** Brouillard : les cases de 25 m découvertes, par zone (users/{uid}/fog25/{zone}). */
   fog: WithId<FogZone>[]
   /** Communes déjà connues (contour gardé une fois), pour le pourcentage découvert. */
   communes: WithId<Commune>[]
@@ -115,7 +115,7 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
         setKnownUsage(bytes)
       }, () => undefined),
       watchAll<InventoryItem>('inventory', setInventory),
-      watchAll<FogZone>('fog', setFog),
+      watchAll<FogZone>('fog25', setFog),
       watchAll<Commune>('communes', setCommunes),
     ]
     return () => stops.forEach((stop) => stop())

@@ -73,6 +73,8 @@ export interface Dog {
   explorationBackfilled?: ISODate
   /** Anciens trajets du Carnet déjà passés dans le brouillard (une seule fois). */
   fogBackfilled?: ISODate
+  /** Le brouillard recalculé sur la grille de 25 m. */
+  fog25Backfilled?: ISODate
   /** Compétences en cours choisies par le maître (3 au plus). Absent : l'app propose les 3 premières non maîtrisées. */
   activeSkills?: string[]
   /** Calculé à la lecture, jamais enregistré : le nom n'a pas encore été donné (on affiche « Votre chien »). */
@@ -277,7 +279,7 @@ export interface DailyQuestDoc {
   skips: number
 }
 
-/** users/{uid}/fog/{zone de 0,05°} : les cases de 50 m découvertes (« i_j »), docs/specs/carte-a-decouvrir.md § 8. */
+/** users/{uid}/fog25/{zone de 0,05°} : les cases de 25 m découvertes (« i_j »), docs/specs/carte-a-decouvrir.md § 8. */
 export interface FogZone {
   cells: string[]
 }

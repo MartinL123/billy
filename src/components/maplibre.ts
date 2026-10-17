@@ -11,6 +11,8 @@ if (import.meta.env.PROD) setWorkerUrl(workerUrl)
 
 export const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty'
 const TERRAIN_TILES = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'
+// Vue satellite : Esri World Imagery, sans clé (usage personnel ; conditions à relire avant d'ouvrir à des inconnus).
+const SATELLITE_TILES = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
 
 /** Un point de l'app : [latitude, longitude]. MapLibre attend l'inverse. */
 export type LatLng = [number, number]
@@ -64,12 +66,12 @@ export function dot(color: string, size = 18, label?: string): HTMLElement {
   return el
 }
 
-export function addMarker(map: MapLibreMap, at: LatLng, element: HTMLElement, options: { draggable?: boolean; anchor?: 'center' | 'bottom' } = {}): Marker {
+export function addMarker(map: MapLibreMap, at: LatLng, element: HTMLElement, options: { draggable?: boolean; anchor?: 'center' | 'bottom' | 'left' } = {}): Marker {
   return new Marker({ element, draggable: options.draggable ?? false, anchor: options.anchor ?? 'center' }).setLngLat(lngLat(at)).addTo(map)
 }
 
 /** Cadre la carte sur des points (un seul point : zoom de quartier). */
-export function fitPoints(map: MapLibreMap, points: LatLng[], padding = 32, animate = false, camera: { pitch?: number; bearing?: number } = {}): void {
+export function fitPoints(map: MapLibreMap, points: LatLng[], padding: number | { top: number; bottom: number; left: number; right: number } = 32, animate = false, camera: { pitch?: number; bearing?: number } = {}): void {
   if (points.length === 0) return
   if (points.length === 1) return void map.jumpTo({ center: lngLat(points[0]!), zoom: 16, ...camera })
   const bounds = points.reduce((b, p) => b.extend(lngLat(p)), new LngLatBounds(lngLat(points[0]!), lngLat(points[0]!)))
@@ -92,6 +94,19 @@ export function set3D(map: MapLibreMap, on: boolean): void {
       map.dragRotate.disable()
       map.easeTo({ pitch: 0, bearing: 0, duration: 600 })
     }
+  })
+}
+
+/** Satellite : l'imagerie passe sous les noms de rues et de lieux (premier calque de texte du style), au-dessus du reste. */
+export function setSatellite(map: MapLibreMap, on: boolean): void {
+  whenReady(map, () => {
+    if (on) {
+      if (!map.getSource('satellite')) map.addSource('satellite', { type: 'raster', tiles: [SATELLITE_TILES], tileSize: 256, maxzoom: 19, attribution: 'Imagerie © Esri' })
+      if (!map.getLayer('satellite')) {
+        const firstLabel = map.getStyle().layers.find((l) => l.type === 'symbol')?.id
+        map.addLayer({ id: 'satellite', type: 'raster', source: 'satellite' }, firstLabel)
+      }
+    } else if (map.getLayer('satellite')) map.removeLayer('satellite')
   })
 }
 

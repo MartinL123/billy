@@ -47,7 +47,7 @@ export function WalksCard() {
       ) : (
         <ImportWalkButton className="" />
       )}
-      <Link to="/exploration" className="flex min-h-12 items-center justify-between rounded-[16px] bg-primary-soft px-4 text-[17px] font-bold text-primary-dark no-underline">
+      <Link to="/territoire" className="flex min-h-12 items-center justify-between rounded-[16px] bg-primary-soft px-4 text-[17px] font-bold text-primary-dark no-underline">
         <span>Le territoire · {cellsLabel(cells)}</span>
         <ChevronRightIcon size={20} />
       </Link>

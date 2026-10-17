@@ -10,8 +10,7 @@ import EntryForm from './features/journal/EntryForm'
 import EntryView from './features/journal/EntryView'
 import Billy from './features/billy/Billy'
 import Shop from './features/shop/Shop'
-import Territory from './features/meute/Territory'
-import Exploration from './features/balades/Exploration'
+import Explorer from './features/balades/Explorer'
 import ImportStrava from './features/balades/ImportStrava'
 import ImportResult from './features/balades/ImportResult'
 import { CommunitySync } from './features/meute/CommunitySync'
@@ -125,8 +124,8 @@ export default function App() {
             <Route path="en-cours" element={<EnCours />} />
             <Route path="boutique" element={<Shop />} />
             <Route path="meute/chien/:id" element={<DogPublic />} />
-            <Route path="territoire" element={<Territory />} />
-            <Route path="exploration" element={<Exploration />} />
+            <Route path="territoire" element={<Explorer />} />
+            <Route path="exploration" element={<Navigate to="/territoire" replace />} />
             <Route path="importer" element={<ImportStrava />} />
             <Route path="importer/resultat" element={<ImportResult />} />
             <Route path="installer" element={<InstallRoute />} />

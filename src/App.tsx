@@ -14,6 +14,7 @@ import Shop from './features/shop/Shop'
 import Explorer from './features/balades/Explorer'
 import Ideas from './features/balades/Ideas'
 import Walks from './features/balades/Walks'
+import AddWalk from './features/balades/AddWalk'
 import ImportStrava from './features/balades/ImportStrava'
 import Mission from './features/training/Mission'
 import HealthEvents from './features/calendar/HealthEvents'
@@ -137,6 +138,7 @@ export default function App() {
             <Route path="territoire/idees" element={<Ideas />} />
             <Route path="balades" element={<Walks />} />
             <Route path="exploration" element={<Navigate to="/territoire" replace />} />
+            <Route path="ajouter-balade" element={<AddWalk />} />
             <Route path="importer" element={<ImportStrava />} />
             <Route path="importer/resultat" element={<ImportResult />} />
             <Route path="installer" element={<InstallRoute />} />

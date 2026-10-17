@@ -276,8 +276,8 @@ export default function Explorer() {
                   <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
                 </Link>
               )}
-              <Link to="/importer" className="btn btn-main min-h-[56px]">
-                Ajouter mes balades Strava
+              <Link to="/ajouter-balade" className="btn btn-main min-h-[56px]">
+                Ajouter une balade Strava
               </Link>
             </>
           )}

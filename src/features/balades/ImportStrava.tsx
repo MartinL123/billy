@@ -1,13 +1,7 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { FilePicker } from '../../components/FilePicker'
+import { Link } from 'react-router-dom'
 import { ChevronLeftIcon } from '../../components/Icons'
-import { useData } from '../../firebase/store'
 import { useBack } from '../../lib/useBack'
-import { useToday } from '../../lib/useToday'
-import { runImport } from './importRun'
-import { knownImportKeys } from '../../lib/activity'
-import { walkTimes } from '../../lib/walks'
+import { ImportFooter } from './ImportFooter'
 
 const STEPS: { title: string; text: string; link?: { label: string; href: string } }[] = [
   {
@@ -19,20 +13,9 @@ const STEPS: { title: string; text: string; link?: { label: string; href: string
   { title: 'Choisissez le dossier « activities »', text: 'Sélectionnez tous les fichiers : Billy garde les marches et randonnées et ignore le reste.' },
 ]
 
-/** « Importer vos balades Strava » (maquette V3-ImportStrava) : l'archive, ou une seule balade. Jamais de connexion à Strava. */
+/** « Importer vos balades Strava » (maquette V3-ImportStrava) : toute l'archive d'un coup. Jamais de connexion à Strava. */
 export default function ImportStrava() {
-  const { dog, entries, bones, fog, communes } = useData()
-  const today = useToday()
-  const navigate = useNavigate()
   const back = useBack('/territoire')
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
-
-  const start = async (files: File[]) => {
-    setProgress({ done: 0, total: files.length })
-    const knownKeys = knownImportKeys(entries)
-    await runImport(files, { knownKeys, bones, fog, communes, today, times: walkTimes(dog.walkTimes) }, (done, total) => setProgress({ done, total }))
-    navigate('/importer/resultat', { replace: true })
-  }
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
@@ -65,26 +48,11 @@ export default function ImportStrava() {
           ))}
         </ol>
         <p className="rounded-[18px] bg-primary-soft px-4 py-3 text-[15px] leading-snug text-primary-dark">Billy garde le trajet et la durée. Le rythme cardiaque n’est jamais enregistré. Votre carte reste privée.</p>
-        <p className="text-[15px] leading-snug text-muted">Une seule balade ? Sur strava.com, ouvrez-la, puis ⋯ › Exporter GPX, et choisissez ce fichier.</p>
+        <Link to="/ajouter-balade" className="flex min-h-12 items-center text-[17px] font-bold text-primary">
+          Une seule balade ? L’ajouter en 3 étapes
+        </Link>
       </main>
-      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
-        <div className="mx-auto flex max-w-[430px] flex-col gap-2 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-          {progress ? (
-            <div role="status" className="flex flex-col gap-2">
-              <span className="text-[17px] font-bold">
-                Import en cours… {progress.done} sur {progress.total}
-              </span>
-              <span className="h-3 overflow-hidden rounded-full bg-placeholder">
-                <span className="block h-full rounded-full bg-primary transition-[width]" style={{ width: `${progress.total ? (progress.done / progress.total) * 100 : 0}%` }} />
-              </span>
-            </div>
-          ) : (
-            <FilePicker accept=".gpx,.gz,application/gpx+xml,application/gzip,application/x-gzip,application/xml,text/xml" onFiles={(files) => void start(files)} className="btn btn-main min-h-[56px] w-full">
-              Choisir les fichiers
-            </FilePicker>
-          )}
-        </div>
-      </div>
+      <ImportFooter label="Choisir les fichiers" />
     </div>
   )
 }

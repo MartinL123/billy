@@ -61,7 +61,7 @@ function useCardContent(card: NowCard) {
         title: `La sortie de ${formatHour(card.time)}`,
         text: 'Hors du jardin, même 15 minutes. Elle se cochera toute seule avec votre balade Strava.',
         scene: undefined,
-        action: { label: 'Ajouter la balade', to: '/importer' },
+        action: { label: 'Ajouter la balade', to: '/ajouter-balade' },
       }
     default: {
       const last = walkItems(entries)[0]

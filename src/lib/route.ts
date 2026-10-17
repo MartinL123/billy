@@ -1,5 +1,5 @@
 import { distanceMeters } from './community'
-import { formatShort, type ISODate } from './dates'
+import type { ISODate } from './dates'
 import type { Reaction } from './questionnaire'
 
 // Les trajets de balade (docs/specs/trajets.md) : tracés après coup sur la carte, jamais suivis en direct.
@@ -57,7 +57,6 @@ export interface SavedRoute {
 }
 
 export const MAX_SAVED_ROUTES = 20
-export const DURATIONS = [15, 30, 45, 60]
 export const durationLabel = (min: number) => (min >= 60 ? '1 h +' : `${min} min`)
 
 const at = ([lat, lng]: RoutePoint) => ({ lat, lng })
@@ -83,18 +82,6 @@ export function simplify(points: RoutePoint[]): RoutePoint[] {
   return out
 }
 
-export const addPoint = (points: RoutePoint[], p: RoutePoint) => [...points, p]
-export const removeLast = (points: RoutePoint[]) => points.slice(0, -1)
-export const removeAt = (points: RoutePoint[], i: number) => points.filter((_, j) => j !== i)
-export const moveAt = (points: RoutePoint[], i: number, p: RoutePoint) => points.map((q, j) => (j === i ? p : q))
-/** « Revenir au départ » : ferme la boucle (rien à faire avec moins de 2 points, ou si c'est déjà fermé). */
-export function closeLoop(points: RoutePoint[]): RoutePoint[] {
-  if (points.length < 2) return points
-  const first = points[0]!
-  const last = points[points.length - 1]!
-  return first[0] === last[0] && first[1] === last[1] ? points : [...points, first]
-}
-
 /** Distance d'un point au trajet (au segment le plus proche), en mètres, sur de petites distances. */
 export function distanceToRoute(p: { lat: number; lng: number }, points: RoutePoint[]): number {
   if (points.length === 0) return Infinity
@@ -117,17 +104,8 @@ export function distanceToRoute(p: { lat: number; lng: number }, points: RoutePo
 /** Toucher « près » du trajet : à moins de 40 m. */
 export const NEAR_ROUTE = 40
 
-/** Nom proposé : « Balade du 14 oct. » */
-export const defaultRouteName = (date: ISODate) => `Balade du ${formatShort(date)}`
-
 /** Reprendre un trajet habituel tel quel : mêmes points, même distance, sans moments. */
 export const routeFromSaved = (id: string, saved: SavedRoute): Route => ({ points: saved.points, distanceM: saved.distanceM, savedRouteId: id, moments: [] })
-
-/** Construire le trajet du moment à partir du tracé. */
-export function buildRoute(points: RoutePoint[], moments: RouteMoment[], durationMin?: number, savedRouteId?: string): Route {
-  const clean = simplify(points)
-  return { points: clean, distanceM: Math.round(routeDistance(clean)), moments, ...(durationMin ? { durationMin } : {}), ...(savedRouteId ? { savedRouteId } : {}) }
-}
 
 /** Les trajets habituels à garder : au plus 20, les moins utilisés récemment partent en premier. */
 export function routesToDrop<T extends { id: string; lastUsedAt: string }>(routes: T[]): string[] {

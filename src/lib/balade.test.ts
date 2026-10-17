@@ -15,7 +15,8 @@ describe('balade importée', () => {
   })
 
   it('tient toujours dans 500 points', () => {
-    const zigzag: RoutePoint[] = Array.from({ length: 5000 }, (_, i) => [48.85 + i * 0.00005, 2.35 + (i % 2) * 0.0003])
+    // Le pire cas pour Douglas-Peucker (chaque point est un virage), à la taille d'une longue balade.
+    const zigzag: RoutePoint[] = Array.from({ length: 2000 }, (_, i) => [48.85 + i * 0.00005, 2.35 + (i % 2) * 0.0003])
     expect(simplifyWalk(zigzag).length).toBeLessThanOrEqual(500)
   })
 

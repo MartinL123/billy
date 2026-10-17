@@ -23,7 +23,7 @@ import { BONES } from '../../lib/bones'
 import { SkillPill } from '../billy/SkillPill'
 import { keepRoute } from '../trajets/keepRoute'
 import { RouteCard } from '../trajets/RouteCard'
-import type { TraceResult } from '../trajets/Tracer'
+import type { TraceResult } from '../trajets/RouteCard'
 import { storeRoute } from '../../lib/route'
 import { useQuest } from '../today/useQuest'
 import { BossIcon } from '../training/BossIcon'
@@ -284,7 +284,7 @@ export default function Noter() {
           )}
         </div>
 
-        <RouteCard date={isValidISO(date) ? date : today} value={trace} onChange={setTrace} />
+        <RouteCard value={trace} onChange={setTrace} />
 
         {!fromQuest && (
           <fieldset className="m-0 border-0 p-0">

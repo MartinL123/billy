@@ -47,7 +47,7 @@ export default function EntryView() {
         <Pending show={entry.pending} />
         {entry.text && <p className="text-[19px] leading-[1.45] whitespace-pre-wrap">{entry.text}</p>}
         <MomentChips entry={entry} />
-        {route && <RouteDetail entryId={entry.id} date={entry.date} route={route} photos={entry.photos} onPhoto={setViewer} />}
+        {route && <RouteDetail entryId={entry.id} route={route} photos={entry.photos} onPhoto={setViewer} />}
         {entry.photos.length > 0 && (
           <div className={`grid gap-1.5 ${entry.photos.length > 1 ? 'grid-cols-2' : ''}`}>
             {entry.photos.map((photo, i) => (

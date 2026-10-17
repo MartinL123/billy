@@ -1,4 +1,4 @@
-import { Bytes, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, setDoc, where, writeBatch } from 'firebase/firestore'
+import { Bytes, collection, deleteDoc, doc, getDocs, onSnapshot, query, setDoc, where, writeBatch } from 'firebase/firestore'
 import type { BoneWithId } from '../lib/bones'
 import type { CalmLevel, CalmSlot, SpotCategory } from '../lib/community'
 import type { ISODate } from '../lib/dates'
@@ -105,17 +105,6 @@ export function markSpot(id: string, mark: Mark, gain: BoneWithId): void {
   batch.set(packDoc('marks', id), mark)
   batch.set(doc(db, 'users', uid(), 'bones', gain.id), { date: gain.date, amount: gain.amount, reason: gain.reason, refId: gain.refId })
   send(batch.commit())
-}
-
-/** Les spots que mon chien a marqués ce jour-là (pour les « A marqué » du trajet). Hors ligne : le cache, sinon rien. */
-export async function markedSpotsOn(date: ISODate): Promise<{ name: string; lat: number; lng: number }[]> {
-  try {
-    const marks = await getDocs(query(packCol('marks'), where('uid', '==', uid()), where('date', '==', date)))
-    const spots = await Promise.all(marks.docs.map((m) => getDoc(packDoc('spots', (m.data() as Mark).spotId))))
-    return spots.flatMap((s) => (s.exists() ? [{ name: (s.data() as Spot).name, lat: (s.data() as Spot).lat, lng: (s.data() as Spot).lng }] : []))
-  } catch {
-    return []
-  }
 }
 
 const feedId = (entryId: string) => `${uid()}_${entryId}`

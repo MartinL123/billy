@@ -2,23 +2,17 @@ import { lazy, Suspense, useMemo, useState } from 'react'
 import { updateDog, updateEntryRoute } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import type { EntryPhoto } from '../../firebase/types'
-import type { ISODate } from '../../lib/dates'
 import { deriveTraits, reactionsFromFears } from '../../lib/questionnaire'
 import { useToday } from '../../lib/useToday'
 import { durationLabel, formatRouteDistance, hasReaction, momentReaction, routeMomentInfo, storeRoute, type Route } from '../../lib/route'
-import { keepRoute } from './keepRoute'
 import { PlaceMoment } from './PlaceMoment'
 import { MomentIcon } from './momentIcons'
-import { discoverZones } from '../../firebase/exploration'
 import { formatDuration } from '../../lib/balade'
 
 const RouteMap = lazy(() => import('./RouteMap').then((m) => ({ default: m.RouteMap })))
-const Tracer = lazy(() => import('./Tracer').then((m) => ({ default: m.Tracer })))
 
-/** Le trajet dans le détail d'un moment : grande carte, distance · durée · moments, la liste, « Modifier le trajet ». */
-export function RouteDetail({ entryId, date, route, photos, onPhoto }: { entryId: string; date: ISODate; route: Route; photos?: EntryPhoto[]; onPhoto?: (index: number) => void }) {
-  const { routes, exploration } = useData()
-  const [editing, setEditing] = useState(false)
+/** Le trajet dans le détail d'un moment : grande carte, distance · durée · moments, la liste, les repères à placer. */
+export function RouteDetail({ entryId, route, photos, onPhoto }: { entryId: string; route: Route; photos?: EntryPhoto[]; onPhoto?: (index: number) => void }) {
   // Un toucher sur le tracé : un repère à cet endroit (rencontre, jeu, pipi, stress…).
   const [placing, setPlacing] = useState<{ lat: number; lng: number } | null>(null)
   const [missed, setMissed] = useState(false)
@@ -71,9 +65,6 @@ export function RouteDetail({ entryId, date, route, photos, onPhoto }: { entryId
           ))}
         </ul>
       )}
-      <button type="button" onClick={() => setEditing(true)} className="btn border-2 border-solid border-[#9A4413] bg-surface text-[#9A4413]">
-        Modifier le trajet
-      </button>
       {placing && (
         <PlaceMoment
           at={placing}
@@ -83,21 +74,6 @@ export function RouteDetail({ entryId, date, route, photos, onPhoto }: { entryId
             setPlacing(null)
           }}
         />
-      )}
-      {editing && (
-        <Suspense fallback={null}>
-          <Tracer
-            date={date}
-            initial={route}
-            onCancel={() => setEditing(false)}
-            onDone={(result) => {
-              setEditing(false)
-              updateEntryRoute(entryId, storeRoute(result.route))
-              keepRoute(result, routes)
-              discoverZones(result.route.points, exploration)
-            }}
-          />
-        </Suspense>
       )}
     </section>
   )

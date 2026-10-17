@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseGpx, thin } from './gpx'
+import { parseGpx } from './gpx'
 
 const GPX = `<?xml version="1.0"?>
 <gpx version="1.1" creator="Montre">
@@ -25,12 +25,4 @@ describe('import GPX', () => {
     expect(parseGpx('<html>bonjour</html>')).toEqual([])
   })
 
-  it('allège à 200 points en gardant le départ et l’arrivée', () => {
-    const many = Array.from({ length: 1000 }, (_, i) => [48 + i / 1e4, 2] as [number, number])
-    const out = thin(many)
-    expect(out).toHaveLength(200)
-    expect(out[0]).toEqual(many[0])
-    expect(out[199]).toEqual(many[999])
-    expect(thin(many.slice(0, 5))).toHaveLength(5)
-  })
 })

@@ -1,20 +1,20 @@
-import { lazy, Suspense, useState } from 'react'
 import { useData } from '../../firebase/store'
-import type { ISODate } from '../../lib/dates'
 import { formatRouteDistance, fromStored, routeFromSaved, type Route } from '../../lib/route'
-import type { TraceResult } from './Tracer'
 import { RouteThumb } from './RouteThumb'
 
-// La carte (Leaflet) n'est chargée qu'en ouvrant le tracé.
-const Tracer = lazy(() => import('./Tracer').then((m) => ({ default: m.Tracer })))
+/** Le trajet joint à un moment : une balade importée, ou un trajet habituel repris. */
+export interface TraceResult {
+  route: Route
+  /** Garder comme trajet habituel, avec ce nom. */
+  keep: string | null
+}
 
 /**
- * « Le trajet », dans Noter (docs/specs/trajets.md § 1) : reprendre un trajet habituel en un toucher, ou en tracer un.
- * Facultatif. Le tracé reste privé (Carnet).
+ * « Le trajet », dans Noter : reprendre un trajet habituel en un toucher. Plus de saisie à la main (17 octobre) :
+ * les balades arrivent par fichier. Facultatif, privé.
  */
-export function RouteCard({ date, value, onChange }: { date: ISODate; value: TraceResult | null; onChange: (value: TraceResult | null) => void }) {
+export function RouteCard({ value, onChange }: { value: TraceResult | null; onChange: (value: TraceResult | null) => void }) {
   const { routes } = useData()
-  const [tracing, setTracing] = useState(false)
   const route = value?.route
 
   return (
@@ -50,28 +50,10 @@ export function RouteCard({ date, value, onChange }: { date: ISODate; value: Tra
           </>
         )
       )}
-      <div className={route ? 'grid grid-cols-2 gap-2' : ''}>
-        <button type="button" onClick={() => setTracing(true)} className="btn w-full border-2 border-solid border-[#9A4413] bg-surface text-[#9A4413]">
-          {route ? 'Modifier' : 'Tracer un nouveau trajet'}
+      {route && (
+        <button type="button" onClick={() => onChange(null)} className="btn btn-quiet">
+          Retirer le trajet
         </button>
-        {route && (
-          <button type="button" onClick={() => onChange(null)} className="btn btn-quiet">
-            Retirer
-          </button>
-        )}
-      </div>
-      {tracing && (
-        <Suspense fallback={null}>
-          <Tracer
-            date={date}
-            initial={route}
-            onCancel={() => setTracing(false)}
-            onDone={(result: TraceResult) => {
-              setTracing(false)
-              onChange(result)
-            }}
-          />
-        </Suspense>
       )}
     </section>
   )

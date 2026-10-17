@@ -1,7 +1,7 @@
 import { saveRoute } from '../../firebase/db'
 import { newId } from '../../firebase/paths'
 import { routesToDrop, toStored, type StoredSavedRoute } from '../../lib/route'
-import type { TraceResult } from './Tracer'
+import type { TraceResult } from './RouteCard'
 
 /**
  * Après « Enregistrer » : garder le tracé comme trajet habituel (20 au plus, les moins récents partent),

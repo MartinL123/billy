@@ -57,7 +57,7 @@ interface CareEvent {
 const VET_SOON_DAYS = 30
 
 /**
- * Indications de l'écran « En cours », calculées sans IA :
+ * Indications de l'écran « En cours », calculées sans IA :
  * « Tout doux » sur une compétence liée à une peur déclarée au questionnaire,
  * « Conseillé » pour Les Soins avant une visite véto du calendrier, et pour les compétences conseillées par le questionnaire.
  */

@@ -273,8 +273,8 @@ export default function Meute() {
       )}
 
       {marking && (
-        <Sheet label={`Où ${dog.name} marque-t-il ?`} onClose={() => setMarking(false)}>
-          <h2 className="mt-1 font-display text-[24px] font-extrabold">Où {dog.name} marque-t-il ?</h2>
+        <Sheet label={`Où ${dog.name} marque-t-il ?`} onClose={() => setMarking(false)}>
+          <h2 className="mt-1 font-display text-[24px] font-extrabold">Où {dog.name} marque-t-il ?</h2>
           <p className="text-[15px] text-muted">{position ? 'Les spots de la meute à moins de 300 m.' : 'Sans votre position, choisissez le spot où vous êtes.'}</p>
           {position === null && (
             <button type="button" onClick={() => locate()} className="btn btn-outline">
@@ -283,7 +283,7 @@ export default function Meute() {
             </button>
           )}
           <div className="flex flex-col gap-2">
-            {nearby.length === 0 && <p className="rounded-[14px] bg-bg px-3.5 py-3 text-[15px]">Aucun spot de la meute ici. Créez-le !</p>}
+            {nearby.length === 0 && <p className="rounded-[14px] bg-bg px-3.5 py-3 text-[15px]">Aucun spot de la meute ici. Créez-le !</p>}
             {nearby.map((s) => (
               <button key={s.id} type="button" onClick={() => mark(s)} className="flex min-h-14 items-center gap-3 rounded-[18px] border-2 border-solid border-border bg-surface px-4 text-left">
                 <span className="size-3 shrink-0 rounded-full" style={{ background: categoryInfo(s.category).color }} />
@@ -385,7 +385,7 @@ function SpotSheet({ spot, meters, addedBy, passed, passedToday, calm, canMark, 
       )}
       {passed.length > 0 && (
         <p className="text-[15px]">
-          <strong>Passés ici cette semaine :</strong> {passed.join(', ')}
+          <strong>Passés ici cette semaine :</strong> {passed.join(', ')}
           {passedToday ? ' · dont aujourd’hui' : ''}
         </p>
       )}

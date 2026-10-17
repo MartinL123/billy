@@ -56,7 +56,7 @@ export function InstallBanner() {
     <aside className="flex items-center gap-2 rounded-[18px] border border-solid border-divider bg-surface py-1.5 pr-1.5 pl-4">
       <span className="flex-1 text-[15px] leading-snug">Ajoutez Billy à votre écran d'accueil</span>
       <Link to="/installer" className="btn btn-outline min-h-11 shrink-0 px-3.5 text-[15px]">
-        Comment ?
+        Comment ?
       </Link>
       <button type="button" aria-label="Fermer" onClick={close} className="flex size-11 shrink-0 items-center justify-center rounded-full border-0 bg-transparent text-muted">
         <CloseIcon size={20} />

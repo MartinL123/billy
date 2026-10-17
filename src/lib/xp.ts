@@ -90,7 +90,7 @@ export function restXp(log: XpLike[], week: ISODate[]): number {
 // ——— Niveau global : l'effort fourni ———
 
 /**
- * XP cumulée demandée pour atteindre le niveau L. On commence au niveau 1 :
+ * XP cumulée demandée pour atteindre le niveau L. On commence au niveau 1 :
  * 50 XP pour le niveau 2, 300 pour le 4, 2 750 pour le 11. Pas de niveau max.
  */
 export const xpForLevel = (level: number) => 25 * (level - 1) * level

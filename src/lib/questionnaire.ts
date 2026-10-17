@@ -41,37 +41,37 @@ export interface Step {
 const opts = (...labels: string[]): Option[] => labels.map((label) => ({ value: label, label }))
 
 const BASE: Step[] = [
-  { id: 'nom', part: 1, kind: 'text', title: 'Comment s’appelle-t-il ?' },
+  { id: 'nom', part: 1, kind: 'text', title: 'Comment s’appelle-t-il ?' },
   { id: 'photo', part: 1, kind: 'photo', title: 'Une photo de {nom} ?', help: 'Elle vient de votre photothèque. Facultatif.' },
-  { id: 'naissance', part: 1, kind: 'date', title: 'Sa date de naissance ?', help: 'Une date approximative convient.' },
-  { id: 'sexe', part: 1, kind: 'choice', title: 'Mâle ou femelle ?', options: opts('Mâle', 'Femelle') },
-  { id: 'sterilise', part: 1, kind: 'choice', title: 'Est-il stérilisé ?', options: opts('Oui', 'Non', 'C’est prévu') },
-  { id: 'race', part: 1, kind: 'text', title: 'Sa race ou son croisement ?', placeholder: 'Labrador, croisé épagneul…' },
-  { id: 'poids', part: 1, kind: 'number', title: 'Son poids actuel ?', help: 'En kilos. Il sera noté comme pesée du jour.', placeholder: '8,7' },
-  { id: 'adoption', part: 1, kind: 'date', title: 'Quand l’avez-vous adopté ?' },
-  { id: 'provenance', part: 1, kind: 'choice', title: 'D’où vient-il ?', options: opts('Élevage', 'Refuge ou association', 'Particulier', 'Autre') },
-  { id: 'puce', part: 1, kind: 'text', title: 'Son numéro de puce ou de tatouage ?', help: 'Facultatif.', placeholder: '15 chiffres' },
+  { id: 'naissance', part: 1, kind: 'date', title: 'Sa date de naissance ?', help: 'Une date approximative convient.' },
+  { id: 'sexe', part: 1, kind: 'choice', title: 'Mâle ou femelle ?', options: opts('Mâle', 'Femelle') },
+  { id: 'sterilise', part: 1, kind: 'choice', title: 'Est-il stérilisé ?', options: opts('Oui', 'Non', 'C’est prévu') },
+  { id: 'race', part: 1, kind: 'text', title: 'Sa race ou son croisement ?', placeholder: 'Labrador, croisé épagneul…' },
+  { id: 'poids', part: 1, kind: 'number', title: 'Son poids actuel ?', help: 'En kilos. Il sera noté comme pesée du jour.', placeholder: '8,7' },
+  { id: 'adoption', part: 1, kind: 'date', title: 'Quand l’avez-vous adopté ?' },
+  { id: 'provenance', part: 1, kind: 'choice', title: 'D’où vient-il ?', options: opts('Élevage', 'Refuge ou association', 'Particulier', 'Autre') },
+  { id: 'puce', part: 1, kind: 'text', title: 'Son numéro de puce ou de tatouage ?', help: 'Facultatif.', placeholder: '15 chiffres' },
 
-  { id: 'veto', part: 2, kind: 'contact', title: 'Son vétérinaire ?', help: 'Pour l’appeler en un geste.' },
-  { id: 'vaccin', part: 2, kind: 'date', title: 'Son dernier vaccin ?', help: 'Le rappel sera ajouté au calendrier.', detail: { key: 'vaccin-nom', label: 'Lequel ?', placeholder: 'CHPPiL, toux du chenil…' } },
-  { id: 'rage', part: 2, kind: 'choice', title: 'Est-il vacciné contre la rage ?', help: 'Obligatoire pour voyager à l’étranger.', options: opts('Oui', 'Non') },
-  { id: 'vermifuge', part: 2, kind: 'date', title: 'Son dernier vermifuge ?', help: 'Rappel tous les 3 mois.' },
-  { id: 'antiparasitaire', part: 2, kind: 'date', title: 'Son dernier traitement puces et tiques ?', help: 'Rappel tous les mois.', detail: { key: 'antiparasitaire-type', label: 'Quel type ?', placeholder: 'Pipette, comprimé, collier' } },
-  { id: 'sante-notes', part: 2, kind: 'longtext', title: 'Un traitement ou un souci de santé à surveiller ?', help: 'Facultatif.' },
-  { id: 'allergie', part: 2, kind: 'longtext', title: 'Une allergie ?', help: 'Aliment ou médicament. Facultatif.' },
+  { id: 'veto', part: 2, kind: 'contact', title: 'Son vétérinaire ?', help: 'Pour l’appeler en un geste.' },
+  { id: 'vaccin', part: 2, kind: 'date', title: 'Son dernier vaccin ?', help: 'Le rappel sera ajouté au calendrier.', detail: { key: 'vaccin-nom', label: 'Lequel ?', placeholder: 'CHPPiL, toux du chenil…' } },
+  { id: 'rage', part: 2, kind: 'choice', title: 'Est-il vacciné contre la rage ?', help: 'Obligatoire pour voyager à l’étranger.', options: opts('Oui', 'Non') },
+  { id: 'vermifuge', part: 2, kind: 'date', title: 'Son dernier vermifuge ?', help: 'Rappel tous les 3 mois.' },
+  { id: 'antiparasitaire', part: 2, kind: 'date', title: 'Son dernier traitement puces et tiques ?', help: 'Rappel tous les mois.', detail: { key: 'antiparasitaire-type', label: 'Quel type ?', placeholder: 'Pipette, comprimé, collier' } },
+  { id: 'sante-notes', part: 2, kind: 'longtext', title: 'Un traitement ou un souci de santé à surveiller ?', help: 'Facultatif.' },
+  { id: 'allergie', part: 2, kind: 'longtext', title: 'Une allergie ?', help: 'Aliment ou médicament. Facultatif.' },
 
-  { id: 'nourriture', part: 3, kind: 'choice', title: 'Que mange-t-il ?', options: opts('Croquettes', 'Pâtée', 'Mélange', 'Maison'), detail: { key: 'nourriture-marque', label: 'Quelle marque ?' } },
-  { id: 'repas', part: 3, kind: 'meals', title: 'Combien par jour, en combien de repas ?' },
-  { id: 'friandises', part: 3, kind: 'text', title: 'Ses friandises préférées ?', help: 'Elles serviront de récompense.', placeholder: 'Fromage, poulet séché…' },
-  { id: 'jeux', part: 3, kind: 'multi', title: 'Ses jeux préférés ?', help: 'Touchez tout ce qu’il aime.', options: opts('Balle', 'Corde', 'Peluche', 'Os ou jouet à mâcher', 'Jouet qui couine', 'Course et poursuite', 'Autre') },
-  { id: 'logement', part: 3, kind: 'choice', title: 'Où vivez-vous ?', options: opts('Appartement', 'Maison') },
-  { id: 'jardin', part: 3, kind: 'choice', title: 'Avez-vous un jardin ou une cour ?', options: opts('Oui', 'Non', 'Parfois') },
-  { id: 'seul', part: 3, kind: 'choice', title: 'Combien de temps reste-t-il seul par jour ?', options: opts('Jamais', 'Moins de 2 h', '2 à 4 h', 'Plus de 4 h') },
-  { id: 'sorties', part: 3, kind: 'choice', title: 'Combien de sorties par jour ?', options: opts('1', '2', '3', '4 ou plus') },
-  { id: 'educateur', part: 3, kind: 'contact', title: 'Avez-vous un éducateur canin ?', help: 'Facultatif.' },
-  { id: 'foyer', part: 3, kind: 'choice', title: 'Qui s’occupe de lui au quotidien ?', options: opts('Seul', 'En couple', 'En famille avec enfants') },
+  { id: 'nourriture', part: 3, kind: 'choice', title: 'Que mange-t-il ?', options: opts('Croquettes', 'Pâtée', 'Mélange', 'Maison'), detail: { key: 'nourriture-marque', label: 'Quelle marque ?' } },
+  { id: 'repas', part: 3, kind: 'meals', title: 'Combien par jour, en combien de repas ?' },
+  { id: 'friandises', part: 3, kind: 'text', title: 'Ses friandises préférées ?', help: 'Elles serviront de récompense.', placeholder: 'Fromage, poulet séché…' },
+  { id: 'jeux', part: 3, kind: 'multi', title: 'Ses jeux préférés ?', help: 'Touchez tout ce qu’il aime.', options: opts('Balle', 'Corde', 'Peluche', 'Os ou jouet à mâcher', 'Jouet qui couine', 'Course et poursuite', 'Autre') },
+  { id: 'logement', part: 3, kind: 'choice', title: 'Où vivez-vous ?', options: opts('Appartement', 'Maison') },
+  { id: 'jardin', part: 3, kind: 'choice', title: 'Avez-vous un jardin ou une cour ?', options: opts('Oui', 'Non', 'Parfois') },
+  { id: 'seul', part: 3, kind: 'choice', title: 'Combien de temps reste-t-il seul par jour ?', options: opts('Jamais', 'Moins de 2 h', '2 à 4 h', 'Plus de 4 h') },
+  { id: 'sorties', part: 3, kind: 'choice', title: 'Combien de sorties par jour ?', options: opts('1', '2', '3', '4 ou plus') },
+  { id: 'educateur', part: 3, kind: 'contact', title: 'Avez-vous un éducateur canin ?', help: 'Facultatif.' },
+  { id: 'foyer', part: 3, kind: 'choice', title: 'Qui s’occupe de lui au quotidien ?', options: opts('Seul', 'En couple', 'En famille avec enfants') },
 
-  { id: 'reactions', part: 4, kind: 'reactions', title: 'Comment réagit-il ?', help: 'Décrivez-le avec vos mots : « Quand…, il est… »' },
+  { id: 'reactions', part: 4, kind: 'reactions', title: 'Comment réagit-il ?', help: 'Décrivez-le avec vos mots : « Quand…, il est… »' },
   { id: 'humeur', part: 4, kind: 'choice', title: 'À la maison, il est plutôt…', options: opts('Calme', 'Joueur', 'Très excité') },
 ]
 
@@ -120,8 +120,8 @@ export function skillOptions(bossId: string): { value: SkillAnswer; label: strin
 
 /** Questions complémentaires pour un chien âgé ou déjà éduqué : elles donnent les étapes 4 et 5. */
 export const FOLLOW_UPS: { value: SkillAnswer; question: string }[] = [
-  { value: 'anime', question: 'Même dans un lieu très animé ?' },
-  { value: 'partout', question: 'Partout où vous allez ?' },
+  { value: 'anime', question: 'Même dans un lieu très animé ?' },
+  { value: 'partout', question: 'Partout où vous allez ?' },
 ]
 
 /** Étapes acquises d'après la réponse : à la maison → 1 et 2 ; même dehors → 1 à 3 ; lieu animé → 4 ; partout → 5. */
@@ -211,7 +211,7 @@ export const isPuppy = (birthDate: ISODate, today: ISODate) => {
 }
 
 /**
- * Plus d'étiquettes à cocher : l'app déduit. Deux peurs ou plus → chien craintif ; « très excité » → énergique ;
+ * Plus d'étiquettes à cocher : l'app déduit. Deux peurs ou plus → chien craintif ; « très excité » → énergique ;
  * peur des autres chiens → réactif ; chiot et âgé viennent de la date de naissance.
  * Les traits que le questionnaire ne sait pas déduire (adopté adulte) sont conservés.
  */

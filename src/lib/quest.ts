@@ -72,7 +72,7 @@ export function dailyQuest({ today, active, progress, moments, rests, avoidExerc
   }
   if (pool.length === 0) return rest(false)
 
-  // On parcourt les compétences en cours à partir de celle du jour, et leurs exercices à partir de celui du jour :
+  // On parcourt les compétences en cours à partir de celle du jour, et leurs exercices à partir de celui du jour :
   // le premier qui n'est pas l'exercice du défi de la semaine est retenu. S'il n'y a que lui, on le garde.
   let fallback: Quest | undefined
   for (let i = 0; i < pool.length; i++) {

@@ -238,7 +238,7 @@ export const EXERCISES: Exercise[] = [
     source: { name: 'AKC', url: 'https://www.akc.org/expert-advice/training/teaching-targeting-to-your-dog/' },
   },
   {
-    id: 'cherche', name: 'Cherche !', bossIds: ['calme', 'nouveaute', 'ville'], traits: ['chiot', 'craintif'], verified: false, scene: 'flair',
+    id: 'cherche', name: 'Cherche !', bossIds: ['calme', 'nouveaute', 'ville'], traits: ['chiot', 'craintif'], verified: false, scene: 'flair',
     needs: 'Quelques croquettes',
     steps: ['Éparpillez quelques croquettes au sol et dites « cherche ».', 'Laissez-le renifler sans l’aider : cela fait baisser le stress.', 'En rue, c’est une sortie de secours : on s’arrête et on cherche.'],
     levels: ['Entre ses pattes', 'À 1 m', 'Dans l’herbe', 'En balade, lieu calme', 'En balade, ce qui lui fait peur visible très loin'],

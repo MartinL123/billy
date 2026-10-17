@@ -89,7 +89,7 @@ export default function Login() {
           {busy ? 'Connexion…' : 'Se connecter'}
         </button>
         <button type="button" onClick={forgot} className="btn btn-outline self-center p-3">
-          Mot de passe oublié ?
+          Mot de passe oublié ?
         </button>
         {info && (
           <p role="status" className="rounded-field bg-info-soft px-3.5 py-3 text-sm leading-snug text-[#1D3F73]">
@@ -100,7 +100,7 @@ export default function Login() {
 
       {/* Pas d'inscription : Martin crée les comptes. On explique seulement comment installer l'app. */}
       <button type="button" onClick={() => setInstalling(true)} className="btn btn-outline mt-6">
-        Comment installer l'app sur mon téléphone ?
+        Comment installer l'app sur mon téléphone ?
       </button>
 
       <p className="mt-auto pt-8 text-center text-[13px] leading-snug text-muted">Vos données restent privées. Martin, qui gère l'app, peut techniquement y accéder.</p>

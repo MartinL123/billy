@@ -134,7 +134,7 @@ export function deleteEvent(event: WithId<BillyEvent>, documents: WithId<BillyDo
 }
 
 /**
- * Coche ou décoche « fait ». Cocher une occurrence récurrente crée la suivante, une seule fois ;
+ * Coche ou décoche « fait ». Cocher une occurrence récurrente crée la suivante, une seule fois ;
  * renvoie alors son identifiant (pour pouvoir annuler).
  */
 export function setEventDone(event: WithId<BillyEvent>, done: boolean): string | undefined {

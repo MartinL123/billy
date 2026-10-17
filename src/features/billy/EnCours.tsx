@@ -45,7 +45,7 @@ export default function EnCours() {
       </header>
 
       <main className="flex flex-col gap-4 px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+130px)]">
-        <h1 className="font-display text-[26px] leading-tight font-extrabold">Sur quoi travailler en ce moment ?</h1>
+        <h1 className="font-display text-[26px] leading-tight font-extrabold">Sur quoi travailler en ce moment ?</h1>
         <p className="text-[15px] leading-snug text-[#3F4946]">
           Choisissez jusqu'à <strong>{MAX_ACTIVE} compétences</strong>. La mission du jour vous proposera leurs exercices, à tour de rôle. Les autres ne sont pas oubliées : elles reviennent de temps en temps en révision.
         </p>

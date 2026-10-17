@@ -13,7 +13,7 @@ import { levelTitle, stepPhraseLower } from '../content/phrases'
 
 const now = () => new Date().toISOString()
 
-// Les gains d'XP ont des identifiants fixes quand ils ne peuvent arriver qu'une fois (palier, étoile, validation du jour) :
+// Les gains d'XP ont des identifiants fixes quand ils ne peuvent arriver qu'une fois (palier, étoile, validation du jour) :
 // rejouer la même écriture, ou la faire depuis deux appareils, ne les compte jamais deux fois.
 const xpRef = (id: string) => userDoc('xpLog', id)
 const boneData = ({ date, amount, reason, refId }: BoneWithId): Bone => ({ date, amount, reason, refId })

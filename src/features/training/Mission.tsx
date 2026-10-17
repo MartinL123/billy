@@ -67,7 +67,7 @@ export default function Mission() {
 
       {finished ? (
         <main className="flex flex-1 flex-col gap-4 pt-10">
-          <h1 className="font-display text-[30px] leading-tight font-extrabold">Ça s’est bien passé ?</h1>
+          <h1 className="font-display text-[30px] leading-tight font-extrabold">Ça s’est bien passé ?</h1>
           <p className="text-[17px] text-muted">Une seule réponse, {dog.name} s’adapte.</p>
           <div className="grid grid-cols-3 gap-2.5">
             {FEELINGS.map(({ value, label }) => (
@@ -111,7 +111,7 @@ export default function Mission() {
           {exercise.caution && <p className="text-[17px] leading-snug font-semibold">{exercise.caution}</p>}
           <p className="text-[17px] leading-snug">S’il ne mange plus, il est trop stressé : arrêtez et revenez plus facile la prochaine fois.</p>
           <p className="text-[15px] text-muted">
-            Source :{' '}
+            Source :{' '}
             {exercise.source.url ? (
               <a href={exercise.source.url} target="_blank" rel="noopener noreferrer" className="font-semibold underline">
                 {exercise.source.name}

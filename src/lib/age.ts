@@ -77,7 +77,7 @@ export function milestoneMessage(
       return `Joyeux anniversaire ${name} ! ${years(age.years)} aujourd'hui.`
     }
     // Les autres mois sont déjà dits dans la carte du chien (« 5 mois · 6 mois le 13 novembre ») : on ne les répète pas.
-    if (totalMonths === 6) return `${name} a 6 mois aujourd'hui !`
+    if (totalMonths === 6) return `${name} a 6 mois aujourd'hui !`
   }
   if (adoption && isValidISO(adoption)) {
     const since = ageAt(adoption, today)

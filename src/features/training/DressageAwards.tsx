@@ -34,15 +34,15 @@ export function DressageAwards() {
     if (!has(defi.id) && challengeProgress(challenge, today, entries, sessions) >= challenge.target) {
       // Ancienne trace du défi (journal interne), gardée pour l'historique.
       if (!xpLog.some((e) => e.id === `defi-${week}`)) awardOnce(`defi-${week}`, { date: today, kind: 'defi', xp: MOMENT_XP.challenge, bossId: challenge.bossId, label: challenge.label })
-      return give(defi, 'Défi de la semaine réussi !')
+      return give(defi, 'Défi de la semaine réussi !')
     }
 
     const regular = regularWeekBone(weekOf(today), notedDays(entries, sessions, exposures), today)
-    if (regular && !has(regular.id)) return give(regular, 'Semaine régulière, bravo !')
+    if (regular && !has(regular.id)) return give(regular, 'Semaine régulière, bravo !')
 
     // Questionnaire terminé : aussi pour un questionnaire fini avant l'arrivée des os.
     const done = questionnaireBone(today)
-    if (!has(done.id) && questionnaireStatus(dog.questionnaire).complete) give(done, 'Questionnaire terminé !')
+    if (!has(done.id) && questionnaireStatus(dog.questionnaire).complete) give(done, 'Questionnaire terminé !')
   }, [dog.questionnaire, bossProgress, entries, sessions, exposures, xpLog, bones, today, toast])
 
   return null

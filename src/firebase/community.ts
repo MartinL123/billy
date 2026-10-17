@@ -5,7 +5,7 @@ import type { ISODate } from '../lib/dates'
 import { db } from './app'
 import { send, uid } from './paths'
 
-// Données communes de la meute : community/meute/… Lisibles par tout compte connecté de l'app ;
+// Données communes de la meute : community/meute/… Lisibles par tout compte connecté de l'app ;
 // chacun ne modifie que ce qu'il a créé (firestore.rules). Jamais d'heure, jamais de position en direct.
 
 export const packCol = (name: string) => collection(db, 'community', 'meute', name)

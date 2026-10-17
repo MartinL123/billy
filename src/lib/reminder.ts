@@ -1,4 +1,4 @@
-// Rappel du soir (Web Push envoyé par une tâche planifiée GitHub). Ce fichier n'importe rien :
+// Rappel du soir (Web Push envoyé par une tâche planifiée GitHub). Ce fichier n'importe rien :
 // il est lu tel quel par le script d'envoi (scripts/rappel-soir.mjs) et par les tests.
 
 export interface ReminderSettings {
@@ -38,7 +38,7 @@ export function isDue(settings: ReminderSettings, now: Date): boolean {
 export function reminderText(dogName: string, restDay: boolean): { title: string; body: string } {
   const name = dogName.trim() || 'votre chien'
   return restDay
-    ? { title: 'Journée repos', body: `Journée repos pour ${name} : un mot sur sa balade ?` }
+    ? { title: 'Journée repos', body: `Journée repos pour ${name} : un mot sur sa balade ?` }
     : { title: 'Le carnet du soir', body: `Comment s'est passée la journée avec ${name} ? Notez-le en 30 secondes.` }
 }
 

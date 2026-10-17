@@ -142,7 +142,7 @@ export default function Noter() {
   useEffect(() => {
     if (outcome && shown >= celebrations) {
       // « +10 os » avec l'os qui saute : les os du moment, plus ceux de la mission.
-      toast(<BonesGained label="Noté !" amount={outcome.bones + (fromQuest ? BONES.mission : 0)} />, fromQuest ? undefined : { label: 'Annuler', run: outcome.undo })
+      toast(<BonesGained label="Noté !" amount={outcome.bones + (fromQuest ? BONES.mission : 0)} />, fromQuest ? undefined : { label: 'Annuler', run: outcome.undo })
       leave()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -177,7 +177,7 @@ export default function Noter() {
         <button type="button" onClick={leave} className="btn btn-quiet min-h-12 px-4">
           Annuler
         </button>
-        <h1 className="text-lg font-bold">{fromQuest ? 'Mission réussie ?' : 'Un souvenir'}</h1>
+        <h1 className="text-lg font-bold">{fromQuest ? 'Mission réussie ?' : 'Un souvenir'}</h1>
         <div className="w-[92px]" />
       </header>
 
@@ -226,7 +226,7 @@ export default function Noter() {
 
         {/* 2. Un mot. */}
         <label className="flex flex-col gap-2">
-          <span className="text-lg font-bold">Un mot ?</span>
+          <span className="text-lg font-bold">Un mot ?</span>
           <textarea
             rows={3}
             value={text}
@@ -240,7 +240,7 @@ export default function Noter() {
         </label>
 
         <fieldset className="m-0 border-0 p-0">
-          <legend className={legend}>Comment c’était ?</legend>
+          <legend className={legend}>Comment c’était ?</legend>
           <div className="grid grid-cols-3 gap-2.5">
             {FEELINGS.map(({ value, label }) => {
               const on = feeling === value
@@ -262,7 +262,7 @@ export default function Noter() {
 
         {fear && (
           <fieldset className="m-0 flex flex-col gap-2.5 border-0 p-0">
-            <legend className={legend}>C'était difficile : qu'avez-vous fait ?</legend>
+            <legend className={legend}>C'était difficile : qu'avez-vous fait ?</legend>
             <label className={`flex min-h-16 items-center gap-3.5 rounded-[18px] border-2 border-solid px-4 py-3 ${movedAway ? 'border-primary bg-primary-soft' : 'border-border bg-surface'}`}>
               <input type="checkbox" checked={movedAway} onChange={(e) => setMovedAway(e.target.checked)} className="size-7 shrink-0 accent-primary" />
               <span className="flex flex-col gap-0.5">
@@ -286,7 +286,7 @@ export default function Noter() {
                 <legend className="sr-only">{skill.name} : prochaine étape</legend>
                 <span className="text-[13px] font-bold tracking-[0.6px] text-milestone-dark uppercase">{skill.name} · prochaine étape</span>
                 <p className="text-[17px] leading-snug font-semibold">
-                  {stepPhrase(id, left.target ?? 1)}. {date === today ? "C'est réussi aujourd'hui ?" : "C'est réussi ?"}
+                  {stepPhrase(id, left.target ?? 1)}. {date === today ? "C'est réussi aujourd'hui ?" : "C'est réussi ?"}
                 </p>
                 <div className="flex items-center gap-3">
                   <span className="flex gap-1.5" aria-hidden="true">
@@ -295,7 +295,7 @@ export default function Noter() {
                     ))}
                   </span>
                   <span className="text-[15px] text-muted">
-                    {already ? 'Déjà réussi ce jour-là' : missing === 0 ? 'Étape acquise !' : done === 0 ? 'À réussir 3 jours différents' : `Encore ${missing} fois, un autre jour`}
+                    {already ? 'Déjà réussi ce jour-là' : missing === 0 ? 'Étape acquise !' : done === 0 ? 'À réussir 3 jours différents' : `Encore ${missing} fois, un autre jour`}
                   </span>
                 </div>
                 {!already && (

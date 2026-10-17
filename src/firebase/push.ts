@@ -2,7 +2,7 @@ import { deleteDoc, getDoc, setDoc } from 'firebase/firestore'
 import { REMINDER_TIME_ZONE, vapidKeyBytes } from '../lib/reminder'
 import { userDoc } from './paths'
 
-// Abonnement push de cet appareil : users/{uid}/push/{appareil}. Il sert à deux rappels indépendants :
+// Abonnement push de cet appareil : users/{uid}/push/{appareil}. Il sert à deux rappels indépendants :
 // le rappel du soir (`evening`, absent = activé, pour les anciens abonnements) et les sorties (`walks`).
 
 export const VAPID_KEY = (import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined) ?? ''

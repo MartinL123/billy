@@ -238,7 +238,7 @@ export default function EventForm() {
 
       {confirmDelete && existing && (
         <ConfirmSheet
-          title="Supprimer cet événement ?"
+          title="Supprimer cet événement ?"
           message={`« ${existing.title} » sera retiré du calendrier. Les documents joints restent dans le profil.`}
           confirmLabel="Supprimer"
           onCancel={() => setConfirmDelete(false)}

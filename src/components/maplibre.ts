@@ -39,7 +39,7 @@ export function createMap(container: HTMLElement, { center = PARIS, zoom = 15, i
   return map
 }
 
-// Cartes dont le style est chargé. `isStyleLoaded()` repasse à faux pendant le chargement de tuiles :
+// Cartes dont le style est chargé. `isStyleLoaded()` repasse à faux pendant le chargement de tuiles :
 // on retient donc le premier « load », une fois pour toutes.
 const ready = new WeakSet<MapLibreMap>()
 

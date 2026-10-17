@@ -19,9 +19,9 @@ export function PlaceMoment({ at, onPlace, onCancel }: { at: { lat: number; lng:
   // Une note libre n'a de sens qu'avec un mot.
   const ready = type !== null && (type !== 'note' || note.trim().length > 0)
   return (
-    <Sheet label="Qu'est-ce qui s'est passé ici ?" onClose={onCancel}>
+    <Sheet label="Qu'est-ce qui s'est passé ici ?" onClose={onCancel}>
       <div className="mt-1 flex flex-col gap-0.5">
-        <h2 className="font-display text-[22px] font-extrabold">Qu'est-ce qui s'est passé ici ?</h2>
+        <h2 className="font-display text-[22px] font-extrabold">Qu'est-ce qui s'est passé ici ?</h2>
         {street && <p className="text-[15px] font-semibold text-muted">{street}</p>}
       </div>
       <div className="grid grid-cols-2 gap-2">

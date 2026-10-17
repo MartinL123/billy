@@ -57,7 +57,7 @@ function Tick({ on }: { on: boolean }) {
 }
 
 /**
- * Questionnaire de départ, en 5 parties. Une question par écran, pré-remplie avec ce que l'app sait déjà :
+ * Questionnaire de départ, en 5 parties. Une question par écran, pré-remplie avec ce que l'app sait déjà :
  * on confirme au lieu de retaper. Une réponse ne compte qu'après « Suivant ».
  */
 export default function Questionnaire() {

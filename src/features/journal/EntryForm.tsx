@@ -274,7 +274,7 @@ export default function EntryForm() {
 
       {confirmDelete && existing && (
         <ConfirmSheet
-          title="Supprimer ce souvenir ?"
+          title="Supprimer ce souvenir ?"
           message={existing.photos.length ? 'Le texte et ses photos seront supprimés définitivement.' : 'Ce souvenir sera supprimé définitivement.'}
           confirmLabel="Supprimer"
           onCancel={() => setConfirmDelete(false)}

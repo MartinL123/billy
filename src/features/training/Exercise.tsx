@@ -147,7 +147,7 @@ function RestDay() {
             </p>
           ) : (
             <button type="button" onClick={finish} className="btn btn-main min-h-[58px] w-full text-[18px]">
-              C'est fait !
+              C'est fait !
             </button>
           )}
         </div>
@@ -253,13 +253,13 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
 
         {easier && (
           <section className="flex flex-col gap-1.5">
-            <h2 className={sectionTitle}>Trop difficile aujourd'hui ?</h2>
+            <h2 className={sectionTitle}>Trop difficile aujourd'hui ?</h2>
             <p className="text-[17px] leading-snug">Revenez au réglage d'avant : « {easier} ». L'étape, elle, ne recule pas.</p>
           </section>
         )}
 
         <p className="flex min-h-11 flex-wrap items-center gap-x-1 px-1 text-[13px] text-muted">
-          Source :{' '}
+          Source :{' '}
           {exercise.source.url ? (
             <a href={exercise.source.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 font-semibold underline" style={{ color: inkOn(territory) }}>
               {exercise.source.name}
@@ -304,14 +304,14 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
             className="min-h-12 rounded-full border-2 border-solid bg-transparent text-[17px] font-bold"
             style={{ borderColor: territory.color, color: territory.color }}
           >
-            C'est fait !
+            C'est fait !
           </button>
         </div>
       </div>
 
       {timer.finished && (
         <Sheet label="Temps écoulé" onClose={timer.dismiss}>
-          <h2 className="mt-1 font-display text-[26px] leading-tight font-extrabold">C'est fini, bravo !</h2>
+          <h2 className="mt-1 font-display text-[26px] leading-tight font-extrabold">C'est fini, bravo !</h2>
           <p className="text-[17px] leading-snug">Les {minutes} minutes sont passées. On s'arrête sur une réussite.</p>
           <button type="button" onClick={() => navigate(fromQuest ? '/noter?depuis=quete' : `/noter?depuis=exercice&competences=${skill}`)} className="btn btn-main min-h-[58px] text-[18px]">
             C'est fait, je le note

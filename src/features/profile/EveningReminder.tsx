@@ -66,7 +66,7 @@ export function EveningReminder({ dogName }: { dogName: string }) {
           <p className="text-[17px] leading-snug text-muted">Le rappel du soir n'est pas disponible sur cet appareil.</p>
         ) : !isInstalled() ? (
           <>
-            <p className="text-[17px] leading-snug">Pour recevoir un rappel chaque soir, installez d'abord l'app sur l'écran d'accueil :</p>
+            <p className="text-[17px] leading-snug">Pour recevoir un rappel chaque soir, installez d'abord l'app sur l'écran d'accueil :</p>
             <ol className="m-0 flex list-decimal flex-col gap-1 pl-5 text-[17px] leading-snug">
               <li>Ouvrez cette page dans Safari.</li>
               <li>Touchez le bouton Partager.</li>

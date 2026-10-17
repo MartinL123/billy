@@ -182,7 +182,7 @@ export default function DocumentView() {
 
       {confirmDelete && (
         <ConfirmSheet
-          title="Supprimer ce document ?"
+          title="Supprimer ce document ?"
           message={`« ${document_.title} » sera supprimé définitivement de l'app.`}
           confirmLabel="Supprimer"
           onCancel={() => setConfirmDelete(false)}

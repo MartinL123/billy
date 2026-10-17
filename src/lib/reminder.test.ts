@@ -34,7 +34,7 @@ describe('rappel du soir', () => {
 
   it('écrit le texte au nom du chien, sans reproche', () => {
     expect(reminderText('Billy', false).body).toBe("Comment s'est passée la journée avec Billy ? Notez-le en 30 secondes.")
-    expect(reminderText('Billy', true).body).toBe('Journée repos pour Billy : un mot sur sa balade ?')
+    expect(reminderText('Billy', true).body).toBe('Journée repos pour Billy : un mot sur sa balade ?')
     expect(reminderText('', false).body).toContain('votre chien')
     for (const rest of [true, false]) expect(reminderText('Rex', rest).body).not.toMatch(/oubli|pas encore|toujours pas|n'avez pas/i)
   })

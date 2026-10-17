@@ -102,7 +102,7 @@ function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; onl
 
   return (
     <Sheet label="Supprimer mon compte" onClose={busy ? () => undefined : onClose}>
-      <h2 className="mt-1 font-display text-[24px] leading-tight font-extrabold">Supprimer mon compte et mes données ?</h2>
+      <h2 className="mt-1 font-display text-[24px] leading-tight font-extrabold">Supprimer mon compte et mes données ?</h2>
       <p className="text-[17px] leading-snug">Tout ce qui concerne {dogName} sera effacé pour toujours : profil, carnet, photos, documents, calendrier et progression. On ne peut pas revenir en arrière.</p>
       <label className="flex flex-col gap-1.5">
         <span className="text-[15px] font-semibold">Votre mot de passe, pour confirmer</span>
@@ -311,7 +311,7 @@ export default function Profile() {
 
       {confirmLogout && (
         <ConfirmSheet
-          title="Se déconnecter ?"
+          title="Se déconnecter ?"
           message={
             pendingCount > 0
               ? `Attention : ${pendingCount > 1 ? `${pendingCount} éléments ne sont pas encore envoyés` : "1 élément n'est pas encore envoyé"}. Reconnectez-vous à Internet avant de vous déconnecter pour ne rien perdre.`

@@ -1,6 +1,6 @@
 import type { ISODate } from './dates'
 
-// La meute (docs/specs/communaute.md) : tous les comptes de l'app. On compare l'effort, jamais le chien ;
+// La meute (docs/specs/communaute.md) : tous les comptes de l'app. On compare l'effort, jamais le chien ;
 // jamais d'heure, jamais de position en direct, seulement des spots publics.
 
 export type SpotCategory = 'balade' | 'parc' | 'eau' | 'cafe' | 'jeux' | 'eviter'

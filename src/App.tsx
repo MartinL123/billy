@@ -14,6 +14,7 @@ import Explorer from './features/balades/Explorer'
 import Ideas from './features/balades/Ideas'
 import Walks from './features/balades/Walks'
 import ImportStrava from './features/balades/ImportStrava'
+import Mission from './features/training/Mission'
 import ImportResult from './features/balades/ImportResult'
 import { CommunitySync } from './features/meute/CommunitySync'
 import { BonesBackfill } from './features/shop/BonesBackfill'
@@ -146,6 +147,7 @@ export default function App() {
             <Route path="souvenir/:id" element={<EntryView />} />
             <Route path="souvenir/:id/modifier" element={<EntryForm />} />
             <Route path="exercice" element={<Exercise />} />
+            <Route path="mission" element={<Mission />} />
             <Route path="seance" element={<Navigate to="/exercice" replace />} />
             <Route path="document/nouveau" element={<DocumentForm />} />
             <Route path="document/:id" element={<DocumentView />} />

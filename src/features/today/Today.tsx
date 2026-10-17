@@ -52,7 +52,7 @@ function useCardContent(card: NowCard) {
         title: mission.title,
         text: mission.detail,
         scene: quest.planned?.exercise.scene,
-        action: { label: 'Commencer', to: '/exercice?depuis=quete' },
+        action: { label: 'Commencer', to: '/mission' },
         other: canSkip ? () => skipQuest(today, skips + 1) : undefined,
       }
     case 'sortie':

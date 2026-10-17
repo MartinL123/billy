@@ -55,7 +55,8 @@ export default function Noter() {
   const [photos, setPhotos] = useState<Photo[]>([])
   // La date : aujourd'hui (ou l'adoption pour un souvenir du questionnaire). Elle se change ensuite dans le détail.
   const [date] = useState(() => (params.get('quand') === 'autre' && isValidISO(dog.adoptionDate) ? dog.adoptionDate : today))
-  const [feeling, setFeeling] = useState<Feeling>()
+  // Depuis la mission pas à pas : le ressenti est déjà choisi (« Ça s'est bien passé ? »).
+  const [feeling, setFeeling] = useState<Feeling | undefined>(() => (FEELINGS.some((f) => f.value === params.get('ressenti')) ? (params.get('ressenti') as Feeling) : undefined))
   // Plus de grille de compétences : seule une compétence demandée (fiche, exercice terminé, mission) compte.
   const [skills] = useState<string[]>(() => asked.filter((id) => SKILLS.some((s) => s.id === id)))
   const [movedAway, setMovedAway] = useState(false)
@@ -96,7 +97,9 @@ export default function Noter() {
   const input = { feeling, fear, movedAway: fear && movedAway }
   const askable = canAskStep(input)
   const stepSkills = skills.filter((id) => hasNextStep(bossProgress, id))
-  const yesIds = askable ? stepSkills.filter((id) => yes[id]) : []
+  // Depuis la mission pas à pas, « Bien » ou « Super » compte comme une réussite de l'étape en cours.
+  const auto = params.get('auto') === '1' && fromQuest
+  const yesIds = askable ? stepSkills.filter((id) => (auto ? feeling !== 'difficile' : yes[id])) : []
   const leave = () => navigate(params.get('retour') === 'questionnaire' ? '/questionnaire?etape=fin' : '/', { replace: true })
 
   const save = async () => {
@@ -124,6 +127,15 @@ export default function Noter() {
     }
   }
 
+  // Mission pas à pas : on enregistre tout de suite, puis « C'est réussi ! » et les os.
+  const autoSaved = useRef(false)
+  useEffect(() => {
+    if (!auto || autoSaved.current || !feeling) return
+    autoSaved.current = true
+    void save()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auto, feeling])
+
   // Après l'enregistrement : les réussites une à une, puis le nouveau niveau, puis retour.
   const celebrations = outcome ? outcome.steps.length + (outcome.levelReached ? 1 : 0) : 0
   useEffect(() => {
@@ -141,6 +153,16 @@ export default function Noter() {
     if (outcome.levelReached && shown < celebrations) return <LevelUp dogName={dog.name} level={outcome.levelReached} photoFileId={dog.photoThumbFileId} onClose={() => setShown(shown + 1)} />
     return null
   }
+
+  // Mission pas à pas : rien à remplir, l'enregistrement est en cours.
+  if (auto && !error)
+    return (
+      <main className="mx-auto flex min-h-dvh max-w-[430px] items-center justify-center px-5">
+        <p role="status" className="text-[17px] font-semibold text-muted">
+          Enregistrement…
+        </p>
+      </main>
+    )
 
   return (
     <form

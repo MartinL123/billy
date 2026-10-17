@@ -10,6 +10,8 @@ import { cellsLabel, discoveredShare, inPolygon, knownFog, shareLabel } from '..
 import { useToday } from '../../lib/useToday'
 import { filterWalks, FILTERS, walkItems, type WalkFilter } from '../../lib/walkList'
 import type { MapPlace } from './ExplorerMap'
+import { useIdeas } from './useIdeas'
+import { arrowTo, directionsUrl, KIND, metersLabel } from '../../lib/ideas'
 
 const ExplorerMap = lazy(() => import('./ExplorerMap').then((m) => ({ default: m.ExplorerMap })))
 
@@ -65,10 +67,15 @@ export default function Explorer() {
 
   // Les spots marqués par Billy restent sur la carte, avec leur goutte.
   const me = auth.currentUser?.uid ?? ''
+  const { ideas, here } = useIdeas()
+  const next = ideas.find((i) => !i.explored)
   const places = useMemo<MapPlace[]>(() => {
     const mine = new Set(marks.filter((m) => m.uid === me).map((m) => m.spotId))
-    return spots.filter((s) => mine.has(s.id)).map((s) => ({ id: s.id, lat: s.lat, lng: s.lng, name: s.name, hidden: false, icon: '💧' }))
-  }, [spots, marks, me])
+    const marked = spots.filter((s) => mine.has(s.id)).map((s) => ({ id: s.id, lat: s.lat, lng: s.lng, name: s.name, hidden: false, icon: '💧' }))
+    // Les lieux à découvrir : « ? » dans le brouillard, leur icône et leur nom une fois découverts.
+    const found = ideas.map((i) => ({ id: i.id, lat: i.lat, lng: i.lng, name: i.name, hidden: !i.explored, icon: KIND[i.kind].icon }))
+    return [...marked, ...found]
+  }, [spots, marks, me, ideas])
 
   const setPref = (next: Partial<typeof prefs>) => {
     const value = { ...prefs, ...next }
@@ -79,7 +86,7 @@ export default function Explorer() {
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
-        <ExplorerMap cells={cells} tracks={tracks} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} />
+        <ExplorerMap cells={cells} tracks={tracks} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} onPlace={() => navigate('/territoire/idees')} />
       </Suspense>
 
       {/* En haut : retour, import, réglages de la carte, filtres. */}
@@ -102,6 +109,11 @@ export default function Explorer() {
             ))}
           </div>
         </div>
+        {next && here && (
+          <Link to="/territoire/idees" className="pointer-events-auto btn min-h-11 self-start rounded-full bg-[#22332F] px-4 text-[15px] text-white shadow-[0_2px_8px_rgba(24,32,30,0.3)]">
+            {arrowTo(here, next)} {KIND[next.kind].label} · {metersLabel(next.meters)}
+          </Link>
+        )}
         <div className="flex flex-col items-end gap-2">
           <div role="group" aria-label="Fond de carte" className="pointer-events-auto flex rounded-full bg-surface p-1 shadow-[0_2px_6px_rgba(24,32,30,0.2)]">
             <button type="button" aria-pressed={!prefs.satellite} onClick={() => setPref({ satellite: false })} className={toggle(!prefs.satellite)}>
@@ -164,6 +176,23 @@ export default function Explorer() {
               </span>
               <span className="text-[15px] text-[#3F4946]">{[share !== undefined && commune ? shareLabel(share, commune.name) : '', cellsLabel(cells.size)].filter(Boolean).join(' · ')}</span>
             </div>
+            {next && (
+              <div className="flex flex-col gap-2 rounded-[18px] bg-bg p-3">
+                <Link to="/territoire/idees" className="flex min-w-0 items-center gap-3 text-text no-underline">
+                  <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary-soft text-[20px]">
+                    {KIND[next.kind].icon}
+                  </span>
+                  <span className="flex min-w-0 flex-col">
+                    <span className="text-[13px] font-bold tracking-[0.5px] text-muted uppercase">Prochaine découverte</span>
+                    <span className="text-[17px] leading-snug font-bold">{next.name}</span>
+                    <span className="text-[15px] leading-snug text-muted">{next.reason}</span>
+                  </span>
+                </Link>
+                <a href={directionsUrl(next.lat, next.lng)} className="btn btn-outline min-h-11 self-end px-4 text-[15px]">
+                  Y aller · {metersLabel(next.meters)}
+                </a>
+              </div>
+            )}
             <Link to="/importer" className="btn btn-main min-h-[56px]">
               Ajouter mes balades Strava
             </Link>

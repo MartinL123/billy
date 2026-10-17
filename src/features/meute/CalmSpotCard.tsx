@@ -3,24 +3,7 @@ import { Link } from 'react-router-dom'
 import { PinIcon } from '../../components/Icons'
 import { watchCalm, watchSpots, type CalmVote, type Spot, type WithId } from '../../firebase/community'
 import { formatDistance, pickCalmSpot } from '../../lib/community'
-
-/** La position, seulement si elle est déjà autorisée : on ne la demande jamais pour ça. */
-function useGrantedPosition() {
-  const [here, setHere] = useState<{ lat: number; lng: number }>()
-  useEffect(() => {
-    let live = true
-    navigator.permissions
-      ?.query({ name: 'geolocation' })
-      .then((p) => {
-        if (p.state === 'granted') navigator.geolocation.getCurrentPosition((pos) => live && setHere({ lat: pos.coords.latitude, lng: pos.coords.longitude }), () => undefined, { maximumAge: 600000, timeout: 8000 })
-      })
-      .catch(() => undefined)
-    return () => {
-      live = false
-    }
-  }, [])
-  return here
-}
+import { useGrantedPosition } from '../../lib/useGrantedPosition'
 
 /** « Un spot calme pour ça » dans une mission « rue calme », « lieu calme »… (communaute.md § 4). Rien s'il n'y en a pas. */
 export function CalmSpotCard() {

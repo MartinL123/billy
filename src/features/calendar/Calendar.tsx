@@ -1,230 +1,117 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { outlineButton } from '../../components/Form'
+import { Link } from 'react-router-dom'
 import { ChevronRightIcon } from '../../components/Icons'
-import { PageHeader } from '../../components/PageHeader'
-import { Pending } from '../../components/Pending'
-import { Fab } from '../../components/TabBar'
+import { setEventDone } from '../../firebase/db'
 import { useData } from '../../firebase/store'
-import type { Weight, WithId } from '../../firebase/types'
-import { formatLong, formatShort, parseISO, toISO, type ISODate } from '../../lib/dates'
-import { CARE_FILTERS, filterInfo, filterSummary, matchesFilter, upcoming, type CareFilter, type EventType } from '../../lib/events'
+import { diffDays, formatDayHeading, formatLong, formatShort, parseISO, toISO, type ISODate } from '../../lib/dates'
+import { healthLine, upcoming } from '../../lib/events'
 import { careStatus } from '../../lib/health'
 import { useToday } from '../../lib/useToday'
-import { DocumentsSection } from '../profile/DocumentsSection'
-import { Meals } from '../today/Meals'
 import { CalendarEventRow } from './EventRows'
 import { MonthGrid } from './MonthGrid'
-import { WeightChart } from './WeightChart'
-import { formatKg, WeightSheet } from './WeightSheet'
+import { formatKg } from './WeightSheet'
 
-const DONE_PREVIEW = 3
+const MONTH_NAMES = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
 
-// Le dernier filtre choisi est retenu sur l'appareil : une préférence d'affichage, pas une donnée.
-const FILTER_KEY = 'billy.sante.filtre'
-function storedFilter(): CareFilter {
-  try {
-    return filterInfo(localStorage.getItem(FILTER_KEY) ?? '').id
-  } catch {
-    return 'tout'
-  }
+/** « Dans 8 jours », « Aujourd'hui », « En retard de 3 jours » */
+function inDays(date: ISODate, today: ISODate): string {
+  const days = diffDays(today, date)
+  if (days === 0) return 'aujourd’hui'
+  if (days === 1) return 'demain'
+  if (days > 0) return `dans ${days} jours`
+  return `en retard de ${-days} jour${days < -1 ? 's' : ''}`
 }
 
-const CARE: { type: EventType; label: string }[] = [
-  { type: 'vaccin', label: 'Vaccin CHPPiL' },
-  { type: 'vermifuge', label: 'Vermifuge' },
-  { type: 'antiparasitaire', label: 'Puces et tiques' },
-]
-
+/** Santé (spec V4 § 5) : le calendrier tout de suite, la prochaine chose à faire, 5 lignes vers les détails. */
 export default function Calendar() {
-  const { dog, events, weights } = useData()
+  const { dog, events, weights, documents } = useData()
   const today = useToday()
-  const navigate = useNavigate()
   const [month, setMonth] = useState(() => toISO({ ...parseISO(today), d: 1 }))
   const [selected, setSelected] = useState<ISODate | null>(null)
-  const [showAllDone, setShowAllDone] = useState(false)
-  const [filter, setFilterState] = useState<CareFilter>(storedFilter)
-  const setFilter = (next: CareFilter) => {
-    setFilterState(next)
-    setShowAllDone(false)
-    try {
-      localStorage.setItem(FILTER_KEY, next)
-    } catch {
-      // Stockage indisponible (navigation privée) : le filtre reste valable pour cette visite.
-    }
-  }
-  const [weightSheet, setWeightSheet] = useState<{ editing?: WithId<Weight> } | null>(null)
 
-  const toComplete = events.filter((e) => !e.date && !e.done)
-  const allNext = upcoming(events, today)
-  const next = allNext.filter((e) => matchesFilter(e, filter))
-  const info = filterInfo(filter)
-  const done = events.filter((e) => e.done && matchesFilter(e, filter)).sort((a, b) => (b.doneAt ?? b.date).localeCompare(a.doneAt ?? a.date))
+  const next = upcoming(events, today)[0]
   const ofDay = selected ? events.filter((e) => e.date === selected) : []
+  const vaccine = careStatus(events, 'vaccin').next
+  const worm = careStatus(events, 'vermifuge').next
   const lastWeight = weights[0]
   const year = parseISO(today).y
+  const meals = dog.feeding?.meals.length ?? 0
 
-  const newEvent = () => navigate(selected ? `/evenement/nouveau?date=${selected}` : '/evenement/nouveau')
+  const lines: { to: string; title: string; detail: string; ok?: boolean }[] = [
+    { to: '/sante/evenements?filtre=vaccins', title: 'Vaccins', detail: vaccine?.date ? `Prochain rappel en ${MONTH_NAMES[parseISO(vaccine.date).m - 1]} ${parseISO(vaccine.date).y}` : 'Aucun rappel prévu', ok: Boolean(vaccine?.date && vaccine.date >= today) },
+    { to: '/sante/evenements?filtre=soins', title: 'Vermifuge', detail: worm?.date ? `Prochain le ${formatLong(worm.date).replace(` ${year}`, '')}` : 'Aucun rappel prévu', ok: Boolean(worm?.date && worm.date >= today) },
+    { to: '/sante/poids', title: 'Poids', detail: lastWeight ? `${formatKg(lastWeight.kg)} kg · pesé le ${formatShort(lastWeight.date, year)}` : 'Aucune pesée pour l’instant' },
+    { to: '/sante/repas', title: 'Repas', detail: dog.feeding && meals ? `${meals} repas · ${dog.feeding.gramsPerDay} g par jour` : 'À renseigner' },
+    { to: '/sante/documents', title: 'Documents', detail: documents.length ? documents.slice(0, 2).map((d) => d.title).join(', ') : 'Carnet de santé, ordonnances' },
+  ]
 
   return (
-    <div className="flex flex-col gap-5 px-5">
-      <PageHeader title="Santé" />
+    <div className="flex flex-col gap-4 px-5">
+      <div className="flex flex-col gap-1">
+        <p className="text-[15px] font-medium text-muted">{formatDayHeading(today)}</p>
+        <h1 className="font-display text-[32px] leading-tight font-bold">Santé</h1>
+        <p className="text-[17px] leading-snug text-[#3F4946]">{healthLine(events, today)}</p>
+      </div>
 
-      <section aria-label="Soins" className="card px-4 py-1">
-        {CARE.map(({ type, label }, i) => {
-          const { last, next: due } = careStatus(events, type)
-          return (
-            <div key={type} className={`flex flex-col gap-0.5 py-3 ${i ? 'border-t border-divider' : ''}`}>
-              <span className="text-[13px] text-muted">{label}</span>
-              <span className="text-base font-semibold">{last ? (last.date ? `Fait le ${formatLong(last.date)}` : 'Fait, date inconnue') : 'Rien de noté'}</span>
-              <span className="text-[13px] text-muted">{due?.date ? `Prochain : ${formatLong(due.date)}` : 'Aucun rappel prévu'}</span>
-            </div>
-          )
-        })}
-      </section>
-
-      <MonthGrid
-        month={month}
-        today={today}
-        selected={selected}
-        events={events.filter((e) => matchesFilter(e, filter))}
-        onMonthChange={setMonth}
-        onSelect={(day) => setSelected(day === selected ? null : day)}
-      />
+      <MonthGrid month={month} today={today} selected={selected} events={events} onMonthChange={setMonth} onSelect={(day) => setSelected(day === selected ? null : day)} />
 
       {selected && (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-[19px] font-bold">Le {formatLong(selected)}</h2>
-          {ofDay.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-[17px] font-bold">Le {formatLong(selected)}</h2>
+          {ofDay.length > 0 ? (
             <div className="card overflow-hidden">
               {ofDay.map((event, i) => (
                 <CalendarEventRow key={event.id} event={event} today={today} first={i === 0} />
               ))}
             </div>
+          ) : (
+            <p className="text-[15px] text-muted">Rien ce jour-là.</p>
           )}
-          <Link
-            to={`/evenement/nouveau?date=${selected}`}
-            className="btn btn-outline rounded-field border-dashed border-[#9AA39F]"
-          >
+          <Link to={`/evenement/nouveau?date=${selected}`} className="btn btn-outline">
             Ajouter un événement ce jour-là
           </Link>
         </section>
       )}
 
-      {toComplete.length > 0 && (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-[19px] font-bold">À compléter</h2>
-          <div className="card overflow-hidden">
-            {toComplete.map((event, i) => (
-              <CalendarEventRow key={event.id} event={event} today={today} first={i === 0} />
-            ))}
-          </div>
+      {next && next.date ? (
+        <section aria-label="Prochaine chose à faire" className="card flex flex-col gap-2.5 rounded-[24px] p-4">
+          <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">Prochaine chose à faire</span>
+          <Link to={`/evenement/${next.id}`} className="font-display text-[22px] leading-tight font-extrabold text-text no-underline">
+            {next.title}
+          </Link>
+          <p className="text-[17px] text-[#3F4946]">
+            {formatDayHeading(next.date)} · {inDays(next.date, today)}
+          </p>
+          <button type="button" onClick={() => setEventDone(next, true)} className="btn btn-main min-h-[54px]">
+            C’est fait
+          </button>
+          <p className="text-[15px] text-muted">{dog.name} vous le rappellera le jour même.</p>
+        </section>
+      ) : (
+        <section className="card flex flex-col items-start gap-3 p-4">
+          <p className="text-[17px] font-semibold">Rien de prévu pour l’instant.</p>
+          <Link to="/evenement/nouveau" className="btn btn-main">
+            Ajouter un rendez-vous ou un soin
+          </Link>
         </section>
       )}
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-[19px] font-bold">À venir</h2>
-        <div role="group" aria-label="Filtrer par catégorie" className="scroll-row -mx-5 flex gap-2 px-5 pt-0.5 pb-1">
-          {CARE_FILTERS.map((item) => {
-            const on = filter === item.id
-            const count = allNext.filter((e) => matchesFilter(e, item.id)).length
-            return (
-              <button
-                key={item.id}
-                type="button"
-                aria-pressed={on}
-                onClick={() => setFilter(item.id)}
-                className="flex min-h-12 shrink-0 items-center gap-[7px] rounded-full border-2 border-solid px-3.5 text-[15px] font-bold"
-                style={on ? { background: item.color, borderColor: item.color, color: '#FFFFFF' } : { background: '#FFFFFF', borderColor: '#C9D1CD', color: '#18201E' }}
-              >
-                {item.id !== 'tout' && <span className="size-2.5 rounded-full" style={{ background: on ? '#FFFFFF' : item.color }} />}
-                {item.label}
-                <span className="text-[13px] opacity-80">{count}</span>
-              </button>
-            )
-          })}
-        </div>
-        {next.length > 0 ? (
-          <>
-            {filter !== 'tout' && <p className="text-[15px] font-semibold text-muted">{filterSummary(filter, next.length)}</p>}
-            <div className="card overflow-hidden">
-              {next.map((event, i) => (
-                <CalendarEventRow key={event.id} event={event} today={today} first={i === 0} />
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="card flex flex-col items-start gap-3 p-4">
-            <p className="text-[17px] font-semibold">{info.empty}</p>
-            <Link to={info.type ? `/evenement/nouveau?type=${info.type}` : '/evenement/nouveau'} className="btn btn-outline">
-              {info.add}
-            </Link>
-          </div>
-        )}
-      </section>
+      <nav aria-label="Sa santé en détail" className="card flex flex-col p-0">
+        {lines.map((line, i) => (
+          <Link key={line.title} to={line.to} className={`flex min-h-[60px] items-center gap-3 px-4 py-2.5 text-text no-underline ${i ? 'border-t border-divider' : ''}`}>
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="text-[17px] font-bold">{line.title}</span>
+              <span className="truncate text-[15px] text-muted">{line.detail}</span>
+            </span>
+            {line.ok && <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-1 text-[13px] font-bold text-primary-dark">À jour</span>}
+            <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
+          </Link>
+        ))}
+      </nav>
 
-      {done.length > 0 && (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-[19px] font-bold">Faits</h2>
-          <div className="card overflow-hidden">
-            {(showAllDone ? done : done.slice(0, DONE_PREVIEW)).map((event, i) => (
-              <CalendarEventRow key={event.id} event={event} today={today} first={i === 0} />
-            ))}
-            {done.length > DONE_PREVIEW && (
-              <button
-                type="button"
-                onClick={() => setShowAllDone(!showAllDone)}
-                className="btn btn-outline w-full border-t border-divider"
-              >
-                {showAllDone ? 'Réduire' : `Voir les ${done.length} événements faits`}
-              </button>
-            )}
-          </div>
-        </section>
-      )}
-
-      <section className="card flex flex-col gap-3 p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex flex-col gap-0.5">
-            <h2 className="text-[19px] font-bold">Poids</h2>
-            <div className="text-[13px] text-muted">{lastWeight ? `Pesé le ${formatShort(lastWeight.date, year)}` : 'Aucune pesée pour l’instant'}</div>
-          </div>
-          {lastWeight && (
-            <div className="font-display text-[30px] font-bold">
-              {formatKg(lastWeight.kg)} <span className="font-sans text-base font-semibold text-muted">kg</span>
-            </div>
-          )}
-        </div>
-        {lastWeight && <Pending show={lastWeight.pending} />}
-        <WeightChart weights={weights} />
-        {weights.length > 0 && (
-          <div className="flex flex-col">
-            {weights.slice(0, 5).map((weight) => (
-              <button
-                key={weight.id}
-                type="button"
-                aria-label={`Modifier la pesée du ${formatLong(weight.date)}`}
-                onClick={() => setWeightSheet({ editing: weight })}
-                className="flex min-h-12 items-center gap-3 border-0 border-t border-solid border-divider bg-transparent px-0 text-left text-[17px] text-text"
-              >
-                <span className="flex-1">{formatShort(weight.date, year)}</span>
-                <span className="font-semibold">{formatKg(weight.kg)} kg</span>
-                <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
-              </button>
-            ))}
-          </div>
-        )}
-        <button type="button" onClick={() => setWeightSheet({})} className={outlineButton}>
-          Ajouter une pesée
-        </button>
-      </section>
-
-      {dog.feeding && dog.feeding.meals.length > 0 && <Meals dogName={dog.name} feeding={dog.feeding} today={today} />}
-
-      <DocumentsSection />
-
-      <Fab label="Ajouter un rendez-vous ou un soin" onClick={newEvent} />
-      {weightSheet && <WeightSheet today={today} weights={weights} editing={weightSheet.editing} onClose={() => setWeightSheet(null)} />}
+      <Link to="/sante/evenements" className="flex min-h-12 items-center justify-center text-[17px] font-bold text-primary no-underline">
+        Voir tous les événements
+      </Link>
     </div>
   )
 }

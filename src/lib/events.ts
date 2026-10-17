@@ -126,3 +126,12 @@ export function sterilisationReminder(events: { title: string; done: boolean }[]
   const when = date && date >= today ? date : sixMonths && sixMonths > today ? sixMonths : addDays(today, 30)
   return { title: date && date >= today ? 'Stérilisation' : 'Prendre rendez-vous pour la stérilisation', type: 'veto' as const, date: when, recurrence: 'none' as const, done: false }
 }
+
+/** Santé (spec V4 § 5) : « Tout est à jour. Une seule chose à prévoir. » — les 30 prochains jours. */
+export function healthLine(events: Schedulable[], today: ISODate): string {
+  const late = events.filter((e) => isOverdue(e, today)).length
+  const soon = events.filter((e) => !e.done && e.date && e.date >= today && diffDays(today, e.date) <= 30).length
+  const first = late ? `${late === 1 ? 'Une chose' : `${late} choses`} en retard.` : 'Tout est à jour.'
+  const second = soon === 0 ? 'Rien à prévoir ce mois-ci.' : soon === 1 ? 'Une seule chose à prévoir.' : `${soon} choses à prévoir ce mois-ci.`
+  return `${first} ${second}`
+}

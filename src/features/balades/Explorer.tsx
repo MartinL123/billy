@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ChevronLeftIcon, ChevronRightIcon } from '../../components/Icons'
+import { ChevronRightIcon } from '../../components/Icons'
 import { auth } from '../../firebase/app'
 import { fetchCommune } from '../../firebase/communes'
 import { watchMarks, watchSpots, type Mark, type Spot, type WithId } from '../../firebase/community'
@@ -11,7 +11,10 @@ import { useToday } from '../../lib/useToday'
 import { filterWalks, FILTERS, walkItems, type WalkFilter } from '../../lib/walkList'
 import type { MapPlace } from './ExplorerMap'
 import { useIdeas } from './useIdeas'
-import { arrowTo, directionsUrl, KIND, metersLabel } from '../../lib/ideas'
+import { arrowTo, KIND, metersLabel } from '../../lib/ideas'
+import { formatRelative } from '../../lib/dates'
+import { formatRouteDistance } from '../../lib/route'
+import { RouteThumb } from '../trajets/RouteThumb'
 
 const ExplorerMap = lazy(() => import('./ExplorerMap').then((m) => ({ default: m.ExplorerMap })))
 
@@ -44,6 +47,8 @@ export default function Explorer() {
   const [params] = useSearchParams()
   const [filter, setFilter] = useState<WalkFilter>(() => (params.get('filtre') as WalkFilter | null) ?? 'toutes')
   const [collapsed, setCollapsed] = useState(false)
+  // « Spots de la meute » : un calque de la carte (spec V4 § 1), activé d'un toucher.
+  const [packLayer, setPackLayer] = useState(false)
   const [dragFrom, setDragFrom] = useState<number | null>(null)
   const [spots, setSpots] = useState<WithId<Spot>[]>([])
   const [marks, setMarks] = useState<WithId<Mark>[]>([])
@@ -76,8 +81,10 @@ export default function Explorer() {
     const marked = spots.filter((s) => mine.has(s.id)).map((s) => ({ id: s.id, lat: s.lat, lng: s.lng, name: s.name, hidden: false, icon: '💧' }))
     // Les lieux à découvrir : « ? » dans le brouillard, leur icône et leur nom une fois découverts.
     const found = ideas.map((i) => ({ id: i.id, lat: i.lat, lng: i.lng, name: i.name, hidden: !i.explored, icon: KIND[i.kind].icon }))
-    return [...marked, ...found]
-  }, [spots, marks, me, ideas])
+    const pack = packLayer ? spots.filter((s) => !mine.has(s.id)).map((s) => ({ id: `meute:${s.id}`, lat: s.lat, lng: s.lng, name: s.name, hidden: false, icon: '🐾' })) : []
+    return [...marked, ...pack, ...found]
+  }, [spots, marks, me, ideas, packLayer])
+  const openPlace = (id: string) => navigate(id.startsWith('meute:') ? `/meute?spot=${id.slice(6)}` : spots.some((s) => s.id === id) ? `/meute?spot=${id}` : '/territoire/idees')
 
   const setPref = (next: Partial<typeof prefs>) => {
     const value = { ...prefs, ...next }
@@ -88,28 +95,21 @@ export default function Explorer() {
   return (
     <div className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
-        <ExplorerMap cells={cells} tracks={tracks} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} onPlace={() => navigate('/territoire/idees')} />
+        <ExplorerMap cells={cells} tracks={tracks} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} onPlace={openPlace} />
       </Suspense>
 
-      {/* En haut : retour, import, réglages de la carte, filtres. */}
+      {/* En haut : les filtres, le calque de la meute, puis les réglages de la carte. */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col gap-2 px-3 pt-[calc(env(safe-area-inset-top)+8px)]">
-        <div className="flex items-start justify-between gap-2">
-          <button type="button" onClick={() => navigate('/billy/arbre')} className="pointer-events-auto btn min-h-11 gap-1 rounded-full bg-surface px-3.5 text-[15px] shadow-[0_2px_8px_rgba(24,32,30,0.25)]">
-            <ChevronLeftIcon size={18} />
-            L’arbre
+        <div role="group" aria-label="Filtrer la carte" className="pointer-events-auto scroll-row -mx-3 flex gap-1.5 px-3">
+          {FILTERS.map((f) => (
+            <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className={`min-h-11 shrink-0 rounded-full border-0 px-3.5 text-[15px] font-bold shadow-[0_2px_6px_rgba(24,32,30,0.2)] ${filter === f.id ? 'bg-primary text-white' : 'bg-surface text-text'}`}>
+              {f.id === 'toutes' ? `Mes balades · ${walks.length}` : f.label}
+            </button>
+          ))}
+          <button type="button" aria-pressed={packLayer} onClick={() => setPackLayer(!packLayer)} className={`flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border-0 px-3.5 text-[15px] font-bold shadow-[0_2px_6px_rgba(24,32,30,0.2)] ${packLayer ? 'bg-primary text-white' : 'bg-surface text-text'}`}>
+            <span className="size-2.5 rounded-full bg-[#2559A8]" aria-hidden="true" />
+            Spots de la meute
           </button>
-          <Link to="/importer" className="pointer-events-auto btn min-h-11 rounded-full bg-surface px-4 text-[15px] shadow-[0_2px_8px_rgba(24,32,30,0.25)]">
-            Importer
-          </Link>
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <div role="group" aria-label="Filtrer les balades" className="pointer-events-auto scroll-row flex min-w-0 gap-1.5">
-            {FILTERS.map((f) => (
-              <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className={`min-h-11 shrink-0 rounded-full border-0 px-3.5 text-[15px] font-bold shadow-[0_2px_6px_rgba(24,32,30,0.2)] ${filter === f.id ? 'bg-primary text-white' : 'bg-surface text-text'}`}>
-                {f.id === 'toutes' ? `${f.label} · ${walks.length}` : f.label}
-              </button>
-            ))}
-          </div>
         </div>
         {next && here && (
           <Link to="/territoire/idees" className="pointer-events-auto btn min-h-11 self-start rounded-full bg-[#22332F] px-4 text-[15px] text-white shadow-[0_2px_8px_rgba(24,32,30,0.3)]">
@@ -165,35 +165,23 @@ export default function Explorer() {
           </>
         ) : (
           <>
-            <div className="flex items-baseline justify-between gap-3">
-              <h1 className="font-display text-[22px] font-extrabold">Le territoire de {dog.name}</h1>
-              <Link to="/balades" className="flex min-h-11 shrink-0 items-center gap-0.5 text-[15px] font-bold text-primary no-underline">
-                {walks.length} balade{walks.length > 1 ? 's' : ''}
-                <ChevronRightIcon size={18} />
+            <p className="text-[17px] leading-snug">
+              Chaque balade lève le brouillard.{share !== undefined && commune ? <strong> {shareLabel(share, commune.name)}.</strong> : null}
+            </p>
+            <span className="h-2.5 overflow-hidden rounded-full bg-placeholder" aria-hidden="true">
+              <span className="block h-full rounded-full bg-gold" style={{ width: `${Math.max(3, Math.min(100, (share ?? 0) * 100))}%` }} />
+            </span>
+            {last && (
+              <Link to="/balades" className="flex items-center gap-3 rounded-[18px] bg-bg p-2.5 text-text no-underline">
+                <RouteThumb points={last.route.points} moments={last.route.moments} size={48} />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-[17px] font-bold">{last.name}</span>
+                  <span className="truncate text-[15px] text-muted">
+                    {formatRelative(last.date, today).replace(/^./, (c) => c.toLocaleUpperCase('fr'))} · {formatRouteDistance(last.route.distanceM)} · voir les {walks.length} balade{walks.length > 1 ? 's' : ''}
+                  </span>
+                </span>
+                <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
               </Link>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="h-2.5 overflow-hidden rounded-full bg-placeholder" aria-hidden="true">
-                <span className="block h-full rounded-full bg-gold" style={{ width: `${Math.max(3, Math.min(100, (share ?? 0) * 100))}%` }} />
-              </span>
-              <span className="text-[15px] text-[#3F4946]">{[share !== undefined && commune ? shareLabel(share, commune.name) : '', cellsLabel(cells.size)].filter(Boolean).join(' · ')}</span>
-            </div>
-            {next && (
-              <div className="flex flex-col gap-2 rounded-[18px] bg-bg p-3">
-                <Link to="/territoire/idees" className="flex min-w-0 items-center gap-3 text-text no-underline">
-                  <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary-soft text-[20px]">
-                    {KIND[next.kind].icon}
-                  </span>
-                  <span className="flex min-w-0 flex-col">
-                    <span className="text-[13px] font-bold tracking-[0.5px] text-muted uppercase">Prochaine découverte</span>
-                    <span className="text-[17px] leading-snug font-bold">{next.name}</span>
-                    <span className="text-[15px] leading-snug text-muted">{next.reason}</span>
-                  </span>
-                </Link>
-                <a href={directionsUrl(next.lat, next.lng)} className="btn btn-outline min-h-11 self-end px-4 text-[15px]">
-                  Y aller · {metersLabel(next.meters)}
-                </a>
-              </div>
             )}
             <Link to="/importer" className="btn btn-main min-h-[56px]">
               Ajouter mes balades Strava

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ChevronLeftIcon } from '../../components/Icons'
+import { FileImage } from '../../components/FileImage'
+import { ChevronLeftIcon, NoteIcon } from '../../components/Icons'
 import { setEntryCommune } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { formatDuration } from '../../lib/balade'
@@ -45,12 +46,22 @@ export default function Walks() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const visible = all ? shown : shown.slice(0, PAGE)
-  const groups = visible.reduce<{ key: string; items: typeof visible }[]>((acc, w) => {
+  // Les souvenirs sans trajet (une photo, une note) apparaissent aussi, à leur date (spec V4 § 4), hors filtres de balade.
+  type Row = { kind: 'balade'; item: (typeof shown)[number] } | { kind: 'souvenir'; id: string; date: string; text: string; thumb?: string }
+  const souvenirs: Row[] =
+    filter === 'toutes' || filter === 'mois'
+      ? entries
+          .filter((e) => !e.route?.points?.length && (filter === 'toutes' || e.date.startsWith(today.slice(0, 7))))
+          .map((e) => ({ kind: 'souvenir' as const, id: e.id, date: e.date, text: e.text.split('\n')[0] || 'Un souvenir', ...(e.photos[0] ? { thumb: e.photos[0].thumbFileId } : {}) }))
+      : []
+  const rows: Row[] = [...shown.map((item) => ({ kind: 'balade' as const, item })), ...souvenirs].sort((a, b) => (b.kind === 'balade' ? b.item.date : b.date).localeCompare(a.kind === 'balade' ? a.item.date : a.date))
+  const visible = all ? rows : rows.slice(0, PAGE)
+  const groups = visible.reduce<{ key: string; items: Row[] }[]>((acc, row) => {
+    const w = { date: row.kind === 'balade' ? row.item.date : row.date }
     const key = w.date.slice(0, 7)
     const last = acc[acc.length - 1]
-    if (last?.key === key) last.items.push(w)
-    else acc.push({ key, items: [w] })
+    if (last?.key === key) last.items.push(row)
+    else acc.push({ key, items: [row] })
     return acc
   }, [])
   const filters: { id: WalkFilter; label: string }[] = [{ id: 'toutes', label: 'Tout' }, { id: 'mois', label: 'Ce mois' }, ...communes.map((c) => ({ id: `commune:${c}` as WalkFilter, label: c })), { id: 'peur', label: 'Avec une peur' }, { id: 'long', label: 'Plus de 3 km' }]
@@ -80,30 +91,48 @@ export default function Walks() {
           <section key={group.key} className="flex flex-col gap-2">
             <h2 className="text-sm font-bold tracking-[0.6px] text-muted uppercase">{formatMonthYear(`${group.key}-01`)}</h2>
             <ul className="card m-0 flex list-none flex-col p-0">
-              {group.items.map((w, i) => (
-                <li key={w.id} className={i ? 'border-t border-divider' : ''}>
-                  <Link to={`/souvenir/${w.id}`} className="flex items-center gap-3 px-3 py-2.5 text-text no-underline">
-                    <RouteThumb points={w.route.points} moments={w.route.moments} size={56} />
-                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span className="truncate text-[17px] font-bold">{w.name}</span>
-                      <span className="text-[15px] text-muted">{[formatShort(w.date), w.commune, formatRouteDistance(w.route.distanceM), w.route.durationMin ? formatDuration(w.route.durationMin) : ''].filter(Boolean).join(' · ')}</span>
-                      <span className="flex flex-wrap gap-1.5">
-                        {walkTags(w).map((t) => (
-                          <span key={t} className="rounded-full bg-bg px-2 py-0.5 text-[13px] font-semibold text-[#3F4946]">
-                            {t}
-                          </span>
-                        ))}
+              {group.items.map((row, i) =>
+                row.kind === 'souvenir' ? (
+                  <li key={row.id} className={i ? 'border-t border-divider' : ''}>
+                    <Link to={`/souvenir/${row.id}`} className="flex items-center gap-3 px-3 py-2.5 text-text no-underline">
+                      {row.thumb ? (
+                        <FileImage fileId={row.thumb} alt="" className="size-14 shrink-0 rounded-[14px]" />
+                      ) : (
+                        <span className="flex size-14 shrink-0 items-center justify-center rounded-[14px] bg-bg text-primary">
+                          <NoteIcon size={24} />
+                        </span>
+                      )}
+                      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <span className="truncate text-[17px] font-bold">{row.text}</span>
+                        <span className="text-[15px] text-muted">{formatShort(row.date)} · un souvenir</span>
                       </span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
+                    </Link>
+                  </li>
+                ) : (
+                  <li key={row.item.id} className={i ? 'border-t border-divider' : ''}>
+                    <Link to={`/souvenir/${row.item.id}`} className="flex items-center gap-3 px-3 py-2.5 text-text no-underline">
+                      <RouteThumb points={row.item.route.points} moments={row.item.route.moments} size={56} />
+                      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <span className="truncate text-[17px] font-bold">{row.item.name}</span>
+                        <span className="text-[15px] text-muted">{[formatShort(row.item.date), row.item.commune, formatRouteDistance(row.item.route.distanceM), row.item.route.durationMin ? formatDuration(row.item.route.durationMin) : ''].filter(Boolean).join(' · ')}</span>
+                        <span className="flex flex-wrap gap-1.5">
+                          {walkTags(row.item).map((t) => (
+                            <span key={t} className="rounded-full bg-bg px-2 py-0.5 text-[13px] font-semibold text-[#3F4946]">
+                              {t}
+                            </span>
+                          ))}
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ),
+              )}
             </ul>
           </section>
         ))}
-        {!all && shown.length > PAGE && (
+        {!all && rows.length > PAGE && (
           <button type="button" onClick={() => setAll(true)} className="btn btn-outline">
-            Voir les {shown.length - PAGE} balades plus anciennes
+            Voir les {rows.length - PAGE} plus anciens
           </button>
         )}
       </main>

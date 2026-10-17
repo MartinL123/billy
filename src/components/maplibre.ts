@@ -85,7 +85,7 @@ export const onMarker = (event: Event | undefined) => Boolean((event?.target as 
 export function set3D(map: MapLibreMap, on: boolean): void {
   whenReady(map, () => {
     if (on) {
-      if (!map.getSource('relief')) map.addSource('relief', { type: 'raster-dem', tiles: [TERRAIN_TILES], encoding: 'terrarium', tileSize: 256, maxzoom: 15, attribution: 'Relief : Mapzen, AWS Terrain Tiles' })
+      if (!map.getSource('relief')) map.addSource('relief', { type: 'raster-dem', tiles: [TERRAIN_TILES], encoding: 'terrarium', tileSize: 256, maxzoom: 15, attribution: 'Relief : Mapzen, AWS Terrain Tiles' })
       map.setTerrain({ source: 'relief', exaggeration: 1.2 })
       map.dragRotate.enable()
       map.easeTo({ pitch: 60, duration: 800 })

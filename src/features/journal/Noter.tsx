@@ -262,7 +262,7 @@ export default function Noter() {
 
         {fear && (
           <fieldset className="m-0 flex flex-col gap-2.5 border-0 p-0">
-            <legend className={legend}>C'était difficile : qu'avez-vous fait ?</legend>
+            <legend className={legend}>C'était difficile : qu'avez-vous fait ?</legend>
             <label className={`flex min-h-16 items-center gap-3.5 rounded-[18px] border-2 border-solid px-4 py-3 ${movedAway ? 'border-primary bg-primary-soft' : 'border-border bg-surface'}`}>
               <input type="checkbox" checked={movedAway} onChange={(e) => setMovedAway(e.target.checked)} className="size-7 shrink-0 accent-primary" />
               <span className="flex flex-col gap-0.5">

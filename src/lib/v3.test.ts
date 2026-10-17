@@ -28,7 +28,7 @@ describe('phrases des étapes', () => {
     }
   })
 
-  it('se lisent après « Billy » ou « Prochaine étape : »', () => {
+  it('se lisent après « Billy » ou « Prochaine étape : »', () => {
     expect(stepPhrase('rappel', 1)).toBe('Revient quand on l’appelle d’une autre pièce')
     expect(stepPhraseLower('rappel', 3)).toBe('revient quand on l’appelle dans un parc calme')
     expect(stepPhraseLower('ville', 1)).toBe('écoute les bruits de la ville en mangeant')
@@ -73,7 +73,7 @@ describe('questionnaire de départ', () => {
     expect(statusLabel(done)).toBe('Complété · revoir mes réponses')
   })
 
-  it('traduit les réponses en étapes acquises : un chien déjà éduqué peut tout avoir', () => {
+  it('traduit les réponses en étapes acquises : un chien déjà éduqué peut tout avoir', () => {
     expect(['non', 'nsp', undefined, 'maison', 'dehors', 'anime', 'partout'].map(stepsForAnswer)).toEqual([0, 0, 0, 2, 3, 4, 5])
     expect(skillOptions('lien').map((o) => o.label)).toEqual(['Pas encore', 'À la maison', 'Même dehors'])
     expect(skillOptions('ville').map((o) => o.label)).toEqual(['Pas encore', 'Dans une rue calme', 'Même en rue animée'])
@@ -155,7 +155,7 @@ describe('XP d’un moment raconté', () => {
     expect(momentBaseXp({ feeling: 'bien', fear: false, movedAway: true })).toBe(10)
   })
 
-  it('ne demande « c’est réussi ? » que si tout s’est bien passé', () => {
+  it('ne demande « c’est réussi ? » que si tout s’est bien passé', () => {
     expect(canAskStep({ ...calm })).toBe(true)
     expect(canAskStep({ ...calm, feeling: 'super' })).toBe(true)
     expect(canAskStep({ ...calm, feeling: 'difficile' })).toBe(false)
@@ -190,13 +190,13 @@ import { byRecency, exposureAsMoment, sessionAsMoment } from './carnet'
 describe('Carnet unifié', () => {
   it('résume une ancienne séance sans chiffre ni vocabulaire interne', () => {
     const moment = sessionAsMoment({ id: 'a', date: '2026-10-13', exerciseId: 'prenom', bossId: 'lien', bossIds: ['lien', 'rappel'], reaction: 1 })
-    expect(moment).toMatchObject({ id: 'seance-a', text: 'Exercice : Jeu du prénom.', skills: ['lien', 'rappel'], feeling: 'bien' })
+    expect(moment).toMatchObject({ id: 'seance-a', text: 'Exercice : Jeu du prénom.', skills: ['lien', 'rappel'], feeling: 'bien' })
     expect(moment.text).not.toMatch(BANNED)
   })
 
   it('présente une ancienne exposition comme une situation qui lui fait peur', () => {
     const moment = exposureAsMoment({ id: 'b', date: '2026-10-12', bossId: 'ville', trigger: 'La ruelle', reaction: 3, retreat: true })
-    expect(moment).toMatchObject({ text: 'Une situation qui lui fait peur : La ruelle.', fear: true, movedAway: true, feeling: 'difficile', skills: ['ville'] })
+    expect(moment).toMatchObject({ text: 'Une situation qui lui fait peur : La ruelle.', fear: true, movedAway: true, feeling: 'difficile', skills: ['ville'] })
     expect(moment.text).not.toMatch(BANNED)
   })
 
@@ -283,7 +283,7 @@ describe('ses progrès en un mois', () => {
     for (const s of stories) expect(`${s.name} ${s.before} ${s.now}`).not.toMatch(BANNED)
   })
 
-  it('« on travaille en ce moment » : les plus récentes, puis les conseillées, 3 au plus, jamais une compétence finie', () => {
+  it('« on travaille en ce moment » : les plus récentes, puis les conseillées, 3 au plus, jamais une compétence finie', () => {
     const moments = [{ date: '2026-10-12', skills: ['ville'] }, { date: '2026-10-13', skills: ['rappel'] }]
     expect(workingOn(moments, ['lien', 'calme', 'soins'], {}, 5)).toEqual(['rappel', 'ville', 'lien'])
     expect(workingOn(moments, ['lien', 'calme'], { rappel: { level: 5, validations: [], masteryPlaces: [] } }, 5)).toEqual(['ville', 'lien', 'calme'])
@@ -306,11 +306,11 @@ describe('anciennes cartes de réussite', () => {
   it('s’affichent avec les mots d’aujourd’hui, sans toucher aux autres souvenirs', () => {
     const old = { text: 'Palier acquis : Le Rappel, P2 « Mobile ».\nRevient en lâchant un jouet.', tags: ['Dressage'] }
     const shown = modernCard(old)
-    expect(shown.text).toBe(`C'est réussi ! ${stepPhrase('rappel', 2)}.`)
+    expect(shown.text).toBe(`C'est réussi ! ${stepPhrase('rappel', 2)}.`)
     expect(shown.tags).toEqual(['Réussite'])
     expect(`${shown.text} ${shown.tags.join(' ')}`).not.toMatch(BANNED)
     for (const label of ['Première séance', 'Première exposition notée', 'Première retraite stratégique', 'Premier palier acquis', 'Premier palier « Dehors au calme »', 'Première étoile de maîtrise', 'Un déclencheur croisé en restant détendu', 'Trois boss travaillés', 'Cinq réussites sur cinq']) {
-      expect(modernCard({ text: `Première fois : ${label}.`, tags: ['Dressage'] }).text).not.toMatch(BANNED)
+      expect(modernCard({ text: `Première fois : ${label}.`, tags: ['Dressage'] }).text).not.toMatch(BANNED)
     }
     const plain = { text: 'Balade au parc.', tags: ['Balade'] }
     expect(modernCard(plain)).toBe(plain)
@@ -321,7 +321,7 @@ import { FEAR_SKILLS, stepShort, TERRITORIES } from '../content/phrases'
 import { exerciseById, STEP_EXERCISES } from '../content/training'
 import { currentExercise, exercisesForStep, longSessionsDate, sessionMinutes } from './training-plan'
 
-describe('arbre de compétences : étape → exercices', () => {
+describe('arbre de compétences : étape → exercices', () => {
   it('chaque étape de chaque compétence a au moins un exercice du catalogue, avec un réglage de 1 à 5', () => {
     expect(Object.keys(STEP_EXERCISES).sort()).toEqual(BOSSES.map((b) => b.id).sort())
     for (const boss of BOSSES) {
@@ -351,7 +351,7 @@ describe('arbre de compétences : étape → exercices', () => {
     expect(exercisesForStep('rappel', 5)).toEqual(exercisesForStep('rappel', 4))
   })
 
-  it('ne rapproche jamais de ce qui fait peur : pas de réglage « en situation réelle » pour les compétences de peur', () => {
+  it('ne rapproche jamais de ce qui fait peur : pas de réglage « en situation réelle » pour les compétences de peur', () => {
     for (const id of FEAR_SKILLS) {
       for (const step of [0, 1, 2, 3, 4]) {
         for (const planned of exercisesForStep(id, step)) expect(planned.setting).not.toMatch(/situation réelle|En croisant un chien/)
@@ -405,10 +405,10 @@ describe('compétences en cours', () => {
 
   it('indique « Tout doux » sur une peur déclarée et « Conseillé » avant une visite véto', () => {
     const hints = skillHints(['Les enfants', 'Les rues étroites', 'Son reflet'], [], [{ type: 'veto', date: '2026-10-20', done: false }], '2026-10-13')
-    expect(hints.rencontres).toEqual({ kind: 'doux', text: 'Tout doux : il a peur des enfants' })
-    expect(hints.ville?.text).toBe('Tout doux : il se bloque dans les rues étroites')
+    expect(hints.rencontres).toEqual({ kind: 'doux', text: 'Tout doux : il a peur des enfants' })
+    expect(hints.ville?.text).toBe('Tout doux : il se bloque dans les rues étroites')
     expect(hints.nouveaute?.kind).toBe('doux')
-    expect(hints.soins?.text).toMatch(/^Conseillé : utile avant sa prochaine visite/)
+    expect(hints.soins?.text).toMatch(/^Conseillé\u00a0: utile avant sa prochaine visite/)
     expect(skillHints([], [], [{ type: 'veto', date: '2026-12-25', done: false }], '2026-10-13').soins?.text ?? '').not.toMatch(/visite/)
   })
 })
@@ -480,8 +480,8 @@ describe('situation de peur', () => {
 
 import { notedDays, programWeek } from './rhythm'
 
-describe('son programme : la semaine en 7 pastilles', () => {
-  it('coche le bon jour : un moment noté le lundi 12 octobre coche lundi, pas un autre jour', () => {
+describe('son programme : la semaine en 7 pastilles', () => {
+  it('coche le bon jour : un moment noté le lundi 12 octobre coche lundi, pas un autre jour', () => {
     const week = programWeek('2026-10-13', notedDays([{ id: 'a', date: '2026-10-12' }]), [])
     expect(week.map((d) => d.letter).join('')).toBe('LMMJVSD')
     expect(week[0]).toMatchObject({ date: '2026-10-12', state: 'fait', today: false })
@@ -493,14 +493,14 @@ describe('son programme : la semaine en 7 pastilles', () => {
     expect(notedDays([{ id: 'a', date: '2026-10-12' }], [{ date: '2026-10-12' }], [{ date: '2026-10-14' }]).sort()).toEqual(['2026-10-12', '2026-10-14'])
   })
 
-  it('jour de repos + aujourd’hui : la lune garde le contour d’aujourd’hui', () => {
+  it('jour de repos + aujourd’hui : la lune garde le contour d’aujourd’hui', () => {
     // La carte « Jour de repos » écrite par l'app ne compte pas comme un moment noté.
     const noted = notedDays([{ id: 'repos-2026-10-13', date: '2026-10-13' }])
     const today = programWeek('2026-10-13', noted, ['2026-10-13'])[1]!
     expect(today).toMatchObject({ state: 'repos', today: true })
   })
 
-  it('un jour de repos déclaré garde sa lune même avec un moment noté ; un jour vide n’est jamais « raté »', () => {
+  it('un jour de repos déclaré garde sa lune même avec un moment noté ; un jour vide n’est jamais « raté »', () => {
     // Mardi 13 : premier jour de repos déclaré, et un moment noté le même jour.
     const week = programWeek('2026-10-15', notedDays([{ id: 'a', date: '2026-10-13' }, { id: 'b', date: '2026-10-12' }]), ['2026-10-13', '2026-10-14'])
     expect(week.map((d) => d.state)).toEqual(['fait', 'repos', 'repos', 'attente', 'attente', 'attente', 'attente'])
@@ -585,7 +585,7 @@ describe('cocher ou décocher une étape depuis le chemin', () => {
     expect(progress).toMatchObject({ level: 3, preApp: [1, 2, 3] })
   })
 
-  it('ne touche jamais à l’XP : le journal n’entre pas dans le calcul', () => {
+  it('ne touche jamais à l’XP : le journal n’entre pas dans le calcul', () => {
     const log = [{ id: 'palier-rappel-2', xp: 50 }, { id: 'palier-rappel-3', xp: 50 }, { id: 'm', xp: 10 }]
     const before = log.reduce((sum, e) => sum + e.xp, 0)
     uncheckStep(practiced, 2)
@@ -632,7 +632,7 @@ describe('vouvoiement dans les exercices', () => {
   })
 })
 
-describe('« Ce qu’il faut » : les friandises', () => {
+describe('« Ce qu’il faut » : les friandises', () => {
   it('ne nomme la friandise que si elle est vraiment renseignée', () => {
     expect(neededTreats(undefined)).toBe('Ses friandises préférées')
     expect(neededTreats('')).toBe('Ses friandises préférées')
@@ -659,7 +659,7 @@ describe('tout en français', () => {
 })
 
 describe('sources des exercices', () => {
-  it('une adresse de source est toujours un lien https ; sans adresse, la source reste du texte', () => {
+  it('une adresse de source est toujours un lien https ; sans adresse, la source reste du texte', () => {
     for (const exercise of EXERCISES) {
       expect(exercise.source.name.length, exercise.id).toBeGreaterThan(0)
       if (exercise.source.url) expect(exercise.source.url, exercise.id).toMatch(/^https:\/\//)
@@ -669,7 +669,7 @@ describe('sources des exercices', () => {
 
 import { gamesLabel, treatsLabel } from './training-plan'
 
-describe('profil : friandises et jeux en français', () => {
+describe('profil : friandises et jeux en français', () => {
   it('« Treat » et les mots génériques deviennent « Les friandises »', () => {
     expect(treatsLabel('Treat')).toBe('Les friandises')
     expect(treatsLabel('treats.')).toBe('Les friandises')

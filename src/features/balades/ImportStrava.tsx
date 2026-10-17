@@ -5,11 +5,11 @@ import { ImportFooter } from './ImportFooter'
 const STEPS: { title: string; text: string; link?: { label: string; href: string } }[] = [
   {
     title: 'Demandez votre archive à Strava',
-    text: 'Sur strava.com : Paramètres › Mon compte › Télécharger ou supprimer votre compte › Demander votre archive. Strava vous envoie un lien par e-mail.',
+    text: 'Sur strava.com : Paramètres › Mon compte › Télécharger ou supprimer votre compte › Demander votre archive. Strava vous envoie un lien par e-mail.',
     link: { label: 'Ouvrir Strava', href: 'https://www.strava.com/account' },
   },
   { title: 'Ouvrez le fichier zip dans Fichiers', text: 'L’iPhone le décompresse tout seul et crée un dossier.' },
-  { title: 'Choisissez le dossier « activities »', text: 'Sélectionnez tous les fichiers : Billy garde les marches et randonnées et ignore le reste.' },
+  { title: 'Choisissez le dossier « activities »', text: 'Sélectionnez tous les fichiers : Billy garde les marches et randonnées et ignore le reste.' },
 ]
 
 /** « Importer vos balades Strava » (maquette V3-ImportStrava) : toute l'archive d'un coup. Jamais de connexion à Strava. */

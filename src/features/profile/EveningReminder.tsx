@@ -32,7 +32,7 @@ export function EveningReminder({ dogName }: { dogName: string }) {
     const error = await enablePush('evening', { time })
     if (error) return setMessage(error)
     setEnabled(true)
-    setMessage(`C'est noté : un rappel chaque soir vers ${time.replace(':', ' h ')}, sauf si vous avez déjà noté quelque chose.`)
+    setMessage(`C'est noté : un rappel chaque soir vers ${time.replace(':', ' h ')}, sauf si vous avez déjà noté quelque chose.`)
   }
 
   const turnOff = async () => {

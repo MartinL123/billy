@@ -101,7 +101,7 @@ export const HOW_TO_EARN: { label: string; amount: number }[] = [
   { label: 'Semaine régulière (5 jours notés)', amount: BONES.regularWeek },
   { label: 'Jour de repos respecté', amount: BONES.rest },
   { label: 'Questionnaire de départ terminé', amount: BONES.questionnaire },
-  { label: 'Marquer un spot (nouveau : +10)', amount: BONES.mark },
+  { label: 'Marquer un spot (nouveau : +10)', amount: BONES.mark },
   { label: 'Défi de la meute tenu', amount: BONES.packChallenge },
 ]
 

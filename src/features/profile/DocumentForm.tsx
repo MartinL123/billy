@@ -59,7 +59,7 @@ export default function DocumentForm() {
         const { pageCount, thumb } = await inspectPdf(bytes)
         setPicked({ kind: 'pdf', name: pdf.name, bytes, pageCount, thumb, previewUrl: URL.createObjectURL(thumb) })
         if (!title.trim()) setTitle(baseName(pdf.name))
-        if (files.length > 1) setError('Un seul PDF par document : seul le premier a été gardé.')
+        if (files.length > 1) setError('Un seul PDF par document : seul le premier a été gardé.')
       } else {
         const pages: Blob[] = []
         let thumb: Blob | undefined

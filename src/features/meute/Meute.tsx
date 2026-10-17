@@ -82,7 +82,7 @@ export default function Meute() {
         setLocating('')
         then?.(here)
       },
-      () => setLocating('Position refusée : vous pouvez choisir le spot dans la liste.'),
+      () => setLocating('Position refusée : vous pouvez choisir le spot dans la liste.'),
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
     )
   }
@@ -120,7 +120,7 @@ export default function Meute() {
         <ul className="card m-0 flex list-none flex-col gap-3.5 p-4">
           {[
             ['Les bons spots', 'Les balades, parcs et cafés que la meute aime, avec leur niveau de calme.'],
-            ['Marquer', 'Comme un chien qui marque son passage : on choisit un spot proche, et on gagne des os.'],
+            ['Marquer', 'Comme un chien qui marque son passage : on choisit un spot proche, et on gagne des os.'],
             ['Rien de public', 'Seule la meute voit les marques, avec le jour, jamais l’heure ni votre position.'],
           ].map(([title, text]) => (
             <li key={title} className="flex gap-3">

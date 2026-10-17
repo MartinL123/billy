@@ -13,14 +13,15 @@ const capital = (text: string) => text.replace(/^./, (c) => c.toLocaleUpperCase(
 
 /** « La laisse se tend : vous vous arrêtez. » → consigne « La laisse se tend », aide « Vous vous arrêtez. » */
 function split(step: string): MissionStep {
-  const [head, ...rest] = step.split(' : ')
+  // Espace normale ou insécable avant les deux-points.
+  const [head, ...rest] = step.split(/[ \u00a0]: /)
   if (!rest.length || head!.length > 60) return { title: step.replace(/\.$/, '') }
-  return { title: head!, help: capital(rest.join(' : ')) }
+  return { title: head!, help: capital(rest.join('\u00a0: ')) }
 }
 
 export function missionSteps(steps: string[], minutes: number): MissionStep[] {
   return [
     ...steps.map(split),
-    { title: `À vous : ${minutes} minute${minutes > 1 ? 's' : ''}`, help: 'Recommencez ces gestes en restant joyeux. Le minuteur s’arrête tout seul.', seconds: minutes * 60 },
+    { title: `À vous : ${minutes} minute${minutes > 1 ? 's' : ''}`, help: 'Recommencez ces gestes en restant joyeux. Le minuteur s’arrête tout seul.', seconds: minutes * 60 },
   ]
 }

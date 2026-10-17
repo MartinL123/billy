@@ -105,7 +105,7 @@ export default function Login() {
 
       <p className="mt-auto pt-8 text-center text-[13px] leading-snug text-muted">Vos données restent privées. Martin, qui gère l'app, peut techniquement y accéder.</p>
 
-      <p className="mt-auto pt-8 text-center text-[13px] text-muted">Une seule connexion : l'app reste ouverte ensuite.</p>
+      <p className="mt-auto pt-8 text-center text-[13px] text-muted">Une seule connexion : l'app reste ouverte ensuite.</p>
     </main>
   )
 }

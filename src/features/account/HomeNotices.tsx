@@ -26,7 +26,7 @@ export function PasswordPrompt() {
   if (dog.passwordPromptDone || !questionnaireStatus(dog.questionnaire).complete) return null
   return (
     <section className="flex flex-col gap-3 rounded-[22px] bg-info-soft p-4">
-      <p className="text-[17px] leading-snug font-semibold text-[#1D3F73]">Votre mot de passe vous a été donné : choisissez-en un à vous.</p>
+      <p className="text-[17px] leading-snug font-semibold text-[#1D3F73]">Votre mot de passe vous a été donné : choisissez-en un à vous.</p>
       <div className="grid grid-cols-[1fr_auto] gap-2">
         <button type="button" onClick={() => setOpen(true)} className="btn btn-outline bg-surface whitespace-nowrap">
           Le changer

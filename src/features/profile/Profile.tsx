@@ -57,7 +57,7 @@ function ContactRow({ role, callLabel, contact, first }: { role: string; callLab
           Appeler
         </a>
       ) : (
-        <Link to="/profil/modifier" aria-label={`Ajouter : ${role.toLocaleLowerCase('fr')}`} className="btn btn-outline min-h-12 shrink-0 px-4">
+        <Link to="/profil/modifier" aria-label={`Ajouter : ${role.toLocaleLowerCase('fr')}`} className="btn btn-outline min-h-12 shrink-0 px-4">
           Ajouter
         </Link>
       )}
@@ -314,7 +314,7 @@ export default function Profile() {
           title="Se déconnecter ?"
           message={
             pendingCount > 0
-              ? `Attention : ${pendingCount > 1 ? `${pendingCount} éléments ne sont pas encore envoyés` : "1 élément n'est pas encore envoyé"}. Reconnectez-vous à Internet avant de vous déconnecter pour ne rien perdre.`
+              ? `Attention : ${pendingCount > 1 ? `${pendingCount} éléments ne sont pas encore envoyés` : "1 élément n'est pas encore envoyé"}. Reconnectez-vous à Internet avant de vous déconnecter pour ne rien perdre.`
               : 'Vos données restent en sécurité dans votre compte. Il faudra votre mot de passe pour revenir.'
           }
           confirmLabel="Se déconnecter"

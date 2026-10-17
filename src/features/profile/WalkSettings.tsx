@@ -40,7 +40,7 @@ export function WalkSettings() {
         if (error) setMessage(error)
         else {
           setEnabled(true)
-          setMessage("C'est noté : une notification à l'heure de chaque sortie, sauf si elle est déjà cochée.")
+          setMessage("C'est noté : une notification à l'heure de chaque sortie, sauf si elle est déjà cochée.")
         }
       }
     } catch {

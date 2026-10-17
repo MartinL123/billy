@@ -19,8 +19,8 @@ describe('espace par compte', () => {
   })
 
   it('affiche l’espace en Mo', () => {
-    expect(usageLabel(34 * MB)).toBe('Espace utilisé : 34 Mo sur 80 Mo')
-    expect(usageLabel(0)).toBe('Espace utilisé : 0 Mo sur 80 Mo')
+    expect(usageLabel(34 * MB)).toBe('Espace utilisé : 34 Mo sur 80 Mo')
+    expect(usageLabel(0)).toBe('Espace utilisé : 0 Mo sur 80 Mo')
   })
 
   it('PDF limités à 5 Mo, photos à 1280 px', () => {
@@ -33,7 +33,7 @@ import { showInstallBanner } from './install'
 
 describe('bandeau d’installation', () => {
   const day = 24 * 60 * 60 * 1000
-  it('jamais depuis l’icône ; dans le navigateur, revient au plus tous les 7 jours', () => {
+  it('jamais depuis l’icône ; dans le navigateur, revient au plus tous les 7 jours', () => {
     expect(showInstallBanner(true, null, 0)).toBe(false)
     expect(showInstallBanner(false, null, 0)).toBe(true)
     expect(showInstallBanner(false, 0, 6 * day)).toBe(false)

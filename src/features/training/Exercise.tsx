@@ -23,7 +23,7 @@ import { needsCalmPlace } from '../../lib/community'
 import { CalmSpotCard } from '../meute/CalmSpotCard'
 import { place } from '../../lib/garden'
 
-const GENERIC_TIP = 'S’il ne mange plus, il est trop stressé : arrêtez et revenez plus facile la prochaine fois.'
+const GENERIC_TIP = 'S’il ne mange plus, il est trop stressé : arrêtez et revenez plus facile la prochaine fois.'
 
 interface WakeLockLike {
   release: () => Promise<void>
@@ -125,7 +125,7 @@ function RestDay() {
         </button>
         <p className="text-[13px] font-extrabold tracking-[0.8px] uppercase">Mission du jour</p>
         <h1 className="font-display text-[30px] leading-none font-extrabold">Aujourd'hui, repos</h1>
-        <p className="text-[15px] leading-snug text-white/90">{quest.afterHardDay ? 'Hier était difficile : aujourd’hui, on souffle.' : 'Un jour sans exercice l’aide à retenir ce qu’il apprend.'}</p>
+        <p className="text-[15px] leading-snug text-white/90">{quest.afterHardDay ? 'Hier était difficile : aujourd’hui, on souffle.' : 'Un jour sans exercice l’aide à retenir ce qu’il apprend.'}</p>
       </header>
       <main className="flex flex-col gap-4 px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+120px)]">
         <h2 className={sectionTitle}>Des idées pour {dog.name}</h2>

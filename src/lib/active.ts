@@ -63,12 +63,12 @@ const VET_SOON_DAYS = 30
  */
 export function skillHints(fears: string[], traits: Trait[], events: CareEvent[], today: ISODate): Record<string, SkillHint | undefined> {
   const hints: Record<string, SkillHint | undefined> = {}
-  for (const id of suggestedBosses(traits).slice(0, 3)) if (!isFearSkill(id)) hints[id] = { kind: 'conseille', text: 'Conseillé : une bonne base pour lui' }
+  for (const id of suggestedBosses(traits).slice(0, 3)) if (!isFearSkill(id)) hints[id] = { kind: 'conseille', text: 'Conseillé : une bonne base pour lui' }
   const vet = events.some((e) => !e.done && (e.type === 'veto' || e.type === 'vaccin') && e.date && diffDays(today, e.date) >= 0 && diffDays(today, e.date) <= VET_SOON_DAYS)
-  if (vet) hints.soins = { kind: 'conseille', text: 'Conseillé : utile avant sa prochaine visite chez le véto' }
+  if (vet) hints.soins = { kind: 'conseille', text: 'Conseillé : utile avant sa prochaine visite chez le véto' }
   for (const fear of fears) {
     const link = FEAR_LINKS.find((l) => l.match.test(fear))
-    if (link && !hints[link.bossId]?.text.startsWith('Tout doux')) hints[link.bossId] = { kind: 'doux', text: `Tout doux : ${link.hint}` }
+    if (link && !hints[link.bossId]?.text.startsWith('Tout doux')) hints[link.bossId] = { kind: 'doux', text: `Tout doux : ${link.hint}` }
   }
   return hints
 }

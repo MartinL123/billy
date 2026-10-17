@@ -40,7 +40,7 @@ export function sessionAsMoment(session: LegacySession): LegacyMoment {
     id: `seance-${session.id}`,
     date: session.date,
     createdAt: session.createdAt,
-    text: `Exercice : ${exerciseById(session.exerciseId)?.name ?? 'séance'}.`,
+    text: `Exercice : ${exerciseById(session.exerciseId)?.name ?? 'séance'}.`,
     skills: session.bossIds ?? [session.bossId],
     feeling: feelingOfReaction(session.reaction),
   }
@@ -52,7 +52,7 @@ export function exposureAsMoment(exposure: LegacyExposure): LegacyMoment {
     id: `situation-${exposure.id}`,
     date: exposure.date,
     createdAt: exposure.createdAt,
-    text: `Une situation qui lui fait peur : ${exposure.trigger}.`,
+    text: `Une situation qui lui fait peur : ${exposure.trigger}.`,
     skills: [exposure.bossId],
     feeling: feelingOfReaction(exposure.reaction),
     fear: true,
@@ -98,7 +98,7 @@ export function modernCard<T extends { text: string; tags: string[] }>(original:
   const tags = entry.tags.map((t) => (t === 'Dressage' ? 'Réussite' : t))
   const old = OLD_CARD.exec(entry.text)
   const boss = old && BOSSES.find((b) => b.name === old[1])
-  if (old && boss) return { ...entry, text: `C'est réussi ! ${stepPhrase(boss.id, Number(old[2]))}.`, tags }
+  if (old && boss) return { ...entry, text: `C'est réussi ! ${stepPhrase(boss.id, Number(old[2]))}.`, tags }
   // Plus de « Première fois : … » : la phrase seule suffit.
   const text = OLD_FIRSTS.reduce((t, [before, now]) => t.replace(before, now), entry.text).replace(/^Première fois : /, '')
   return { ...entry, text, tags }

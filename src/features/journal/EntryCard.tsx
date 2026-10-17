@@ -119,7 +119,7 @@ export function EntryCard({ entry, today, activeTag, onOpenPhoto }: EntryCardPro
       {entry.readOnly ? (
         <div className="flex items-center gap-3 px-4 pt-3.5 pb-4">{body}</div>
       ) : (
-        <Link to={`/souvenir/${entry.id}`} aria-label={`Ouvrir : ${entry.text.slice(0, 60) || 'photos'}`} className="flex min-h-16 items-center gap-3 px-4 pt-3.5 pb-4 text-text no-underline">
+        <Link to={`/souvenir/${entry.id}`} aria-label={`Ouvrir : ${entry.text.slice(0, 60) || 'photos'}`} className="flex min-h-16 items-center gap-3 px-4 pt-3.5 pb-4 text-text no-underline">
           {body}
         </Link>
       )}

@@ -41,7 +41,7 @@ export default function Shop() {
     if (!buying) return
     buyItem(buying, today)
     wear(slotOf(buying.category), buying.id)
-    toast(`C'est à vous ! ${buying.name}`)
+    toast(`C'est à vous ! ${buying.name}`)
     setBuying(null)
     setTrying(null)
   }
@@ -66,7 +66,7 @@ export default function Shop() {
           <DogPhoto size={96} tryOn={tryOn} />
           <span className="flex min-w-0 flex-col gap-1">
             <span className="font-display text-xl font-extrabold">{dog.name}</span>
-            <span className="text-[15px] font-semibold text-[#3F4946]">{trying ? `Essaie : ${trying.name.toLocaleLowerCase('fr')}` : wearing ? `Porte : ${wearing.name.toLocaleLowerCase('fr')}` : 'Ne porte rien pour l’instant'}</span>
+            <span className="text-[15px] font-semibold text-[#3F4946]">{trying ? `Essaie : ${trying.name.toLocaleLowerCase('fr')}` : wearing ? `Porte : ${wearing.name.toLocaleLowerCase('fr')}` : 'Ne porte rien pour l’instant'}</span>
             <span className="text-[13px] leading-snug text-muted">Touchez un objet pour l'essayer avant de l'acheter.</span>
           </span>
         </section>
@@ -90,7 +90,7 @@ export default function Shop() {
             const state = buttonState(item, owned(item.id), worn(item), solde)
             return (
               <div key={item.id} className="card flex flex-col items-center gap-2 p-3 text-center">
-                <button type="button" onClick={() => setTrying(item)} aria-label={`Essayer : ${item.name}`} className="flex min-h-[92px] w-full items-center justify-center rounded-2xl border-0 bg-bg p-2">
+                <button type="button" onClick={() => setTrying(item)} aria-label={`Essayer : ${item.name}`} className="flex min-h-[92px] w-full items-center justify-center rounded-2xl border-0 bg-bg p-2">
                   <ItemArt id={item.id} category={item.category} />
                 </button>
                 <span className="text-[15px] leading-tight font-bold">{item.name}</span>
@@ -153,7 +153,7 @@ export default function Shop() {
       </main>
 
       {buying && (
-        <Sheet label={`Acheter : ${buying.name}`} onClose={() => setBuying(null)}>
+        <Sheet label={`Acheter : ${buying.name}`} onClose={() => setBuying(null)}>
           <div className="flex items-center gap-4">
             <ItemArt id={buying.id} category={buying.category} />
             <span className="flex flex-col gap-1">

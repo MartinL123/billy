@@ -207,7 +207,7 @@ export function recordMoment(entry: Entry, yes: string[], progress: Record<strin
       add(xpRef(`palier-${bossId}-${result.levelGained}`), strip<XpEntry>({ date: entry.date, kind: 'palier', xp: MOMENT_XP.step, bossId, label: boss?.name, createdAt: now() }))
       add(userDoc('entries', `palier-${bossId}-${result.levelGained}`), {
         date: entry.date,
-        text: `C'est réussi ! ${dogName} ${stepPhraseLower(bossId, result.levelGained)}.`,
+        text: `C'est réussi ! ${dogName} ${stepPhraseLower(bossId, result.levelGained)}.`,
         tags: [],
         photos: [],
         skills: [bossId],

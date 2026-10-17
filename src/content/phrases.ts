@@ -136,7 +136,7 @@ export const TERRITORIES: Territory[] = [
   },
   {
     tier: 'monde', name: 'Le Grand Monde', floor: 'Étage 3 · les branches', subtitle: 'La ville, les gens, les autres chiens', color: '#C2571A', soft: '#FBE6D4',
-    link: { to: 'quotidien', label: 'Vient du Quartier', text: 'Un moment difficile ? On revient aux balades calmes', up: true },
+    link: { to: 'quotidien', label: 'Vient du Quartier', text: 'Un moment difficile ? On revient aux balades calmes', up: true },
   },
 ]
 

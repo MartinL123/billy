@@ -34,7 +34,7 @@ function useCardContent(card: NowCard) {
       return {
         badge: 'À faire maintenant',
         title: card.event.title,
-        text: `C’est le jour : une minute, puis c’est noté dans Santé.`,
+        text: `C’est le jour : une minute, puis c’est noté dans Santé.`,
         scene: undefined,
         action: { label: 'C’est fait', run: () => setEventDone(events.find((e) => e.id === card.event.id)!, true) },
       }
@@ -69,7 +69,7 @@ function useCardContent(card: NowCard) {
       return {
         badge: 'Aujourd’hui',
         title: 'Tout est fait pour aujourd’hui',
-        text: last ? `Dernière balade : ${last.name}, ${formatLong(last.date)} · ${formatRouteDistance(last.route.distanceM)}.` : 'Bravo à vous deux. Un souvenir à garder ?',
+        text: last ? `Dernière balade : ${last.name}, ${formatLong(last.date)} · ${formatRouteDistance(last.route.distanceM)}.` : 'Bravo à vous deux. Un souvenir à garder ?',
         scene: undefined,
         action: last ? { label: 'Revoir la balade', to: `/souvenir/${last.id}` } : { label: 'Noter un souvenir', to: '/noter' },
       }

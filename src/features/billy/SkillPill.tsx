@@ -32,7 +32,7 @@ export function SkillPill({ bossId, onDark = false }: { bossId: string; onDark?:
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label={`Pour : ${goal}. Voir son chemin`}
+        aria-label={`Pour : ${goal}. Voir son chemin`}
         className="flex min-h-12 max-w-full items-center gap-2 self-start rounded-[22px] border-2 border-solid px-3.5 py-1.5 text-left text-[15px] leading-snug font-bold"
         style={onDark ? { background: 'rgba(255,255,255,0.16)', borderColor: 'rgba(255,255,255,0.6)', color: '#FFFFFF' } : { background: territory.soft, borderColor: territory.color, color: territory.color }}
       >
@@ -42,7 +42,7 @@ export function SkillPill({ bossId, onDark = false }: { bossId: string; onDark?:
       </button>
       {open &&
         createPortal(
-          <div role="dialog" aria-modal="true" aria-label={`Le chemin : ${skill.name}`} className="fixed inset-0 z-30 animate-fade overflow-y-auto bg-bg">
+          <div role="dialog" aria-modal="true" aria-label={`Le chemin : ${skill.name}`} className="fixed inset-0 z-30 animate-fade overflow-y-auto bg-bg">
             <SkillPath id={bossId} onBack={() => setOpen(false)} overlay />
           </div>,
           document.body,

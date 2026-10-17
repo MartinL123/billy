@@ -137,7 +137,7 @@ export function rankIdeas(
         : nearWalk && ctx.lastWalk
           ? `Juste à côté de votre balade du ${formatShort(ctx.lastWalk.date)} : quelques pas de plus.`
           : ctx.profile.short && meters < 1000
-            ? 'Tout près : une petite sortie suffit.'
+            ? 'Tout près : une petite sortie suffit.'
             : NEAREST
     return { ...p, meters, explored, reason, far, fit }
   })
@@ -146,7 +146,7 @@ export function rankIdeas(
   let nearestSaid = false
   return ideas.slice(0, max).map(({ fit: _fit, ...idea }) => {
     if (idea.reason !== NEAREST) return idea
-    if (nearestSaid) return { ...idea, reason: 'Encore dans le brouillard : un nouveau coin pour lui.' }
+    if (nearestSaid) return { ...idea, reason: 'Encore dans le brouillard : un nouveau coin pour lui.' }
     nearestSaid = true
     return idea
   })

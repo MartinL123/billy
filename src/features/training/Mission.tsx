@@ -109,7 +109,7 @@ export default function Mission() {
         <Sheet label="En savoir plus" onClose={() => setMore(false)}>
           <h2 className="mt-1 font-display text-[22px] font-extrabold">Bon à savoir</h2>
           {exercise.caution && <p className="text-[17px] leading-snug font-semibold">{exercise.caution}</p>}
-          <p className="text-[17px] leading-snug">S’il ne mange plus, il est trop stressé : arrêtez et revenez plus facile la prochaine fois.</p>
+          <p className="text-[17px] leading-snug">S’il ne mange plus, il est trop stressé : arrêtez et revenez plus facile la prochaine fois.</p>
           <p className="text-[15px] text-muted">
             Source :{' '}
             {exercise.source.url ? (

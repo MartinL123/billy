@@ -437,7 +437,7 @@ export default function Questionnaire() {
                 {reactions.map((reaction, i) => (
                   <li key={reaction.situation} className={`flex items-center gap-3 px-4 py-2.5 ${i ? 'border-t border-divider' : ''}`}>
                     <span className="flex-1 text-[17px] leading-snug">{reactionSentence(reaction)}</span>
-                    <button type="button" aria-label={`Retirer : ${reaction.situation}`} onClick={() => setReactions(reactions.filter((r) => r !== reaction))} className="btn btn-quiet min-h-12 shrink-0 px-3">
+                    <button type="button" aria-label={`Retirer : ${reaction.situation}`} onClick={() => setReactions(reactions.filter((r) => r !== reaction))} className="btn btn-quiet min-h-12 shrink-0 px-3">
                       Retirer
                     </button>
                   </li>

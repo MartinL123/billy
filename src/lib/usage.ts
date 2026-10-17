@@ -19,7 +19,7 @@ export const fits = (used: number, size: number) => used + size <= USER_QUOTA
 const mo = (bytes: number) => Math.max(0, Math.round(bytes / (1024 * 1024)))
 
 /** « Espace utilisé : 34 Mo sur 80 Mo » */
-export const usageLabel = (bytes: number) => `Espace utilisé : ${mo(bytes)} Mo sur ${mo(USER_QUOTA)} Mo`
+export const usageLabel = (bytes: number) => `Espace utilisé : ${mo(bytes)} Mo sur ${mo(USER_QUOTA)} Mo`
 
-export const FULL_MESSAGE = 'Votre espace est plein : supprimez d’anciennes photos ou documents pour en ajouter. Vous pouvez toujours écrire.'
+export const FULL_MESSAGE = 'Votre espace est plein : supprimez d’anciennes photos ou documents pour en ajouter. Vous pouvez toujours écrire.'
 export const ALMOST_FULL_MESSAGE = 'Votre espace est presque plein. Pensez à supprimer d’anciennes photos.'

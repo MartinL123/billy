@@ -156,7 +156,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
             const acquired = step <= progress.level
             if (step === current) {
               return (
-                <Stop key={step} index={step - 1} radius={54} label={`En ce moment : ${stepPhrase(skill.id, step)}. Toucher pour la cocher`} onOpen={() => setOpened(step)} circle={<span className="flex size-[108px] items-center justify-center rounded-full border-[6px] border-solid border-gold bg-surface shadow-[0_6px_16px_rgba(242,181,68,0.45)]">{photo(84)}</span>}>
+                <Stop key={step} index={step - 1} radius={54} label={`En ce moment : ${stepPhrase(skill.id, step)}. Toucher pour la cocher`} onOpen={() => setOpened(step)} circle={<span className="flex size-[108px] items-center justify-center rounded-full border-[6px] border-solid border-gold bg-surface shadow-[0_6px_16px_rgba(242,181,68,0.45)]">{photo(84)}</span>}>
                   <span id="etape-en-cours" className="flex flex-col gap-1.5 rounded-[18px] bg-surface px-3.5 py-3 text-left shadow-[0_2px_8px_rgba(24,32,30,0.1)]">
                     <span className="text-xs font-extrabold tracking-[0.5px] uppercase" style={{ color: territory.color }}>
                       En ce moment
@@ -218,7 +218,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
           })}
         </ol>
 
-        {mastered && <p className="mx-5 rounded-[20px] bg-gold-soft px-4 py-3 text-[17px] leading-snug font-semibold text-[#5C4410]">À entretenir : elle revient de temps en temps dans la mission du jour.</p>}
+        {mastered && <p className="mx-5 rounded-[20px] bg-gold-soft px-4 py-3 text-[17px] leading-snug font-semibold text-[#5C4410]">À entretenir : elle revient de temps en temps dans la mission du jour.</p>}
       </main>
 
       {!overlay && (
@@ -243,7 +243,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
               {skill.name} · {whenOf(opened) === 'Il savait déjà le faire' ? 'il savait déjà le faire' : `acquise le ${whenOf(opened)}`}
             </p>
             <h2 className="font-display text-[22px] leading-tight font-extrabold">{stepPhrase(skill.id, opened)}</h2>
-            <p className="text-[17px] leading-snug">Il ne le fait plus vraiment, ou c'était une erreur ? Décochez l'étape : elle redevient l'étape en cours. Le niveau sera recalculé.</p>
+            <p className="text-[17px] leading-snug">Il ne le fait plus vraiment, ou c'était une erreur ? Décochez l'étape : elle redevient l'étape en cours. Le niveau sera recalculé.</p>
             {opened < progress.level && <p className="rounded-[14px] bg-[#FFF8E6] px-3.5 py-2.5 text-[15px] leading-snug text-gold-dark">Les étapes plus difficiles déjà cochées seront décochées aussi.</p>}
             <button type="button" onClick={() => setChecked(opened, false)} className="btn mt-1 border-2 border-solid border-danger bg-surface text-danger">
               Décocher cette étape

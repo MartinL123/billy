@@ -46,7 +46,7 @@ export function PlaceCard({ selected, here, me, onClose, onRemove }: Props) {
           <p className="text-[17px] leading-snug text-[#3F4946]">{selected.idea.explored ? `Déjà dans son territoire${selected.idea.discoveredOn ? ` depuis le ${formatLong(selected.idea.discoveredOn)}` : ''}.` : `Encore dans le brouillard. ${selected.idea.reason}`}</p>
           {selected.idea.dogsBanned && <p className="rounded-[14px] bg-[#FDECEA] px-3 py-2 text-[15px] font-semibold text-[#8E2B23]">Chiens interdits d’après OpenStreetMap.</p>}
           <a href={osmUrl(selected.idea.id)} target="_blank" rel="noopener noreferrer" className={`${external} text-[15px]`}>
-            Répertorié sur OpenStreetMap : voir la fiche
+            Répertorié sur OpenStreetMap : voir la fiche
           </a>
           <div className="flex gap-2">
             <a href={directionsUrl(at.lat, at.lng)} target="_blank" rel="noopener noreferrer" className="btn btn-main min-h-[52px] flex-1">
@@ -69,7 +69,7 @@ export function PlaceCard({ selected, here, me, onClose, onRemove }: Props) {
           {selected.mine.length > 0 ? (
             confirm ? (
               <div className="flex flex-col gap-2 rounded-[18px] bg-bg p-3">
-                <p className="text-[15px] leading-snug">{selected.spot.createdBy === me ? 'Le spot disparaît de la carte, pour toute la meute.' : 'Votre marque disparaît ; le spot reste pour la meute.'} Les os gagnés restent.</p>
+                <p className="text-[15px] leading-snug">{selected.spot.createdBy === me ? 'Le spot disparaît de la carte, pour toute la meute.' : 'Votre marque disparaît ; le spot reste pour la meute.'} Les os gagnés restent.</p>
                 <div className="flex gap-2">
                   <button type="button" onClick={() => setConfirm(false)} className="btn btn-outline min-h-12 flex-1">
                     Annuler

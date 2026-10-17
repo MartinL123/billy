@@ -77,9 +77,9 @@ export default function Ideas() {
             </button>
           ))}
         </div>
-        {shown.length ? shown.map((idea) => <IdeaCard key={idea.id} idea={idea} />) : <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[17px] leading-snug text-[#1D3F73]">{loading ? 'Recherche des lieux autour de vous…' : 'Rien à proposer ici pour l’instant. Importez une balade : les idées viennent autour d’elle.'}</p>}
+        {shown.length ? shown.map((idea) => <IdeaCard key={idea.id} idea={idea} />) : <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[17px] leading-snug text-[#1D3F73]">{loading ? 'Recherche des lieux autour de vous…' : 'Rien à proposer ici pour l’instant. Importez une balade : les idées viennent autour d’elle.'}</p>}
         <p className="text-[13px] leading-snug text-muted">
-          Lieux : © OpenStreetMap.{beaches ? ' Sur les plages, les chiens sont souvent interdits l’été : vérifiez le panneau à l’entrée.' : ''}
+          Lieux : © OpenStreetMap.{beaches ? ' Sur les plages, les chiens sont souvent interdits l’été : vérifiez le panneau à l’entrée.' : ''}
         </p>
       </main>
     </div>

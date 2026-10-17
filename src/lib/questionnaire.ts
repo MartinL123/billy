@@ -71,7 +71,7 @@ const BASE: Step[] = [
   { id: 'educateur', part: 3, kind: 'contact', title: 'Avez-vous un éducateur canin ?', help: 'Facultatif.' },
   { id: 'foyer', part: 3, kind: 'choice', title: 'Qui s’occupe de lui au quotidien ?', options: opts('Seul', 'En couple', 'En famille avec enfants') },
 
-  { id: 'reactions', part: 4, kind: 'reactions', title: 'Comment réagit-il ?', help: 'Décrivez-le avec vos mots : « Quand…, il est… »' },
+  { id: 'reactions', part: 4, kind: 'reactions', title: 'Comment réagit-il ?', help: 'Décrivez-le avec vos mots : « Quand…, il est… »' },
   { id: 'humeur', part: 4, kind: 'choice', title: 'À la maison, il est plutôt…', options: opts('Calme', 'Joueur', 'Très excité') },
 ]
 

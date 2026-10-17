@@ -94,7 +94,7 @@ export function Result() {
                       role="checkbox"
                       aria-checked={acquired}
                       aria-disabled={locked}
-                      onClick={() => (locked ? toast('Cette étape a été validée dans l’app : elle reste acquise.') : acquired ? uncheck(skill.id, skill.name, step) : check(skill.id, skill.name, step))}
+                      onClick={() => (locked ? toast('Cette étape a été validée dans l’app : elle reste acquise.') : acquired ? uncheck(skill.id, skill.name, step) : check(skill.id, skill.name, step))}
                       className="flex min-h-[52px] items-center gap-3 border-0 border-t border-solid border-[#EEF0EE] bg-transparent px-0 py-2 text-left text-text"
                     >
                       <span

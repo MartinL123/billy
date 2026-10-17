@@ -53,7 +53,7 @@ export default function EntryForm() {
   const addFiles = async (files: File[]) => {
     setError('')
     const room = MAX_PHOTOS - itemsRef.current.length
-    if (files.length > room) setError(`10 photos maximum par souvenir : ${Math.max(0, room)} sur ${files.length} ajoutée${room > 1 ? 's' : ''}.`)
+    if (files.length > room) setError(`10 photos maximum par souvenir : ${Math.max(0, room)} sur ${files.length} ajoutée${room > 1 ? 's' : ''}.`)
     const accepted = files.slice(0, Math.max(0, room))
     for (const [i, file] of accepted.entries()) {
       setProgress(`Préparation des photos… ${i + 1} sur ${accepted.length}`)

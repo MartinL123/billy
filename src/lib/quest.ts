@@ -91,10 +91,10 @@ export function dailyQuest({ today, active, progress, moments, rests, avoidExerc
 /** La mission en une phrase : « Jeu du prénom, 3 minutes. Salon, à 1 m. » */
 export function questMission(quest: Quest, minutes: number): { title: string; detail: string } {
   if (quest.kind === 'repos' || !quest.planned) {
-    return { title: 'Journée de repos', detail: quest.afterHardDay ? `Hier était difficile : aujourd'hui, on souffle. ${quest.idea}.` : `${quest.idea}. Aucun exercice aujourd'hui.` }
+    return { title: 'Journée de repos', detail: quest.afterHardDay ? `Hier était difficile : aujourd'hui, on souffle. ${quest.idea}.` : `${quest.idea}. Aucun exercice aujourd'hui.` }
   }
   const { exercise, setting } = quest.planned
-  return { title: quest.kind === 'revision' ? `Révision : ${exercise.name}` : exercise.name, detail: `${minutes} min · ${setting.charAt(0).toLocaleLowerCase('fr')}${setting.slice(1)}` }
+  return { title: quest.kind === 'revision' ? `Révision : ${exercise.name}` : exercise.name, detail: `${minutes} min · ${setting.charAt(0).toLocaleLowerCase('fr')}${setting.slice(1)}` }
 }
 
 /** Texte pré-rempli de la note quand on touche « C'est fait ! ». */

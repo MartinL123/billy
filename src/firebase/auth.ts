@@ -56,7 +56,7 @@ export function authErrorMessage(error: unknown): AuthMessage {
     case 'auth/network-request-failed':
       return { field: 'password', text: 'Pas de réseau. La première connexion a besoin d’Internet.' }
     case 'auth/weak-password':
-      return { field: 'password', text: 'Mot de passe trop court : 8 caractères au moins.' }
+      return { field: 'password', text: 'Mot de passe trop court : 8 caractères au moins.' }
     case 'auth/requires-recent-login':
       return { field: 'password', text: 'Par sécurité, reconnectez-vous puis réessayez.' }
     case 'auth/user-disabled':

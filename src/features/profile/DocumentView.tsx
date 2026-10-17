@@ -118,7 +118,7 @@ export default function DocumentView() {
   const share = async () => {
     setMessage('')
     const outcome = await shareFiles(files(), document_.title)
-    if (outcome === 'downloaded') setMessage('Partage indisponible ici : le fichier a été téléchargé.')
+    if (outcome === 'downloaded') setMessage('Partage indisponible ici : le fichier a été téléchargé.')
   }
 
   return (

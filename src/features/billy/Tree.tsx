@@ -72,7 +72,7 @@ function Floor({ territory, active }: { territory: Territory; active: string[] }
             <Link
               key={skill.id}
               to={`/competence/${skill.id}`}
-              aria-label={`${skill.name}. ${mastered ? 'Maîtrisé, à entretenir' : `Prochaine étape : ${stepShort(skill.id, acquired + 1)}`}${current ? '. En cours' : ''}`}
+              aria-label={`${skill.name}. ${mastered ? 'Maîtrisé, à entretenir' : `Prochaine étape : ${stepShort(skill.id, acquired + 1)}`}${current ? '. En cours' : ''}`}
               className="flex flex-col items-center gap-1.5 rounded-[20px] bg-surface px-2.5 pt-2.5 pb-3 text-center text-text no-underline shadow-[0_2px_6px_rgba(24,32,30,0.08)]"
             >
               {/* L'étiquette a sa propre ligne au-dessus du badge : elle ne recouvre jamais l'anneau. */}
@@ -173,7 +173,7 @@ export default function Tree() {
               {minutes < LONG_SESSION_MINUTES ? ` (${LONG_SESSION_MINUTES} min dès ses 6 mois, le ${formatShort(longSessionsDate(dog.birthDate))})` : ''}
             </p>
           </div>
-          <div role="img" aria-label={`Cette semaine : ${week.map((d, i) => `${DAY_NAMES[i]} ${STATE_WORDS[d.state]}${d.today ? " (aujourd'hui)" : ''}`).join(', ')}`} className="flex justify-between">
+          <div role="img" aria-label={`Cette semaine : ${week.map((d, i) => `${DAY_NAMES[i]} ${STATE_WORDS[d.state]}${d.today ? " (aujourd'hui)" : ''}`).join(', ')}`} className="flex justify-between">
             {week.map((day) => (
               <span key={day.date} className="flex flex-col items-center gap-1">
                 <DayPill state={day.state} today={day.today} />

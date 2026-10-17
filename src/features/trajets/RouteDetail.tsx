@@ -6,6 +6,8 @@ import { deriveTraits, reactionsFromFears } from '../../lib/questionnaire'
 import { useToday } from '../../lib/useToday'
 import { durationLabel, formatRouteDistance, hasReaction, momentReaction, routeMomentInfo, storeRoute, type Route } from '../../lib/route'
 import { keepRoute } from './keepRoute'
+import { PlaceMoment } from './PlaceMoment'
+import { MomentIcon } from './momentIcons'
 import { discoverZones } from '../../firebase/exploration'
 import { formatDuration } from '../../lib/balade'
 
@@ -16,25 +18,40 @@ const Tracer = lazy(() => import('./Tracer').then((m) => ({ default: m.Tracer })
 export function RouteDetail({ entryId, date, route }: { entryId: string; date: ISODate; route: Route }) {
   const { routes, exploration } = useData()
   const [editing, setEditing] = useState(false)
-  const stats = [formatRouteDistance(route.distanceM), route.durationMin ? (route.source === 'gpx' ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} moment${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
+  // Un toucher sur le tracé : un repère à cet endroit (rencontre, jeu, pipi, stress…).
+  const [placing, setPlacing] = useState<{ lat: number; lng: number } | null>(null)
+  const [missed, setMissed] = useState(false)
+  const saveMoments = (moments: Route['moments']) => updateEntryRoute(entryId, storeRoute({ ...route, moments }))
+  const stats = [formatRouteDistance(route.distanceM), route.durationMin ? (route.source === 'gpx' ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} repère${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
   return (
     <section className="flex flex-col gap-3">
       <div className="h-[280px] overflow-hidden rounded-[20px] bg-placeholder">
         <Suspense fallback={null}>
-          <RouteMap route={route} />
+          <RouteMap
+            route={route}
+            onTapRoute={(at) => {
+              setMissed(false)
+              setPlacing(at)
+            }}
+            onMissRoute={() => setMissed(true)}
+          />
         </Suspense>
       </div>
+      <p className={`-mt-1 text-[15px] ${missed ? 'font-semibold text-danger' : 'text-muted'}`}>{missed ? 'Touchez le tracé lui-même (ou tout près) pour y placer un repère.' : 'Touchez le tracé pour ajouter un repère.'}</p>
       <p className="text-[17px] font-bold">{stats}</p>
       {route.moments.length > 0 && (
         <ul className="card m-0 flex list-none flex-col p-0">
           {route.moments.map((m, i) => (
             <li key={i} className={`flex items-start gap-3 px-4 py-3 ${i ? 'border-t border-divider' : ''}`}>
-              <span className="mt-1.5 size-4 shrink-0 rounded-full" style={{ background: routeMomentInfo(m.type).color }} />
+              <MomentIcon type={m.type} size={30} />
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="text-[17px] font-semibold">{routeMomentInfo(m.type).label}</span>
                 {(m.street || m.note) && <span className="text-[15px] text-muted">{[m.street, m.note].filter(Boolean).join(' · ')}</span>}
                 <ToProfile reaction={momentReaction(m)} />
               </span>
+              <button type="button" aria-label={`Retirer le repère ${routeMomentInfo(m.type).label}`} onClick={() => saveMoments(route.moments.filter((_, j) => j !== i))} className="btn btn-quiet min-h-11 shrink-0 px-2.5 text-[15px] text-muted">
+                Retirer
+              </button>
             </li>
           ))}
         </ul>
@@ -42,6 +59,16 @@ export function RouteDetail({ entryId, date, route }: { entryId: string; date: I
       <button type="button" onClick={() => setEditing(true)} className="btn border-2 border-solid border-[#9A4413] bg-surface text-[#9A4413]">
         Modifier le trajet
       </button>
+      {placing && (
+        <PlaceMoment
+          at={placing}
+          onCancel={() => setPlacing(null)}
+          onPlace={(type, note, street) => {
+            saveMoments([...route.moments, { ...placing, type, ...(note ? { note } : {}), ...(street ? { street } : {}) }])
+            setPlacing(null)
+          }}
+        />
+      )}
       {editing && (
         <Suspense fallback={null}>
           <Tracer

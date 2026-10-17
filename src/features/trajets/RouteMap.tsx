@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
-import { addMarker, createMap, dot, fitPoints, set3D, setLine, whenReady, type MapLibreMap } from '../../components/maplibre'
+import { addMarker, createMap, dot, fitPoints, onMarker, set3D, setLine, whenReady, type MapLibreMap } from '../../components/maplibre'
+import { momentMarker } from './momentIcons'
 import { Map3DToggle } from '../../components/Map3DToggle'
 import { distanceMeters } from '../../lib/community'
-import { routeMomentInfo, type Route } from '../../lib/route'
+import { distanceToRoute, NEAR_ROUTE, type Route } from '../../lib/route'
 
 /** La grande carte d'un trajet : le chemin, le départ en vert, l'arrivée, les moments en couleur. Bouton 2D/3D. */
-export function RouteMap({ route, onMoment }: { route: Route; onMoment?: (index: number) => void }) {
+export function RouteMap({ route, onMoment, onTapRoute, onMissRoute }: { route: Route; onMoment?: (index: number) => void; /** Toucher le tracé (ou tout près) : y ajouter un repère. */ onTapRoute?: (at: { lat: number; lng: number }) => void; onMissRoute?: () => void }) {
   const host = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const [is3D, setIs3D] = useState(false)
+  const handlers = useRef({ onTapRoute, onMissRoute })
+  handlers.current = { onTapRoute, onMissRoute }
 
   useEffect(() => {
     if (!host.current) return
@@ -22,9 +25,18 @@ export function RouteMap({ route, onMoment }: { route: Route; onMoment?: (index:
     // Une boucle (arrivée à moins de 30 m du départ) : seulement le départ.
     if (first && last && route.points.length > 1 && distanceMeters({ lat: first[0], lng: first[1] }, { lat: last[0], lng: last[1] }) > 30) addMarker(m, last, dot('#18201E', 16, 'Arrivée'))
     route.moments.forEach((mo, i) => {
-      const el = dot(routeMomentInfo(mo.type).color, 20, routeMomentInfo(mo.type).label)
-      el.addEventListener('click', () => onMoment?.(i))
+      const el = momentMarker(mo.type)
+      el.addEventListener('click', (e) => {
+        e.stopPropagation()
+        onMoment?.(i)
+      })
       addMarker(m, [mo.lat, mo.lng], el)
+    })
+    m.on('click', (e) => {
+      if (onMarker(e.originalEvent) || !handlers.current.onTapRoute) return
+      const at = { lat: e.lngLat.lat, lng: e.lngLat.lng }
+      if (distanceToRoute(at, route.points) <= NEAR_ROUTE) handlers.current.onTapRoute(at)
+      else handlers.current.onMissRoute?.()
     })
     return () => {
       m.remove()

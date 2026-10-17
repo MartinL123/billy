@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Sheet } from '../../components/Sheet'
+import { PlaceMoment } from './PlaceMoment'
+import { momentMarker } from './momentIcons'
 import { markedSpotsOn } from '../../firebase/community'
-import { addPoint, buildRoute, closeLoop, defaultRouteName, distanceToRoute, DURATIONS, durationLabel, formatRouteDistance, moveAt, NEAR_ROUTE, removeAt, removeLast, routeDistance, routeMomentInfo, ROUTE_MOMENTS, withMarkMoments, type Route, type RouteMoment, type RoutePoint } from '../../lib/route'
+import { addPoint, buildRoute, closeLoop, defaultRouteName, distanceToRoute, DURATIONS, durationLabel, formatRouteDistance, moveAt, NEAR_ROUTE, removeAt, removeLast, routeDistance, withMarkMoments, type Route, type RouteMoment, type RoutePoint } from '../../lib/route'
 import type { ISODate } from '../../lib/dates'
-import { streetName } from '../../lib/street'
 import { MAX_GPX_BYTES, readGpx } from '../../lib/gpx'
 import { simplifyWalk } from '../../lib/balade'
 import { addMarker, createMap, dot, fitPoints, onMarker, PARIS, setLine, whenReady, type MapLibreMap, type Marker } from '../../components/maplibre'
@@ -95,7 +96,7 @@ export function Tracer({ date, initial, onDone, onCancel }: { date: ISODate; ini
       next.push(marker)
     })
     for (const mo of moments) {
-      const el = dot(routeMomentInfo(mo.type).color, 20, routeMomentInfo(mo.type).label)
+      const el = momentMarker(mo.type, 26)
       el.style.pointerEvents = 'none'
       next.push(addMarker(m, [mo.lat, mo.lng], el))
     }
@@ -157,7 +158,7 @@ export function Tracer({ date, initial, onDone, onCancel }: { date: ISODate; ini
           {(
             [
               ['chemin', 'Tracer le chemin'],
-              ['moment', 'Placer un moment'],
+              ['moment', 'Placer un repère'],
             ] as const
           ).map(([id, label]) => (
             <button key={id} type="button" role="radio" aria-checked={mode === id} disabled={id === 'moment' && points.length < 2} onClick={() => setMode(id)} className={`min-h-11 rounded-full border-0 text-[15px] font-bold disabled:opacity-40 ${mode === id ? 'bg-surface text-text shadow-[0_1px_3px_rgba(24,32,30,0.15)]' : 'bg-transparent text-muted'}`}>
@@ -217,43 +218,5 @@ export function Tracer({ date, initial, onDone, onCancel }: { date: ISODate; ini
       )}
     </div>,
     document.body,
-  )
-}
-
-/** « Qu'est-ce qui s'est passé ici ? » (docs/specs/trajets.md § 3). */
-function PlaceMoment({ at, onPlace, onCancel }: { at: { lat: number; lng: number }; onPlace: (type: RouteMoment['type'], note: string, street?: string) => void; onCancel: () => void }) {
-  const [type, setType] = useState<RouteMoment['type'] | null>(null)
-  const [note, setNote] = useState('')
-  const [street, setStreet] = useState<string>()
-  useEffect(() => {
-    let live = true
-    streetName(at.lat, at.lng).then((name) => live && setStreet(name))
-    return () => {
-      live = false
-    }
-  }, [at.lat, at.lng])
-  return (
-    <Sheet label="Qu'est-ce qui s'est passé ici ?" onClose={onCancel}>
-      <div className="mt-1 flex flex-col gap-0.5">
-        <h2 className="font-display text-[22px] font-extrabold">Qu'est-ce qui s'est passé ici ?</h2>
-        {street && <p className="text-[15px] font-semibold text-muted">{street}</p>}
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        {ROUTE_MOMENTS.map((m) => (
-          <button key={m.id} type="button" aria-pressed={type === m.id} onClick={() => setType(m.id)} className="flex min-h-16 items-center justify-center rounded-[18px] border-[3px] border-solid px-3 text-[17px] font-extrabold" style={type === m.id ? { background: m.color, borderColor: m.color, color: '#FFFFFF' } : { background: '#FFFFFF', borderColor: m.color, color: m.color }}>
-            {m.label}
-          </button>
-        ))}
-      </div>
-      <label className="flex flex-col gap-1.5">
-        <span className="text-[15px] font-semibold">
-          Un mot <span className="font-normal text-muted">(facultatif)</span>
-        </span>
-        <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Un vélo est passé très près" autoComplete="off" className="field" />
-      </label>
-      <button type="button" disabled={!type} onClick={() => type && onPlace(type, note.trim(), street)} className="btn btn-main disabled:opacity-50">
-        Placer ce moment
-      </button>
-    </Sheet>
   )
 }

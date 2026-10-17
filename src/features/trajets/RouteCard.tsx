@@ -28,7 +28,7 @@ export function RouteCard({ date, value, onChange }: { date: ISODate; value: Tra
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="text-[17px] font-bold">{formatRouteDistance(route.distanceM)}</span>
             <span className="text-sm text-muted">
-              {route.moments.length ? `${route.moments.length} moment${route.moments.length > 1 ? 's' : ''} sur le trajet` : 'Aucun moment placé'}
+              {route.moments.length ? `${route.moments.length} repère${route.moments.length > 1 ? 's' : ''} sur le trajet` : 'Aucun repère placé'}
               {value?.keep ? ` · gardé : ${value.keep}` : ''}
               {!value?.keep && route.savedRouteId ? ` · ${routes.find((r) => r.id === route.savedRouteId)?.name ?? 'trajet habituel'}` : ''}
             </span>

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { addMarker, createMap, dot, fitPoints, setLine, whenReady } from '../../components/maplibre'
-import { GOOD_COLOR, HARD_COLOR, isHardMoment, type Route } from '../../lib/route'
+import { GOOD_COLOR, HARD_COLOR, isGoodMoment, isHardMoment, type Route } from '../../lib/route'
 
 /** Tous les trajets du mois superposés : traits fins, peurs et grognes en rouge, réussites en vert. */
 export function WalksMap({ routes }: { routes: Route[] }) {
@@ -11,7 +11,7 @@ export function WalksMap({ routes }: { routes: Route[] }) {
     fitPoints(map, routes.flatMap((r) => r.points), 24)
     whenReady(map, () => setLine(map, 'balades', routes.map((r) => r.points), { color: '#9A4413', width: 4, opacity: 0.55 }))
     // Les réussites d'abord, les peurs par-dessus : on les voit toujours.
-    const moments = routes.flatMap((r) => r.moments).sort((a, b) => Number(isHardMoment(a)) - Number(isHardMoment(b)))
+    const moments = routes.flatMap((r) => r.moments).filter((m) => isHardMoment(m) || isGoodMoment(m)).sort((a, b) => Number(isHardMoment(a)) - Number(isHardMoment(b)))
     for (const m of moments) addMarker(map, [m.lat, m.lng], dot(isHardMoment(m) ? HARD_COLOR : GOOD_COLOR, 16))
     return () => map.remove()
   }, [routes])

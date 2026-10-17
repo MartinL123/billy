@@ -7,15 +7,24 @@ import type { Reaction } from './questionnaire'
 /** Un point : [latitude, longitude]. */
 export type RoutePoint = [number, number]
 
-export type RouteMomentType = 'peur' | 'grogne' | 'rappel' | 'detendu' | 'marque'
+export type RouteMomentType = 'peur' | 'grogne' | 'rencontre' | 'jeu' | 'marque' | 'rappel' | 'detendu' | 'note'
 
-export const ROUTE_MOMENTS: { id: Exclude<RouteMomentType, 'marque'>; label: string; color: string }[] = [
-  { id: 'peur', label: 'A eu peur', color: '#C4423A' },
+/**
+ * Les repères d'une balade (trajets.md § 3, complétés par la fonction « Balades ») : « A eu peur » devient
+ * « Moment de stress », « A marqué » devient « Pipi » (les anciens moments gardent leur identifiant).
+ * Couleurs : blanc lisible dessus (contraste ≥ 3:1 pour l'icône).
+ */
+export const ROUTE_MOMENTS: { id: RouteMomentType; label: string; color: string }[] = [
+  { id: 'peur', label: 'Moment de stress', color: '#C4423A' },
   { id: 'grogne', label: 'A grogné', color: '#9A4413' },
+  { id: 'rencontre', label: 'Rencontre chien', color: '#7B4FC9' },
+  { id: 'jeu', label: 'Jeu', color: '#C2531A' },
+  { id: 'marque', label: 'Pipi', color: '#8A6514' },
   { id: 'rappel', label: 'Super rappel', color: '#1E5A50' },
   { id: 'detendu', label: 'Bien détendu', color: '#2559A8' },
+  { id: 'note', label: 'Note libre', color: '#5C6662' },
 ]
-export const routeMomentInfo = (id: string) => ROUTE_MOMENTS.find((m) => m.id === id) ?? { id, label: 'A marqué', color: '#D9661F' }
+export const routeMomentInfo = (id: string) => ROUTE_MOMENTS.find((m) => m.id === id) ?? ROUTE_MOMENTS[ROUTE_MOMENTS.length - 1]!
 
 export interface RouteMoment {
   lat: number
@@ -164,6 +173,8 @@ export function withMarkMoments(route: Route, spots: { lat: number; lng: number;
 
 /** Pour la carte « Ses balades » (trajets.md § 4) : les peurs et grognes d'un côté, les réussites de l'autre. */
 export const isHardMoment = (m: RouteMoment) => m.type === 'peur' || m.type === 'grogne'
+/** Une note libre n'est ni une peur ni une réussite. */
+export const isGoodMoment = (m: RouteMoment) => !isHardMoment(m) && m.type !== 'note'
 export const HARD_COLOR = '#C4423A'
 export const GOOD_COLOR = '#1E5A50'
 

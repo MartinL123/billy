@@ -9,6 +9,7 @@ import { formatMonthYear, formatShort } from '../../lib/dates'
 import { formatRouteDistance } from '../../lib/route'
 import { communeName } from '../../lib/street'
 import { useBack } from '../../lib/useBack'
+import { ofName } from '../../lib/gender'
 import { useToday } from '../../lib/useToday'
 import { communesOf, filterWalks, walkItems, walksSummary, walkTags, type WalkFilter } from '../../lib/walkList'
 import { RouteThumb } from '../trajets/RouteThumb'
@@ -17,7 +18,7 @@ const PAGE = 12
 
 /** « Ses balades » (maquette V3-Balades) : toutes les balades, filtres, groupées par mois. */
 export default function Walks() {
-  const { entries } = useData()
+  const { entries, dog } = useData()
   const today = useToday()
   const navigate = useNavigate()
   const back = useBack('/territoire')
@@ -79,63 +80,83 @@ export default function Walks() {
           <h1 className="font-display text-[28px] leading-tight font-extrabold">Ses balades</h1>
           <p className="text-[17px] text-muted">{walksSummary(shown)}</p>
         </div>
-        <div role="group" aria-label="Filtrer les balades" className="scroll-row -mx-5 flex gap-2 px-5">
-          {filters.map((f) => (
-            <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className={`min-h-11 shrink-0 rounded-full border-2 border-solid px-4 text-[15px] font-bold ${filter === f.id ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}>
-              {f.label}
-            </button>
-          ))}
-        </div>
-        {groups.length === 0 && <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[17px] text-[#1D3F73]">Aucune balade pour ce filtre.</p>}
-        {groups.map((group) => (
-          <section key={group.key} className="flex flex-col gap-2">
-            <h2 className="text-sm font-bold tracking-[0.6px] text-muted uppercase">{formatMonthYear(`${group.key}-01`)}</h2>
-            <ul className="card m-0 flex list-none flex-col p-0">
-              {group.items.map((row, i) =>
-                row.kind === 'souvenir' ? (
-                  <li key={row.id} className={i ? 'border-t border-divider' : ''}>
-                    <Link to={`/souvenir/${row.id}`} className="flex items-center gap-3 px-3 py-2.5 text-text no-underline">
-                      {row.thumb ? (
-                        <FileImage fileId={row.thumb} alt="" className="size-14 shrink-0 rounded-[14px]" />
-                      ) : (
-                        <span className="flex size-14 shrink-0 items-center justify-center rounded-[14px] bg-bg text-primary">
-                          <NoteIcon size={24} />
-                        </span>
-                      )}
-                      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                        <span className="truncate text-[17px] font-bold">{row.text}</span>
-                        <span className="text-[15px] text-muted">{formatShort(row.date)} · un souvenir</span>
-                      </span>
-                    </Link>
-                  </li>
-                ) : (
-                  <li key={row.item.id} className={i ? 'border-t border-divider' : ''}>
-                    <Link to={`/souvenir/${row.item.id}`} className="flex items-center gap-3 px-3 py-2.5 text-text no-underline">
-                      <RouteThumb points={row.item.route.points} moments={row.item.route.moments} size={56} />
-                      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                        <span className="truncate text-[17px] font-bold">{row.item.name}</span>
-                        <span className="text-[15px] text-muted">{[formatShort(row.item.date), row.item.commune, formatRouteDistance(row.item.route.distanceM), row.item.route.durationMin ? formatDuration(row.item.route.durationMin) : ''].filter(Boolean).join(' · ')}</span>
-                        <span className="flex flex-wrap gap-1.5">
-                          {walkTags(row.item).map((t) => (
-                            <span key={t} className="rounded-full bg-bg px-2 py-0.5 text-[13px] font-semibold text-[#3F4946]">
-                              {t}
-                            </span>
-                          ))}
-                        </span>
-                      </span>
-                    </Link>
-                  </li>
-                ),
-              )}
-            </ul>
+        {rows.length === 0 && filter === 'toutes' ? (
+          // Rien du tout : un vrai état vide, qui propose d’importer (audit R-010).
+          <section className="card flex flex-col items-center gap-3 px-5 py-6 text-center">
+            <svg width="120" height="90" viewBox="0 0 120 90" aria-hidden="true">
+              <rect x="4" y="10" width="112" height="72" rx="16" fill="#E8EFE9" />
+              <path d="M22 66 C40 40 58 70 76 44 S100 30 104 26" fill="none" stroke="#9A4413" strokeWidth="5" strokeLinecap="round" strokeDasharray="2 9" />
+              <circle cx="22" cy="66" r="7" fill="#1E5A50" stroke="#fff" strokeWidth="3" />
+            </svg>
+            <h2 className="font-display text-[22px] font-extrabold">Pas encore de balade</h2>
+            <p className="text-[17px] leading-snug text-[#3F4946]">Importez vos balades Strava : elles arrivent ici, et le brouillard se lève sur la carte {ofName(dog.name)}.</p>
+            <Link to="/importer" className="btn btn-main min-h-[56px] self-stretch">
+              Importer mes balades
+            </Link>
           </section>
-        ))}
-        {!all && rows.length > PAGE && (
-          <button type="button" onClick={() => setAll(true)} className="btn btn-outline">
-            Voir les {rows.length - PAGE} plus anciens
-          </button>
+        ) : (
+          <>
+            <div role="group" aria-label="Filtrer les balades" className="scroll-row -mx-5 flex gap-2 px-5">
+              {filters.map((f) => (
+                <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className={`min-h-11 shrink-0 rounded-full border-2 border-solid px-4 text-[15px] font-bold ${filter === f.id ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}>
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            {groups.length === 0 && <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[17px] text-[#1D3F73]">Aucune balade pour ce filtre.</p>}
+            {groups.map((group) => (
+              <section key={group.key} className="flex flex-col gap-2">
+                <h2 className="text-sm font-bold tracking-[0.6px] text-muted uppercase">{formatMonthYear(`${group.key}-01`)}</h2>
+                <ul className="card m-0 flex list-none flex-col p-0">
+                  {group.items.map((row, i) =>
+                    row.kind === 'souvenir' ? (
+                      <li key={row.id} className={i ? 'border-t border-divider' : ''}>
+                        <Link to={`/souvenir/${row.id}`} className="flex items-center gap-3 px-3 py-2.5 text-text no-underline">
+                          {row.thumb ? (
+                            <FileImage fileId={row.thumb} alt="" className="size-14 shrink-0 rounded-[14px]" />
+                          ) : (
+                            <span className="flex size-14 shrink-0 items-center justify-center rounded-[14px] bg-bg text-primary">
+                              <NoteIcon size={24} />
+                            </span>
+                          )}
+                          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                            <span className="truncate text-[17px] font-bold">{row.text}</span>
+                            <span className="text-[15px] text-muted">{formatShort(row.date)} · un souvenir</span>
+                          </span>
+                        </Link>
+                      </li>
+                    ) : (
+                      <li key={row.item.id} className={i ? 'border-t border-divider' : ''}>
+                        <Link to={`/souvenir/${row.item.id}`} className="flex items-center gap-3 px-3 py-2.5 text-text no-underline">
+                          <RouteThumb points={row.item.route.points} moments={row.item.route.moments} size={56} />
+                          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                            <span className="truncate text-[17px] font-bold">{row.item.name}</span>
+                            <span className="text-[15px] text-muted">{[formatShort(row.item.date), row.item.commune, formatRouteDistance(row.item.route.distanceM), row.item.route.durationMin ? formatDuration(row.item.route.durationMin) : ''].filter(Boolean).join(' · ')}</span>
+                            <span className="flex flex-wrap gap-1.5">
+                              {walkTags(row.item).map((t) => (
+                                <span key={t} className="rounded-full bg-bg px-2 py-0.5 text-[13px] font-semibold text-[#3F4946]">
+                                  {t}
+                                </span>
+                              ))}
+                            </span>
+                          </span>
+                        </Link>
+                      </li>
+                    ),
+                  )}
+                </ul>
+              </section>
+            ))}
+            {!all && rows.length > PAGE && (
+              <button type="button" onClick={() => setAll(true)} className="btn btn-outline">
+                Voir les {rows.length - PAGE} plus anciens
+              </button>
+            )}
+          </>
         )}
       </main>
+      {/* Pas de « Voir cette balade sur la carte » quand la liste est vide. */}
+      {shown.length > 0 && (
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto max-w-[430px] px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           <button type="button" onClick={() => navigate(`/territoire?filtre=${encodeURIComponent(filter)}`)} className="btn btn-main min-h-[56px] w-full">
@@ -143,6 +164,7 @@ export default function Walks() {
           </button>
         </div>
       </div>
+      )}
     </div>
   )
 }

@@ -51,18 +51,21 @@ export default defineConfig({
           {
             urlPattern: ({ url }) => url.hostname === 'server.arcgisonline.com',
             handler: 'CacheFirst',
-            options: { cacheName: 'carte-satellite', expiration: { maxEntries: 2500, maxAgeSeconds: 60 * 24 * 3600 }, cacheableResponse: { statuses: [0, 200] } },
+            // Statut 200 seulement : MapLibre charge les tuiles en CORS, une réponse opaque (0) serait une erreur gardée 60 jours.
+            options: { cacheName: 'carte-satellite', expiration: { maxEntries: 2500, maxAgeSeconds: 60 * 24 * 3600 }, cacheableResponse: { statuses: [200] } },
           },
           {
-            urlPattern: ({ url }) => url.hostname === 'tiles.openfreemap.org' && !url.pathname.startsWith('/styles/'),
+            // Les tuiles, polices et icônes du plan : versionnées, elles ne changent pas.
+            urlPattern: ({ url }) => url.hostname === 'tiles.openfreemap.org' && /\.(pbf|png|webp|json)$/.test(url.pathname) && !url.pathname.startsWith('/styles/'),
             handler: 'CacheFirst',
-            options: { cacheName: 'carte-plan', expiration: { maxEntries: 2500, maxAgeSeconds: 30 * 24 * 3600 }, cacheableResponse: { statuses: [0, 200] } },
+            options: { cacheName: 'carte-plan', expiration: { maxEntries: 2500, maxAgeSeconds: 30 * 24 * 3600 }, cacheableResponse: { statuses: [200] } },
           },
           {
-            // Le style de la carte : celui en cache tout de suite, la mise à jour en arrière-plan.
-            urlPattern: ({ url }) => url.hostname === 'tiles.openfreemap.org' && url.pathname.startsWith('/styles/'),
+            // Le style et la description des tuiles (/planet, qui donne la version en cours) : celui en cache tout de suite,
+            // la mise à jour en arrière-plan. En cache longue durée, une ancienne version finirait en tuiles introuvables.
+            urlPattern: ({ url }) => url.hostname === 'tiles.openfreemap.org',
             handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'carte-style', cacheableResponse: { statuses: [0, 200] } },
+            options: { cacheName: 'carte-style', cacheableResponse: { statuses: [200] } },
           },
         ],
       },

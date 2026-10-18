@@ -4,6 +4,16 @@ PWA mobile-first pour suivre Billy, croisé épagneul-labrador né le 13/05/2026
 calendrier santé, journal photos, documents, puis programme d'entraînement.
 Utilisateur unique (moi), sur **iPhone**, app installée sur l'écran d'accueil.
 
+## Deux cibles : web et iOS
+
+- **Web** (PWA, GitHub Pages) : `npm run build`, base `/billy/`, service worker. Reste en ligne et sert de secours.
+- **iOS** (Capacitor, `ios/`) : `npm run build:ios` (`VITE_TARGET=ios`, base `./`, puis `npx cap sync ios`),
+  installée sur mon iPhone depuis Xcode avec un compte Apple gratuit. Voir `docs/ios.md`.
+- Même code, même compte, même base Firebase. Le web ne doit jamais changer à cause de l'app iOS.
+- **Règle : tout code natif est protégé par `isNative()` (`src/native.ts`, `Capacitor.isNativePlatform()`).**
+  En natif : pas de service worker ni de push web, Firebase Auth en `initializeAuth` + IndexedDB, pas d'invitation
+  à installer l'app.
+
 Lire avant toute nouvelle fonctionnalité (l'index complet est dans `docs/README.md`) :
 - **`docs/specs/spec-v3-simplification.md` : la spec en cours (refonte « Billy, le jeu »). Elle fait foi sur toutes les autres en cas de divergence.**
 - `docs/specs/arbre-competences.md` : les 10 compétences, leurs 5 étapes, les exercices de chaque étape et le rythme des séances
@@ -49,7 +59,8 @@ Lire avant toute nouvelle fonctionnalité (l'index complet est dans `docs/README
 | Connexion | Firebase Authentication, **e-mail + mot de passe** (un seul compte, créé dans la console) |
 | Données | Cloud Firestore avec `persistentLocalCache` (taille de cache illimitée) |
 | Fichiers | Dans Firestore aussi (type `Bytes`), **pas de Cloud Storage** — voir Règles techniques |
-| PWA | `vite-plugin-pwa` (`registerType: 'autoUpdate'`) |
+| PWA | `vite-plugin-pwa` (`registerType: 'autoUpdate'`), web seulement |
+| App iOS | Capacitor 8 (`@capacitor/core`, `@capacitor/ios`, `@capacitor/cli`), Swift Package Manager |
 | Dates | `date-fns` avec la locale `fr` |
 | Tests | Vitest + Testing Library, émulateurs Firebase en local |
 
@@ -73,6 +84,7 @@ npm test                   # tests unitaires
 npm run emulators          # Auth + Firestore en local (demande Java 21+)
 npm run emulators:user     # crée le compte de test de l'émulateur
 npm run dev:emu            # serveur local branché sur les émulateurs
+npm run build:ios          # build iOS (chemins relatifs) + copie dans ios/ ; puis npx cap open ios
 ```
 
 Configuration Firebase dans `.env.local` (variables `VITE_FIREBASE_*`), jamais commitée.
@@ -92,9 +104,12 @@ src/
     profile/    # profil de Billy, contacts, documents, compte
   content/      # catalogue commun du dressage (boss, paliers, exercices, traits), le même pour tous
   components/   # composants UI partagés (Button, Sheet, TabBar, EmptyState, Field…)
+  native.ts     # isNative() : seul point d'entrée du code propre à l'app iOS
   lib/          # utilitaires (âge, récurrences, compression d'image, découpage de fichiers, export .ics, XP, paliers, météo)
 firestore.rules
 firebase.json
+capacitor.config.ts   # app iOS (appId fr.lanrezac.billy)
+ios/                  # projet Xcode généré par Capacitor (ios/App/App/public n'est pas commité)
 docs/
 ```
 
@@ -117,6 +132,10 @@ docs/
 - Composants petits, logique métier hors des composants.
 
 ## Déploiement
+
+App iOS : pas de déploiement automatique ; `npm run build:ios` puis Run dans Xcode (voir `docs/ios.md`).
+
+Web :
 
 GitHub Pages via GitHub Actions (`.github/workflows/deploy.yml`) à chaque push sur `main`.
 `base` de Vite = `/<nom-du-repo>/` ; manifest et service worker doivent utiliser ce chemin.

@@ -8,12 +8,15 @@
     "dev:emu": "VITE_USE_EMULATORS=true vite --port 5173 --strictPort",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
+    "build:ios": "tsc --noEmit && VITE_TARGET=ios vite build && npx cap sync ios",
     "test": "vitest run",
     "emulators": "firebase emulators:start --project demo-billy",
     "emulators:user": "node scripts/create-emulator-user.mjs",
     "test:rules": "firebase emulators:exec --only firestore --project demo-billy \"vitest run --config vitest.rules.config.ts\""
   },
   "dependencies": {
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/ios": "^8.5.3",
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
     "@fontsource-variable/figtree": "^5.3.0",
     "date-fns": "^4.4.0",
@@ -26,6 +29,7 @@
     "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
     "@firebase/rules-unit-testing": "^6.0.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.3.0",

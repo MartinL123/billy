@@ -1,10 +1,12 @@
 import { ChevronLeftIcon } from '../../components/Icons'
 import { APP_NAME } from '../../appName'
+import { isNative } from '../../native'
 
 const APP_URL = 'martinl123.github.io/billy'
 
 /** L’app est-elle ouverte depuis l’icône de l’écran d’accueil ? */
-export const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true
+// L’app iOS (Capacitor) est déjà « installée » : jamais de conseil d’installation.
+export const isStandalone = () => isNative() || window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true
 
 function Steps({ title, steps, note }: { title: string; steps: string[]; note?: string }) {
   return (

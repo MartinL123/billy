@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { connectAuthEmulator, getAuth } from 'firebase/auth'
+import { connectAuthEmulator, getAuth, indexedDBLocalPersistence, initializeAuth } from 'firebase/auth'
 import {
   CACHE_SIZE_UNLIMITED,
   connectFirestoreEmulator,
@@ -8,10 +8,13 @@ import {
   persistentMultipleTabManager,
 } from 'firebase/firestore'
 import { firebaseConfig, useEmulators } from './config'
+import { isNative } from '../native'
 
 export const app = initializeApp(firebaseConfig)
 
-export const auth = getAuth(app)
+// Dans l’app iOS (WebView), getAuth chargerait des outils de connexion par pop-up qui n’y marchent pas :
+// on initialise Auth avec la seule persistance IndexedDB. Le web garde getAuth.
+export const auth = isNative() ? initializeAuth(app, { persistence: indexedDBLocalPersistence }) : getAuth(app)
 
 // Cache local persistant et illimité : tout reste consultable hors ligne.
 export const db = initializeFirestore(app, {

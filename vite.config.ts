@@ -4,8 +4,10 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { APP_NAME, APP_TAGLINE } from './src/appName'
 
-// Nom du repo GitHub : l'app est servie sur https://<user>.github.io/billy/
-const base = '/billy/'
+// Deux cibles : le web (GitHub Pages, https://<user>.github.io/billy/) et l'app iOS (Capacitor, VITE_TARGET=ios),
+// servie depuis le paquet de l'app : chemins relatifs, et pas de service worker.
+const ios = process.env.VITE_TARGET === 'ios'
+const base = ios ? './' : '/billy/'
 
 export default defineConfig({
   base,

@@ -25,6 +25,7 @@ import { ProfileEdit } from './ProfileEdit'
 import { gamesLabel, treatsLabel } from '../../lib/training-plan'
 import { place } from '../../lib/garden'
 import { ofName } from '../../lib/gender'
+import { isNative } from '../../native'
 
 
 function InfoRow({ label, value, first }: { label: string; value: string; first?: boolean }) {
@@ -292,9 +293,12 @@ export default function Profile() {
         <button type="button" onClick={() => setChangingPassword(true)} className="btn btn-outline">
           Changer mon mot de passe
         </button>
-        <Link to="/installer" className="btn btn-outline">
-          Mettre l’app sur mon téléphone
-        </Link>
+        {/* Dans l’app iOS, elle est déjà sur le téléphone. */}
+        {!isNative() && (
+          <Link to="/installer" className="btn btn-outline">
+            Mettre l’app sur mon téléphone
+          </Link>
+        )}
         <button type="button" onClick={() => setConfirmLogout(true)} className="btn btn-quiet">
           Se déconnecter
         </button>

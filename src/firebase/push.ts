@@ -2,6 +2,7 @@ import { deleteDoc, getDoc, setDoc } from 'firebase/firestore'
 import { REMINDER_TIME_ZONE, vapidKeyBytes } from '../lib/reminder'
 import { userDoc } from './paths'
 import { APP_NAME } from '../appName'
+import { isNative } from '../native'
 
 // Abonnement push de cet appareil : users/{uid}/push/{appareil}. Il sert à deux rappels indépendants :
 // le rappel du soir (`evening`, absent = activé, pour les anciens abonnements) et les sorties (`walks`).
@@ -26,7 +27,8 @@ export const deviceRef = () => userDoc('push', deviceId())
 
 /** Sur iPhone, les notifications ne marchent que si l’app est installée sur l’écran d’accueil. */
 export const isInstalled = () => window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true
-export const canPush = () => Boolean(VAPID_KEY) && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
+// Le push web passe par le service worker (push-sw.js) : pas dans l’app iOS, qui n’en a pas.
+export const canPush = () => !isNative() && Boolean(VAPID_KEY) && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
 
 export type PushKind = 'evening' | 'walks'
 

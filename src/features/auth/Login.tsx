@@ -4,6 +4,7 @@ import { PasswordField } from '../../components/PasswordField'
 import { InstallGuide } from '../account/Install'
 import { authErrorMessage, resetPassword, signIn, type AuthMessage } from '../../firebase/auth'
 import { APP_NAME, APP_TAGLINE } from '../../appName'
+import { isNative } from '../../native'
 
 export function Logo() {
   return (
@@ -100,9 +101,12 @@ export default function Login() {
       </form>
 
       {/* Pas d’inscription : Martin crée les comptes. On explique seulement comment installer l’app. */}
-      <button type="button" onClick={() => setInstalling(true)} className="btn btn-outline mt-6">
-        Comment installer l’app sur mon téléphone ?
-      </button>
+      {/* Dans l’app iOS, elle est déjà installée. */}
+      {!isNative() && (
+        <button type="button" onClick={() => setInstalling(true)} className="btn btn-outline mt-6">
+          Comment installer l’app sur mon téléphone ?
+        </button>
+      )}
 
       <p className="mt-auto pt-8 text-center text-[13px] leading-snug text-muted">Vos données restent privées. Martin, qui gère l’app, peut techniquement y accéder.</p>
 

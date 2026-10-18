@@ -3,7 +3,7 @@ import { FileImage } from '../../components/FileImage'
 import { ChevronRightIcon, NoteIcon, PawIcon } from '../../components/Icons'
 import { updateDog } from '../../firebase/db'
 import { useData } from '../../firebase/store'
-import { questionnaireStatus, statusLabel } from '../../lib/questionnaire'
+import { ESSENTIALS, essentialsDone } from '../../lib/questionnaire'
 
 const SEEN_KEY = 'billy-ouverture-vue'
 
@@ -20,7 +20,8 @@ export function openingSeen(): boolean {
 export default function Opening() {
   const { dog } = useData()
   const navigate = useNavigate()
-  const status = questionnaireStatus(dog.questionnaire)
+  // Les questions du départ (T-012) : tant qu’elles ne sont pas faites, l’entrée y mène.
+  const starting = !essentialsDone(dog.questionnaire)
 
   const enter = () => {
     try {
@@ -28,8 +29,8 @@ export default function Opening() {
     } catch {
       // Stockage indisponible : l’ouverture reviendra au prochain lancement.
     }
-    // Tant que le questionnaire de départ n’est pas terminé, il s’ouvre tout seul. « Continuer plus tard » reste possible.
-    if (!status.complete) {
+    // Tant que les questions du départ ne sont pas faites, elles s’ouvrent toutes seules. « Continuer plus tard » reste possible.
+    if (starting) {
       if (!dog.questionnaire?.startedAt) updateDog({ questionnaire: { answers: {}, ...dog.questionnaire, startedAt: new Date().toISOString() } })
       navigate('/questionnaire', { replace: true })
     } else {
@@ -49,8 +50,8 @@ export default function Opening() {
         <span className="flex min-h-12 items-center gap-2 rounded-full bg-white/15 px-[22px] text-[17px] font-bold">Touchez pour entrer</span>
       </button>
 
-      {/* Le questionnaire de départ, tant qu’il n’est pas terminé. */}
-      {!status.complete && (
+      {/* Les questions du départ, tant qu’elles ne sont pas faites (le reste se complète ensuite depuis l’accueil). */}
+      {starting && (
       <button
         type="button"
         onClick={() => navigate('/questionnaire')}
@@ -59,7 +60,7 @@ export default function Opening() {
         <NoteIcon size={26} className="shrink-0" />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[17px] font-bold">Questionnaire de départ</span>
-          <span className="text-sm text-white/85">{statusLabel(status)}</span>
+          <span className="text-sm text-white/85">{ESSENTIALS.length} questions pour commencer</span>
         </span>
         <ChevronRightIcon size={22} className="shrink-0" />
       </button>

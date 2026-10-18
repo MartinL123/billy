@@ -21,6 +21,8 @@ export const BONES = {
   rest: 5,
   /** Questionnaire de départ terminé, une fois. */
   questionnaire: 50,
+  /** Une partie de son profil complétée (questionnaire en deux temps, T-012), une fois par partie. */
+  profilePart: 15,
   /** Marquer un spot (une fois par spot et par jour) ; un spot jamais marqué par ce chien : +10. */
   mark: 5,
   newSpot: 10,
@@ -77,6 +79,7 @@ export const challengeBone = (week: ISODate, date: ISODate) => bone('defi', week
 /** Sortie cochée : +2, une fois par créneau et par jour (la décocher ne retire rien). */
 export const walkBone = (date: ISODate, slot: string) => bone('sortie', `${date}-${slot}`, date, BONES.walk)
 export const questionnaireBone = (date: ISODate) => bone('questionnaire', 'depart', date, BONES.questionnaire)
+export const profilePartBone = (part: number, date: ISODate) => bone('questionnaire', `partie-${part}`, date, BONES.profilePart)
 
 /** Semaine régulière : dès que 5 jours de la semaine ont un moment noté. */
 export function regularWeekBone(week: ISODate[], notedDays: ISODate[], date: ISODate): BoneWithId | undefined {
@@ -100,6 +103,7 @@ export const HOW_TO_EARN: { label: string; amount: number }[] = [
   { label: 'Défi de la semaine réussi', amount: BONES.challenge },
   { label: 'Semaine régulière (5 jours notés)', amount: BONES.regularWeek },
   { label: 'Jour de repos respecté', amount: BONES.rest },
+  { label: 'Compléter une partie de son profil', amount: BONES.profilePart },
   { label: 'Questionnaire de départ terminé', amount: BONES.questionnaire },
   { label: 'Marquer un spot (nouveau : +10)', amount: BONES.mark },
   { label: 'Défi de la meute tenu', amount: BONES.packChallenge },

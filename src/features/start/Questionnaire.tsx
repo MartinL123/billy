@@ -18,9 +18,12 @@ import { agree, forSex, ofName } from '../../lib/gender'
 import { compressImage, PHOTO } from '../../lib/image'
 import {
   deriveTraits,
+  essentialIndexes,
+  essentialsDone,
   fearSkills,
   FOLLOW_UPS,
   normalizeAnswers,
+  partIndexes,
   PARTS,
   questionnaireStatus,
   REACTION_LEVELS,
@@ -68,12 +71,28 @@ export default function Questionnaire() {
   const later = useBack('/')
   const answers = normalizeAnswers(dog.questionnaire?.answers ?? {})
   const [params] = useSearchParams()
-  // On reprend où on s’était arrêté, ou sur l’écran demandé (profil : « Modifier ses réactions »).
-  const [index, setIndex] = useState(() => {
+  // Le parcours (T-012) : au départ, les 9 questions essentielles ; « Compléter son profil » (?partie=N), une partie ;
+  // sinon tout le questionnaire, où l’on reprend là où on s’était arrêté (ou sur l’écran demandé).
+  const [route] = useState<{ kind: 'depart' | 'partie' | 'tout'; flow: number[]; start: number }>(() => {
+    const all = STEPS.map((_, i) => i)
+    const part = Number(params.get('partie'))
     const asked = STEPS.findIndex((s) => s.id === params.get('etape'))
-    return asked >= 0 ? asked : questionnaireStatus(dog.questionnaire).resumeAt
+    if (part >= 1 && part <= PARTS.length) {
+      // Seulement les questions encore sans réponse : le compte annoncé sur l’accueil est le bon.
+      const open = partIndexes(part).filter((i) => answers[STEPS[i]!.id] === undefined)
+      return { kind: 'partie', flow: open.length ? open : partIndexes(part), start: 0 }
+    }
+    if (asked < 0 && !essentialsDone(dog.questionnaire)) {
+      const flow = essentialIndexes()
+      const first = flow.findIndex((i) => answers[STEPS[i]!.id] === undefined)
+      return { kind: 'depart', flow, start: Math.max(0, first) }
+    }
+    return { kind: 'tout', flow: all, start: asked >= 0 ? asked : questionnaireStatus(dog.questionnaire).resumeAt }
   })
-  const step = STEPS[Math.min(index, STEPS.length - 1)]!
+  const flow = route.flow
+  const [pos, setPos] = useState(route.start)
+  const index = flow[Math.min(pos, flow.length - 1)]!
+  const step = STEPS[index]!
   const [error, setError] = useState('')
 
   // Brouillon : ce que l’app sait déjà. Rien n’est enregistré avant « Suivant ».
@@ -125,7 +144,16 @@ export default function Questionnaire() {
 
   const go = (next: number) => {
     setError('')
-    setIndex(Math.max(0, Math.min(STEPS.length - 1, next)))
+    // Fin d’un parcours court : les essentiels mènent à l’écran de bienvenue (T-011), une partie revient à l’accueil.
+    if (next >= flow.length && route.kind !== 'tout') {
+      if (route.kind === 'depart') {
+        // Champ par champ : la dernière réponse, encore en route, n’est pas écrasée.
+        updateDog({ 'questionnaire.essentialsAt': new Date().toISOString() } as Partial<Dog>)
+        return navigate('/bienvenue', { replace: true })
+      }
+      return navigate('/', { replace: true })
+    }
+    setPos(Math.max(0, Math.min(flow.length - 1, next)))
     window.scrollTo(0, 0)
   }
 
@@ -241,7 +269,7 @@ export default function Questionnaire() {
       answerQuestion('fin', 'ok', { 'questionnaire.completedAt': new Date().toISOString() })
       return navigate('/', { replace: true })
     } else save()
-    go(index + 1)
+    go(pos + 1)
   }
 
   // « Je ne sais pas » (dates de santé, ce qu’il sait faire) : on passe à la question suivante sans rien enregistrer d’autre.
@@ -254,7 +282,7 @@ export default function Questionnaire() {
       set(step.id, '')
       save({}, 'nsp')
     }
-    go(index + 1)
+    go(pos + 1)
   }
 
   // Accordé au féminin dès que « Femelle » est répondu (audit R-006) ; avant, les questions restent neutres.
@@ -275,8 +303,8 @@ export default function Questionnaire() {
       <header className="flex flex-col gap-3 pb-5">
         {/* « Retour » toujours en haut à gauche, sur toutes les questions (audit R-019). */}
         <div className="flex items-center justify-between gap-3">
-          {index > 0 ? (
-            <button type="button" onClick={() => go(index - 1)} className="btn btn-quiet -ml-3 min-h-12 px-3 whitespace-nowrap">
+          {pos > 0 ? (
+            <button type="button" onClick={() => go(pos - 1)} className="btn btn-quiet -ml-3 min-h-12 px-3 whitespace-nowrap">
               Retour
             </button>
           ) : (
@@ -286,15 +314,13 @@ export default function Questionnaire() {
             Continuer plus tard
           </button>
         </div>
-        <div role="progressbar" aria-label="Avancement du questionnaire" aria-valuemin={1} aria-valuemax={STEPS.length} aria-valuenow={index + 1} className="h-2.5 overflow-hidden rounded-full bg-placeholder">
-          <div className="h-full rounded-full bg-primary transition-[width] duration-300" style={{ width: `${((index + 1) / STEPS.length) * 100}%` }} />
+        <div role="progressbar" aria-label="Avancement du questionnaire" aria-valuemin={1} aria-valuemax={flow.length} aria-valuenow={pos + 1} className="h-2.5 overflow-hidden rounded-full bg-placeholder">
+          <div className="h-full rounded-full bg-primary transition-[width] duration-300" style={{ width: `${((pos + 1) / flow.length) * 100}%` }} />
         </div>
         {/* La partie est rappelée ici, sous la barre : la ligne du haut garde ses boutons sur une seule ligne. */}
         <p className="flex flex-wrap justify-between gap-x-3 text-[13px] font-bold tracking-[0.6px] uppercase" aria-live="polite">
-          <span className="text-primary">{PARTS[step.part - 1]}</span>
-          <span className="text-muted">
-            Partie {step.part} sur {PARTS.length}
-          </span>
+          <span className="text-primary">{route.kind === 'depart' ? 'Pour commencer' : PARTS[step.part - 1]}</span>
+          <span className="text-muted">{route.kind === 'tout' ? `Partie ${step.part} sur ${PARTS.length}` : `Question ${pos + 1} sur ${flow.length}`}</span>
         </p>
       </header>
 

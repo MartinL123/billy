@@ -10,7 +10,8 @@ import { balance } from '../../lib/bones'
 import { formatDayHeading, formatLong } from '../../lib/dates'
 import { portion, sortMeals } from '../../lib/feeding'
 import { contextLine, nextLines, nowCard, type NowCard, type NowInput, needsVet } from '../../lib/nowCard'
-import { questionnaireStatus } from '../../lib/questionnaire'
+import { essentialsDone, nextPart, PARTS, questionnaireStatus } from '../../lib/questionnaire'
+import { BONES } from '../../lib/bones'
 import { formatRouteDistance } from '../../lib/route'
 import { useToday } from '../../lib/useToday'
 import { lateLabel } from '../../lib/events'
@@ -206,6 +207,7 @@ export default function Today() {
   const content = useCardContent(card, postponeWeighing)
   const next = nextLines(input, card)
   const questionnaire = questionnaireStatus(dog.questionnaire)
+  const profilePart = nextPart(dog.questionnaire)
 
   return (
     <div className="flex flex-col gap-4 px-5">
@@ -267,11 +269,25 @@ export default function Today() {
           Noter un souvenir
         </Link>
       )}
-      {!questionnaire.complete && (
-        <Link to="/questionnaire" className="btn btn-quiet min-h-11 self-center px-4 text-[15px] text-muted">
-          Terminer le questionnaire de départ
-        </Link>
-      )}
+      {/* Questionnaire en deux temps (T-012) : après les questions du départ, une partie à la fois, contre des os. */}
+      {!questionnaire.complete &&
+        (essentialsDone(dog.questionnaire) && profilePart ? (
+          <Link to={`/questionnaire?partie=${profilePart.part}`} className="card flex min-h-14 items-center gap-3 rounded-[20px] px-4 py-3 text-text no-underline">
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="text-[17px] font-bold">Compléter son profil</span>
+              <span className="text-[15px] text-muted">
+                {PARTS[profilePart.part - 1]} · {profilePart.remaining} question{profilePart.remaining > 1 ? 's' : ''}
+              </span>
+            </span>
+            <span className="flex shrink-0 items-center gap-1 rounded-full bg-gold-soft px-3 py-1 text-[15px] font-extrabold text-gold-dark">
+              <BoneIcon size={18} />+{BONES.profilePart}
+            </span>
+          </Link>
+        ) : (
+          <Link to="/questionnaire" className="btn btn-quiet min-h-11 self-center px-4 text-[15px] text-muted">
+            Terminer le questionnaire de départ
+          </Link>
+        ))}
 
       {/* Un seul encadré à la fois : l’installation d’abord, le mot de passe ensuite (audit R-024). */}
       {installBannerVisible() ? <InstallBanner /> : <PasswordPrompt />}

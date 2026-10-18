@@ -10,6 +10,8 @@ export interface Questionnaire {
   answers: Record<string, string>
   /** Le questionnaire s’est déjà ouvert une première fois. */
   startedAt?: string
+  /** Les questions essentielles du départ sont faites (questionnaire en deux temps, T-012). */
+  essentialsAt?: string
   completedAt?: string
   /** Souvenirs des premières semaines notés depuis l’écran de résultat (identifiants du Carnet). */
   souvenirs?: string[]
@@ -96,6 +98,41 @@ export const STEPS: Step[] = [
 ]
 
 export const isSkillStep = (step: string) => SKILLS.some((s) => s.id === step)
+
+// ——— Questionnaire en deux temps (T-012) ———
+// Au départ, 9 questions pour démarrer : ce qui sert tout de suite (nom, âge, soins à rappeler, récompense, peurs).
+// Le reste vient ensuite, une partie à la fois, en missions « Compléter son profil » qui rapportent des os.
+
+export const ESSENTIALS = ['nom', 'photo', 'naissance', 'sexe', 'poids', 'vaccin', 'vermifuge', 'friandises', 'reactions']
+
+/** Les écrans essentiels, dans l’ordre du questionnaire. */
+export const essentialIndexes = (): number[] => STEPS.flatMap((s, i) => (ESSENTIALS.includes(s.id) ? [i] : []))
+
+/** Les questions du départ sont-elles faites ? (un questionnaire déjà terminé compte aussi) */
+export function essentialsDone(questionnaire: Questionnaire | undefined): boolean {
+  if (questionnaire?.essentialsAt || questionnaire?.completedAt) return true
+  const answers = normalizeAnswers(questionnaire?.answers ?? {})
+  return ESSENTIALS.every((id) => answers[id] !== undefined)
+}
+
+/** Les écrans d’une partie (1 à 5), hors écran de fin. */
+export const partIndexes = (part: number): number[] => STEPS.flatMap((s, i) => (s.part === part && s.kind !== 'fin' ? [i] : []))
+
+/** Toutes les questions d’une partie ont une réponse. */
+export function partComplete(questionnaire: Questionnaire | undefined, part: number): boolean {
+  const answers = normalizeAnswers(questionnaire?.answers ?? {})
+  return partIndexes(part).every((i) => answers[STEPS[i]!.id] !== undefined)
+}
+
+/** La prochaine partie à compléter (la première qui a encore des questions sans réponse), et combien il en reste. */
+export function nextPart(questionnaire: Questionnaire | undefined): { part: number; remaining: number } | undefined {
+  const answers = normalizeAnswers(questionnaire?.answers ?? {})
+  for (let part = 1; part <= PARTS.length; part++) {
+    const remaining = partIndexes(part).filter((i) => answers[STEPS[i]!.id] === undefined).length
+    if (remaining) return { part, remaining }
+  }
+  return undefined
+}
 
 // ——— Partie 5 : ce qu’il sait déjà faire ———
 

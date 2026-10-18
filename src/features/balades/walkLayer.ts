@@ -4,11 +4,13 @@ import { distanceMeters } from '../../lib/community'
 import { bearing, cumulative, easeInOut, pointAlong, REPLAY_MS, turnToward } from '../../lib/replay'
 import type { Route } from '../../lib/route'
 import { momentMarker } from '../trajets/momentIcons'
+import { fitPadding } from '../../lib/mapFrame'
 
 export type WalkPhoto = { index: number; thumbFileId: string; lat: number; lng: number }
 
 /** Les marges de la carte autour d’une balade : le panneau du bas en couvre une partie. */
 export const WALK_PADDING = { top: 120, bottom: 300, left: 40, right: 40 }
+const walkPadding = (m: MapLibreMap) => fitPadding(WALK_PADDING, m.getContainer().clientWidth, m.getContainer().clientHeight)
 
 /**
  * Une balade mise en avant sur la carte unique : son tracé plein, le départ, l’arrivée, ses repères et ses photos.
@@ -24,7 +26,7 @@ export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPh
     m.setPaintProperty('balade', 'line-color', color)
     m.moveLayer('balade-liseré')
     m.moveLayer('balade')
-    fitPoints(m, route.points, WALK_PADDING, true)
+    fitPoints(m, route.points, walkPadding(m), true)
   })
   const first = route.points[0]
   const last = route.points[route.points.length - 1]
@@ -69,7 +71,7 @@ export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPh
 export function replayWalk(m: MapLibreMap, route: Route, dogName: string, onEnd: () => void): () => void {
   const points = route.points
   const done = () => {
-    fitPoints(m, points, WALK_PADDING, true, { pitch: 0, bearing: 0 })
+    fitPoints(m, points, walkPadding(m), true, { pitch: 0, bearing: 0 })
     onEnd()
   }
   if (points.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {

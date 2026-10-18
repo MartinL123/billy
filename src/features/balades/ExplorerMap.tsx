@@ -5,6 +5,7 @@ import { fogLayout, type FogLayout } from '../../lib/fogCanvas'
 import { distanceToRoute, NEAR_ROUTE, type Route } from '../../lib/route'
 import { replayWalk, showWalk, type WalkPhoto } from './walkLayer'
 import { ofName } from '../../lib/gender'
+import { fitPadding } from '../../lib/mapFrame'
 
 export interface MapPlace {
   id: string
@@ -69,6 +70,8 @@ interface Props {
 const FOG = { plan: { color: '#22332F', opacity: 0.94 }, satellite: { color: '#FFFFFF', opacity: 0.86 } }
 /** Les marges de la carte : les boutons du haut et le panneau du bas en couvrent une partie. */
 const FRAME = { top: 130, bottom: 460, left: 40, right: 40 }
+/** Les marges du cadrage, adaptées à la taille réelle de la carte (petits écrans). */
+const frameOf = (m: MapLibreMap) => fitPadding(FRAME, m.getContainer().clientWidth, m.getContainer().clientHeight)
 /** Rayon de toucher autour d’un tracé, en pixels : un doigt n’est pas une souris. */
 const TAP_PX = 14
 
@@ -193,7 +196,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     if (!host.current) return
     // Avec des balades : la carte naît cadrée sur elles, sans passer par un premier endroit (audit R-032).
     const points = walk ? walk.route.points : framePoints
-    const m = createMap(host.current, points.length > 1 ? { bounds: { points, padding: FRAME } } : { zoom: 15, ...(center ? { center } : {}) })
+    const m = createMap(host.current, points.length > 1 ? { bounds: { points, padding: fitPadding(FRAME, host.current.clientWidth, host.current.clientHeight) } } : { zoom: 15, ...(center ? { center } : {}) })
     if (points.length > 1) framed.current = true
     map.current = m
     whenReady(m, () => setReady(true))
@@ -249,7 +252,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
       // Les boutons du haut et le panneau du bas couvrent la carte : on cadre dans ce qui reste visible.
       // Une fois le style chargé : avant, le cadrage est perdu.
       framed.current = true
-      whenReady(m, () => fitPoints(m, all, FRAME))
+      whenReady(m, () => fitPoints(m, all, frameOf(m)))
     } else if (center) m.jumpTo({ center: [center[1], center[0]] })
   }, [tracks, center]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -287,7 +290,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
       hide()
       // Retour à « Toutes les balades » : la carte reprend la vue d’ensemble (une autre balade se cadrera elle-même).
       const points = allTracks.current
-      if (map.current === m && !handlers.current.walk && points.length) whenReady(m, () => fitPoints(m, points, FRAME, true))
+      if (map.current === m && !handlers.current.walk && points.length) whenReady(m, () => fitPoints(m, points, frameOf(m), true))
     }
   }, [walkRoute, walkPhotos, walkColor])
 

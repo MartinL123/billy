@@ -77,7 +77,7 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
                       ? 'bg-primary-soft font-bold text-primary-dark'
                       : inMonth
                         ? 'text-text'
-                        : 'text-[#9AA39F]'
+                        : 'text-[#87918D]'
                 } ${isToday && isSelected ? 'ring-2 ring-primary ring-offset-2' : ''}`}
               >
                 {parseISO(day).d}

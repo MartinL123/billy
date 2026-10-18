@@ -46,6 +46,25 @@ export default defineConfig({
         // Polices et lecteur PDF inclus : tout doit s'afficher hors ligne.
         globPatterns: ['**/*.{js,mjs,css,html,svg,png,woff2}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        // Les tuiles de la carte restent sur l'iPhone : la carte revient vite, et s'affiche même sans réseau (audit R-032).
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.hostname === 'server.arcgisonline.com',
+            handler: 'CacheFirst',
+            options: { cacheName: 'carte-satellite', expiration: { maxEntries: 2500, maxAgeSeconds: 60 * 24 * 3600 }, cacheableResponse: { statuses: [0, 200] } },
+          },
+          {
+            urlPattern: ({ url }) => url.hostname === 'tiles.openfreemap.org' && !url.pathname.startsWith('/styles/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'carte-plan', expiration: { maxEntries: 2500, maxAgeSeconds: 30 * 24 * 3600 }, cacheableResponse: { statuses: [0, 200] } },
+          },
+          {
+            // Le style de la carte : celui en cache tout de suite, la mise à jour en arrière-plan.
+            urlPattern: ({ url }) => url.hostname === 'tiles.openfreemap.org' && url.pathname.startsWith('/styles/'),
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'carte-style', cacheableResponse: { statuses: [0, 200] } },
+          },
+        ],
       },
     }),
   ],

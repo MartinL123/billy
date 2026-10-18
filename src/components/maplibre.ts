@@ -20,12 +20,16 @@ export const lngLat = ([lat, lng]: LatLng): [number, number] => [lng, lat]
 
 export const PARIS: LatLng = [48.8566, 2.3522]
 
-export function createMap(container: HTMLElement, { center = PARIS, zoom = 15, interactive = true }: { center?: LatLng; zoom?: number; interactive?: boolean } = {}): MapLibreMap {
+export function createMap(
+  container: HTMLElement,
+  { center = PARIS, zoom = 15, interactive = true, bounds }: { center?: LatLng; zoom?: number; interactive?: boolean; bounds?: { points: LatLng[]; padding: { top: number; bottom: number; left: number; right: number } } } = {},
+): MapLibreMap {
+  // Cadrée dès la création sur des points : les tuiles ne se chargent qu’une fois, au bon endroit (audit R-032).
+  const box = bounds && bounds.points.length > 1 ? bounds.points.reduce((b, p) => b.extend(lngLat(p)), new LngLatBounds(lngLat(bounds.points[0]!), lngLat(bounds.points[0]!))) : undefined
   const map = new MapLibreMap({
     container,
     style: MAP_STYLE,
-    center: lngLat(center),
-    zoom,
+    ...(box ? { bounds: box, fitBoundsOptions: { padding: bounds!.padding, maxZoom: 17 } } : { center: lngLat(center), zoom }),
     interactive,
     attributionControl: { compact: true },
     // Au doigt : pas de rotation par erreur en 2D ; la 3D se met avec le bouton.

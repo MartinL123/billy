@@ -72,8 +72,9 @@ En attendant, le site web marche toujours : https://martinl123.github.io/billy/
 - Pas de **notifications push** dans l'app iOS : Apple les réserve aux comptes payants. Les rappels (sorties, soir)
   restent sur le web : garde le site installé sur l'écran d'accueil si tu veux les recevoir.
 - **HealthKit** (séances de l'Apple Watch) et le **GPS en arrière-plan** (Background Modes › Location updates)
-  sont disponibles avec un compte gratuit : ils sont déjà déclarés dans le projet (`Info.plist`, `App.entitlements`),
-  mais pas encore utilisés (phase 2).
+  sont disponibles avec un compte gratuit : ils sont déclarés dans le projet (`Info.plist`, `App.entitlements`).
+  Phase 2 : les marches de l'Apple Watch arrivent seules à chaque ouverture (T-001, plugin local
+  `ios/App/App/FlairNativePlugin.swift`, côté JS `src/native/flair.ts`) ; le GPS de l'iPhone viendra avec T-036.
 - Pas de TestFlight ni d'App Store : l'app ne s'installe que sur tes appareils, depuis ton Mac.
 
 ## Changer le nom

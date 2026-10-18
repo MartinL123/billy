@@ -3,7 +3,9 @@
 Martin veut voir les trajets des balades et les garder dans le Carnet.
 **Décision du 17 octobre : les balades n'entrent dans Billy que par un fichier** (export Strava, GPX ; voir
 `carte-a-decouvrir.md`). Plus aucune saisie de trajet à la main : le traceur, « Vos trajets habituels » et
-« Modifier le trajet » sont retirés (`prompt-v3-17`). Jamais d'enregistrement GPS en direct.
+« Modifier le trajet » sont retirés (`prompt-v3-17`). Jamais d'enregistrement GPS sans action de l'utilisateur : dans
+l'app iOS, l'enregistrement démarre et s'arrête seulement par ses boutons (décision du 18 octobre). Dans l'app iOS,
+les marches de l'Apple Watch arrivent seules, lues dans Santé (`prompt-ios-2`).
 Les trajets tracés à la main avant le 17 octobre restent dans le Carnet et sur la carte : aucune donnée effacée.
 
 Maquettes : `V3-CarnetTrajet` (le détail). `V3-RaconterTrajet`, `V3-TracerTrajet` et `V3-TrajetMoment` décrivent
@@ -41,8 +43,11 @@ l'ancienne saisie à la main, retirée.
 
 ## 5. Données
 - `users/{uid}/entries/{id}.route` (optionnel) : { points: [{ lat, lng }, …] (simplifiés, 5 décimales), distanceM,
-  durationMin?, source?: 'gpx' | 'strava', startTime?, endTime?, savedRouteId? (ancien), moments: [{ lat, lng,
+  durationMin?, source?: 'gpx' | 'strava' | 'watch' | 'gps', startTime?, endTime?, savedRouteId? (ancien), moments: [{ lat, lng,
   type: 'peur'|'grogne'|'rencontre'|'jeu'|'marque'|'rappel'|'detendu'|'note', note?, street? }] }
+- `users/{uid}/entries/{id}.source` (optionnel) : 'strava' (fichier), 'watch' (Apple Watch, app iOS) ou 'gps'
+  (enregistrée par l'iPhone, app iOS).
+- `users/{uid}.watchSyncedAt` (optionnel) : la dernière lecture des marches de l'Apple Watch (ISO).
 - `users/{uid}/entries/{id}.photos[]` : + `lat?`, `lng?` quand la photo a été placée sur le trajet.
 - `users/{uid}/routes/{id}` (anciens trajets habituels) : n'est plus écrit ; les documents existants restent.
 - Distance = somme des distances entre points (haversine), affichée « 1,8 km » ou « 650 m ».

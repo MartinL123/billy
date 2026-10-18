@@ -132,8 +132,8 @@ export interface Entry {
   xp?: number
   /** Le trajet de la balade (docs/specs/trajets.md). */
   route?: StoredRoute
-  /** Balade importée d’un fichier Strava (carte-a-decouvrir.md § 6). */
-  source?: 'strava'
+  /** Balade importée : fichier Strava (carte-a-decouvrir.md § 6), Apple Watch ou GPS de l’iPhone (app iOS). */
+  source?: 'strava' | 'watch' | 'gps'
   /** Clé de doublon : heure de départ + premier point. */
   importKey?: string
   /** Commune du premier point (Nominatim), gardée avec la balade. */

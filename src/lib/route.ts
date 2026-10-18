@@ -43,8 +43,8 @@ export interface Route {
   /** Ancien « trajet habituel » repris (avant le 17 octobre) : gardé en lecture. */
   savedRouteId?: string
   moments: RouteMoment[]
-  /** Balade importée d’un fichier GPX (Strava, montre) : ses heures de début et de fin. */
-  source?: 'gpx'
+  /** D’où vient le tracé : un fichier GPX (Strava), l’Apple Watch (Santé) ou le GPS de l’iPhone. Avec ses heures de début et de fin. */
+  source?: 'gpx' | 'watch' | 'gps'
   startTime?: string
   endTime?: string
 }

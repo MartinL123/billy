@@ -26,6 +26,7 @@ import { minutesLabel, walkBudget, type WalkBudget } from '../../lib/walkBudget'
 import { upcomingSlots, walkDayPlan } from '../../lib/walkDay'
 import { WalkDayCard } from './WalkDayCard'
 import { LifeTiles } from './LifeTiles'
+import { isNative } from '../../native'
 import { CountUp } from '../../components/CountUp'
 
 // « Plus tard » sur la pesée : on n’en reparle pas avant demain (choix gardé sur cet appareil).
@@ -104,11 +105,11 @@ function RunButton({ action, className }: { action: Action; className: string })
  * grosse balade, ou juste ses besoins quand le temps de marche du jour est fait.
  */
 function sortieText(budget?: WalkBudget): { title: string; text: string } {
-  if (!budget) return { title: 'Une vraie sortie, même 15 minutes', text: 'Elle se cochera toute seule avec votre balade Strava.' }
+  if (!budget) return { title: 'Une vraie sortie, même 15 minutes', text: `Elle se cochera toute seule avec votre balade ${isNative() ? 'de l’Apple Watch' : 'Strava'}.` }
   if (budget.next === 0) return { title: 'Juste ses besoins, 5 min', text: `Ses ${minutesLabel(budget.daily)} de marche du jour sont faites : pas de balade.` }
   // Raccourcie : ce qui est fait sur le temps du jour, pour comprendre la durée proposée.
   if (budget.next < budget.perWalk) return { title: `Une sortie courte : ${budget.next} min`, text: `Déjà ${minutesLabel(budget.walked)} de marche sur ${minutesLabel(budget.daily)} aujourd’hui : la suite reste courte.` }
-  return { title: `Une sortie de ${budget.perWalk} min`, text: `5 min par mois d’âge, 3 fois par jour. Elle se coche toute seule avec Strava.` }
+  return { title: `Une sortie de ${budget.perWalk} min`, text: `5 min par mois d’âge, 3 fois par jour. Elle se coche toute seule avec ${isNative() ? 'la Watch' : 'Strava'}.` }
 }
 
 /** Ce que montre la carte « À faire maintenant » : une phrase, deux lignes, un seul bouton. */
@@ -202,7 +203,7 @@ function useCardContent(card: NowCard, onWeighLater: () => void, budget?: WalkBu
       return {
         badge: 'Aujourd’hui',
         title: 'La mission est faite',
-        text: `${card.done ? `${card.done} sortie${card.done > 1 ? 's' : ''} sur 3 aujourd’hui.` : 'Pas encore de sortie cochée aujourd’hui.'} Elles se cochent toutes seules avec vos balades Strava.`,
+        text: `${card.done ? `${card.done} sortie${card.done > 1 ? 's' : ''} sur 3 aujourd’hui.` : 'Pas encore de sortie cochée aujourd’hui.'} Elles se cochent toutes seules avec vos balades ${isNative() ? 'de l’Apple Watch' : 'Strava'}.`,
         scene: undefined,
         action: { label: 'Noter un souvenir', to: '/noter' },
       }

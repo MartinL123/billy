@@ -12,6 +12,9 @@ import { healthTile, memoriesTile, progressTile, walksTile } from '../../lib/das
 import { discoveredShare, inPolygon, knownFog, shareLabel } from '../../lib/fog'
 import { useToday } from '../../lib/useToday'
 import { walkItems } from '../../lib/walkList'
+import { APP_NAME } from '../../appName'
+import { isNative } from '../../native'
+import { watchLooksBlocked } from '../balades/watchImport'
 
 const STROKE = { fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
 
@@ -95,6 +98,8 @@ export function LifeTiles({ arrival = false }: { /** Première ouverture du jour
   const active = activeSkills(dog.activeSkills, dog.traits ?? [], bossProgress)
   const progress = progressTile(active, Object.fromEntries(active.map((id) => [id, bossProgress[id]?.level])))
   const balades = walksTile(walks.map((w) => w.route), share && shareLabel(share.value, share.name))
+  // App iOS : aucune séance trouvée dans Santé, la lecture n’est sans doute pas autorisée (T-001). Une ligne, pas de popup.
+  const watchHint = isNative() && watchLooksBlocked() ? `Autoriser ${APP_NAME} à lire vos marches (Réglages › Santé)` : undefined
   // Les km et le % défilent jusqu’à leur valeur quand ils changent (et à l’arrivée du jour).
   const km = (n: number) => n.toFixed(1).replace('.', ',')
   const sante = healthTile(events, today)
@@ -115,7 +120,7 @@ export function LifeTiles({ arrival = false }: { /** Première ouverture du jour
             </span>
           )}
         </Tile>
-        <Tile to={walks.length ? '/territoire' : '/importer'} icon={ICONS.balades} tint="#E3EAF8" title="Ses balades" text={walks.length ? <>{walks.length} balade{walks.length > 1 ? 's' : ''} · <CountUp value={balades.km} format={km} fromZero={arrival} /> km</> : balades.text} detail={share ? <CountUp value={share.value} format={(n) => shareLabel(n, share.name)} fromZero={arrival} /> : balades.detail} detailColor="#2559A8" />
+        <Tile to={walks.length ? '/territoire' : '/importer'} icon={ICONS.balades} tint="#E3EAF8" title="Ses balades" text={walks.length ? <>{walks.length} balade{walks.length > 1 ? 's' : ''} · <CountUp value={balades.km} format={km} fromZero={arrival} /> km</> : balades.text} detail={watchHint ?? (share ? <CountUp value={share.value} format={(n) => shareLabel(n, share.name)} fromZero={arrival} /> : balades.detail)} detailColor="#2559A8" />
         <Tile to="/sante" icon={ICONS.sante} tint="#FBE6D4" title="Sa santé" text={sante.text} detail={sante.detail} detailColor="#B34A10" alert={sante.late} />
         <Tile to={souvenirs.count ? '/balades' : '/noter'} icon={ICONS.souvenirs} tint="#FCEFD3" title="Ses souvenirs" text={souvenirs.text} detail={souvenirs.detail} detailColor="#6B4E0E" />
       </div>

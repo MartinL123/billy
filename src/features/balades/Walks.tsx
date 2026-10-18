@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { isNative } from '../../native'
 import { FileImage } from '../../components/FileImage'
 import { ChevronLeftIcon, NoteIcon } from '../../components/Icons'
 import { setEntryCommune } from '../../firebase/db'
@@ -91,9 +92,9 @@ export default function Walks() {
               <circle cx="22" cy="66" r="7" fill="#1E5A50" stroke="#fff" strokeWidth="3" />
             </svg>
             <h2 className="font-display text-[22px] font-extrabold">Pas encore de balade</h2>
-            <p className="text-[17px] leading-snug text-[#3F4946]">Importez vos balades Strava : elles arrivent ici, et le brouillard se lève sur la carte {ofName(dog.name)}.</p>
-            <Link to="/importer" className="btn btn-main min-h-[56px] self-stretch">
-              Importer mes balades
+            <p className="text-[17px] leading-snug text-[#3F4946]">{isNative() ? 'Vos marches de l’Apple Watch arrivent ici toutes seules' : 'Importez vos balades Strava : elles arrivent ici'}, et le brouillard se lève sur la carte {ofName(dog.name)}.</p>
+            <Link to="/importer" className={`btn ${isNative() ? 'btn-outline min-h-12' : 'btn-main min-h-[56px]'} self-stretch`}>
+              {isNative() ? 'Importer un fichier GPX' : 'Importer mes balades'}
             </Link>
           </section>
         ) : (

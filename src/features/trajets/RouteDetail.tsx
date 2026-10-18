@@ -13,7 +13,7 @@ import { place } from '../../lib/garden'
 /** Le trajet dans le détail d’un moment : sa miniature, « Voir sur la carte » (la carte unique), les repères. */
 export function RouteDetail({ entryId, route }: { entryId: string; route: Route }) {
   const saveMoments = (moments: Route['moments']) => updateEntryRoute(entryId, storeRoute({ ...route, moments }))
-  const stats = [formatRouteDistance(route.distanceM), route.durationMin ? (route.source === 'gpx' ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} repère${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
+  const stats = [formatRouteDistance(route.distanceM), route.durationMin ? (route.source ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} repère${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
   return (
     <section className="flex flex-col gap-3">
       <Link to={`/territoire?balade=${entryId}`} className="flex items-center gap-3 rounded-[20px] bg-surface p-3 text-text no-underline shadow-[0_2px_8px_rgba(24,32,30,0.08)]">

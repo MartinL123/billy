@@ -11,14 +11,14 @@ import { newId, send, userDoc } from './paths'
 import type { Entry } from './types'
 
 /**
- * Une balade importée devient un moment du Carnet (`source: 'strava'`), avec son trajet allégé. Elle compte comme une
+ * Une balade importée devient un moment du Carnet (`source: 'strava'` ou `'watch'`), avec son trajet allégé. Elle compte comme une
  * balade notée (os de la note, 3 par jour au plus) seulement si elle date des 7 derniers jours. Renvoie son identifiant.
  */
 /**
  * La balade coche la sortie de son créneau (spec V4 § 1 : plus de coche à la main) et en donne les os une fois,
  * seulement si elle date des 7 derniers jours.
  */
-export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: ISODate, times?: WalkTimes): { entryId: string; bones: Bone[] } {
+export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: ISODate, times?: WalkTimes, source: 'strava' | 'watch' = 'strava'): { entryId: string; bones: Bone[] } {
   const entryId = newId('entries')
   const date = walk.date && walk.date <= today ? walk.date : today
   const entry: Entry = {
@@ -27,13 +27,13 @@ export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: I
     tags: [],
     photos: [],
     createdAt: new Date().toISOString(),
-    source: 'strava',
+    source,
     importKey: walk.key,
     route: storeRoute({
       points: walk.points,
       distanceM: walk.distanceM,
       moments: [],
-      source: 'gpx',
+      source: source === 'watch' ? 'watch' : 'gpx',
       ...(walk.durationMin ? { durationMin: walk.durationMin } : {}),
       ...(walk.startTime ? { startTime: walk.startTime } : {}),
     }),

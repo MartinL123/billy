@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { isNative } from '../../native'
 import { ChevronRightIcon } from '../../components/Icons'
 import { auth } from '../../firebase/app'
 import { fetchCommune } from '../../firebase/communes'
@@ -350,9 +351,10 @@ export default function Explorer() {
           {walks.length === 0 ? (
             <>
               <h1 className="font-display text-[22px] font-extrabold">Le territoire {ofName(dog.name)}</h1>
-              <p className="text-[17px] leading-snug text-[#3F4946]">Importez vos balades Strava pour lever le brouillard.</p>
-              <Link to="/importer" className="btn btn-main min-h-[56px]">
-                Importer mes balades
+              {/* App iOS (T-001) : les marches de la Watch arrivent seules ; le fichier GPX reste en secours. */}
+              <p className="text-[17px] leading-snug text-[#3F4946]">{isNative() ? 'Vos marches de l’Apple Watch arrivent seules et lèvent le brouillard.' : 'Importez vos balades Strava pour lever le brouillard.'}</p>
+              <Link to="/importer" className={`btn ${isNative() ? 'btn-outline min-h-12' : 'btn-main min-h-[56px]'}`}>
+                {isNative() ? 'Importer un fichier GPX' : 'Importer mes balades'}
               </Link>
             </>
           ) : (

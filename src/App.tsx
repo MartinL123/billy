@@ -24,6 +24,7 @@ import ImportResult from './features/balades/ImportResult'
 import { CommunitySync } from './features/meute/CommunitySync'
 import { BonesBackfill } from './features/shop/BonesBackfill'
 import { FogBackfill } from './features/balades/FogBackfill'
+import { WatchSync } from './features/balades/WatchSync'
 import DogPublic from './features/meute/DogPublic'
 // La carte (Leaflet) n’est chargée qu’en ouvrant l’onglet Meute.
 const Meute = lazy(() => import('./features/meute/Meute'))
@@ -147,6 +148,7 @@ export default function App() {
         <FogBackfill />
         <HashRouter>
           <OpenOnLogo />
+          <WatchSync />
           <ScrollToTop />
           <Screen>
           <Routes>

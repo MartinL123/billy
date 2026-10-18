@@ -5,6 +5,7 @@ import { useData } from '../../firebase/store'
 import { trackThumb } from '../../lib/trackThumb'
 import type { WalkDayPlan, WalkDaySlot } from '../../lib/walkDay'
 import { walkItems } from '../../lib/walkList'
+import { isNative } from '../../native'
 
 const THUMB = 88
 
@@ -64,7 +65,7 @@ export function WalkDayCard({ plan }: { plan: WalkDayPlan }) {
       <p className="text-[14px] leading-snug text-[#3F4946]">{plan.tip}</p>
       <Link to={walks.length ? '/territoire' : '/importer'} className="tap btn btn-outline min-h-12 gap-2">
         <MapIcon size={20} />
-        {walks.length ? 'Explorer la carte' : 'Importer mes balades'}
+        {walks.length ? 'Explorer la carte' : isNative() ? 'Importer un fichier GPX' : 'Importer mes balades'}
       </Link>
     </section>
   )

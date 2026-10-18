@@ -6,7 +6,7 @@ import { durationLabel, formatRouteDistance, type Route } from '../../lib/route'
 
 /** Le panneau d’une balade ouverte sur la carte : ce qu’elle est, la revoir, y placer des repères. */
 export function WalkPanel({ entryId, name, date, route, color, replaying, onReplay, onClose }: { entryId: string; name: string; date: string; route: Route; color?: string; replaying: boolean; onReplay: () => void; onClose: () => void }) {
-  const stats = [formatLong(date), formatRouteDistance(route.distanceM), route.durationMin ? (route.source === 'gpx' ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} repère${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
+  const stats = [formatLong(date), formatRouteDistance(route.distanceM), route.durationMin ? (route.source ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} repère${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
   return (
     <section aria-label={name} className="absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-[430px] flex-col gap-2.5 rounded-t-[26px] bg-surface px-5 pt-3 pb-9 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
       <div className="-ml-2 flex items-center justify-between">

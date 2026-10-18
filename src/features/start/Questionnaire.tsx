@@ -13,7 +13,7 @@ import type { Dog } from '../../firebase/types'
 import { isValidISO } from '../../lib/dates'
 import { sortMeals, type Meal } from '../../lib/feeding'
 import { nextTrainerSession, STERILISATION_PLANNED, sterilisationReminder, trainerSession } from '../../lib/events'
-import { careStatus } from '../../lib/health'
+import { lastDone } from '../../lib/health'
 import { compressImage, PHOTO } from '../../lib/image'
 import {
   deriveTraits,
@@ -88,11 +88,11 @@ export default function Questionnaire() {
     puce: dog.chip ?? '',
     'veto-nom': dog.vet?.name ?? '',
     'veto-tel': dog.vet?.phone ?? '',
-    vaccin: careStatus(events, 'vaccin').last?.date ?? '',
+    vaccin: lastDone(events, 'vaccin'),
     'vaccin-nom': dog.vaccineName ?? '',
     rage: dog.rabies ?? '',
-    vermifuge: careStatus(events, 'vermifuge').last?.date ?? '',
-    antiparasitaire: careStatus(events, 'antiparasitaire').last?.date ?? '',
+    vermifuge: lastDone(events, 'vermifuge'),
+    antiparasitaire: lastDone(events, 'antiparasitaire'),
     'antiparasitaire-type': dog.antiparasiteType ?? '',
     'sante-notes': dog.healthNotes ?? '',
     allergie: dog.allergies ?? '',

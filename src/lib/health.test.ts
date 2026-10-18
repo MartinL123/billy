@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { BillyEvent } from '../firebase/types'
 import type { ISODate } from './dates'
-import { careStatus } from './health'
+import { careStatus, doneDate } from './health'
 
 // Historique de soins de Billy au 13 octobre 2026, comme jeu d'essai.
 const LAST_PRIMO: ISODate = '2026-09-21'
@@ -55,5 +55,17 @@ describe('suivi des soins', () => {
     const chenil = events.filter((e) => e.id === 'hist-antiparasitaire-chenil')
     expect(careStatus(chenil, 'antiparasitaire').last?.id).toBe('hist-antiparasitaire-chenil')
     expect(careStatus(events, 'veto')).toEqual({ last: undefined, next: undefined })
+  })
+})
+
+describe('dernier soin fait (audit R-001)', () => {
+  it('se base sur le jour réel de validation', () => {
+    const events = [
+      { type: 'vermifuge' as const, date: '2026-07-10', done: true, doneAt: '2026-10-18' },
+      { type: 'vermifuge' as const, date: '2026-09-01', done: true },
+    ]
+    expect(careStatus(events, 'vermifuge').last?.doneAt).toBe('2026-10-18')
+    expect(doneDate(events[0]!)).toBe('2026-10-18')
+    expect(doneDate(events[1]!)).toBe('2026-09-01')
   })
 })

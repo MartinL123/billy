@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nextAnnual, nextOccurrence } from './recurrence'
+import { nextAfterDone, nextAnnual, nextOccurrence } from './recurrence'
 import { upcoming } from './events'
 
 describe('nextOccurrence', () => {
@@ -43,5 +43,19 @@ describe('upcoming', () => {
       { id: 'f', date: '2026-09-30', done: false },
     ]
     expect(upcoming(events, '2026-10-13').map((e) => e.id)).toEqual(['f', 'b', 'e', 'a'])
+  })
+})
+
+describe('soin validé (audit R-001)', () => {
+  it('en retard : fait aujourd’hui, la récurrence repart d’aujourd’hui', () => {
+    expect(nextAfterDone('2026-07-10', 'monthly', '2026-10-18')).toBe('2026-11-18')
+    expect(nextAfterDone('2026-07-10', 'quarterly', '2026-10-18')).toBe('2027-01-18')
+  })
+  it('à temps ou en avance : le calendrier prévu continue', () => {
+    expect(nextAfterDone('2026-10-18', 'monthly', '2026-10-18')).toBe('2026-11-18')
+    expect(nextAfterDone('2026-10-25', 'monthly', '2026-10-18')).toBe('2026-11-25')
+  })
+  it('sans récurrence : rien', () => {
+    expect(nextAfterDone('2026-07-10', 'none', '2026-10-18')).toBeUndefined()
   })
 })

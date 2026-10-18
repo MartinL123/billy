@@ -4,9 +4,10 @@ import { Pending } from '../../components/Pending'
 import { useToast } from '../../components/Toast'
 import { setEventDone, undoEventDone } from '../../firebase/db'
 import type { BillyEvent, WithId } from '../../firebase/types'
-import { formatShort, formatTime, monthAbbr, parseISO, weekdayAbbr, type ISODate } from '../../lib/dates'
+import { formatShort, formatTime, monthAbbr, parseISO, todayISO, weekdayAbbr, type ISODate } from '../../lib/dates'
 import { isOverdue, typeInfo } from '../../lib/events'
-import { nextOccurrence, RECURRENCE_LABEL } from '../../lib/recurrence'
+import { doneDate } from '../../lib/health'
+import { nextAfterDone, RECURRENCE_LABEL } from '../../lib/recurrence'
 
 type Event = WithId<BillyEvent>
 
@@ -19,8 +20,8 @@ export function useToggleDone() {
       return
     }
     const nextId = setEventDone(event, true)
-    const next = nextId ? nextOccurrence(event.date, event.recurrence) : undefined
-    toast(next ? `Fait. Prochain le ${formatShort(next, parseISO(event.date).y)}.` : 'Fait.', {
+    const next = nextId ? nextAfterDone(event.date, event.recurrence, todayISO()) : undefined
+    toast(next ? `Fait. Prochain le ${formatShort(next, parseISO(todayISO()).y)}.` : 'Fait.', {
       label: 'Annuler',
       run: () => undoEventDone(event.id, nextId),
     })
@@ -67,19 +68,21 @@ export function CalendarEventRow({ event, today, first }: { event: Event; today:
     !event.time && event.recurrence === 'none' && !overdue ? info.label : '',
   ].filter(Boolean)
   const dateTone = overdue ? 'text-danger' : event.done ? 'text-muted' : ''
-  const otherMonth = event.date && event.date.slice(0, 7) !== today.slice(0, 7)
+  // Un soin fait s'affiche au jour où il a vraiment été fait (audit R-001).
+  const shown = event.done ? doneDate(event) : event.date
+  const otherMonth = shown && shown.slice(0, 7) !== today.slice(0, 7)
 
   return (
     <div className={`flex flex-col gap-2.5 px-4 py-3.5 ${overdue ? 'bg-danger-soft' : ''} ${first ? '' : 'border-t border-divider'}`}>
       <Link to={`/evenement/${event.id}`} className="flex min-h-12 min-w-0 items-center gap-3.5 text-text no-underline">
-        {event.date ? (
+        {shown ? (
           <span className="flex w-[52px] shrink-0 flex-col items-center text-center leading-[1.15] whitespace-nowrap">
-            <span className={`text-xs font-semibold ${overdue ? 'text-danger' : 'text-muted'}`}>{weekdayAbbr(event.date)}</span>
-            <span className={`text-xl font-bold ${dateTone}`}>{parseISO(event.date).d}</span>
+            <span className={`text-xs font-semibold ${overdue ? 'text-danger' : 'text-muted'}`}>{weekdayAbbr(shown)}</span>
+            <span className={`text-xl font-bold ${dateTone}`}>{parseISO(shown).d}</span>
             {otherMonth && (
               <span className="text-xs text-muted">
-                {monthAbbr(event.date)}
-                {parseISO(event.date).y !== parseISO(today).y ? ` ${String(parseISO(event.date).y).slice(2)}` : ''}
+                {monthAbbr(shown)}
+                {parseISO(shown).y !== parseISO(today).y ? ` ${String(parseISO(shown).y).slice(2)}` : ''}
               </span>
             )}
           </span>

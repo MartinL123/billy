@@ -36,7 +36,7 @@ import Noter from './features/journal/Noter'
 import DocumentForm from './features/profile/DocumentForm'
 import DocumentView from './features/profile/DocumentView'
 import Profile, { ProfileEditScreen } from './features/profile/Profile'
-import Opening, { openingSeen } from './features/start/Opening'
+import Opening from './features/start/Opening'
 import Questionnaire from './features/start/Questionnaire'
 import Today from './features/today/Today'
 import { DressageAwards } from './features/training/DressageAwards'
@@ -53,13 +53,16 @@ function ScrollToTop() {
   return null
 }
 
-/** L’écran d’ouverture, la toute première fois seulement (sur cet appareil) ; ensuite on arrive sur l’accueil. */
+/**
+ * L’écran d’ouverture à chaque lancement de l’app (choix de Martin, T-017) : on touche la photo du chien pour entrer.
+ * Ouverte sur un écran précis (notification, lien), l’app y va directement.
+ */
 function OpenOnLogo() {
   const navigate = useNavigate()
   useEffect(() => {
-    // Ouverte depuis une notification : on arrive directement sur l’écran qu’elle montre.
-    if (window.location.hash.includes('depuis=rappel')) return
-    if (!openingSeen()) navigate('/ouverture', { replace: true })
+    const hash = window.location.hash
+    if (hash.includes('depuis=rappel')) return
+    if (hash === '' || hash === '#' || hash === '#/') navigate('/ouverture', { replace: true })
     // Une seule fois, au lancement.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

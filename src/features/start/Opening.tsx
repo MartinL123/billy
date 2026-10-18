@@ -16,7 +16,7 @@ export function openingSeen(): boolean {
   }
 }
 
-/** Écran d’ouverture, la première fois : on touche le logo pour entrer. Les fois suivantes, l’app ouvre l’accueil. */
+/** Écran d’ouverture, à chaque lancement : on touche la photo du chien pour entrer. */
 export default function Opening() {
   const { dog } = useData()
   const navigate = useNavigate()
@@ -49,6 +49,8 @@ export default function Opening() {
         <span className="flex min-h-12 items-center gap-2 rounded-full bg-white/15 px-[22px] text-[17px] font-bold">Touchez pour entrer</span>
       </button>
 
+      {/* Le questionnaire de départ, tant qu’il n’est pas terminé. */}
+      {!status.complete && (
       <button
         type="button"
         onClick={() => navigate('/questionnaire')}
@@ -61,6 +63,7 @@ export default function Opening() {
         </span>
         <ChevronRightIcon size={22} className="shrink-0" />
       </button>
+      )}
     </main>
   )
 }

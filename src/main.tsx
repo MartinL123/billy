@@ -10,8 +10,9 @@ import { isNative } from './native'
 
 // Nouvelle version : l’app se recharge seule. Sur iPhone l’app reste ouverte des jours,
 // on revérifie donc à chaque retour au premier plan.
-// Dans l’app iOS (Capacitor), pas de service worker : les fichiers sont dans l’app elle-même.
-if (!isNative())
+// Dans l’app iOS, le site en ligne est chargé tel quel (même app que le navigateur) et garde son service worker ;
+// seul le paquet de secours embarqué (adresse capacitor://) n’en a pas.
+if (!(isNative() && window.location.protocol === 'capacitor:'))
   registerSW({
     immediate: true,
     onRegisteredSW(_url, registration) {

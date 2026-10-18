@@ -6,13 +6,14 @@ Utilisateur unique (moi), sur **iPhone**, app installée sur l'écran d'accueil.
 
 ## Deux cibles : web et iOS
 
-- **Web** (PWA, GitHub Pages) : `npm run build`, base `/billy/`, service worker. Reste en ligne et sert de secours.
-- **iOS** (Capacitor, `ios/`) : `npm run build:ios` (`VITE_TARGET=ios`, base `./`, puis `npx cap sync ios`),
-  installée sur mon iPhone depuis Xcode avec un compte Apple gratuit. Voir `docs/ios.md`.
-- Même code, même compte, même base Firebase. Le web ne doit jamais changer à cause de l'app iOS.
+- **Web** (PWA, GitHub Pages) : `npm run build`, base `/billy/`, service worker.
+- **iOS** (Capacitor, `ios/`) : l'app charge le site en ligne (`server.url` dans `capacitor.config.ts`) : **elle est
+  toujours exactement la même que la version navigateur**, mise à jour par le même déploiement. Xcode seulement pour la
+  relance hebdomadaire (compte Apple gratuit) ou un changement natif. Voir `docs/ios.md`.
+- Même code (une seule branche, `main`), même compte, même base Firebase.
 - **Règle : tout code natif est protégé par `isNative()` (`src/native.ts`, `Capacitor.isNativePlatform()`).**
-  En natif : pas de service worker ni de push web, Firebase Auth en `initializeAuth` + IndexedDB, pas d'invitation
-  à installer l'app.
+  En natif : pas de push web, Firebase Auth en `initializeAuth` + IndexedDB, pas d'invitation à installer l'app.
+  Le service worker reste actif (hors ligne), sauf pour le paquet de secours embarqué (`capacitor://`).
 
 Lire avant toute nouvelle fonctionnalité (l'index complet est dans `docs/README.md`) :
 - **`docs/specs/spec-v3-simplification.md` : la spec en cours (refonte « Billy, le jeu »). Elle fait foi sur toutes les autres en cas de divergence.**

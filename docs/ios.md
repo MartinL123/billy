@@ -8,6 +8,16 @@ L'app (provisoirement « Flair », voir `src/appName.ts`) existe en deux version
 
 Le code natif (iOS) est toujours protégé par `isNative()` (`src/native.ts`) : sur le web, rien ne change.
 
+## Toujours la même app que le navigateur
+
+L'app iOS charge le site en ligne (https://martinl123.github.io/billy/) : chaque déploiement sur GitHub Pages la met
+à jour en même temps que la version navigateur. C'est exactement la même app, avec le même compte et les mêmes données.
+Elle reste consultable hors ligne grâce au service worker du site (domaine déclaré dans `WKAppBoundDomains`).
+
+Il ne faut repasser par Xcode que pour :
+- la relance hebdomadaire (limite du compte gratuit, voir plus bas) ;
+- un changement de code natif (phase 2 : HealthKit, GPS), de l'icône ou du nom.
+
 ## Ce qu'il faut sur le Mac
 
 1. **Xcode** depuis l'App Store. Sur macOS 14 (Sonoma), c'est Xcode 16. Il faut environ 40 Go libres pour
@@ -74,7 +84,7 @@ L'identifiant `fr.lanrezac.billy` ne change jamais.
 
 ## Ce qui diffère du web dans l'app iOS
 
-- Pas de service worker ni de `push-sw.js` : les fichiers sont dans l'app elle-même.
+- Le service worker du site est gardé (hors ligne) ; les notifications push web, elles, ne marchent pas dans l'app.
 - Firebase Auth utilise `initializeAuth` avec la persistance IndexedDB (le web garde `getAuth`).
 - Pas de bouton « Mettre l'app sur mon téléphone » ni de bandeau d'installation.
 - Écran de lancement et icône vert Billy (#1E5A50), orientation portrait, iPhone seulement.

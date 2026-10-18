@@ -38,6 +38,7 @@ import DocumentView from './features/profile/DocumentView'
 import Profile, { ProfileEditScreen } from './features/profile/Profile'
 import Opening from './features/start/Opening'
 import Questionnaire from './features/start/Questionnaire'
+import Welcome from './features/start/Welcome'
 import Today from './features/today/Today'
 import { DressageAwards } from './features/training/DressageAwards'
 import Exercise from './features/training/Exercise'
@@ -130,6 +131,7 @@ export default function App() {
             </Route>
             <Route path="ouverture" element={<Opening />} />
             <Route path="questionnaire" element={<Questionnaire />} />
+            <Route path="bienvenue" element={<Welcome />} />
             <Route path="noter" element={<Noter />} />
             <Route path="raconter" element={<Navigate to="/noter" replace />} />
             <Route path="competence/:id" element={<Skill />} />

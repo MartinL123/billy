@@ -1,5 +1,6 @@
 import { diffDays, type ISODate } from './dates'
 import { lateLabel } from './events'
+import type { WalkBudget } from './walkBudget'
 import { formatHour, timeToMinutes, walkName, WALK_SLOTS, type WalkSlot, type WalkTimes } from './walks'
 
 // Aujourd’hui (spec V4 § 2) : une seule carte « À faire maintenant », choisie par une règle simple, et 2 lignes
@@ -27,6 +28,8 @@ export interface NowInput {
   meals: { time: string; label?: string }[]
   mission: { done: boolean; minutes: number }
   walks: { times: WalkTimes; done: Partial<Record<WalkSlot, string>> }
+  /** La règle des 5 minutes par mois d’âge (T-019) : durée de la prochaine sortie. */
+  budget?: WalkBudget
   /** Pesée du mois à proposer (T-013), avec la date de la dernière pesée. */
   weighing?: { due: boolean; last?: ISODate }
 }
@@ -99,7 +102,8 @@ export function nextLines(input: NowInput, card: NowCard): NextLine[] {
   const walk = nextWalk(input)
   const doneCount = WALK_SLOTS.filter((s) => input.walks.done[s.id]).length
   if (walk && !(card.kind === 'sortie' && card.slot === walk.slot)) {
-    lines.push({ key: 'sortie', when: formatHour(walk.time), title: walkName(walk.time).replace(/^la s/, 'S'), detail: `${doneCount} sur 3 faites`, to: '/' })
+    const length = input.budget ? (input.budget.next ? `${input.budget.next} min · ` : 'Juste ses besoins · ') : ''
+    lines.push({ key: 'sortie', when: formatHour(walk.time), title: walkName(walk.time).replace(/^la s/, 'S'), detail: `${length}${doneCount} sur 3 faites`, to: '/' })
   }
   const upcoming = input.care
     .filter((e) => !e.done && e.date && !(card.kind === 'soin' && card.event.id === e.id))

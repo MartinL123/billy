@@ -23,6 +23,8 @@ import { DogPhoto } from '../shop/DogPhoto'
 import { Illustration } from '../training/Illustration'
 import { useQuest } from './useQuest'
 import { weighingDue } from '../../lib/weighing'
+import { minutesLabel, walkBudget, type WalkBudget } from '../../lib/walkBudget'
+import { WALK_SLOTS } from '../../lib/walks'
 
 // « Plus tard » sur la pesée : on n’en reparle pas avant demain (choix gardé sur cet appareil).
 const WEIGH_LATER_KEY = 'billy-pesee-plus-tard'
@@ -64,8 +66,20 @@ function CardButton({ action, main }: { action: Action; main?: boolean }) {
   )
 }
 
+/**
+ * La carte sortie selon la règle des 5 minutes par mois d’âge (T-019) : la durée conseillée, raccourcie après une
+ * grosse balade, ou juste ses besoins quand le temps de marche du jour est fait.
+ */
+function sortieText(budget?: WalkBudget): { title: string; text: string } {
+  if (!budget) return { title: 'Une vraie sortie, même 15 minutes', text: 'Elle se cochera toute seule avec votre balade Strava.' }
+  if (budget.next === 0) return { title: 'Juste ses besoins, 5 min', text: `Ses ${minutesLabel(budget.daily)} de marche du jour sont faites : pas de balade.` }
+  if (budget.longWalk && budget.next < budget.perWalk) return { title: `Une petite sortie de ${budget.next} min`, text: `Déjà une grosse balade aujourd’hui (${minutesLabel(budget.longWalk)} au lieu de ${budget.perWalk}).` }
+  if (budget.next < budget.perWalk) return { title: `Une sortie de ${budget.next} min`, text: `Déjà ${minutesLabel(budget.walked)} de marche aujourd’hui, sur ${minutesLabel(budget.daily)}.` }
+  return { title: `Une sortie de ${budget.perWalk} min`, text: `5 min par mois d’âge, 3 fois par jour. Elle se coche toute seule avec Strava.` }
+}
+
 /** Ce que montre la carte « À faire maintenant » : une phrase, deux lignes, un seul bouton. */
-function useCardContent(card: NowCard, onWeighLater: () => void) {
+function useCardContent(card: NowCard, onWeighLater: () => void, budget?: WalkBudget) {
   const { dog, events, entries } = useData()
   const { quest, mission, minutes, canSkip, skips } = useQuest()
   const today = useToday()
@@ -137,8 +151,7 @@ function useCardContent(card: NowCard, onWeighLater: () => void) {
     case 'sortie':
       return {
         badge: `Sortie de ${formatHour(card.time)}`,
-        title: 'Une vraie sortie, même 15 minutes',
-        text: 'Elle se cochera toute seule avec votre balade Strava.',
+        ...sortieText(budget),
         scene: undefined,
         // Pas de bouton : la balade arrive avec l’import Strava, rien à faire d’ici (pas d’export depuis l’iPhone).
         action: undefined,
@@ -175,7 +188,7 @@ function useCardContent(card: NowCard, onWeighLater: () => void) {
 
 /** Aujourd’hui (spec V4 § 2) : on comprend en 10 secondes quoi faire. Une carte, un bouton plein. */
 export default function Today() {
-  const { dog, events, bones, walks, weights } = useData()
+  const { dog, events, bones, walks, weights, entries } = useData()
   const today = useToday()
   const [weighLater, setWeighLater] = useState(readWeighLater)
   const postponeWeighing = () => {
@@ -201,10 +214,17 @@ export default function Today() {
     // Journée de repos : pas de « minutes de mission » à annoncer.
     mission: { done: missionDone, minutes: quest.kind === 'repos' ? 0 : minutes },
     walks: { times: walkTimes(dog.walkTimes), done: walks.find((w) => w.date === today)?.done ?? {} },
+    budget: walkBudget({
+      birthDate: dog.birthDate,
+      today,
+      // Les balades du jour (importées de Strava) avec leur durée.
+      walks: entries.filter((e) => e.date === today && e.route?.durationMin).map((e) => e.route!.durationMin!),
+      walksLeft: WALK_SLOTS.filter((s) => !(walks.find((w) => w.date === today)?.done ?? {})[s.id]).length,
+    }),
     weighing: { due: weighLater !== today && weighingDue({ today, birthDate: dog.birthDate, lastWeighed: weights[0]?.date }), ...(weights[0] ? { last: weights[0].date } : {}) },
   }
   const card = nowCard(input)
-  const content = useCardContent(card, postponeWeighing)
+  const content = useCardContent(card, postponeWeighing, input.budget)
   const next = nextLines(input, card)
   const questionnaire = questionnaireStatus(dog.questionnaire)
   const profilePart = nextPart(dog.questionnaire)

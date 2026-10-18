@@ -1,6 +1,7 @@
 import { ChevronLeftIcon } from '../../components/Icons'
 import { useBack } from '../../lib/useBack'
 import { ImportFooter } from './ImportFooter'
+import { APP_NAME } from '../../appName'
 
 const STEPS: { title: string; text: string; link?: { label: string; href: string } }[] = [
   {
@@ -9,7 +10,7 @@ const STEPS: { title: string; text: string; link?: { label: string; href: string
     link: { label: 'Ouvrir Strava', href: 'https://www.strava.com/account' },
   },
   { title: 'Ouvrez le fichier zip dans Fichiers', text: 'L’iPhone le décompresse tout seul et crée un dossier.' },
-  { title: 'Choisissez le dossier « activities »', text: 'Sélectionnez tous les fichiers : Billy garde les marches et randonnées et ignore le reste.' },
+  { title: 'Choisissez le dossier « activities »', text: `Sélectionnez tous les fichiers : ${APP_NAME} garde les marches et randonnées et ignore le reste.` },
 ]
 
 /** « Importer vos balades Strava » (maquette V3-ImportStrava) : toute l’archive d’un coup. Jamais de connexion à Strava. */
@@ -46,7 +47,7 @@ export default function ImportStrava() {
             </li>
           ))}
         </ol>
-        <p className="rounded-[18px] bg-primary-soft px-4 py-3 text-[15px] leading-snug text-primary-dark">Billy garde le trajet et la durée. Le rythme cardiaque n’est jamais enregistré. Votre carte reste privée.</p>
+        <p className="rounded-[18px] bg-primary-soft px-4 py-3 text-[15px] leading-snug text-primary-dark">{APP_NAME} garde le trajet et la durée. Le rythme cardiaque n’est jamais enregistré. Votre carte reste privée.</p>
       </main>
       <ImportFooter label="Choisir les fichiers" />
     </div>

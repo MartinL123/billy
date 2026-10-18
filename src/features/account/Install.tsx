@@ -1,4 +1,5 @@
 import { ChevronLeftIcon } from '../../components/Icons'
+import { APP_NAME } from '../../appName'
 
 const APP_URL = 'martinl123.github.io/billy'
 
@@ -33,7 +34,7 @@ export function InstallGuide({ onBack, backLabel = 'Retour' }: { onBack: () => v
         </button>
       </header>
       <main className="flex flex-col gap-4 px-5 pt-1 pb-[calc(env(safe-area-inset-bottom)+40px)]">
-        <h1 className="font-display text-[28px] leading-tight font-extrabold">Mettre Billy sur votre téléphone</h1>
+        <h1 className="font-display text-[28px] leading-tight font-extrabold">Mettre {APP_NAME} sur votre téléphone</h1>
         <p className="text-[17px] leading-snug text-[#3F4946]">Pas besoin de magasin d’applications : on l’ajoute à l’écran d’accueil, comme une app.</p>
         <Steps
           title="Sur iPhone (Safari)"

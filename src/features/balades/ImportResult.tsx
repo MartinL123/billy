@@ -6,6 +6,7 @@ import { RouteThumb } from '../trajets/RouteThumb'
 import { takeImportResult } from './importRun'
 import { useData } from '../../firebase/store'
 import { ofName } from '../../lib/gender'
+import { APP_NAME } from '../../appName'
 
 const percent = (share: number) => (share > 0 && share < 0.01 ? 'moins de 1' : String(Math.round(share * 100)))
 
@@ -21,7 +22,7 @@ export default function ImportResult() {
     <div className="mx-auto min-h-dvh max-w-[430px]">
       <main className="flex flex-col gap-4 px-5 pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+120px)]">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-[30px] leading-tight font-extrabold">{nothing ? 'Tout était déjà dans Billy' : 'Le brouillard s’est levé !'}</h1>
+          <h1 className="font-display text-[30px] leading-tight font-extrabold">{nothing ? `Tout était déjà dans ${APP_NAME}` : 'Le brouillard s’est levé !'}</h1>
           <p className="text-[17px] text-muted">{nothing ? 'Aucune nouvelle balade dans ces fichiers.' : `${dog.name} a un nouveau bout de territoire.`}</p>
         </div>
         {!nothing && (

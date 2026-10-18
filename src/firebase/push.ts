@@ -1,6 +1,7 @@
 import { deleteDoc, getDoc, setDoc } from 'firebase/firestore'
 import { REMINDER_TIME_ZONE, vapidKeyBytes } from '../lib/reminder'
 import { userDoc } from './paths'
+import { APP_NAME } from '../appName'
 
 // Abonnement push de cet appareil : users/{uid}/push/{appareil}. Il sert à deux rappels indépendants :
 // le rappel du soir (`evening`, absent = activé, pour les anciens abonnements) et les sorties (`walks`).
@@ -49,7 +50,7 @@ export async function readPush(): Promise<PushSettings> {
  */
 export async function enablePush(kind: PushKind, extra: Record<string, unknown> = {}): Promise<string | undefined> {
   const permission = await Notification.requestPermission()
-  if (permission !== 'granted') return 'Les notifications sont refusées. Autorisez-les dans Réglages › Notifications › Billy.'
+  if (permission !== 'granted') return `Les notifications sont refusées. Autorisez-les dans Réglages › Notifications › ${APP_NAME}.`
   const registration = await navigator.serviceWorker.ready
   const subscription = (await registration.pushManager.getSubscription()) ?? (await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: vapidKeyBytes(VAPID_KEY) as BufferSource }))
   const current = await readPush()

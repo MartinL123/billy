@@ -3,6 +3,7 @@ import { PawIcon } from '../../components/Icons'
 import { PasswordField } from '../../components/PasswordField'
 import { InstallGuide } from '../account/Install'
 import { authErrorMessage, resetPassword, signIn, type AuthMessage } from '../../firebase/auth'
+import { APP_NAME, APP_TAGLINE } from '../../appName'
 
 export function Logo() {
   return (
@@ -56,8 +57,8 @@ export default function Login() {
     <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col px-6 pt-[calc(env(safe-area-inset-top)+72px)] pb-[calc(env(safe-area-inset-bottom)+32px)]">
       <div className="flex flex-col items-center gap-4 text-center">
         <Logo />
-        <h1 className="font-display text-[34px] font-bold tracking-[-0.5px]">Billy</h1>
-        <p className="text-base text-muted">Son calendrier, ses souvenirs, ses papiers.</p>
+        <h1 className="font-display text-[34px] font-bold tracking-[-0.5px]">{APP_NAME}</h1>
+        <p className="text-base text-muted">{APP_TAGLINE}</p>
       </div>
 
       <form onSubmit={submit} noValidate className="mt-12 flex flex-col gap-4">

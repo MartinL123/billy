@@ -19,6 +19,7 @@ import { MemberAvatar } from './MemberAvatar'
 import { usePack } from './usePack'
 import { place } from '../../lib/garden'
 import { ofName } from '../../lib/gender'
+import { APP_NAME } from '../../appName'
 
 type LatLng = { lat: number; lng: number }
 const WELCOME_KEY = 'billy.meute.bienvenue'
@@ -118,7 +119,7 @@ export default function Meute() {
     return (
       <div className="flex flex-col gap-5 px-5">
         <h1 className="font-display text-[32px] font-extrabold">La meute</h1>
-        <p className="text-[17px] leading-snug text-[#3F4946]">La meute, ce sont les amis qui ont un compte Billy. Pas d’invitation, pas de classement.</p>
+        <p className="text-[17px] leading-snug text-[#3F4946]">La meute, ce sont les amis qui ont un compte {APP_NAME}. Pas d’invitation, pas de classement.</p>
         <ul className="card m-0 flex list-none flex-col gap-3.5 p-4">
           {[
             ['Les bons spots', 'Les balades, parcs et cafés que la meute aime, avec leur niveau de calme.'],

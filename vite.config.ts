@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { APP_NAME, APP_TAGLINE } from './src/appName'
 
 // Nom du repo GitHub : l'app est servie sur https://<user>.github.io/billy/
 const base = '/billy/'
@@ -15,15 +16,17 @@ export default defineConfig({
   // MapLibre trouve son worker à côté de son propre fichier : en dev, on ne le pré-empaquette pas.
   optimizeDeps: { exclude: ['maplibre-gl'] },
   plugins: [
+    // Le nom de l'app dans index.html (titre, nom sur l'écran d'accueil), repris de src/appName.ts.
+    { name: 'app-name', transformIndexHtml: (html: string) => html.replaceAll('%APP_NAME%', APP_NAME).replaceAll('%APP_TAGLINE%', APP_TAGLINE) },
     react(),
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
-        name: 'Billy',
-        short_name: 'Billy',
-        description: 'Le calendrier, les souvenirs et les papiers de Billy.',
+        name: APP_NAME,
+        short_name: APP_NAME,
+        description: APP_TAGLINE,
         lang: 'fr',
         start_url: base,
         scope: base,

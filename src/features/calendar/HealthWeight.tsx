@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { outlineButton } from '../../components/Form'
 import { ChevronRightIcon } from '../../components/Icons'
@@ -16,8 +16,14 @@ export default function HealthWeight() {
   const { weights } = useData()
   const today = useToday()
   // Depuis la carte « Pesée du mois » (?ajouter=1) : la pesée s’ouvre tout de suite (T-013).
-  const [params] = useSearchParams()
+  // Le paramètre est retiré tout de suite : un retour ou un rechargement ne rouvre pas la pesée (T-024).
+  const [params, setParams] = useSearchParams()
   const [weightSheet, setWeightSheet] = useState<{ editing?: WithId<Weight> } | null>(() => (params.get('ajouter') ? {} : null))
+  useEffect(() => {
+    if (params.has('ajouter')) setParams({}, { replace: true })
+    // Une seule fois, à l’ouverture.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const lastWeight = weights[0]
   const year = parseISO(today).y
   return (

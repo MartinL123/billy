@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>fr</string>
 	<key>CFBundleDisplayName</key>
-        <string>Billy</string>
+        <string>Flair</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -25,11 +25,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Billy lit vos séances de l’Apple Watch pour afficher vos balades et leur tracé.</string>
+	<string>Flair lit vos séances de l’Apple Watch pour afficher vos balades et leur tracé.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Billy enregistre le tracé de la balade, même écran verrouillé.</string>
+	<string>Flair enregistre le tracé de la balade, même écran verrouillé.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Billy enregistre le tracé de la balade, même écran verrouillé.</string>
+	<string>Flair enregistre le tracé de la balade, même écran verrouillé.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>

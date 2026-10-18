@@ -1,6 +1,6 @@
 # L'app iOS (Capacitor)
 
-Billy existe en deux versions qui partagent le même code, le même compte et la même base Firebase :
+L'app (provisoirement « Flair », voir `src/appName.ts`) existe en deux versions qui partagent le même code, le même compte et la même base Firebase :
 
 - **le site web** (PWA, GitHub Pages) : https://martinl123.github.io/billy/ ; il reste en ligne et sert de secours ;
 - **l'app iOS** : la même app empaquetée avec Capacitor, installée seulement sur ton iPhone depuis Xcode,
@@ -66,6 +66,12 @@ En attendant, le site web marche toujours : https://martinl123.github.io/billy/
   mais pas encore utilisés (phase 2).
 - Pas de TestFlight ni d'App Store : l'app ne s'installe que sur tes appareils, depuis ton Mac.
 
+## Changer le nom
+
+Le nom vient de `src/appName.ts` (`APP_NAME`). Pour l'app iOS, il faut aussi le reporter dans
+`ios/App/App/Info.plist` (`CFBundleDisplayName` et les deux textes d'autorisation), puis `npm run build:ios`.
+L'identifiant `fr.lanrezac.billy` ne change jamais.
+
 ## Ce qui diffère du web dans l'app iOS
 
 - Pas de service worker ni de `push-sw.js` : les fichiers sont dans l'app elle-même.
@@ -78,5 +84,5 @@ En attendant, le site web marche toujours : https://martinl123.github.io/billy/
 HealthKit (lire les séances de l'Apple Watch) et l'enregistrement du tracé GPS, même écran verrouillé.
 Les textes d'autorisation sont prêts :
 
-- HealthKit : « Billy lit vos séances de l’Apple Watch pour afficher vos balades et leur tracé. »
-- Position : « Billy enregistre le tracé de la balade, même écran verrouillé. »
+- HealthKit : « Flair lit vos séances de l’Apple Watch pour afficher vos balades et leur tracé. »
+- Position : « Flair enregistre le tracé de la balade, même écran verrouillé. »

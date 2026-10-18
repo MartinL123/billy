@@ -4,7 +4,9 @@ import type { CapacitorConfig } from '@capacitor/cli'
 // Construire avec `npm run build:ios` (build en chemins relatifs, puis copie dans ios/).
 const config: CapacitorConfig = {
   appId: 'fr.lanrezac.billy',
-  appName: 'Billy',
+  // Même nom que APP_NAME (src/appName.ts) : la CLI Capacitor ne sait pas importer ce fichier, il est recopié ici.
+  // L'identifiant, lui, ne change jamais.
+  appName: 'Flair',
   webDir: 'dist',
   backgroundColor: '#1E5A50',
   ios: {

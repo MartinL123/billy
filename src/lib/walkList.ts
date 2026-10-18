@@ -63,3 +63,14 @@ export function walkTags(item: WalkItem): string[] {
   if (item.route.moments.some((m) => m.type === 'rappel')) tags.push('Super rappel')
   return tags
 }
+
+/**
+ * Une couleur par balade, pour les distinguer sur la carte (vives, lisibles sur le plan comme sur le satellite,
+ * avec un liseré blanc). Attribuée dans l’ordre chronologique : une nouvelle balade ne change pas la couleur des autres.
+ */
+export const WALK_COLORS = ['#FF7A1A', '#22B8F0', '#FF4FA3', '#9BD400', '#FFC21A', '#8C6BFF', '#00C99A', '#FF5A4E']
+
+export function walkColors(items: WalkItem[]): Map<string, string> {
+  const oldestFirst = [...items].sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id))
+  return new Map(oldestFirst.map((w, i) => [w.id, WALK_COLORS[i % WALK_COLORS.length]!]))
+}

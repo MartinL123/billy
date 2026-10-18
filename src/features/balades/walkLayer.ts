@@ -14,12 +14,17 @@ export const WALK_PADDING = { top: 120, bottom: 300, left: 40, right: 40 }
  * Une balade mise en avant sur la carte unique : son tracé plein, le départ, l’arrivée, ses repères et ses photos.
  * Renvoie de quoi tout retirer.
  */
-export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPhoto: (index: number) => void): () => void {
+export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPhoto: (index: number) => void, color = '#9A4413'): () => void {
   const markers: Marker[] = []
   const urls: string[] = []
   whenReady(m, () => {
-    setLine(m, 'balade', [route.points], { color: '#9A4413', width: 5 })
-    fitPoints(m, route.points, WALK_PADDING)
+    // Un liseré blanc, puis la couleur de la balade : elle se détache des autres tracés.
+    setLine(m, 'balade-liseré', [route.points], { color: '#FFFFFF', width: 9 })
+    setLine(m, 'balade', [route.points], { color, width: 5 })
+    m.setPaintProperty('balade', 'line-color', color)
+    m.moveLayer('balade-liseré')
+    m.moveLayer('balade')
+    fitPoints(m, route.points, WALK_PADDING, true)
   })
   const first = route.points[0]
   const last = route.points[route.points.length - 1]
@@ -49,7 +54,10 @@ export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPh
   return () => {
     markers.forEach((marker) => marker.remove())
     urls.forEach((url) => URL.revokeObjectURL(url))
-    whenReady(m, () => setLine(m, 'balade', [], { color: '#9A4413', width: 5 }))
+    whenReady(m, () => {
+      setLine(m, 'balade-liseré', [], { color: '#FFFFFF', width: 9 })
+      setLine(m, 'balade', [], { color, width: 5 })
+    })
   }
 }
 

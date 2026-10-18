@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { addMarker, createMap, fitPoints, onMarker, set3D, setLine, setSatellite, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
+import type { GeoJSONSource } from 'maplibre-gl'
+import { addMarker, createMap, fitPoints, lngLat, onMarker, set3D, setSatellite, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
 import { fogLayout, type FogLayout } from '../../lib/fogCanvas'
 import { distanceToRoute, NEAR_ROUTE, type Route } from '../../lib/route'
 import { replayWalk, showWalk, type WalkPhoto } from './walkLayer'
@@ -15,9 +16,18 @@ export interface MapPlace {
   icon: string
 }
 
+/** Une balade sur la carte : son tracé et sa couleur. */
+export interface MapWalk {
+  id: string
+  color: string
+  points: LatLng[]
+}
+
 interface Props {
   cells: Set<string>
-  tracks: LatLng[][]
+  tracks: MapWalk[]
+  /** Toucher le tracé d’une balade (hors balade mise en avant) : la mettre en avant. */
+  onWalk?: (id: string) => void
   places: MapPlace[]
   satellite: boolean
   three: boolean
@@ -44,11 +54,35 @@ interface Props {
     onTapRoute: (at: { lat: number; lng: number }) => void
     onMissRoute: () => void
     onPhoto: (index: number) => void
+    /** La couleur de la balade sur la carte. */
+    color?: string
   }
 }
 
 const FOG = { plan: { color: '#22332F', opacity: 0.86 }, satellite: { color: '#FFFFFF', opacity: 0.72 } }
-const TRACK = { plan: '#D9661F', satellite: '#FFB23F' }
+/** Les marges de la carte : les boutons du haut et le panneau du bas en couvrent une partie. */
+const FRAME = { top: 130, bottom: 460, left: 40, right: 40 }
+/** Rayon de toucher autour d’un tracé, en pixels : un doigt n’est pas une souris. */
+const TAP_PX = 14
+
+/** Les tracés des balades : un liseré blanc dessous, la couleur de chaque balade dessus. */
+function drawWalks(m: MapLibreMap, walks: MapWalk[], dimmed: boolean) {
+  const data = { type: 'FeatureCollection' as const, features: walks.filter((w) => w.points.length > 1).map((w) => ({ type: 'Feature' as const, properties: { id: w.id, color: w.color }, geometry: { type: 'LineString' as const, coordinates: w.points.map(lngLat) } })) }
+  const source = m.getSource('trajets') as GeoJSONSource | undefined
+  if (source) source.setData(data)
+  else {
+    m.addSource('trajets', { type: 'geojson', data })
+    m.addLayer({ id: 'trajets-liseré', type: 'line', source: 'trajets', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#FFFFFF', 'line-width': 7 } })
+    m.addLayer({ id: 'trajets', type: 'line', source: 'trajets', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 4 } })
+  }
+  // Une balade mise en avant : les autres s’effacent.
+  m.setPaintProperty('trajets', 'line-opacity', dimmed ? 0.3 : 1)
+  m.setPaintProperty('trajets-liseré', 'line-opacity', dimmed ? 0.15 : 0.85)
+  // Les trajets restent au-dessus du brouillard, la balade mise en avant au-dessus de tout.
+  m.moveLayer('trajets-liseré')
+  m.moveLayer('trajets')
+  for (const id of ['balade-liseré', 'balade', 'parcouru']) if (m.getLayer(id)) m.moveLayer(id)
+}
 
 const rectangle = ([s, w, n, e]: [number, number, number, number]): [number, number][] => [
   [w, s],
@@ -132,32 +166,65 @@ function innerBox(layout: FogLayout): [number, number, number, number] {
  * La carte qui se découvre : le brouillard (un seul polygone troué, bords adoucis), les trajets en pointillés,
  * les lieux à découvrir. Plan ou satellite, 2D ou 3D.
  */
-export function ExplorerMap({ cells, tracks, places, satellite, three, center, focus, onPlace, onMapTap, onBearing, north, walk, dogName }: Props) {
+export function ExplorerMap({ cells, tracks, onWalk, places, satellite, three, center, focus, onPlace, onMapTap, onBearing, north, walk, dogName }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const markers = useRef<Marker[]>([])
-  const handlers = useRef({ onPlace, onMapTap, onBearing, walk })
-  handlers.current = { onPlace, onMapTap, onBearing, walk }
+  const handlers = useRef({ onPlace, onMapTap, onBearing, walk, onWalk })
+  handlers.current = { onPlace, onMapTap, onBearing, walk, onWalk }
+  const allTracks = useRef(tracks)
+  allTracks.current = tracks
   const framed = useRef(false)
   // Tant que le style de carte n'est pas chargé : un indicateur discret (audit R-015).
   const [ready, setReady] = useState(false)
+  // Le plan s’affiche d’abord (tuiles légères) ; le satellite arrive par-dessus une fois le plan dessiné (audit R-032).
+  const [planDrawn, setPlanDrawn] = useState(false)
+  const sat = satellite && planDrawn
 
   useEffect(() => {
     if (!host.current) return
-    const m = createMap(host.current, { zoom: 15, ...(center ? { center } : {}) })
+    // Avec des balades : la carte naît cadrée sur elles, sans passer par un premier endroit (audit R-032).
+    const points = walk ? walk.route.points : tracks.flatMap((t) => t.points)
+    const m = createMap(host.current, points.length > 1 ? { bounds: { points, padding: FRAME } } : { zoom: 15, ...(center ? { center } : {}) })
+    if (points.length > 1) framed.current = true
     map.current = m
     whenReady(m, () => setReady(true))
+    let drawn = false
+    const showSatellite = () => {
+      if (drawn) return
+      drawn = true
+      setPlanDrawn(true)
+    }
+    m.once('idle', showSatellite)
+    // Réseau lent : le satellite n’attend pas plus de 4 s.
+    const late = window.setTimeout(showSatellite, 4000)
     m.on('rotate', () => handlers.current.onBearing?.(m.getBearing()))
+    // Sur ordinateur : la main au-dessus d’un tracé.
+    m.on('mouseenter', 'trajets', () => {
+      if (!handlers.current.walk) m.getCanvas().style.cursor = 'pointer'
+    })
+    m.on('mouseleave', 'trajets', () => {
+      m.getCanvas().style.cursor = ''
+    })
     m.on('click', (e) => {
       if (onMarker(e.originalEvent)) return
-      handlers.current.onMapTap?.()
       const w = handlers.current.walk
-      if (!w) return
+      if (!w) {
+        // Un tracé touché (ou tout près) : cette balade passe au premier plan.
+        const { x, y } = e.point
+        const hit = m.getLayer('trajets') ? m.queryRenderedFeatures([[x - TAP_PX, y - TAP_PX], [x + TAP_PX, y + TAP_PX]], { layers: ['trajets'] })[0] : undefined
+        const id = hit?.properties?.id as string | undefined
+        if (id && handlers.current.onWalk) return handlers.current.onWalk(id)
+        handlers.current.onMapTap?.()
+        return
+      }
+      handlers.current.onMapTap?.()
       const at = { lat: e.lngLat.lat, lng: e.lngLat.lng }
       if (distanceToRoute(at, w.route.points) <= NEAR_ROUTE) w.onTapRoute(at)
       else w.onMissRoute()
     })
     return () => {
+      window.clearTimeout(late)
       m.remove()
       map.current = null
     }
@@ -169,12 +236,12 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
     const m = map.current
     // Une balade mise en avant se cadre elle-même.
     if (!m || framed.current || walk) return
-    const all = tracks.flat()
+    const all = tracks.flatMap((t) => t.points)
     if (all.length) {
       // Les boutons du haut et le panneau du bas couvrent la carte : on cadre dans ce qui reste visible.
       // Une fois le style chargé : avant, le cadrage est perdu.
       framed.current = true
-      whenReady(m, () => fitPoints(m, all, { top: 130, bottom: 340, left: 40, right: 40 }))
+      whenReady(m, () => fitPoints(m, all, FRAME))
     } else if (center) m.jumpTo({ center: [center[1], center[0]] })
   }, [tracks, center]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -185,11 +252,18 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
   // La balade mise en avant, redessinée quand ses repères ou ses photos changent.
   const walkRoute = walk?.route
   const walkPhotos = walk?.photos
+  const walkColor = walk?.color
   useEffect(() => {
     const m = map.current
     if (!m || !walkRoute) return
-    return showWalk(m, walkRoute, walkPhotos ?? [], (i) => handlers.current.walk?.onPhoto(i))
-  }, [walkRoute, walkPhotos])
+    const hide = showWalk(m, walkRoute, walkPhotos ?? [], (i) => handlers.current.walk?.onPhoto(i), walkColor)
+    return () => {
+      hide()
+      // Retour à « Toutes les balades » : la carte reprend la vue d’ensemble (une autre balade se cadrera elle-même).
+      const points = allTracks.current.flatMap((t) => t.points)
+      if (map.current === m && !handlers.current.walk && points.length) whenReady(m, () => fitPoints(m, points, FRAME, true))
+    }
+  }, [walkRoute, walkPhotos, walkColor])
 
   const replaying = Boolean(walk?.replaying)
   useEffect(() => {
@@ -207,8 +281,8 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
   }, [focus?.[0], focus?.[1]]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (map.current) setSatellite(map.current, satellite)
-  }, [satellite])
+    if (map.current) setSatellite(map.current, sat)
+  }, [sat])
 
   useEffect(() => {
     if (map.current) set3D(map.current, three)
@@ -219,7 +293,7 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
     const m = map.current
     if (!m) return
     whenReady(m, () => {
-      const mode = satellite ? 'satellite' : 'plan'
+      const mode = sat ? 'satellite' : 'plan'
       const layout = fogLayout(cells)
       for (const id of ['brouillard-image', 'brouillard']) {
         if (m.getLayer(id)) m.removeLayer(id)
@@ -251,14 +325,9 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
         })
         m.addLayer({ id: 'brouillard-image', type: 'raster', source: 'brouillard-image', paint: { 'raster-fade-duration': 0, 'raster-resampling': 'linear' } })
       }
-      setLine(m, 'trajets', tracks, { color: TRACK[mode], width: 4 })
-      m.setPaintProperty('trajets', 'line-color', TRACK[mode])
-      m.setPaintProperty('trajets', 'line-dasharray', [1.2, 1.4])
-      // Les trajets restent au-dessus du brouillard.
-      m.moveLayer('trajets')
-      for (const id of ['balade', 'parcouru']) if (m.getLayer(id)) m.moveLayer(id)
+      drawWalks(m, tracks, Boolean(walkRoute))
     })
-  }, [cells, tracks, satellite])
+  }, [cells, tracks, sat, Boolean(walkRoute)]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Les lieux : « ? » dans le brouillard, icône et nom une fois découverts. Ils restent droits en 3D.
   useEffect(() => {

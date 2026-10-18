@@ -8,8 +8,8 @@ import { useData } from '../../firebase/store'
 import { communeAt } from '../../lib/commune'
 import { discoveredShare, inPolygon, knownFog, shareLabel } from '../../lib/fog'
 import { useToday } from '../../lib/useToday'
-import { filterWalks, FILTERS, walkItems, type WalkFilter } from '../../lib/walkList'
-import type { MapPlace } from './ExplorerMap'
+import { filterWalks, FILTERS, walkColors, walkItems, type WalkFilter } from '../../lib/walkList'
+import type { MapPlace, MapWalk } from './ExplorerMap'
 import { PlaceCard, type Selected } from './PlaceCard'
 import { WalkPanel } from './WalkPanel'
 import { PlaceMoment } from '../trajets/PlaceMoment'
@@ -19,7 +19,6 @@ import { useIdeas } from './useIdeas'
 import { arrowTo, KIND, metersLabel } from '../../lib/ideas'
 import { formatRelative } from '../../lib/dates'
 import { formatRouteDistance } from '../../lib/route'
-import { RouteThumb } from '../trajets/RouteThumb'
 import { ofName } from '../../lib/gender'
 
 const ExplorerMap = lazy(() => import('./ExplorerMap').then((m) => ({ default: m.ExplorerMap })))
@@ -43,7 +42,7 @@ function writePrefs(prefs: { satellite: boolean; three: boolean }) {
 
 const chip = (on: boolean) => `min-h-11 shrink-0 rounded-full border-0 px-3.5 text-[15px] font-bold ${on ? 'bg-primary text-white' : 'bg-bg text-text'}`
 
-/** Réduit, le panneau garde la poignée et les filtres, plus cette marge (le bouton Aujourd’hui déborde dessus). */
+/** Réduit, le panneau ne garde que sa poignée, plus cette marge : la carte prend presque tout l’écran. */
 const PEEK_MARGIN = 24
 const SNAP = 'transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1)'
 
@@ -64,7 +63,7 @@ function useSheet() {
     const el = ref.current
     const body = bodyRef.current
     if (!el || !body) return
-    // Le contenu commence 12 px (gap-3) sous les filtres.
+    // Le contenu commence 12 px (gap-3) sous la poignée.
     const measure = () => setTravel(Math.max(0, el.offsetHeight - (body.offsetTop - 12 + PEEK_MARGIN)))
     measure()
     const observer = new ResizeObserver(measure)
@@ -139,6 +138,9 @@ function useSheet() {
   }
 }
 
+/** Balades listées dans le panneau ; les autres sont dans « Ses balades ». */
+const LIST_MAX = 3
+
 const toggle = (on: boolean) => `min-h-11 rounded-full border-0 px-3.5 text-[15px] font-bold ${on ? 'bg-text text-white' : 'bg-transparent text-text'}`
 
 /** La carte qui se découvre (maquettes V3-Explorer, V4-Balades) : le territoire de Billy. */
@@ -163,7 +165,9 @@ export default function Explorer() {
   const cells = useMemo(() => knownFog(fog), [fog])
   const walks = useMemo(() => walkItems(entries), [entries])
   const shown = useMemo(() => filterWalks(walks, filter, today), [walks, filter, today])
-  const tracks = useMemo(() => shown.map((w) => w.route.points), [shown])
+  // Une couleur par balade, la même sur la carte et dans la liste.
+  const colors = useMemo(() => walkColors(walks), [walks])
+  const tracks = useMemo<MapWalk[]>(() => shown.map((w) => ({ id: w.id, color: colors.get(w.id) ?? '#FF7A1A', points: w.route.points })), [shown, colors])
   const last = walks[0]
   const start = last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined
 
@@ -224,8 +228,12 @@ export default function Explorer() {
           },
           onMissRoute: () => setMissed(true),
           onPhoto: () => navigate(`/souvenir/${walkEntry.id}`),
+          color: colors.get(walkEntry.id),
         }
       : undefined
+  // Toucher un tracé (ou une balade de la liste) : elle passe au premier plan ; « Toutes les balades » revient à la vue d’ensemble.
+  const openWalk = (id: string) => navigate(`/territoire?balade=${encodeURIComponent(id)}${filter !== 'toutes' ? `&filtre=${encodeURIComponent(filter)}` : ''}`)
+  const closeWalk = () => navigate(`/territoire${filter !== 'toutes' ? `?filtre=${encodeURIComponent(filter)}` : ''}`, { replace: true })
   // La boussole : l’aiguille suit la carte ; un toucher la remet face au nord.
   const [bearing, setBearing] = useState(0)
   const [north, setNorth] = useState(0)
@@ -239,7 +247,7 @@ export default function Explorer() {
   return (
     <div className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
-        <ExplorerMap cells={cells} tracks={tracks} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={() => setSelectedId(null)} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} />
+        <ExplorerMap cells={cells} tracks={tracks} onWalk={openWalk} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={() => setSelectedId(null)} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} />
       </Suspense>
 
       {/* En haut : la prochaine découverte, puis les réglages de la carte. */}
@@ -266,6 +274,11 @@ export default function Explorer() {
               3D
             </button>
           </div>
+          {/* Les spots de la meute : un calque de la carte, pas un filtre des balades. */}
+          <button type="button" aria-pressed={packLayer} onClick={() => setPackLayer(!packLayer)} className={`pointer-events-auto flex min-h-11 items-center gap-1.5 rounded-full border-0 px-3.5 text-[15px] font-bold shadow-[0_2px_6px_rgba(24,32,30,0.2)] ${packLayer ? 'bg-text text-white' : 'bg-surface text-text'}`}>
+            <span className="size-2.5 rounded-full bg-[#2559A8]" aria-hidden="true" />
+            Meute
+          </button>
           <button type="button" onClick={() => setNorth((n) => n + 1)} aria-label={`Remettre la carte face au nord${Math.round(bearing) ? ` (tournée de ${Math.round(((bearing % 360) + 360) % 360)}°)` : ''}`} className="pointer-events-auto flex size-12 items-center justify-center rounded-full border-0 bg-surface shadow-[0_2px_6px_rgba(24,32,30,0.2)]">
             <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true" style={{ transform: `rotate(${-bearing}deg)`, transition: 'transform 0.1s linear' }}>
               <path d="M13 2 L17 13 L13 11.5 L9 13 Z" fill="#C4423A" />
@@ -286,20 +299,17 @@ export default function Explorer() {
         <button type="button" onClick={() => sheet.setCollapsed(!sheet.collapsed)} aria-expanded={!sheet.collapsed} aria-label={sheet.collapsed ? 'Afficher le panneau' : 'Réduire le panneau'} className="mx-auto -mb-2 flex min-h-11 w-24 items-center justify-center border-0 bg-transparent">
           <span className="h-1.5 w-11 rounded-full bg-[#C9CFCC]" />
         </button>
-        {walks.length > 0 && (
-          <div role="group" aria-label="Filtrer la carte" className="scroll-row -mx-5 flex gap-1.5 px-5">
-            {FILTERS.map((f) => (
-              <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className={chip(filter === f.id)}>
-                {f.id === 'toutes' ? `Mes balades · ${walks.length}` : f.label}
-              </button>
-            ))}
-            <button type="button" aria-pressed={packLayer} onClick={() => setPackLayer(!packLayer)} className={`flex items-center gap-1.5 ${chip(packLayer)}`}>
-              <span className="size-2.5 rounded-full bg-[#2559A8]" aria-hidden="true" />
-              Spots de la meute
-            </button>
-          </div>
-        )}
         <div ref={sheet.bodyRef} style={sheet.bodyStyle} className="flex flex-col gap-3" aria-hidden={sheet.collapsed || undefined} inert={sheet.collapsed || undefined}>
+          {walks.length > 0 && (
+            // Les filtres font partie du panneau : réduit, il ne reste que la carte (et la poignée).
+            <div role="group" aria-label="Quelles balades afficher" className="scroll-row -mx-5 flex gap-1.5 px-5">
+              {FILTERS.map((f) => (
+                <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className={chip(filter === f.id)}>
+                  {f.id === 'toutes' ? `Toutes · ${walks.length}` : f.label}
+                </button>
+              ))}
+            </div>
+          )}
           {walks.length === 0 ? (
             <>
               <h1 className="font-display text-[22px] font-extrabold">Le territoire {ofName(dog.name)}</h1>
@@ -316,23 +326,35 @@ export default function Explorer() {
               <span className="h-2.5 overflow-hidden rounded-full bg-placeholder" aria-hidden="true">
                 <span className="block h-full rounded-full bg-gold" style={{ width: `${Math.max(3, Math.min(100, (share ?? 0) * 100))}%` }} />
               </span>
-              {last && (
-                <Link to="/balades" className="flex items-center gap-3 rounded-[18px] bg-bg p-2.5 text-text no-underline">
-                  <RouteThumb points={last.route.points} moments={last.route.moments} size={48} />
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-[17px] font-bold">{last.name}</span>
-                    <span className="truncate text-[15px] text-muted">
-                      {formatRelative(last.date, today).replace(/^./, (c) => c.toLocaleUpperCase('fr'))} · {formatRouteDistance(last.route.distanceM)} · {walks.length > 1 ? `voir les ${walks.length} balades` : 'voir la balade'}
-                    </span>
-                  </span>
-                  <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
-                </Link>
+              {/* Les dernières balades affichées, avec leur couleur : un toucher la met en avant sur la carte. */}
+              {shown.length === 0 ? (
+                <p className="text-[15px] text-muted">Aucune balade pour ce choix.</p>
+              ) : (
+                <ul className="m-0 flex list-none flex-col p-0">
+                  {shown.slice(0, LIST_MAX).map((w, i) => (
+                    <li key={w.id} className={i ? 'border-t border-divider' : ''}>
+                      <button type="button" onClick={() => openWalk(w.id)} className="flex min-h-12 w-full items-center gap-3 border-0 bg-transparent px-0 py-1.5 text-left text-text">
+                        <span className="h-1.5 w-6 shrink-0 rounded-full" style={{ background: colors.get(w.id) }} aria-hidden="true" />
+                        <span className="flex min-w-0 flex-1 flex-col">
+                          <span className="truncate text-[17px] font-bold">{w.name}</span>
+                          <span className="truncate text-[15px] text-muted">
+                            {formatRelative(w.date, today).replace(/^./, (c) => c.toLocaleUpperCase('fr'))} · {formatRouteDistance(w.route.distanceM)}
+                          </span>
+                        </span>
+                        <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               )}
+              <Link to={`/balades${filter !== 'toutes' ? `?filtre=${encodeURIComponent(filter)}` : ''}`} className="btn btn-quiet min-h-11 self-center px-4 text-[15px] text-primary">
+                {shown.length > 1 ? `Voir la liste des ${shown.length} balades` : 'Voir la liste'}
+              </Link>
             </>
           )}
         </div>
       </section>
-      {walk && walkEntry && !selected && <WalkPanel entryId={walkEntry.id} name={walks.find((w) => w.id === walkEntry.id)?.name ?? 'La balade'} date={walkEntry.date} route={walk.route} replaying={replaying} missed={missed} onReplay={() => setReplaying(!replaying)} />}
+      {walk && walkEntry && !selected && <WalkPanel entryId={walkEntry.id} name={walks.find((w) => w.id === walkEntry.id)?.name ?? 'La balade'} date={walkEntry.date} route={walk.route} color={walk.color} replaying={replaying} missed={missed} onReplay={() => setReplaying(!replaying)} onClose={closeWalk} />}
       {placing && walkRoute && (
         <PlaceMoment
           at={placing}

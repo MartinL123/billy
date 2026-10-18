@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { communesOf, filterWalks, walkItems, walksSummary, walkTags } from './walkList'
+import { communesOf, filterWalks, walkColors, WALK_COLORS, walkItems, walksSummary, walkTags } from './walkList'
 import { storeRoute } from './route'
 
 const route = (distanceM: number, durationMin: number, fear = false) => storeRoute({ points: [[47, 2], [47.01, 2]], distanceM, durationMin, moments: fear ? [{ lat: 47, lng: 2, type: 'peur' }] : [] })
@@ -35,3 +35,17 @@ describe('toutes les balades', () => {
   })
 })
 
+
+describe('une couleur par balade', () => {
+  it('suit l’ordre chronologique : une nouvelle balade ne change pas les couleurs des anciennes', () => {
+    const before = walkItems([
+      { id: 'a', date: '2026-10-01', text: 'A', route: route(1000, 10) },
+      { id: 'b', date: '2026-10-05', text: 'B', route: route(1000, 10) },
+    ])
+    const after = walkItems([...before.map((w) => ({ id: w.id, date: w.date, text: w.name, route: route(1000, 10) })), { id: 'c', date: '2026-10-09', text: 'C', route: route(1000, 10) }])
+    expect(walkColors(before).get('a')).toBe(WALK_COLORS[0])
+    expect(walkColors(after).get('a')).toBe(walkColors(before).get('a'))
+    expect(walkColors(after).get('b')).toBe(walkColors(before).get('b'))
+    expect(walkColors(after).get('c')).toBe(WALK_COLORS[2])
+  })
+})

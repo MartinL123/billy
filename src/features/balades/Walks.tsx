@@ -11,7 +11,7 @@ import { communeName } from '../../lib/street'
 import { useBack } from '../../lib/useBack'
 import { ofName } from '../../lib/gender'
 import { useToday } from '../../lib/useToday'
-import { communesOf, filterWalks, walkItems, walksSummary, walkTags, type WalkFilter } from '../../lib/walkList'
+import { communesOf, filterWalks, walkColors, walkItems, walksSummary, walkTags, type WalkFilter } from '../../lib/walkList'
 import { RouteThumb } from '../trajets/RouteThumb'
 
 const PAGE = 12
@@ -28,6 +28,8 @@ export default function Walks() {
   const walks = useMemo(() => walkItems(entries), [entries])
   const shown = useMemo(() => filterWalks(walks, filter, today), [walks, filter, today])
   const communes = useMemo(() => communesOf(walks), [walks])
+  // La même couleur que sur la carte.
+  const colors = useMemo(() => walkColors(walks), [walks])
 
   // La commune de chaque balade, demandée une fois (géocodage inverse du départ) puis gardée avec elle.
   useEffect(() => {
@@ -130,7 +132,10 @@ export default function Walks() {
                         <Link to={`/souvenir/${row.item.id}`} className="flex items-center gap-3 px-3 py-2.5 text-text no-underline">
                           <RouteThumb points={row.item.route.points} moments={row.item.route.moments} size={56} />
                           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                            <span className="truncate text-[17px] font-bold">{row.item.name}</span>
+                            <span className="flex min-w-0 items-center gap-2">
+                              <span className="h-1.5 w-5 shrink-0 rounded-full" style={{ background: colors.get(row.item.id) }} aria-hidden="true" />
+                              <span className="truncate text-[17px] font-bold">{row.item.name}</span>
+                            </span>
                             <span className="text-[15px] text-muted">{[formatShort(row.item.date), row.item.commune, formatRouteDistance(row.item.route.distanceM), row.item.route.durationMin ? formatDuration(row.item.route.durationMin) : ''].filter(Boolean).join(' · ')}</span>
                             <span className="flex flex-wrap gap-1.5">
                               {walkTags(row.item).map((t) => (

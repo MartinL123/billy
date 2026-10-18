@@ -46,7 +46,8 @@ describe('Ensuite : soin en retard (audit R-002)', () => {
   it('dit « En retard de X jours », jamais « Aujourd’hui »', () => {
     const input = { ...base, care: [{ id: 'v', title: 'Vaccin', type: 'vaccin', date: '2026-08-10', done: false }] }
     const line = nextLines(input, { kind: 'mission' }).find((l) => l.key === 'v')!
-    expect(line.when).toBe('En retard')
+    expect(line.when).toBe('10 août') // la date prévue, en rouge (T-010)
+    expect(line.late).toBe(true)
     expect(line.detail).toMatch(/^En retard de \d+ jours$/)
   })
 })

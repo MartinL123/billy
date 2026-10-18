@@ -79,6 +79,8 @@ export function contextLine(input: NowInput, card: NowCard): string {
 
 export interface NextLine {
   key: string
+  /** Prévu à une date passée : la date reste affichée à gauche, en rouge (T-010). */
+  late?: boolean
   when: string
   title: string
   detail: string
@@ -98,7 +100,7 @@ export function nextLines(input: NowInput, card: NowCard): NextLine[] {
     .sort((a, b) => a.date.localeCompare(b.date))[0]
   if (upcoming && upcoming.date) {
     const days = diffDays(input.today, upcoming.date)
-    lines.push({ key: upcoming.id, when: days < 0 ? 'En retard' : days === 0 ? 'Aujourd’hui' : days === 1 ? 'Demain' : shortDate(upcoming.date), title: upcoming.title, detail: days < 0 ? lateLabel(upcoming.date, input.today) : days === 0 ? 'C’est le jour' : `Dans ${days} jour${days > 1 ? 's' : ''}`, to: `/evenement/${upcoming.id}` })
+    lines.push({ key: upcoming.id, ...(days < 0 ? { late: true } : {}), when: days < 0 ? shortDate(upcoming.date) : days === 0 ? 'Aujourd’hui' : days === 1 ? 'Demain' : shortDate(upcoming.date), title: upcoming.title, detail: days < 0 ? lateLabel(upcoming.date, input.today) : days === 0 ? 'C’est le jour' : `Dans ${days} jour${days > 1 ? 's' : ''}`, to: `/evenement/${upcoming.id}` })
   }
   return lines.slice(0, 2)
 }

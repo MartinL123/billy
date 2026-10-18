@@ -250,7 +250,8 @@ export default function Today() {
         </Link>
       </header>
 
-      <p className="text-[17px] leading-snug">{contextLine(input, card)}</p>
+      {/* Pas d’heure : le téléphone l’affiche déjà (demande de Martin). Rien à dire : pas de ligne. */}
+      {contextLine(input, card) && <p className="text-[17px] leading-snug">{contextLine(input, card)}</p>}
 
       <section aria-label="À faire maintenant" className="card flex flex-col gap-3 rounded-[26px] p-4">
         <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{content.badge}</span>

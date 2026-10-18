@@ -14,7 +14,7 @@ describe('Aujourd’hui : une seule chose à faire', () => {
   it('la mission, avec la phrase et « Ensuite »', () => {
     const card = nowCard(base)
     expect(card.kind).toBe('mission')
-    expect(contextLine(base, card)).toBe('Il est 17 h 40. Prochaine sortie à 19 h : d’ici là, 3 minutes de mission.')
+    expect(contextLine(base, card)).toBe('Prochaine sortie à 19 h : d’ici là, 3 minutes de mission.')
     expect(nextLines(base, card)).toEqual([
       { key: 'sortie', when: '19 h', title: 'Sortie du soir', detail: '2 sur 3 faites', to: '/' },
       { key: 'ap', when: '25 oct.', title: 'Antiparasitaire puces et tiques', detail: 'Dans 8 jours', to: '/evenement/ap' },
@@ -38,7 +38,7 @@ describe('Aujourd’hui : une seule chose à faire', () => {
     const evening = { ...done, now: 21 * 60, meals: [], walks: { ...done.walks, done: { matin: '08:10', midi: '13:05', soir: '19:10' } } }
     const card = nowCard(evening)
     expect(card).toEqual({ kind: 'fini' })
-    expect(contextLine(evening, card)).toBe('Il est 21 h. Tout est fait pour aujourd’hui.')
+    expect(contextLine(evening, card)).toBe('Tout est fait pour aujourd’hui.')
   })
 })
 

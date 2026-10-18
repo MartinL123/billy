@@ -15,3 +15,19 @@ describe('questionnaire en deux temps (T-012)', () => {
     expect(q.nextPart({ answers: { ...answers, ...part1 } })?.part).toBe(2)
   })
 })
+
+describe('fin de « Compléter son profil » (T-020)', () => {
+  const essentials = Object.fromEntries(q.ESSENTIALS.map((id) => [id, 'ok']))
+  it('les os de partie : après le départ, tant que le questionnaire n’est pas terminé', () => {
+    expect(q.profilePartsEarnBones({ answers: {} })).toBe(false)
+    expect(q.profilePartsEarnBones({ answers: essentials })).toBe(true)
+    expect(q.profilePartsEarnBones({ answers: essentials, completedAt: '2026-10-18T10:00:00Z' })).toBe(false)
+  })
+  it('la dernière partie remplie termine le questionnaire', () => {
+    const all = q.STEPS.filter((s) => s.kind !== 'fin').map((s) => s.id)
+    const lastPart = q.partIndexes(q.PARTS.length).map((i) => q.STEPS[i]!.id)
+    const before = Object.fromEntries(all.filter((id) => !lastPart.includes(id)).map((id) => [id, 'ok']))
+    expect(q.allPartsDone({ answers: before }, [])).toBe(false)
+    expect(q.allPartsDone({ answers: before }, lastPart)).toBe(true)
+  })
+})

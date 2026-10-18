@@ -134,6 +134,21 @@ export function nextPart(questionnaire: Questionnaire | undefined): { part: numb
   return undefined
 }
 
+/**
+ * Les os « Compléter son profil » : après les questions du départ, tant que le questionnaire n’est pas terminé.
+ * La même règle sert à montrer le « +15 » sur l’accueil et à donner les os (pas de promesse sans os).
+ */
+export const profilePartsEarnBones = (questionnaire: Questionnaire | undefined): boolean => essentialsDone(questionnaire) && !questionnaire?.completedAt
+
+/**
+ * Une partie vient d’être parcourue : toutes les parties ont-elles maintenant une réponse ? Les dernières réponses,
+ * encore en route vers Firestore, comptent déjà.
+ */
+export function allPartsDone(questionnaire: Questionnaire | undefined, justAnswered: string[]): boolean {
+  const answers = { ...(questionnaire?.answers ?? {}), ...Object.fromEntries(justAnswered.map((id) => [id, 'ok'])) }
+  return !nextPart({ ...questionnaire, answers })
+}
+
 // ——— Partie 5 : ce qu’il sait déjà faire ———
 
 /** Réponse à « ce qu’il sait déjà faire » pour une compétence. */

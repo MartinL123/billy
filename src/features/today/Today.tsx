@@ -10,7 +10,7 @@ import { balance } from '../../lib/bones'
 import { formatDayHeading, formatLong } from '../../lib/dates'
 import { portion, sortMeals } from '../../lib/feeding'
 import { contextLine, nextLines, nowCard, type NowCard, type NowInput, needsVet } from '../../lib/nowCard'
-import { essentialsDone, nextPart, PARTS, questionnaireStatus } from '../../lib/questionnaire'
+import { essentialsDone, nextPart, PARTS, profilePartsEarnBones, questionnaireStatus } from '../../lib/questionnaire'
 import { BONES } from '../../lib/bones'
 import { formatRouteDistance } from '../../lib/route'
 import { useToday } from '../../lib/useToday'
@@ -299,9 +299,11 @@ export default function Today() {
                 {PARTS[profilePart.part - 1]} · {profilePart.remaining} question{profilePart.remaining > 1 ? 's' : ''}
               </span>
             </span>
-            <span className="flex shrink-0 items-center gap-1 rounded-full bg-gold-soft px-3 py-1 text-[15px] font-extrabold text-gold-dark">
-              <BoneIcon size={18} />+{BONES.profilePart}
-            </span>
+            {profilePartsEarnBones(dog.questionnaire) && (
+              <span className="flex shrink-0 items-center gap-1 rounded-full bg-gold-soft px-3 py-1 text-[15px] font-extrabold text-gold-dark">
+                <BoneIcon size={18} />+{BONES.profilePart}
+              </span>
+            )}
           </Link>
         ) : (
           <Link to="/questionnaire" className="btn btn-quiet min-h-11 self-center px-4 text-[15px] text-muted">

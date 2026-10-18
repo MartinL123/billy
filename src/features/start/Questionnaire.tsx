@@ -17,6 +17,7 @@ import { lastDone } from '../../lib/health'
 import { agree, forSex, ofName } from '../../lib/gender'
 import { compressImage, PHOTO } from '../../lib/image'
 import {
+  allPartsDone,
   deriveTraits,
   essentialIndexes,
   essentialsDone,
@@ -151,6 +152,8 @@ export default function Questionnaire() {
         updateDog({ 'questionnaire.essentialsAt': new Date().toISOString() } as Partial<Dog>)
         return navigate('/bienvenue', { replace: true })
       }
+      // La dernière partie remplie : le questionnaire est terminé (ses +50 os arrivent comme pour un questionnaire fait d’un bloc).
+      if (allPartsDone(dog.questionnaire, flow.map((i) => STEPS[i]!.id))) answerQuestion('fin', 'ok', { 'questionnaire.completedAt': new Date().toISOString() })
       return navigate('/', { replace: true })
     }
     setPos(Math.max(0, Math.min(flow.length - 1, next)))

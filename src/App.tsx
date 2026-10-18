@@ -56,13 +56,21 @@ function ScrollToTop() {
 
 /**
  * L’écran d’ouverture à chaque lancement de l’app (choix de Martin, T-017) : on touche la photo du chien pour entrer.
- * Ouverte sur un écran précis (notification, lien), l’app y va directement.
+ * Ouverte sur un écran précis (notification, lien), l’app y va directement. Une seule fois par lancement : quand une
+ * nouvelle version recharge l’app (mise à jour automatique), on reste où on était (T-021).
  */
+const OPENED_KEY = 'billy.ouverture-montree'
 function OpenOnLogo() {
   const navigate = useNavigate()
   useEffect(() => {
     const hash = window.location.hash
     if (hash.includes('depuis=rappel')) return
+    try {
+      if (sessionStorage.getItem(OPENED_KEY)) return
+      sessionStorage.setItem(OPENED_KEY, '1')
+    } catch {
+      // Stockage indisponible : l’écran d’ouverture s’affiche à chaque chargement, comme avant.
+    }
     if (hash === '' || hash === '#' || hash === '#/') navigate('/ouverture', { replace: true })
     // Une seule fois, au lancement.
     // eslint-disable-next-line react-hooks/exhaustive-deps

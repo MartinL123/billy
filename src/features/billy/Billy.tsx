@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronLeftIcon, ChevronRightIcon } from '../../components/Icons'
+import { ChevronLeftIcon, ChevronRightIcon, PawIcon } from '../../components/Icons'
 import { MAX_LEVEL } from '../../content/training'
 import { bossById } from '../../content/training'
 import { auth } from '../../firebase/app'
@@ -60,14 +60,16 @@ export default function Billy() {
               <Link key={id} to={`/competence/${id}`} className={`flex items-center gap-3 px-4 py-3 text-text no-underline ${i ? 'border-t border-divider' : ''}`}>
                 <span className="flex min-w-0 flex-1 flex-col gap-1.5">
                   <span className="text-[17px] leading-snug font-semibold">{placeSkill(goal)}</span>
-                  <span className="flex items-center gap-2">
-                    <span className="h-2 flex-1 overflow-hidden rounded-full bg-placeholder" aria-hidden="true">
-                      <span className="block h-full rounded-full bg-primary" style={{ width: `${(level / MAX_LEVEL) * 100}%` }} />
+                  {/* La progression se voit sans se compter (style guide, audit R-013) : des pattes qui se remplissent. */}
+                  {level ? (
+                    <span role="img" aria-label={`Déjà ${level} étape${level > 1 ? 's' : ''} franchie${level > 1 ? 's' : ''}`} className="flex gap-1">
+                      {Array.from({ length: MAX_LEVEL }, (_, k) => (
+                        <PawIcon key={k} size={22} color={k < level ? '#1E5A50' : '#D3D9D6'} />
+                      ))}
                     </span>
-                    <span className="shrink-0 text-[15px] font-bold text-muted">
-                      {level} sur {MAX_LEVEL}
-                    </span>
-                  </span>
+                  ) : (
+                    <span className="self-start rounded-full bg-primary-soft px-3 py-1 text-[14px] font-extrabold text-primary-dark">On commence</span>
+                  )}
                 </span>
                 <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
               </Link>

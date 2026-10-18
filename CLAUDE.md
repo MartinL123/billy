@@ -4,6 +4,12 @@ PWA mobile-first pour suivre Billy, croisé épagneul-labrador né le 13/05/2026
 calendrier santé, journal photos, documents, puis programme d'entraînement.
 Utilisateur unique (moi), sur **iPhone**, app installée sur l'écran d'accueil.
 
+**Suivi des tickets : le kanban Notion « My professional life », filtre Projet = Billy** (https://app.notion.com/p/Kanban-3a5fb2fe22de80148c4fc02c248000af). À lire en premier, à tenir à jour.
+Titre d'un ticket : `R-xxx · …` (remarque d'audit, garde son numéro) ou `T-xxx · …` (autre tâche). Propriétés : Status, Responsable (Martin / Claude), Priorité, Projet = Billy. Chaque ticket a une icône emoji liée à son sujet (🌫️ brouillard, 💉 vaccin, 📱 iOS…).
+Colonnes : Backlog = idée · Conception = décision de Martin · À faire · En cours · Révision du code = codé, à recetter · Done = recetté et validé.
+Déplacer un ticket quand c'est évident (commit poussé → Révision du code ; recette OK → Done ; recette KO → À faire avec « KO » dans la page ; nouvelle remarque d'audit → nouveau ticket en À faire) et ajouter une ligne datée dans « Historique » (et « Recettes » pour une recette) de la page.
+Ne jamais passer en Done ce qui doit être vérifié sur l'iPhone de Martin. Les déplacements de Martin font foi.
+
 ## Deux cibles : web et iOS
 
 - **Web** (PWA, GitHub Pages) : `npm run build`, base `/billy/`, service worker.

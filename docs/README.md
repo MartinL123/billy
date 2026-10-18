@@ -8,10 +8,13 @@
 docs/
   README.md                       ← ce fichier
   style-guide.html                ← STYLE GUIDE : couleurs, typo, composants, éléments de jeu, écriture
+  arborescence.md                 ← ARBORESCENCE : tous les écrans et leurs liens, relevés dans le code
   specs/
     spec-v3-simplification.md     ← EN COURS · refonte « Billy, le jeu »
     questionnaire-depart.md       ← EN COURS · questionnaire de départ, question par question
     arbre-competences.md          ← EN COURS · l'arbre complet : 3 étages, 10 compétences, 50 étapes
+    spec-v4-simplification.md     ← V4 : 3 onglets, une chose à la fois (audit du 17 oct.)
+    carte-a-decouvrir.md          ← carte qui se découvre, import Strava, balades, notification
     trajets.md                    ← À VENIR · trajets de balade tracés après coup, moments sur le trajet
     communaute.md                 ← À VENIR · la meute (10 comptes créés par Martin), carte des spots, « Marquer », installation
     spec-v1.md                    ← socle : santé, calendrier, journal, documents, connexion
@@ -20,9 +23,15 @@ docs/
     README.md                     ← tokens visuels + liste des maquettes
     V3-*.dc.html                  ← écrans de la refonte (font foi)
     *.dc.html                     ← écrans V1 (santé, journal, documents…)
+  audits/
+    README.md                     ← AUDITS UX : index, méthode, personas
+    audit-NN-AAAA-MM-JJ.md        ← un fichier par audit (remarques R-xxx)
+    prompt-audit-NN.md            ← le prompt Claude Code de chaque audit
   recherche/
     audit-ux.md                   ← audit de l'app + 4 personas
+    audit-ux-v3.md                ← audit UX du 17 oct. : app trop chargée, direction « une chose à la fois »
     recherche-dressage.md         ← Esprit Dog, éducateurs, exercices, sources
+    etude-ux-business-plan.md     ← marché, concurrence, personas, étude utilisateur, modèle éco (+ .pdf, .docx)
   setup/
     setup-firebase.md             ← mise en place Firebase (plan gratuit)
   archives/
@@ -33,6 +42,9 @@ docs/
     prompt-v3-3.md                ← prompt arbre de compétences, profil, « Noter » (13 oct. nuit)
     prompt-v3-4.md                ← prompt questionnaire modifiable, filtre Santé, étapes du chemin, quête → exercice (13 oct., 22 h 50)
     prompt-v3-5-comptes.md        ← prompt comptes des amis (créés par Martin, 10 max, installation, 80 Mo chacun)
+    prompt-v4-1-simplification.md ← V4 simplifiée (après v3-17 puis v3-16)
+    prompt-v3-17-retirer-saisie-balades.md ← retirer la saisie manuelle des balades + lot A de l'audit (avant v3-16)
+    prompt-v3-16-carte-a-decouvrir.md ← prompt carte qui se découvre + import Strava
     prompt-v3-6-rappel-21h.md     ← prompt notification du soir à 21 h
     prompt-v3-7-niveau-sans-xp.md ← prompt le niveau sans XP (13 oct., 23 h 05)
     prompt-v3-8-finitions.md      ← prompt finitions après revue de l'app (13 oct., 23 h 45)

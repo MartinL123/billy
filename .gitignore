@@ -9,3 +9,6 @@ dev-dist
 
 # Cache du compilateur TypeScript (tsc -b)
 *.tsbuildinfo
+
+# Maquettes avec de vrais lieux (dépôt public)
+docs/maquettes/prive/

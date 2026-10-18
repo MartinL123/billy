@@ -74,3 +74,23 @@ export function walkColors(items: WalkItem[]): Map<string, string> {
   const oldestFirst = [...items].sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id))
   return new Map(oldestFirst.map((w, i) => [w.id, WALK_COLORS[i % WALK_COLORS.length]!]))
 }
+
+/** Rayon d’un « coin » de balades (Saint-Ouen, la Bretagne…), en mètres (T-020). */
+export const AREA_RADIUS_M = 25_000
+
+const metersBetween = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
+  const rad = Math.PI / 180
+  const x = (b.lng - a.lng) * rad * Math.cos(((a.lat + b.lat) / 2) * rad)
+  const y = (b.lat - a.lat) * rad
+  return Math.sqrt(x * x + y * y) * 6_371_000
+}
+
+/**
+ * Les balades du coin où l’on est (T-020) : celles qui partent à moins de 25 km. Sans balade dans le coin, toutes :
+ * la carte n’est jamais vide.
+ */
+export function walksNear<T extends WalkItem>(items: T[], here: { lat: number; lng: number } | undefined): T[] {
+  if (!here) return items
+  const near = items.filter((w) => w.route.points[0] && metersBetween(here, { lat: w.route.points[0][0], lng: w.route.points[0][1] }) <= AREA_RADIUS_M)
+  return near.length ? near : items
+}

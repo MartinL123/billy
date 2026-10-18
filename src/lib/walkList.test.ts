@@ -49,3 +49,18 @@ describe('une couleur par balade', () => {
     expect(walkColors(after).get('c')).toBe(WALK_COLORS[2])
   })
 })
+
+describe('les balades du coin où l’on est (T-020)', () => {
+  it('garde celles à moins de 25 km, sinon toutes', async () => {
+    const { walksNear } = await import('./walkList')
+    const at = (lat: number, lng: number) => storeRoute({ points: [[lat, lng], [lat + 0.001, lng]], distanceM: 1000, durationMin: 20, moments: [] })
+    const items = walkItems([
+      { id: 'stouen', date: '2026-10-01', text: 'Saint-Ouen', route: at(48.911, 2.333) },
+      { id: 'bzh', date: '2026-10-10', text: 'Bretagne', route: at(48.2, -3.5) },
+    ])
+    expect(walksNear(items, { lat: 48.9, lng: 2.34 }).map((w) => w.id)).toEqual(['stouen'])
+    expect(walksNear(items, { lat: 48.21, lng: -3.49 }).map((w) => w.id)).toEqual(['bzh'])
+    expect(walksNear(items, { lat: 43.3, lng: 5.4 })).toHaveLength(2)
+    expect(walksNear(items, undefined)).toHaveLength(2)
+  })
+})

@@ -8,7 +8,7 @@ import { useData } from '../../firebase/store'
 import { communeAt } from '../../lib/commune'
 import { discoveredShare, inPolygon, knownFog, shareLabel } from '../../lib/fog'
 import { useToday } from '../../lib/useToday'
-import { filterWalks, FILTERS, walkColors, walkItems, type WalkFilter } from '../../lib/walkList'
+import { filterWalks, FILTERS, walkColors, walkItems, walksNear, type WalkFilter } from '../../lib/walkList'
 import type { MapPlace, MapWalk } from './ExplorerMap'
 import { PlaceCard, type Selected } from './PlaceCard'
 import { WalkPanel } from './WalkPanel'
@@ -169,7 +169,27 @@ export default function Explorer() {
   const colors = useMemo(() => walkColors(walks), [walks])
   const tracks = useMemo<MapWalk[]>(() => shown.map((w) => ({ id: w.id, color: colors.get(w.id) ?? '#FF7A1A', points: w.route.points })), [shown, colors])
   const last = walks[0]
-  const start = last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined
+  // Où l’on est (T-020) : la position demandée avec « Autour de moi », sinon celle déjà autorisée, sinon la dernière balade.
+  const [myPos, setMyPos] = useState<{ lat: number; lng: number }>()
+  const [locating, setLocating] = useState(false)
+  const { ideas, here } = useIdeas(myPos)
+  const start = here ?? (last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined)
+  // La carte se cadre sur les balades du coin (Saint-Ouen, la Bretagne…), pas sur toute la France.
+  const local = useMemo(() => walksNear(shown, start), [shown, start?.lat, start?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
+  const frame = useMemo(() => local.flatMap((w) => w.route.points), [local])
+  const frameKey = local.map((w) => w.id).join(',')
+  const locate = () => {
+    if (!navigator.geolocation) return
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocating(false)
+        setMyPos({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+      },
+      () => setLocating(false),
+      { maximumAge: 300000, timeout: 10000 },
+    )
+  }
 
   // La commune de la dernière balade : contour gardé, sinon demandé une seule fois.
   const commune = start ? communeAt(communes, start, inPolygon) : undefined
@@ -181,7 +201,6 @@ export default function Explorer() {
 
   // Les spots marqués par Billy restent sur la carte, avec leur goutte.
   const me = auth.currentUser?.uid ?? ''
-  const { ideas, here } = useIdeas()
   const next = ideas.find((i) => !i.explored)
   const places = useMemo<MapPlace[]>(() => {
     const mine = new Set(marks.filter((m) => m.uid === me).map((m) => m.spotId))
@@ -247,7 +266,7 @@ export default function Explorer() {
   return (
     <div className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
-        <ExplorerMap cells={cells} tracks={tracks} onWalk={openWalk} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={() => setSelectedId(null)} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} />
+        <ExplorerMap cells={cells} tracks={tracks} frame={frame} frameKey={frameKey} me={myPos ? [myPos.lat, myPos.lng] : undefined} onWalk={openWalk} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={() => setSelectedId(null)} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} />
       </Suspense>
 
       {/* En haut : la prochaine découverte, puis les réglages de la carte. */}
@@ -278,6 +297,14 @@ export default function Explorer() {
           <button type="button" aria-pressed={packLayer} onClick={() => setPackLayer(!packLayer)} className={`pointer-events-auto flex min-h-11 items-center gap-1.5 rounded-full border-0 px-3.5 text-[15px] font-bold shadow-[0_2px_6px_rgba(24,32,30,0.2)] ${packLayer ? 'bg-text text-white' : 'bg-surface text-text'}`}>
             <span className="size-2.5 rounded-full bg-[#2559A8]" aria-hidden="true" />
             Meute
+          </button>
+          {/* Autour de moi (T-020) : la carte, la commune et les idées suivent l’endroit où l’on est. */}
+          <button type="button" onClick={locate} aria-label="Autour de moi : les balades et les idées du coin où je suis" className={`pointer-events-auto flex size-12 items-center justify-center rounded-full border-0 shadow-[0_2px_6px_rgba(24,32,30,0.2)] ${myPos ? 'bg-[#2F7BF6] text-white' : 'bg-surface text-text'}`}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true" className={locating ? 'animate-pulse' : ''}>
+              <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+              <circle cx="12" cy="12" r="6" />
+              <circle cx="12" cy="12" r="2" fill="currentColor" />
+            </svg>
           </button>
           <button type="button" onClick={() => setNorth((n) => n + 1)} aria-label={`Remettre la carte face au nord${Math.round(bearing) ? ` (tournée de ${Math.round(((bearing % 360) + 360) % 360)}°)` : ''}`} className="pointer-events-auto flex size-12 items-center justify-center rounded-full border-0 bg-surface shadow-[0_2px_6px_rgba(24,32,30,0.2)]">
             <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true" style={{ transform: `rotate(${-bearing}deg)`, transition: 'transform 0.1s linear' }}>
@@ -331,7 +358,7 @@ export default function Explorer() {
                 <p className="text-[15px] text-muted">Aucune balade pour ce choix.</p>
               ) : (
                 <ul className="m-0 flex list-none flex-col p-0">
-                  {shown.slice(0, LIST_MAX).map((w, i) => (
+                  {local.slice(0, LIST_MAX).map((w, i) => (
                     <li key={w.id} className={i ? 'border-t border-divider' : ''}>
                       <button type="button" onClick={() => openWalk(w.id)} className="flex min-h-12 w-full items-center gap-3 border-0 bg-transparent px-0 py-1.5 text-left text-text">
                         <span className="h-1.5 w-6 shrink-0 rounded-full" style={{ background: colors.get(w.id) }} aria-hidden="true" />

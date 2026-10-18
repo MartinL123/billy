@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GeoJSONSource } from 'maplibre-gl'
-import { addMarker, createMap, fitPoints, lngLat, onMarker, set3D, setSatellite, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
+import { addMarker, createMap, dot, fitPoints, lngLat, onMarker, set3D, setSatellite, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
 import { fogLayout, type FogLayout } from '../../lib/fogCanvas'
 import { distanceToRoute, NEAR_ROUTE, type Route } from '../../lib/route'
 import { replayWalk, showWalk, type WalkPhoto } from './walkLayer'
@@ -26,6 +26,12 @@ export interface MapWalk {
 interface Props {
   cells: Set<string>
   tracks: MapWalk[]
+  /** Les points à cadrer : les balades du coin où l’on est (T-020). Par défaut, toutes. */
+  frame?: LatLng[]
+  /** Change quand on change de coin (ou de filtre) : la carte se recadre. */
+  frameKey?: string
+  /** Ma position, demandée avec « Autour de moi » : un point bleu. */
+  me?: LatLng
   /** Toucher le tracé d’une balade (hors balade mise en avant) : la mettre en avant. */
   onWalk?: (id: string) => void
   places: MapPlace[]
@@ -167,14 +173,15 @@ function innerBox(layout: FogLayout): [number, number, number, number] {
  * La carte qui se découvre : le brouillard (un seul polygone troué, bords adoucis), les trajets en pointillés,
  * les lieux à découvrir. Plan ou satellite, 2D ou 3D.
  */
-export function ExplorerMap({ cells, tracks, onWalk, places, satellite, three, center, focus, onPlace, onMapTap, onBearing, north, walk, dogName }: Props) {
+export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places, satellite, three, center, focus, onPlace, onMapTap, onBearing, north, walk, dogName }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const markers = useRef<Marker[]>([])
   const handlers = useRef({ onPlace, onMapTap, onBearing, walk, onWalk })
   handlers.current = { onPlace, onMapTap, onBearing, walk, onWalk }
-  const allTracks = useRef(tracks)
-  allTracks.current = tracks
+  const framePoints = frame && frame.length ? frame : tracks.flatMap((t) => t.points)
+  const allTracks = useRef(framePoints)
+  allTracks.current = framePoints
   const framed = useRef(false)
   // Tant que le style de carte n'est pas chargé : un indicateur discret (audit R-015).
   const [ready, setReady] = useState(false)
@@ -185,7 +192,7 @@ export function ExplorerMap({ cells, tracks, onWalk, places, satellite, three, c
   useEffect(() => {
     if (!host.current) return
     // Avec des balades : la carte naît cadrée sur elles, sans passer par un premier endroit (audit R-032).
-    const points = walk ? walk.route.points : tracks.flatMap((t) => t.points)
+    const points = walk ? walk.route.points : framePoints
     const m = createMap(host.current, points.length > 1 ? { bounds: { points, padding: FRAME } } : { zoom: 15, ...(center ? { center } : {}) })
     if (points.length > 1) framed.current = true
     map.current = m
@@ -237,7 +244,7 @@ export function ExplorerMap({ cells, tracks, onWalk, places, satellite, three, c
     const m = map.current
     // Une balade mise en avant se cadre elle-même.
     if (!m || framed.current || walk) return
-    const all = tracks.flatMap((t) => t.points)
+    const all = framePoints
     if (all.length) {
       // Les boutons du haut et le panneau du bas couvrent la carte : on cadre dans ce qui reste visible.
       // Une fois le style chargé : avant, le cadrage est perdu.
@@ -245,6 +252,24 @@ export function ExplorerMap({ cells, tracks, onWalk, places, satellite, three, c
       whenReady(m, () => fitPoints(m, all, FRAME))
     } else if (center) m.jumpTo({ center: [center[1], center[0]] })
   }, [tracks, center]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Nouveau coin (retour à Saint-Ouen, position demandée) ou nouveau filtre : la carte se recadre (T-020).
+  const lastFrameKey = useRef(frameKey)
+  useEffect(() => {
+    const m = map.current
+    if (!m || walk || frameKey === lastFrameKey.current) return
+    lastFrameKey.current = frameKey
+    if (framePoints.length) whenReady(m, () => fitPoints(m, framePoints, FRAME, true))
+    else if (me) whenReady(m, () => m.easeTo({ center: [me[1], me[0]], zoom: 15 }))
+  }, [frameKey]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Ma position : un point bleu.
+  useEffect(() => {
+    const m = map.current
+    if (!m || !me) return
+    const marker = addMarker(m, me, dot('#2F7BF6', 20, 'Vous êtes ici'))
+    return () => void marker.remove()
+  }, [me?.[0], me?.[1]]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (map.current && north) map.current.easeTo({ bearing: 0, duration: 500 })
@@ -261,7 +286,7 @@ export function ExplorerMap({ cells, tracks, onWalk, places, satellite, three, c
     return () => {
       hide()
       // Retour à « Toutes les balades » : la carte reprend la vue d’ensemble (une autre balade se cadrera elle-même).
-      const points = allTracks.current.flatMap((t) => t.points)
+      const points = allTracks.current
       if (map.current === m && !handlers.current.walk && points.length) whenReady(m, () => fitPoints(m, points, FRAME, true))
     }
   }, [walkRoute, walkPhotos, walkColor])

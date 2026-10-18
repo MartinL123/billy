@@ -52,13 +52,14 @@ async function askOverpass(lat: number, lng: number, roads: boolean): Promise<Fo
  * Les idées « À découvrir » autour de la position (si elle est autorisée) ou de la dernière balade, choisies pour
  * le chien. Si OpenStreetMap ne répond pas : les spots calmes de la meute, sans message d’erreur.
  */
-export function useIdeas(): { ideas: Idea[]; here?: { lat: number; lng: number }; loading: boolean } {
+export function useIdeas(asked?: { lat: number; lng: number }): { ideas: Idea[]; here?: { lat: number; lng: number }; loading: boolean } {
   const { dog, entries, fog } = useData()
   const today = useToday()
   const position = useGrantedPosition()
   const walks = useMemo(() => walkItems(entries), [entries])
   const last = walks[0]
-  const here = position ?? (last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined)
+  // Où l’on est (T-020) : la position demandée, sinon celle déjà autorisée, sinon le départ de la dernière balade.
+  const here = asked ?? position ?? (last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined)
   const [found, setFound] = useState<Found | null>(null)
   const [loading, setLoading] = useState(false)
   const [spots, setSpots] = useState<WithId<Spot>[]>([])

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronRightIcon } from '../../components/Icons'
+import { ChevronRightIcon, PlusIcon } from '../../components/Icons'
 import { setEventDone } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { diffDays, formatDayHeading, formatLong, formatShort, parseISO, toISO, type ISODate } from '../../lib/dates'
@@ -63,6 +63,14 @@ export default function Calendar() {
 
       <MonthGrid month={month} today={today} selected={selected} events={events} onMonthChange={setMonth} onSelect={(day) => setSelected(day === selected ? null : day)} />
 
+      {/* Toujours visible sous le calendrier : ajouter en 2 touchers (audit R-008). Sans rien de prévu, la carte du dessous le propose déjà. */}
+      {!selected && next?.date && (
+        <Link to="/evenement/nouveau" className="btn btn-outline gap-2">
+          <PlusIcon size={20} />
+          Ajouter un soin ou un RDV
+        </Link>
+      )}
+
       {selected && (
         <section className="flex flex-col gap-2">
           <h2 className="text-[17px] font-bold">Le {formatLong(selected)}</h2>
@@ -98,7 +106,7 @@ export default function Calendar() {
         <section className="card flex flex-col items-start gap-3 p-4">
           <p className="text-[17px] font-semibold">Rien de prévu pour l’instant.</p>
           <Link to="/evenement/nouveau" className="btn btn-main">
-            Ajouter un rendez-vous ou un soin
+            Ajouter un soin ou un RDV
           </Link>
         </section>
       )}
@@ -116,7 +124,7 @@ export default function Calendar() {
         ))}
       </nav>
 
-      <Link to="/sante/evenements" className="flex min-h-12 items-center justify-center text-[17px] font-bold text-primary no-underline">
+      <Link to="/sante/evenements" className="btn btn-outline">
         Voir tous les événements
       </Link>
     </div>

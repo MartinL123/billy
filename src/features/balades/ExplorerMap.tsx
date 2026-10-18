@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { addMarker, createMap, fitPoints, onMarker, set3D, setLine, setSatellite, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
 import { fogLayout, type FogLayout } from '../../lib/fogCanvas'
 import { distanceToRoute, NEAR_ROUTE, type Route } from '../../lib/route'
@@ -120,11 +120,14 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
   const handlers = useRef({ onPlace, onMapTap, onBearing, walk })
   handlers.current = { onPlace, onMapTap, onBearing, walk }
   const framed = useRef(false)
+  // Tant que le style de carte n'est pas chargé : un indicateur discret (audit R-015).
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     if (!host.current) return
     const m = createMap(host.current, { zoom: 15, ...(center ? { center } : {}) })
     map.current = m
+    whenReady(m, () => setReady(true))
     m.on('rotate', () => handlers.current.onBearing?.(m.getBearing()))
     m.on('click', (e) => {
       if (onMarker(e.originalEvent)) return
@@ -261,6 +264,14 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
 
   return (
     <div className="absolute inset-0 isolate">
+      {!ready && (
+        <div role="status" className="pointer-events-none absolute inset-x-0 top-[40%] z-10 flex justify-center">
+          <span className="flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-[15px] font-semibold text-text shadow-[0_2px_8px_rgba(24,32,30,0.2)]">
+            <span className="size-4 animate-spin rounded-full border-2 border-solid border-primary border-t-transparent" aria-hidden="true" />
+            Chargement de la carte…
+          </span>
+        </div>
+      )}
       <div ref={host} role="application" aria-label={`Carte du territoire ${ofName(dogName)}`} className="size-full" />
     </div>
   )

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_WALK_TIMES, dueWalkSlots, formatHour, walkReminderText, walkState, walkTimes } from './walks'
+import { DEFAULT_WALK_TIMES, dueWalkSlots, formatHour, walkReminderText, walkState, walkTimes, walkName } from './walks'
 
 const h = (time: string) => {
   const [a, b] = time.split(':').map(Number)
@@ -37,7 +37,7 @@ describe('sorties du jour', () => {
 
   it('invite à sortir, sans reproche', () => {
     const text = walkReminderText('Billy', 'midi', '13:00')
-    expect(text.title).toBe('13 h : la sortie du midi')
+    expect(text.title).toBe('13 h : la sortie de midi')
     expect(text.body).toContain('sortir Billy')
     expect(text.body).not.toMatch(/oubli|pas encore|toujours pas|n'avez pas/i)
     expect(walkReminderText('', 'soir', '19:00').body).toContain('votre chien')
@@ -53,5 +53,14 @@ describe('sortie cochée par une balade importée', () => {
     expect(slotForStart(times, 14 * 60 + 10)).toBe('midi')
     expect(slotForStart(times, 17 * 60)).toBe('soir')
     expect(slotForStart(times, 2 * 60)).toBeUndefined()
+  })
+})
+
+describe('nom de la sortie selon l’heure (audit R-025)', () => {
+  it('suit l’heure réglée', () => {
+    expect(walkName('08:00')).toBe('la sortie du matin')
+    expect(walkName('13:00')).toBe('la sortie de midi')
+    expect(walkName('14:30')).toBe('la sortie de l’après-midi')
+    expect(walkName('19:00')).toBe('la sortie du soir')
   })
 })

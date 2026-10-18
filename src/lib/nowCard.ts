@@ -1,6 +1,6 @@
 import { diffDays, type ISODate } from './dates'
 import { lateLabel } from './events'
-import { formatHour, timeToMinutes, WALK_SLOTS, type WalkSlot, type WalkTimes } from './walks'
+import { formatHour, timeToMinutes, walkName, WALK_SLOTS, type WalkSlot, type WalkTimes } from './walks'
 
 // Aujourd’hui (spec V4 § 2) : une seule carte « À faire maintenant », choisie par une règle simple, et 2 lignes
 // « Ensuite ». L’app propose, l’utilisateur confirme.
@@ -88,8 +88,7 @@ export function nextLines(input: NowInput, card: NowCard): NextLine[] {
   const walk = nextWalk(input)
   const doneCount = WALK_SLOTS.filter((s) => input.walks.done[s.id]).length
   if (walk && !(card.kind === 'sortie' && card.slot === walk.slot)) {
-    const label = WALK_SLOTS.find((s) => s.id === walk.slot)!.label.toLowerCase()
-    lines.push({ key: 'sortie', when: formatHour(walk.time), title: `Sortie ${label === 'midi' ? 'de midi' : `du ${label}`}`, detail: `${doneCount} sur 3 faites`, to: '/' })
+    lines.push({ key: 'sortie', when: formatHour(walk.time), title: walkName(walk.time).replace(/^la s/, 'S'), detail: `${doneCount} sur 3 faites`, to: '/' })
   }
   const upcoming = input.care
     .filter((e) => !e.done && e.date && !(card.kind === 'soin' && card.event.id === e.id))

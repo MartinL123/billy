@@ -55,6 +55,18 @@ export function dueWalkSlots(times: WalkTimes, done: Partial<Record<WalkSlot, st
   })
 }
 
+/**
+ * « la sortie du matin », « de midi », « de l’après-midi », « du soir » : le nom suit l'heure réglée, pas le créneau
+ * (audit R-025 : une sortie réglée à 14 h 30 n'est plus « de midi »).
+ */
+export function walkName(time: string): string {
+  const minutes = timeToMinutes(time)
+  if (minutes < 11 * 60) return 'la sortie du matin'
+  if (minutes < 14 * 60) return 'la sortie de midi'
+  if (minutes < 18 * 60) return 'la sortie de l’après-midi'
+  return 'la sortie du soir'
+}
+
 /** « 8 h », « 13 h 30 ». */
 export function formatHour(time: string): string {
   const [h, m] = time.split(':')
@@ -64,9 +76,8 @@ export function formatHour(time: string): string {
 /** Le texte de la notification : une invitation, jamais un reproche. */
 export function walkReminderText(dogName: string, slot: WalkSlot, time: string): { title: string; body: string; tag: string; url: string } {
   const name = dogName.trim() || 'votre chien'
-  const label = WALK_SLOTS.find((s) => s.id === slot)?.label ?? ''
   return {
-    title: `${formatHour(time)} : la sortie du ${label.toLowerCase()}`,
+    title: `${formatHour(time)} : ${walkName(time)}`,
     body: `C’est l’heure de sortir ${name} 🐾 Hors du jardin, même 15 minutes.`,
     tag: `sortie-${slot}`,
     url: './#/',

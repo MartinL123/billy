@@ -78,7 +78,7 @@ export default function Mission() {
               </button>
             ))}
           </div>
-          <p className="text-[15px] leading-snug text-muted">« Difficile » ? La prochaine fois, {dog.name} reprend un cran plus facile. Rien n’est perdu.</p>
+          <p className="text-[15px] leading-snug text-muted">« Difficile » ? La prochaine fois, la mission sera un cran plus facile. Rien n’est perdu.</p>
         </main>
       ) : (
         <main className="flex flex-1 flex-col gap-3 pt-6">

@@ -262,7 +262,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     const m = map.current
     if (!m || walk || frameKey === lastFrameKey.current) return
     lastFrameKey.current = frameKey
-    if (framePoints.length) whenReady(m, () => fitPoints(m, framePoints, FRAME, true))
+    if (framePoints.length) whenReady(m, () => fitPoints(m, framePoints, frameOf(m), true))
     else if (me) whenReady(m, () => m.easeTo({ center: [me[1], me[0]], zoom: 15 }))
   }, [frameKey]) // eslint-disable-line react-hooks/exhaustive-deps
 

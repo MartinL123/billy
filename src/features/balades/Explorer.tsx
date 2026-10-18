@@ -251,7 +251,7 @@ export default function Explorer() {
         }
       : undefined
   // Toucher un tracé (ou une balade de la liste) : elle passe au premier plan ; « Toutes les balades » revient à la vue d’ensemble.
-  // Depuis la carte, ouvrir puis refermer une balade ne laisse pas d’entrée en double dans l’historique (T-022).
+  // Depuis la carte, ouvrir puis refermer une balade ne laisse pas d’entrée en double dans l’historique (T-024).
   const openWalk = (id: string) => navigate(`/territoire?balade=${encodeURIComponent(id)}${filter !== 'toutes' ? `&filtre=${encodeURIComponent(filter)}` : ''}`, { replace: true })
   const closeWalk = () => navigate(`/territoire${filter !== 'toutes' ? `?filtre=${encodeURIComponent(filter)}` : ''}`, { replace: true })
   // La boussole : l’aiguille suit la carte ; un toucher la remet face au nord.

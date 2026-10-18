@@ -57,7 +57,7 @@ function ScrollToTop() {
 /**
  * L’écran d’ouverture à chaque lancement de l’app (choix de Martin, T-017) : on touche la photo du chien pour entrer.
  * Ouverte sur un écran précis (notification, lien), l’app y va directement. Une seule fois par lancement : quand une
- * nouvelle version recharge l’app (mise à jour automatique), on reste où on était (T-021).
+ * nouvelle version recharge l’app (mise à jour automatique), on reste où on était (T-023).
  */
 const OPENED_KEY = 'billy.ouverture-montree'
 function OpenOnLogo() {

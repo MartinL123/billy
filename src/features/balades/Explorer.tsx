@@ -201,7 +201,8 @@ export default function Explorer() {
 
   // Les spots marqués par Billy restent sur la carte, avec leur goutte.
   const me = auth.currentUser?.uid ?? ''
-  const next = ideas.find((i) => !i.explored)
+  // Les lieux à découvrir listés dans le panneau : d’abord ceux encore dans le brouillard.
+  const discover = useMemo(() => [...ideas.filter((i) => !i.explored), ...ideas.filter((i) => i.explored)].slice(0, 3), [ideas])
   const places = useMemo<MapPlace[]>(() => {
     const mine = new Set(marks.filter((m) => m.uid === me).map((m) => m.spotId))
     const marked = spots.filter((s) => mine.has(s.id)).map((s) => ({ id: s.id, lat: s.lat, lng: s.lng, name: s.name, hidden: false, icon: '💧' }))
@@ -257,6 +258,8 @@ export default function Explorer() {
   // La boussole : l’aiguille suit la carte ; un toucher la remet face au nord.
   const [bearing, setBearing] = useState(0)
   const [north, setNorth] = useState(0)
+  // Les boutons + et − : chaque toucher change `n`, la carte zoome ou dézoome d’un cran (T-029).
+  const [zoom, setZoom] = useState({ n: 0, delta: 0 })
 
   const setPref = (next: Partial<typeof prefs>) => {
     const value = { ...prefs, ...next }
@@ -267,32 +270,30 @@ export default function Explorer() {
   return (
     <div className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
-        <ExplorerMap cells={cells} tracks={tracks} frame={frame} frameKey={frameKey} me={myPos ? [myPos.lat, myPos.lng] : undefined} onWalk={openWalk} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={() => setSelectedId(null)} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} />
+        <ExplorerMap cells={cells} tracks={tracks} frame={frame} frameKey={frameKey} me={myPos ? [myPos.lat, myPos.lng] : undefined} onWalk={openWalk} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={() => setSelectedId(null)} onBearing={setBearing} north={north} zoom={zoom} walk={walk} dogName={dog.name} />
       </Suspense>
 
-      {/* En haut : la prochaine découverte, puis les réglages de la carte. */}
+      {/* En haut : les réglages de la carte (les lieux à découvrir sont listés dans le panneau, T-029). */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col gap-2 px-3 pt-[calc(env(safe-area-inset-top)+8px)]">
-        {next && here && (
-          <button type="button" onClick={() => setSelectedId(next.id)} className="pointer-events-auto btn min-h-11 self-start rounded-full border-0 bg-[#22332F] px-4 text-[15px] text-white shadow-[0_2px_8px_rgba(24,32,30,0.3)]">
-            À découvrir : {KIND[next.kind].label} · {metersLabel(next.meters)} {arrowTo(here, next)}
-          </button>
-        )}
         <div className="flex flex-col items-end gap-2">
-          <div role="group" aria-label="Fond de carte" className="pointer-events-auto flex rounded-full bg-surface p-1 shadow-[0_2px_6px_rgba(24,32,30,0.2)]">
-            <button type="button" aria-pressed={!prefs.satellite} onClick={() => setPref({ satellite: false })} className={toggle(!prefs.satellite)}>
-              Plan
-            </button>
-            <button type="button" aria-pressed={prefs.satellite} onClick={() => setPref({ satellite: true })} className={toggle(prefs.satellite)}>
-              Satellite
-            </button>
-          </div>
-          <div role="group" aria-label="Vue" className="pointer-events-auto flex rounded-full bg-surface p-1 shadow-[0_2px_6px_rgba(24,32,30,0.2)]">
-            <button type="button" aria-pressed={!prefs.three} onClick={() => setPref({ three: false })} className={toggle(!prefs.three)}>
-              2D
-            </button>
-            <button type="button" aria-pressed={prefs.three} onClick={() => setPref({ three: true })} className={toggle(prefs.three)}>
-              3D
-            </button>
+          {/* Fond et vue sur une seule ligne : la colonne de boutons reste au-dessus du panneau. */}
+          <div className="flex gap-2">
+            <div role="group" aria-label="Fond de carte" className="pointer-events-auto flex rounded-full bg-surface p-1 shadow-[0_2px_6px_rgba(24,32,30,0.2)]">
+              <button type="button" aria-pressed={!prefs.satellite} onClick={() => setPref({ satellite: false })} className={toggle(!prefs.satellite)}>
+                Plan
+              </button>
+              <button type="button" aria-pressed={prefs.satellite} onClick={() => setPref({ satellite: true })} className={toggle(prefs.satellite)}>
+                Satellite
+              </button>
+            </div>
+            <div role="group" aria-label="Vue" className="pointer-events-auto flex rounded-full bg-surface p-1 shadow-[0_2px_6px_rgba(24,32,30,0.2)]">
+              <button type="button" aria-pressed={!prefs.three} onClick={() => setPref({ three: false })} className={toggle(!prefs.three)}>
+                2D
+              </button>
+              <button type="button" aria-pressed={prefs.three} onClick={() => setPref({ three: true })} className={toggle(prefs.three)}>
+                3D
+              </button>
+            </div>
           </div>
           {/* Les spots de la meute : un calque de la carte, pas un filtre des balades. */}
           <button type="button" aria-pressed={packLayer} onClick={() => setPackLayer(!packLayer)} className={`pointer-events-auto flex min-h-11 items-center gap-1.5 rounded-full border-0 px-3.5 text-[15px] font-bold shadow-[0_2px_6px_rgba(24,32,30,0.2)] ${packLayer ? 'bg-text text-white' : 'bg-surface text-text'}`}>
@@ -307,6 +308,16 @@ export default function Explorer() {
               <circle cx="12" cy="12" r="2" fill="currentColor" />
             </svg>
           </button>
+          {/* Zoom au doigt ou avec ces deux boutons (T-029). */}
+          <div role="group" aria-label="Zoom" className="pointer-events-auto flex flex-col overflow-hidden rounded-full bg-surface shadow-[0_2px_6px_rgba(24,32,30,0.2)]">
+            <button type="button" onClick={() => setZoom((z) => ({ n: z.n + 1, delta: 1 }))} aria-label="Zoomer" className="flex size-12 items-center justify-center border-0 bg-transparent text-text">
+              <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            </button>
+            <span className="mx-2.5 h-px bg-divider" aria-hidden="true" />
+            <button type="button" onClick={() => setZoom((z) => ({ n: z.n + 1, delta: -1 }))} aria-label="Dézoomer" className="flex size-12 items-center justify-center border-0 bg-transparent text-text">
+              <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M5 12h14" /></svg>
+            </button>
+          </div>
           <button type="button" onClick={() => setNorth((n) => n + 1)} aria-label={`Remettre la carte face au nord${Math.round(bearing) ? ` (tournée de ${Math.round(((bearing % 360) + 360) % 360)}°)` : ''}`} className="pointer-events-auto flex size-12 items-center justify-center rounded-full border-0 bg-surface shadow-[0_2px_6px_rgba(24,32,30,0.2)]">
             <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true" style={{ transform: `rotate(${-bearing}deg)`, transition: 'transform 0.1s linear' }}>
               <path d="M13 2 L17 13 L13 11.5 L9 13 Z" fill="#C4423A" />
@@ -379,6 +390,30 @@ export default function Explorer() {
                 {shown.length > 1 ? `Voir la liste des ${shown.length} balades` : 'Voir la liste'}
               </Link>
             </>
+          )}
+          {/* À découvrir (T-029) : les lieux du coin, listés ici ; un toucher centre la carte dessus. */}
+          {here && discover.length > 0 && (
+            <div className="flex flex-col gap-1">
+              <h2 className="text-[13px] font-extrabold tracking-[0.6px] text-muted uppercase">À découvrir</h2>
+              <ul className="m-0 flex list-none flex-col p-0">
+                {discover.map((idea, i) => (
+                  <li key={idea.id} className={i ? 'border-t border-divider' : ''}>
+                    <button type="button" onClick={() => setSelectedId(idea.id)} className="flex min-h-12 w-full items-center gap-3 border-0 bg-transparent px-0 py-1.5 text-left text-text">
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-bg text-[18px] font-extrabold" aria-hidden="true">
+                        {idea.explored ? KIND[idea.kind].icon : '?'}
+                      </span>
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="truncate text-[17px] font-bold">{idea.explored ? idea.name : KIND[idea.kind].label}</span>
+                        <span className="truncate text-[15px] text-muted">
+                          {metersLabel(idea.meters)} {arrowTo(here, idea)}
+                        </span>
+                      </span>
+                      <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       </section>

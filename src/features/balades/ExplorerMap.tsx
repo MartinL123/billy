@@ -47,6 +47,8 @@ interface Props {
   onPlace?: (id: string) => void
   /** L’orientation de la carte (degrés), pour la boussole. */
   onBearing?: (bearing: number) => void
+  /** Les boutons + et − : `n` change à chaque toucher, `delta` dit dans quel sens zoomer. */
+  zoom?: { n: number; delta: number }
   /** Change à chaque toucher sur la boussole : la carte revient face au nord. */
   north?: number
   /** Le nom du chien du compte (libellés accessibles). */
@@ -176,7 +178,7 @@ function innerBox(layout: FogLayout): [number, number, number, number] {
  * La carte qui se découvre : le brouillard (un seul polygone troué, bords adoucis), les trajets en pointillés,
  * les lieux à découvrir. Plan ou satellite, 2D ou 3D.
  */
-export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places, satellite, three, center, focus, onPlace, onMapTap, onBearing, north, walk, dogName }: Props) {
+export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places, satellite, three, center, focus, onPlace, onMapTap, onBearing, north, zoom, walk, dogName }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const markers = useRef<Marker[]>([])
@@ -273,6 +275,11 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     const marker = addMarker(m, me, dot('#2F7BF6', 20, 'Vous êtes ici'))
     return () => void marker.remove()
   }, [me?.[0], me?.[1]]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const m = map.current
+    if (m && zoom?.n) m.easeTo({ zoom: m.getZoom() + zoom.delta, duration: 300 })
+  }, [zoom?.n]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (map.current && north) map.current.easeTo({ bearing: 0, duration: 500 })

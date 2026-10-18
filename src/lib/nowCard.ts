@@ -1,4 +1,5 @@
 import { diffDays, type ISODate } from './dates'
+import { lateLabel } from './events'
 import { formatHour, timeToMinutes, WALK_SLOTS, type WalkSlot, type WalkTimes } from './walks'
 
 // Aujourd'hui (spec V4 § 2) : une seule carte « À faire maintenant », choisie par une règle simple, et 2 lignes
@@ -91,7 +92,7 @@ export function nextLines(input: NowInput, card: NowCard): NextLine[] {
     .sort((a, b) => a.date.localeCompare(b.date))[0]
   if (upcoming && upcoming.date) {
     const days = diffDays(input.today, upcoming.date)
-    lines.push({ key: upcoming.id, when: days <= 0 ? 'Aujourd’hui' : days === 1 ? 'Demain' : shortDate(upcoming.date), title: upcoming.title, detail: days < 0 ? 'En retard' : days === 0 ? 'Aujourd’hui' : `Dans ${days} jour${days > 1 ? 's' : ''}`, to: `/evenement/${upcoming.id}` })
+    lines.push({ key: upcoming.id, when: days < 0 ? 'En retard' : days === 0 ? 'Aujourd’hui' : days === 1 ? 'Demain' : shortDate(upcoming.date), title: upcoming.title, detail: days < 0 ? lateLabel(upcoming.date, input.today) : days === 0 ? 'C’est le jour' : `Dans ${days} jour${days > 1 ? 's' : ''}`, to: `/evenement/${upcoming.id}` })
   }
   return lines.slice(0, 2)
 }

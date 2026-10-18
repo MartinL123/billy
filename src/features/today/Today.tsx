@@ -12,6 +12,7 @@ import { contextLine, nextLines, nowCard, type NowCard, type NowInput } from '..
 import { questionnaireStatus } from '../../lib/questionnaire'
 import { formatRouteDistance } from '../../lib/route'
 import { useToday } from '../../lib/useToday'
+import { lateLabel } from '../../lib/events'
 import { walkItems } from '../../lib/walkList'
 import { formatHour, walkTimes } from '../../lib/walks'
 import { InstallBanner, PasswordPrompt } from '../account/HomeNotices'
@@ -34,7 +35,7 @@ function useCardContent(card: NowCard) {
       return {
         badge: 'À faire maintenant',
         title: card.event.title,
-        text: `C’est le jour : une minute, puis c’est noté dans Santé.`,
+        text: `${card.event.date && card.event.date < today ? lateLabel(card.event.date, today) : 'C’est le jour'} : une minute, puis c’est noté dans Santé.`,
         scene: undefined,
         action: { label: 'C’est fait', run: () => setEventDone(events.find((e) => e.id === card.event.id)!, true) },
       }

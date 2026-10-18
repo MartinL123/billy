@@ -4,7 +4,7 @@ import { ChevronRightIcon } from '../../components/Icons'
 import { setEventDone } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { diffDays, formatDayHeading, formatLong, formatShort, parseISO, toISO, type ISODate } from '../../lib/dates'
-import { healthLine, upcoming } from '../../lib/events'
+import { healthLine, lateLabel, upcoming } from '../../lib/events'
 import { careStatus } from '../../lib/health'
 import { useToday } from '../../lib/useToday'
 import { CalendarEventRow } from './EventRows'
@@ -22,6 +22,12 @@ function inDays(date: ISODate, today: ISODate): string {
   return `en retard de ${-days} jour${days < -1 ? 's' : ''}`
 }
 
+/** « En retard de 3 jours », « Prochain le 10 novembre », « Aucun rappel prévu ». */
+function careDetail(date: ISODate | '' | undefined, today: ISODate, year: number): string {
+  if (!date) return 'Aucun rappel prévu'
+  return lateLabel(date, today) || `Prochain le ${formatLong(date).replace(` ${year}`, '')}`
+}
+
 /** Santé (spec V4 § 5) : le calendrier tout de suite, la prochaine chose à faire, 5 lignes vers les détails. */
 export default function Calendar() {
   const { dog, events, weights, documents } = useData()
@@ -33,13 +39,15 @@ export default function Calendar() {
   const ofDay = selected ? events.filter((e) => e.date === selected) : []
   const vaccine = careStatus(events, 'vaccin').next
   const worm = careStatus(events, 'vermifuge').next
+  const flea = careStatus(events, 'antiparasitaire').next
   const lastWeight = weights[0]
   const year = parseISO(today).y
   const meals = dog.feeding?.meals.length ?? 0
 
-  const lines: { to: string; title: string; detail: string; ok?: boolean }[] = [
-    { to: '/sante/evenements?filtre=vaccins', title: 'Vaccins', detail: vaccine?.date ? `Prochain rappel en ${MONTH_NAMES[parseISO(vaccine.date).m - 1]} ${parseISO(vaccine.date).y}` : 'Aucun rappel prévu', ok: Boolean(vaccine?.date && vaccine.date >= today) },
-    { to: '/sante/evenements?filtre=soins', title: 'Vermifuge', detail: worm?.date ? `Prochain le ${formatLong(worm.date).replace(` ${year}`, '')}` : 'Aucun rappel prévu', ok: Boolean(worm?.date && worm.date >= today) },
+  const lines: { to: string; title: string; detail: string; ok?: boolean; late?: boolean }[] = [
+    { to: '/sante/evenements?filtre=vaccins', title: 'Vaccins', detail: lateLabel(vaccine?.date ?? '', today) || (vaccine?.date ? `Prochain rappel en ${MONTH_NAMES[parseISO(vaccine.date).m - 1]} ${parseISO(vaccine.date).y}` : 'Aucun rappel prévu'), ok: Boolean(vaccine?.date && vaccine.date >= today), late: Boolean(lateLabel(vaccine?.date ?? '', today)) },
+    { to: '/sante/evenements?filtre=soins', title: 'Vermifuge', detail: careDetail(worm?.date, today, year), ok: Boolean(worm?.date && worm.date >= today), late: Boolean(lateLabel(worm?.date ?? '', today)) },
+    { to: '/sante/evenements?filtre=soins', title: 'Antiparasitaire', detail: careDetail(flea?.date, today, year), ok: Boolean(flea?.date && flea.date >= today), late: Boolean(lateLabel(flea?.date ?? '', today)) },
     { to: '/sante/poids', title: 'Poids', detail: lastWeight ? `${formatKg(lastWeight.kg)} kg · pesé le ${formatShort(lastWeight.date, year)}` : 'Aucune pesée pour l’instant' },
     { to: '/sante/repas', title: 'Repas', detail: dog.feeding && meals ? `${meals} repas · ${dog.feeding.gramsPerDay} g par jour` : 'À renseigner' },
     { to: '/sante/documents', title: 'Documents', detail: documents.length ? documents.slice(0, 2).map((d) => d.title).join(', ') : 'Carnet de santé, ordonnances' },
@@ -101,7 +109,7 @@ export default function Calendar() {
           <Link key={line.title} to={line.to} className={`flex min-h-[60px] items-center gap-3 px-4 py-2.5 text-text no-underline ${i ? 'border-t border-divider' : ''}`}>
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="text-[17px] font-bold">{line.title}</span>
-              <span className="truncate text-[15px] text-muted">{line.detail}</span>
+              <span className={`truncate text-[15px] ${line.late ? 'font-semibold text-danger' : 'text-muted'}`}>{line.detail}</span>
             </span>
             {line.ok && <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-1 text-[13px] font-bold text-primary-dark">À jour</span>}
             <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />

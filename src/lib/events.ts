@@ -36,6 +36,12 @@ interface Schedulable {
 
 export const isOverdue = (e: Schedulable, today: ISODate) => !e.done && !!e.date && diffDays(e.date, today) > 0
 
+/** « En retard de 3 jours » (audit R-002) ; vide si ce n'est pas en retard. */
+export function lateLabel(date: ISODate | '', today: ISODate): string {
+  const late = date ? diffDays(date, today) : 0
+  return late > 0 ? `En retard de ${late} jour${late > 1 ? 's' : ''}` : ''
+}
+
 /** Événements non faits et datés : retards d'abord (du plus ancien au plus récent), puis à venir. */
 export function upcoming<T extends Schedulable>(events: T[], today: ISODate): T[] {
   return events

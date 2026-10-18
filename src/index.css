@@ -373,3 +373,122 @@ input::-webkit-date-and-time-value {
     animation: none;
   }
 }
+
+/* ——— Écran d'ouverture (T-032, maquette « Flair — Accueil et ouverture », artboard Main) ——— */
+.op-halo {
+  animation: op-breathe 3.2s ease-in-out infinite;
+}
+.op-ring {
+  animation: op-ring 3.2s ease-out infinite;
+}
+.op-ring-late {
+  animation: op-ring 3.2s ease-out 1.6s infinite;
+}
+.op-paw {
+  animation: op-paw 6s ease-in-out infinite;
+  opacity: 0;
+}
+.op-name {
+  animation: op-rise 0.6s var(--ease-out) 0.15s both;
+}
+.op-cta {
+  animation:
+    op-rise 0.6s var(--ease-out) 0.3s both,
+    op-glow 2.4s ease-in-out 1s infinite;
+}
+/* Au toucher : la photo s'enfonce puis grandit, une onde claire envahit l'écran, l'écran s'efface. */
+.op-press {
+  animation: op-press 0.55s cubic-bezier(0.3, 0.7, 0.4, 1) forwards;
+}
+.op-burst {
+  animation: op-burst 0.6s ease-out forwards;
+}
+.op-leave {
+  animation: op-fade 0.3s ease-in 0.25s forwards;
+  pointer-events: none;
+}
+/* L'accueil qui monte, juste après l'ouverture. */
+.op-arrive {
+  animation: op-home var(--dur-arrive) var(--ease-out) both;
+}
+@keyframes op-breathe {
+  50% {
+    transform: scale(1.06);
+  }
+}
+@keyframes op-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+@keyframes op-glow {
+  50% {
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.35);
+  }
+}
+@keyframes op-paw {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) rotate(var(--r));
+  }
+  25%,
+  75% {
+    opacity: 0.22;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-28px) rotate(var(--r));
+  }
+}
+@keyframes op-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@keyframes op-press {
+  35% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+@keyframes op-burst {
+  from {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(6);
+    opacity: 0;
+  }
+}
+@keyframes op-fade {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes op-home {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .op-paw,
+  .op-ring,
+  .op-ring-late {
+    display: none;
+  }
+}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { BoneIcon } from '../../components/BoneIcon'
 import { ChevronRightIcon, PlusIcon } from '../../components/Icons'
 import { setEventDone } from '../../firebase/db'
@@ -193,6 +193,7 @@ function useCardContent(card: NowCard, onWeighLater: () => void, budget?: WalkBu
 export default function Today() {
   const { dog, events, bones, walks, weights, entries } = useData()
   const today = useToday()
+  const location = useLocation()
   const [weighLater, setWeighLater] = useState(readWeighLater)
   const postponeWeighing = () => {
     try {
@@ -229,11 +230,13 @@ export default function Today() {
   const card = nowCard(input)
   const content = useCardContent(card, postponeWeighing, input.budget)
   const walkLine = nextLines(input, card).find((line) => line.key === 'sortie')
+  const fromOpening = Boolean((location.state as { fromOpening?: boolean } | null)?.fromOpening)
   const questionnaire = questionnaireStatus(dog.questionnaire)
   const profilePart = nextPart(dog.questionnaire)
 
   return (
-    <div className="flex flex-col gap-4 px-5">
+    // Depuis l’écran d’ouverture (T-032) : l’accueil monte à sa place.
+    <div className={`flex flex-col gap-4 px-5 ${fromOpening ? 'op-arrive' : ''}`}>
       <header className="flex items-center gap-3">
         {/* La photo et le nom forment un seul bouton vers l’écran du chien (audit R-009). */}
         <Link to="/billy" aria-label={`${dog.name}, ses progrès`} className="tap flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-[20px] text-text no-underline">

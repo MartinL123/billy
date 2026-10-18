@@ -9,7 +9,7 @@ import { QUEST_XP } from '../../lib/quest'
 import { balance, BONES } from '../../lib/bones'
 import { formatDayHeading, formatLong } from '../../lib/dates'
 import { portion, sortMeals } from '../../lib/feeding'
-import { contextLine, nextLines, nowCard, type NowCard, type NowInput, needsVet } from '../../lib/nowCard'
+import { nextLines, nowCard, type NowCard, type NowInput, needsVet } from '../../lib/nowCard'
 import { essentialsDone, nextPart, PARTS, profilePartsEarnBones, questionnaireStatus } from '../../lib/questionnaire'
 import { formatRouteDistance } from '../../lib/route'
 import { useToday } from '../../lib/useToday'
@@ -24,6 +24,7 @@ import { useQuest } from './useQuest'
 import { weighingDue } from '../../lib/weighing'
 import { minutesLabel, walkBudget, type WalkBudget } from '../../lib/walkBudget'
 import { WALK_SLOTS } from '../../lib/walks'
+import { LifeTiles } from './LifeTiles'
 
 // « Plus tard » sur la pesée : on n’en reparle pas avant demain (choix gardé sur cet appareil).
 const WEIGH_LATER_KEY = 'billy-pesee-plus-tard'
@@ -185,7 +186,10 @@ function useCardContent(card: NowCard, onWeighLater: () => void, budget?: WalkBu
   }
 }
 
-/** Aujourd’hui (spec V4 § 2) : on comprend en 10 secondes quoi faire. Une carte, un bouton plein. */
+/**
+ * L’accueil (spec V4 § 2, en tableau de bord depuis T-031) : la chose à faire maintenant (le seul bouton plein),
+ * la prochaine sortie, puis « Sa vie avec vous » en 4 tuiles qui ouvrent chacune leur écran.
+ */
 export default function Today() {
   const { dog, events, bones, walks, weights, entries } = useData()
   const today = useToday()
@@ -224,7 +228,7 @@ export default function Today() {
   }
   const card = nowCard(input)
   const content = useCardContent(card, postponeWeighing, input.budget)
-  const next = nextLines(input, card)
+  const walkLine = nextLines(input, card).find((line) => line.key === 'sortie')
   const questionnaire = questionnaireStatus(dog.questionnaire)
   const profilePart = nextPart(dog.questionnaire)
 
@@ -232,26 +236,20 @@ export default function Today() {
     <div className="flex flex-col gap-4 px-5">
       <header className="flex items-center gap-3">
         {/* La photo et le nom forment un seul bouton vers l’écran du chien (audit R-009). */}
-        <Link to="/billy" className="flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-[20px] text-text no-underline">
+        <Link to="/billy" aria-label={`${dog.name}, ses progrès`} className="tap flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-[20px] text-text no-underline">
           <span className="shrink-0 overflow-hidden rounded-full border-[3px] border-solid border-milestone">
             <DogPhoto size={52} />
           </span>
           <span className="flex min-w-0 flex-col">
             <span className="text-[15px] font-medium text-muted">{formatDayHeading(today)}</span>
-            <span className="flex min-w-0 items-center gap-2">
-              <span className="truncate font-display text-[24px] leading-tight font-extrabold">{dog.name}</span>
-              <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-0.5 text-[15px] font-bold text-primary-dark">Ses progrès ›</span>
-            </span>
+            <span className="truncate font-display text-[26px] leading-tight font-extrabold">Bonjour, {dog.name}</span>
           </span>
         </Link>
-        <Link to="/boutique" aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[17px] font-extrabold text-gold-dark no-underline">
+        <Link to="/boutique" aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[17px] font-extrabold text-gold-dark no-underline">
           <BoneIcon size={20} />
           {balance(bones)}
         </Link>
       </header>
-
-      {/* Pas d’heure : le téléphone l’affiche déjà (demande de Martin). Rien à dire : pas de ligne. */}
-      {contextLine(input, card) && <p className="text-[17px] leading-snug">{contextLine(input, card)}</p>}
 
       <section aria-label="À faire maintenant" className="card flex flex-col gap-3 rounded-[26px] p-4">
         <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{content.badge}</span>
@@ -263,28 +261,23 @@ export default function Today() {
         {content.third && <CardButton action={content.third} />}
       </section>
 
-      {next.length > 0 && (
-        <section aria-labelledby="ensuite" className="card flex flex-col p-0">
-          <h2 id="ensuite" className="px-4 pt-3 text-[13px] font-extrabold tracking-[0.6px] text-muted uppercase">
-            Ensuite
-          </h2>
-          {next.map((line, i) => (
-            // Colonne de gauche fixe : le libellé passe à la ligne au lieu de chevaucher le titre (audit R-003).
-            <Link key={line.key} to={line.to} className={`grid min-h-14 grid-cols-[84px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 text-text no-underline ${i ? 'border-t border-divider' : ''}`}>
-              <span className={`text-[15px] leading-tight font-bold break-words ${line.late ? 'text-danger' : 'text-primary'}`}>{line.when}</span>
-              <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-[17px] font-semibold">{line.title}</span>
-                <span className={`text-[15px] ${line.late ? 'font-semibold text-danger' : 'text-muted'}`}>{line.detail}</span>
-              </span>
-              <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
-            </Link>
-          ))}
-        </section>
+      {/* La prochaine sortie (règle des 5 minutes par mois d’âge), quand ce n’est pas déjà la carte du moment. */}
+      {walkLine && (
+        <Link to={walkLine.to} className="tap grid min-h-14 grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 rounded-[18px] bg-primary-soft px-4 py-3 text-text no-underline">
+          <span className="text-[15px] leading-tight font-extrabold text-primary">{walkLine.when}</span>
+          <span className="flex min-w-0 flex-col">
+            <span className="text-[16px] font-bold">{walkLine.title}</span>
+            <span className="text-[14px] text-[#3F4946]">{walkLine.detail}</span>
+          </span>
+          <ChevronRightIcon size={20} className="shrink-0 text-muted" />
+        </Link>
       )}
 
-      {/* « Noter un souvenir » une seule fois : en bouton discret, sauf si c’est déjà le bouton de la carte (audit R-023). */}
+      <LifeTiles />
+
+      {/* « Noter un souvenir » une seule fois : en bouton contour, sauf si c’est déjà le bouton de la carte (audit R-023). */}
       {content.action?.to !== '/noter' && (
-        <Link to="/noter" className="btn btn-outline min-h-12 self-center gap-2 px-5">
+        <Link to="/noter" className="tap btn btn-outline min-h-12 self-center gap-2 px-5">
           <PlusIcon size={20} />
           Noter un souvenir
         </Link>

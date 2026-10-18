@@ -387,14 +387,24 @@ ul.rules{margin:8px 0 0;padding-left:20px} ul.rules li{margin:4px 0}
 
 <section id="mouvement">
 <h2>Mouvement</h2>
+<p>Règles fixées le 18 oct. 2026 (T-031 à T-033), dans <code>src/index.css</code>.</p>
 <table>
-<tr><th>Animation</th><th>Durée</th><th>Usage</th></tr>
-<tr><td><code>sheet-up</code></td><td>0,22 s ease-out</td><td>Panneau du bas qui monte</td></tr>
-<tr><td><code>fade-in</code></td><td>0,2 s</td><td>Apparition d'un bandeau ou d'un fond</td></tr>
-<tr><td><code>rise</code></td><td>0,9 s</td><td>Écran « C'est réussi ! », passage de niveau</td></tr>
-<tr><td><code>breathe</code></td><td>2,4 s en boucle</td><td>Logo de l'écran d'ouverture, étape en cours</td></tr>
+<tr><th>Règle</th><th>Valeur</th></tr>
+<tr><td>Durées</td><td>150 ms toucher · 250 ms transition · 400 ms apparition · 600 ms arrivée. Jamais plus d'1 s avant de pouvoir agir.</td></tr>
+<tr><td>Courbes</td><td>Sortie douce <code>cubic-bezier(.2,.8,.3,1)</code> (<code>--ease-out</code>) · ressort léger <code>cubic-bezier(.3,1.3,.5,1)</code> (<code>--ease-spring</code>) pour ce qui « pop ».</td></tr>
+<tr><td>Ce qu'on anime</td><td><code>transform</code> et <code>opacity</code> seulement (fluide sur iPhone). Rien ne clignote, rien ne bloque un toucher.</td></tr>
+<tr><td>Réduire les animations</td><td>Tout est coupé, l'état final s'affiche directement. Un élément n'est jamais caché autrement que par son animation.</td></tr>
 </table>
-<p class="note" style="margin-top:10px">Toutes les animations sont coupées si <code>prefers-reduced-motion</code> est activé.</p>
+<table style="margin-top:12px">
+<tr><th>Utilitaire</th><th>Effet</th><th>Usage</th></tr>
+<tr><td><code>tap</code></td><td>Échelle 0,96 au toucher, 150 ms</td><td>Boutons, tuiles, lignes de liste</td></tr>
+<tr><td><code>anim-in</code></td><td>Fondu + montée de 18 px, 400 ms</td><td>Un bloc qui apparaît</td></tr>
+<tr><td><code>anim-stagger</code></td><td>Ses enfants apparaissent l'un après l'autre (80 ms d'écart)</td><td>Arrivée sur l'accueil (une fois par jour)</td></tr>
+<tr><td><code>anim-pop</code></td><td>Petit ressort depuis 0</td><td>Pattes de progression, pastilles</td></tr>
+<tr><td><code>sheet-up</code></td><td>Montée avec ressort léger, fond assombri en fondu</td><td>Panneau du bas</td></tr>
+<tr><td><code>breathe</code></td><td>3,2 s en boucle</td><td>Halo de l'écran d'ouverture</td></tr>
+</table>
+<p class="note" style="margin-top:10px">Transitions d'écran : un écran ouvert glisse depuis la droite (250 ms), le retour le fait repartir ; les onglets passent en fondu ; pas de transition sur l'écran d'ouverture.</p>
 </section>
 
 </div>

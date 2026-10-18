@@ -38,7 +38,7 @@ export default function Billy() {
     <div className="flex flex-col gap-5 px-5">
       <button type="button" onClick={back} className="btn btn-quiet min-h-11 self-start px-2">
         <ChevronLeftIcon size={20} />
-        Aujourd’hui
+        Accueil
       </button>
       <div className="flex flex-col items-center gap-2 text-center">
         <span className="overflow-hidden rounded-full border-4 border-solid border-milestone">

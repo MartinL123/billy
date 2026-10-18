@@ -23,7 +23,7 @@ function SideTab({ to, label, icon, className = '' }: { to: string; label: strin
 }
 
 /**
- * Balades · AUJOURD’HUI · Santé (spec V4 § 1). Aujourd’hui est au centre, en gros : un rond qui dépasse de la barre.
+ * Balades · ACCUEIL · Santé (spec V4 § 1 ; « Accueil » depuis T-031). L’accueil est au centre, en gros : un rond qui dépasse de la barre.
  * Le Carnet, Billy et la Meute restent ouverts depuis les écrans (photo de Billy, Balades), plus depuis la barre.
  */
 function TabBar() {
@@ -31,7 +31,7 @@ function TabBar() {
     <nav aria-label="Navigation principale" className="fixed inset-x-0 bottom-0 z-20 border-t border-divider bg-surface pb-[env(safe-area-inset-bottom)]">
       <div className="mx-auto grid max-w-[430px] grid-cols-3" style={{ height: BAR }}>
         <SideTab to="/territoire" label="Balades" icon={<MapIcon />} />
-        <NavLink to="/" end aria-label="Aujourd’hui" className={({ isActive }) => `relative flex flex-col items-center justify-end gap-1 pb-[14px] text-[13px] no-underline ${isActive ? 'font-bold text-primary' : 'font-semibold text-[#3F4946]'}`}>
+        <NavLink to="/" end aria-label="Accueil" className={({ isActive }) => `relative flex flex-col items-center justify-end gap-1 pb-[14px] text-[13px] no-underline ${isActive ? 'font-bold text-primary' : 'font-semibold text-[#3F4946]'}`}>
           {({ isActive }) => (
             <>
               <span
@@ -41,7 +41,7 @@ function TabBar() {
               >
                 <HomeIcon size={30} />
               </span>
-              <span>Aujourd’hui</span>
+              <span>Accueil</span>
             </>
           )}
         </NavLink>

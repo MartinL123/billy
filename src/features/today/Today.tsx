@@ -4,7 +4,8 @@ import { BoneIcon } from '../../components/BoneIcon'
 import { ChevronRightIcon, PlusIcon } from '../../components/Icons'
 import { setEventDone } from '../../firebase/db'
 import { useData } from '../../firebase/store'
-import { skipQuest } from '../../firebase/training'
+import { completeQuest, skipQuest } from '../../firebase/training'
+import { QUEST_XP } from '../../lib/quest'
 import { balance } from '../../lib/bones'
 import { formatDayHeading, formatLong } from '../../lib/dates'
 import { portion, sortMeals } from '../../lib/feeding'
@@ -48,13 +49,23 @@ function useCardContent(card: NowCard) {
         action: { label: 'Voir ses repas', to: '/sante' },
       }
     case 'mission':
+      // Journée de repos : ni durée ni « Commencer » ; on peut demander une autre idée (audit R-011).
+      if (quest.kind === 'repos')
+        return {
+          badge: 'Journée de repos',
+          title: mission.title,
+          text: mission.detail,
+          scene: undefined,
+          action: canSkip ? { label: 'Une autre idée', run: () => skipQuest(today, skips + 1) } : { label: 'C’est noté, on se repose', run: () => completeQuest(today, { kind: 'repos' }, skips, QUEST_XP) },
+          other: canSkip ? { label: 'Garder le repos', run: () => completeQuest(today, { kind: 'repos' }, skips, QUEST_XP) } : undefined,
+        }
       return {
         badge: `À faire maintenant · ${minutes} min`,
         title: mission.title,
         text: mission.detail,
         scene: quest.planned?.exercise.scene,
         action: { label: 'Commencer', to: '/mission' },
-        other: canSkip ? () => skipQuest(today, skips + 1) : undefined,
+        other: canSkip ? { label: 'Une autre idée', run: () => skipQuest(today, skips + 1) } : undefined,
       }
     case 'sortie':
       return {
@@ -90,7 +101,7 @@ function useCardContent(card: NowCard) {
 export default function Today() {
   const { dog, events, bones, walks } = useData()
   const today = useToday()
-  const { done: missionDone, minutes } = useQuest()
+  const { done: missionDone, minutes, quest } = useQuest()
   const [now, setNow] = useState(nowMinutes)
   useEffect(() => {
     const timer = setInterval(() => setNow(nowMinutes()), 60_000)
@@ -102,7 +113,8 @@ export default function Today() {
     now,
     care: events,
     meals: sortMeals(dog.feeding?.meals ?? []),
-    mission: { done: missionDone, minutes },
+    // Journée de repos : pas de « minutes de mission » à annoncer.
+    mission: { done: missionDone, minutes: quest.kind === 'repos' ? 0 : minutes },
     walks: { times: walkTimes(dog.walkTimes), done: walks.find((w) => w.date === today)?.done ?? {} },
   }
   const card = nowCard(input)
@@ -143,8 +155,8 @@ export default function Today() {
           </button>
         )}
         {content.other && (
-          <button type="button" onClick={content.other} className="btn btn-quiet min-h-11 self-center px-4 text-[15px] text-primary">
-            Une autre idée
+          <button type="button" onClick={content.other.run} className="btn btn-quiet min-h-11 self-center px-4 text-[15px] text-primary">
+            {content.other.label}
           </button>
         )}
       </section>

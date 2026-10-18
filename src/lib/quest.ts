@@ -1,6 +1,6 @@
 import { MAX_LEVEL } from '../content/training'
 import type { ProgressMap } from './bossProgress'
-import { addDays, dayNumber, type ISODate } from './dates'
+import { addDays, dayNumber, diffDays, type ISODate } from './dates'
 import { weekOf } from './rhythm'
 import { exercisesForStep, type PlannedExercise } from './training-plan'
 
@@ -35,6 +35,8 @@ export interface QuestContext {
   rests: ISODate[]
   /** Exercice du défi de la semaine : la quête en propose un autre quand c'est possible. */
   avoidExerciseId?: string
+  /** Premier jour d'utilisation du compte : les 3 premiers jours, jamais de repos imposé (audit R-011). */
+  firstDay?: ISODate
 }
 
 const pick = <T>(items: T[], n: number): T => items[((n % items.length) + items.length) % items.length]!
@@ -44,7 +46,7 @@ const pick = <T>(items: T[], n: number): T => items[((n % items.length) + items.
  * Le lendemain d'un moment « Difficile », c'est toujours une journée de repos.
  * Une compétence de peur se travaille à son étape en cours, au réglage du catalogue : au calme et à distance.
  */
-export function dailyQuest({ today, active, progress, moments, rests, avoidExerciseId }: QuestContext, skips = 0): Quest {
+export function dailyQuest({ today, active, progress, moments, rests, avoidExerciseId, firstDay }: QuestContext, skips = 0): Quest {
   const n = dayNumber(today)
   const rest = (afterHardDay: boolean): Quest => ({ kind: 'repos', idea: pick(REST_IDEAS, n + skips), afterHardDay })
 
@@ -53,7 +55,8 @@ export function dailyQuest({ today, active, progress, moments, rests, avoidExerc
 
   // Un jour de repos par semaine : le dimanche, s'il n'y en a pas déjà eu un.
   const week = weekOf(today)
-  if (skips === 0 && week[6] === today && !rests.some((d) => week.includes(d))) return rest(false)
+  const newAccount = Boolean(firstDay) && diffDays(firstDay!, today) < 3
+  if (skips === 0 && !newAccount && week[6] === today && !rests.some((d) => week.includes(d))) return rest(false)
 
   const level = (id: string) => progress[id]?.level ?? 0
   const mastered = Object.keys(progress).filter((id) => level(id) >= MAX_LEVEL).sort()

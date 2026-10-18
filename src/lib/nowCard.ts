@@ -68,7 +68,7 @@ export function contextLine(input: NowInput, card: NowCard): string {
   const m = input.now % 60
   const hour = `Il est ${h} h${m ? ` ${String(m).padStart(2, '0')}` : ''}.`
   const walk = nextWalk(input)
-  const mission = !input.mission.done && card.kind !== 'soin' && card.kind !== 'repas' ? `${input.mission.minutes} minutes de mission` : ''
+  const mission = !input.mission.done && input.mission.minutes > 0 && card.kind !== 'soin' && card.kind !== 'repas' ? `${input.mission.minutes} minutes de mission` : ''
   if (walk && walk.in > 0) return `${hour} Prochaine sortie à ${formatHour(walk.time)}${mission ? ` : d’ici là, ${mission}.` : '.'}`
   if (mission) return `${hour} Il reste ${mission} aujourd’hui.`
   return card.kind === 'fini' ? `${hour} Tout est fait pour aujourd’hui.` : hour

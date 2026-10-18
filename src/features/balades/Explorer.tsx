@@ -238,7 +238,7 @@ export default function Explorer() {
   return (
     <div className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
-        <ExplorerMap cells={cells} tracks={tracks} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={() => setSelectedId(null)} onBearing={setBearing} north={north} walk={walk} />
+        <ExplorerMap cells={cells} tracks={tracks} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={() => setSelectedId(null)} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} />
       </Suspense>
 
       {/* En haut : la prochaine découverte, puis les réglages de la carte. */}
@@ -277,7 +277,7 @@ export default function Explorer() {
       {/* Panneau du bas, dans la zone du pouce : il suit le doigt et se cale ouvert ou réduit (filtres toujours visibles). */}
       <section
         ref={sheet.ref}
-        aria-label="Le territoire de Billy"
+        aria-label={`Le territoire de ${dog.name}`}
         {...sheet.handlers}
         style={sheet.style}
         className={`absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-[430px] touch-pan-x ${selected || walk ? 'invisible' : ''} flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 pb-9 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]`}

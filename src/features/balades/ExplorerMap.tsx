@@ -31,6 +31,8 @@ interface Props {
   onBearing?: (bearing: number) => void
   /** Change à chaque toucher sur la boussole : la carte revient face au nord. */
   north?: number
+  /** Le nom du chien du compte (libellés accessibles). */
+  dogName: string
   /** Une balade mise en avant (depuis un souvenir) : son tracé, ses repères, ses photos, le replay. */
   walk?: {
     route: Route
@@ -110,7 +112,7 @@ function drawFog(layout: FogLayout, color: string, opacity: number): HTMLCanvasE
  * La carte qui se découvre : le brouillard (un seul polygone troué, bords adoucis), les trajets en pointillés,
  * les lieux à découvrir. Plan ou satellite, 2D ou 3D.
  */
-export function ExplorerMap({ cells, tracks, places, satellite, three, center, focus, onPlace, onMapTap, onBearing, north, walk }: Props) {
+export function ExplorerMap({ cells, tracks, places, satellite, three, center, focus, onPlace, onMapTap, onBearing, north, walk, dogName }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const markers = useRef<Marker[]>([])
@@ -170,7 +172,7 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
   useEffect(() => {
     const m = map.current
     if (!m || !replaying || !walkRoute) return
-    const stop = replayWalk(m, walkRoute, () => handlers.current.walk?.onReplayEnd())
+    const stop = replayWalk(m, walkRoute, dogName, () => handlers.current.walk?.onReplayEnd())
     return stop
   }, [replaying]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -258,7 +260,7 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
 
   return (
     <div className="absolute inset-0 isolate">
-      <div ref={host} role="application" aria-label="Carte du territoire de Billy" className="size-full" />
+      <div ref={host} role="application" aria-label={`Carte du territoire de ${dogName}`} className="size-full" />
     </div>
   )
 }

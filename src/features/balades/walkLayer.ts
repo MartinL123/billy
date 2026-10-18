@@ -58,7 +58,7 @@ export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPh
  * Un toucher sur la carte arrête ; si l'iPhone réduit les animations, on montre simplement tout le trajet.
  * Renvoie la fonction qui arrête.
  */
-export function replayWalk(m: MapLibreMap, route: Route, onEnd: () => void): () => void {
+export function replayWalk(m: MapLibreMap, route: Route, dogName: string, onEnd: () => void): () => void {
   const points = route.points
   const done = () => {
     fitPoints(m, points, WALK_PADDING, true, { pitch: 0, bearing: 0 })
@@ -72,7 +72,7 @@ export function replayWalk(m: MapLibreMap, route: Route, onEnd: () => void): () 
   const total = cum[cum.length - 1]!
   const lookAhead = Math.max(30, total * 0.04)
   let heading = bearing(points[0]!, pointAlong(points, cum, lookAhead))
-  const runner = addMarker(m, points[0]!, dot('#F2B544', 20, 'Billy'))
+  const runner = addMarker(m, points[0]!, dot('#F2B544', 20, dogName))
   let frame = 0
   let stopped = false
   const stop = () => {

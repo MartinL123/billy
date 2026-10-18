@@ -233,20 +233,18 @@ export default function Explorer() {
   const walkPhotos = useMemo(() => (walkEntry?.photos ?? []).flatMap((p, index) => (p.lat !== undefined && p.lng !== undefined ? [{ index, thumbFileId: p.thumbFileId, lat: p.lat, lng: p.lng }] : [])), [walkEntry?.photos])
   const [replaying, setReplaying] = useState(false)
   const [placing, setPlacing] = useState<{ lat: number; lng: number } | null>(null)
-  const [missed, setMissed] = useState(false)
   const saveMoments = (moments: Route['moments']) => walkEntry && walkRoute && updateEntryRoute(walkEntry.id, storeRoute({ ...walkRoute, moments }))
   const walk =
     walkEntry && walkRoute
       ? {
+          id: walkEntry.id,
           route: walkRoute,
           photos: walkPhotos,
           replaying,
           onReplayEnd: () => setReplaying(false),
-          onTapRoute: (at: { lat: number; lng: number }) => {
-            setMissed(false)
-            setPlacing(at)
-          },
-          onMissRoute: () => setMissed(true),
+          onTapRoute: (at: { lat: number; lng: number }) => setPlacing(at),
+          // Une petite fenêtre de lieu ouverte : le toucher la referme seulement.
+          onLeave: () => !selectedId && closeWalk(),
           onPhoto: () => navigate(`/souvenir/${walkEntry.id}`),
           color: colors.get(walkEntry.id),
         }
@@ -417,7 +415,7 @@ export default function Explorer() {
           )}
         </div>
       </section>
-      {walk && walkEntry && !selected && <WalkPanel entryId={walkEntry.id} name={walks.find((w) => w.id === walkEntry.id)?.name ?? 'La balade'} date={walkEntry.date} route={walk.route} color={walk.color} replaying={replaying} missed={missed} onReplay={() => setReplaying(!replaying)} onClose={closeWalk} />}
+      {walk && walkEntry && !selected && <WalkPanel entryId={walkEntry.id} name={walks.find((w) => w.id === walkEntry.id)?.name ?? 'La balade'} date={walkEntry.date} route={walk.route} color={walk.color} replaying={replaying} onReplay={() => setReplaying(!replaying)} onClose={closeWalk} />}
       {placing && walkRoute && (
         <PlaceMoment
           at={placing}

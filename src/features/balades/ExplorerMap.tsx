@@ -55,13 +55,15 @@ interface Props {
   dogName: string
   /** Une balade mise en avant (depuis un souvenir) : son tracé, ses repères, ses photos, le replay. */
   walk?: {
+    id: string
     route: Route
     photos: WalkPhoto[]
     replaying: boolean
     onReplayEnd: () => void
     /** Toucher le tracé (ou tout près) : y ajouter un repère. */
     onTapRoute: (at: { lat: number; lng: number }) => void
-    onMissRoute: () => void
+    /** Toucher ailleurs (ni le tracé, ni une autre balade) : revenir à toutes les balades. */
+    onLeave: () => void
     onPhoto: (index: number) => void
     /** La couleur de la balade sur la carte. */
     color?: string
@@ -221,22 +223,34 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     m.on('mouseleave', 'trajets', () => {
       m.getCanvas().style.cursor = ''
     })
+    // Un toucher pendant « Revoir la balade » ne fait qu’arrêter le replay : noté au moment où le doigt se pose.
+    let stoppingReplay = false
+    const press = () => {
+      stoppingReplay = Boolean(handlers.current.walk?.replaying)
+    }
+    m.on('mousedown', press)
+    m.on('touchstart', press)
+    // Le tracé d’une balade touché (ou tout près), hors celle déjà mise en avant.
+    const walkAt = ({ x, y }: { x: number; y: number }, except?: string) =>
+      m.getLayer('trajets')
+        ? (m.queryRenderedFeatures([[x - TAP_PX, y - TAP_PX], [x + TAP_PX, y + TAP_PX]], { layers: ['trajets'] }).map((f) => f.properties?.id as string | undefined).find((id) => id && id !== except))
+        : undefined
     m.on('click', (e) => {
       if (onMarker(e.originalEvent)) return
       const w = handlers.current.walk
+      handlers.current.onMapTap?.()
+      if (stoppingReplay) return
+      const id = walkAt(e.point, w?.id)
       if (!w) {
-        // Un tracé touché (ou tout près) : cette balade passe au premier plan.
-        const { x, y } = e.point
-        const hit = m.getLayer('trajets') ? m.queryRenderedFeatures([[x - TAP_PX, y - TAP_PX], [x + TAP_PX, y + TAP_PX]], { layers: ['trajets'] })[0] : undefined
-        const id = hit?.properties?.id as string | undefined
-        if (id && handlers.current.onWalk) return handlers.current.onWalk(id)
-        handlers.current.onMapTap?.()
+        // Un tracé touché : cette balade passe au premier plan.
+        if (id) handlers.current.onWalk?.(id)
         return
       }
-      handlers.current.onMapTap?.()
+      // Balade mise en avant : son tracé reçoit un repère, une autre balade prend sa place, ailleurs on en sort.
       const at = { lat: e.lngLat.lat, lng: e.lngLat.lng }
       if (distanceToRoute(at, w.route.points) <= NEAR_ROUTE) w.onTapRoute(at)
-      else w.onMissRoute()
+      else if (id) handlers.current.onWalk?.(id)
+      else w.onLeave()
     })
     return () => {
       window.clearTimeout(late)

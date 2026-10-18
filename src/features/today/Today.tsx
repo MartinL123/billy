@@ -81,7 +81,9 @@ function useCardContent(card: NowCard) {
           text: `${when}. Il faut un rendez-vous chez le véto.`,
           scene: undefined,
           action: callVet,
-          other: { label: 'J’ai pris rendez-vous', to: `/evenement/nouveau?type=veto&date=${card.event.date && card.event.date > today ? card.event.date : today}` } as Action,
+          // Le RDV demande sa date (audit R-029) ; « C’est fait » si le vaccin vient d’être fait.
+          other: { label: 'J’ai pris rendez-vous', to: '/evenement/nouveau?type=veto&date=' } as Action,
+          third: { label: 'C’est déjà fait', run: done } as Action,
         }
       }
       return {
@@ -123,8 +125,8 @@ function useCardContent(card: NowCard) {
     case 'sortie':
       return {
         badge: `Sortie de ${formatHour(card.time)}`,
-        title: `La sortie de ${formatHour(card.time)}`,
-        text: 'Une vraie sortie, même 15 minutes. Elle se cochera toute seule avec votre balade Strava.',
+        title: 'Une vraie sortie, même 15 minutes',
+        text: 'Elle se cochera toute seule avec votre balade Strava.',
         scene: undefined,
         // Pas de bouton : la balade arrive avec l’import Strava, rien à faire d’ici (pas d’export depuis l’iPhone).
         action: undefined,
@@ -187,7 +189,7 @@ export default function Today() {
             <span className="text-[15px] font-medium text-muted">{formatDayHeading(today)}</span>
             <span className="flex min-w-0 items-center gap-2">
               <span className="truncate font-display text-[24px] leading-tight font-extrabold">{dog.name}</span>
-              <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-0.5 text-[15px] font-bold text-primary-dark">Son chemin ›</span>
+              <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-0.5 text-[15px] font-bold text-primary-dark">Ses progrès ›</span>
             </span>
           </span>
         </Link>
@@ -206,6 +208,7 @@ export default function Today() {
         <p className="line-clamp-2 text-[17px] leading-snug text-[#3F4946]">{content.text}</p>
         {content.action && <CardButton action={content.action} main />}
         {content.other && <CardButton action={content.other} />}
+        {content.third && <CardButton action={content.third} />}
       </section>
 
       {next.length > 0 && (
@@ -216,10 +219,10 @@ export default function Today() {
           {next.map((line, i) => (
             // Colonne de gauche fixe : le libellé passe à la ligne au lieu de chevaucher le titre (audit R-003).
             <Link key={line.key} to={line.to} className={`grid min-h-14 grid-cols-[84px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 text-text no-underline ${i ? 'border-t border-divider' : ''}`}>
-              <span className={`text-[15px] leading-tight font-bold break-words ${line.when === 'En retard' ? 'text-danger' : 'text-primary'}`}>{line.when}</span>
+              <span className={`text-[15px] leading-tight font-bold break-words ${line.late ? 'text-danger' : 'text-primary'}`}>{line.when}</span>
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-[17px] font-semibold">{line.title}</span>
-                <span className={`text-[15px] ${line.when === 'En retard' ? 'font-semibold text-danger' : 'text-muted'}`}>{line.detail}</span>
+                <span className={`text-[15px] ${line.late ? 'font-semibold text-danger' : 'text-muted'}`}>{line.detail}</span>
               </span>
               <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
             </Link>

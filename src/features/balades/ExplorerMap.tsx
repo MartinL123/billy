@@ -59,7 +59,8 @@ interface Props {
   }
 }
 
-const FOG = { plan: { color: '#22332F', opacity: 0.86 }, satellite: { color: '#FFFFFF', opacity: 0.72 } }
+// Un brouillard bien opaque : la découverte se voit (T-014).
+const FOG = { plan: { color: '#22332F', opacity: 0.94 }, satellite: { color: '#FFFFFF', opacity: 0.86 } }
 /** Les marges de la carte : les boutons du haut et le panneau du bas en couvrent une partie. */
 const FRAME = { top: 130, bottom: 460, left: 40, right: 40 }
 /** Rayon de toucher autour d’un tracé, en pixels : un doigt n’est pas une souris. */

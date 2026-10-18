@@ -1,0 +1,14 @@
+import { describe, expect, it } from 'vitest'
+import { weighingDue } from './weighing'
+
+describe('rappel de pesée mensuel (T-013)', () => {
+  it('propose une pesée un mois après la dernière, tant que le chien grandit', () => {
+    expect(weighingDue({ today: '2026-10-18', birthDate: '2026-05-13', lastWeighed: '2026-09-21' })).toBe(false)
+    expect(weighingDue({ today: '2026-10-21', birthDate: '2026-05-13', lastWeighed: '2026-09-21' })).toBe(true)
+    expect(weighingDue({ today: '2026-10-18', birthDate: '2026-05-13' })).toBe(true)
+  })
+  it('se tait pour un chien adulte ou d’âge inconnu', () => {
+    expect(weighingDue({ today: '2026-10-18', birthDate: '2024-01-01' })).toBe(false)
+    expect(weighingDue({ today: '2026-10-18', birthDate: '' })).toBe(false)
+  })
+})

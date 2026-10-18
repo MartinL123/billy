@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { outlineButton } from '../../components/Form'
 import { ChevronRightIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
@@ -14,7 +15,9 @@ import { formatKg, WeightSheet } from './WeightSheet'
 export default function HealthWeight() {
   const { weights } = useData()
   const today = useToday()
-  const [weightSheet, setWeightSheet] = useState<{ editing?: WithId<Weight> } | null>(null)
+  // Depuis la carte « Pesée du mois » (?ajouter=1) : la pesée s’ouvre tout de suite (T-013).
+  const [params] = useSearchParams()
+  const [weightSheet, setWeightSheet] = useState<{ editing?: WithId<Weight> } | null>(() => (params.get('ajouter') ? {} : null))
   const lastWeight = weights[0]
   const year = parseISO(today).y
   return (

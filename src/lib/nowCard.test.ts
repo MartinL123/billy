@@ -70,3 +70,13 @@ describe('soin chez le véto', () => {
     expect(nowCard(input)).toEqual({ kind: 'soin', event: input.care[0] })
   })
 })
+
+describe('pesée du mois (T-013)', () => {
+  it('passe après la mission, avant la sortie', async () => {
+    const { nowCard } = await import('./nowCard')
+    const input = { today: '2026-10-21', now: 15 * 60, care: [], meals: [], mission: { done: true, minutes: 5 }, walks: { times: { matin: '08:00', midi: '13:00', soir: '19:00' }, done: {} }, weighing: { due: true, last: '2026-09-21' } }
+    expect(nowCard(input as never)).toEqual({ kind: 'pesee', last: '2026-09-21' })
+    expect(nowCard({ ...input, mission: { done: false, minutes: 5 } } as never).kind).toBe('mission')
+    expect(nowCard({ ...input, weighing: { due: false } } as never).kind).toBe('sortie')
+  })
+})

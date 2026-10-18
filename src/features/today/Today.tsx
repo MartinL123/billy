@@ -21,6 +21,17 @@ import { InstallBanner, installBannerVisible, PasswordPrompt } from '../account/
 import { DogPhoto } from '../shop/DogPhoto'
 import { Illustration } from '../training/Illustration'
 import { useQuest } from './useQuest'
+import { weighingDue } from '../../lib/weighing'
+
+// « Plus tard » sur la pesée : on n’en reparle pas avant demain (choix gardé sur cet appareil).
+const WEIGH_LATER_KEY = 'billy-pesee-plus-tard'
+const readWeighLater = () => {
+  try {
+    return localStorage.getItem(WEIGH_LATER_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
 
 const nowMinutes = () => {
   const d = new Date()
@@ -53,7 +64,7 @@ function CardButton({ action, main }: { action: Action; main?: boolean }) {
 }
 
 /** Ce que montre la carte « À faire maintenant » : une phrase, deux lignes, un seul bouton. */
-function useCardContent(card: NowCard) {
+function useCardContent(card: NowCard, onWeighLater: () => void) {
   const { dog, events, entries } = useData()
   const { quest, mission, minutes, canSkip, skips } = useQuest()
   const today = useToday()
@@ -131,6 +142,15 @@ function useCardContent(card: NowCard) {
         // Pas de bouton : la balade arrive avec l’import Strava, rien à faire d’ici (pas d’export depuis l’iPhone).
         action: undefined,
       }
+    case 'pesee':
+      return {
+        badge: 'Pesée du mois',
+        title: `Peser ${dog.name}`,
+        text: `${card.last ? `Dernière pesée le ${formatLong(card.last)}.` : 'Aucune pesée notée.'} Il grandit : une pesée par mois suffit.`,
+        scene: undefined,
+        action: { label: 'Noter son poids', to: '/sante/poids?ajouter=1' },
+        other: { label: 'Plus tard', run: onWeighLater },
+      }
     case 'soir':
       return {
         badge: 'Aujourd’hui',
@@ -154,8 +174,17 @@ function useCardContent(card: NowCard) {
 
 /** Aujourd’hui (spec V4 § 2) : on comprend en 10 secondes quoi faire. Une carte, un bouton plein. */
 export default function Today() {
-  const { dog, events, bones, walks } = useData()
+  const { dog, events, bones, walks, weights } = useData()
   const today = useToday()
+  const [weighLater, setWeighLater] = useState(readWeighLater)
+  const postponeWeighing = () => {
+    try {
+      localStorage.setItem(WEIGH_LATER_KEY, today)
+    } catch {
+      // Stockage indisponible : « plus tard » vaut jusqu’à la prochaine ouverture.
+    }
+    setWeighLater(today)
+  }
   const { done: missionDone, minutes, quest } = useQuest()
   const [now, setNow] = useState(nowMinutes)
   useEffect(() => {
@@ -171,9 +200,10 @@ export default function Today() {
     // Journée de repos : pas de « minutes de mission » à annoncer.
     mission: { done: missionDone, minutes: quest.kind === 'repos' ? 0 : minutes },
     walks: { times: walkTimes(dog.walkTimes), done: walks.find((w) => w.date === today)?.done ?? {} },
+    weighing: { due: weighLater !== today && weighingDue({ today, birthDate: dog.birthDate, lastWeighed: weights[0]?.date }), ...(weights[0] ? { last: weights[0].date } : {}) },
   }
   const card = nowCard(input)
-  const content = useCardContent(card)
+  const content = useCardContent(card, postponeWeighing)
   const next = nextLines(input, card)
   const questionnaire = questionnaireStatus(dog.questionnaire)
 

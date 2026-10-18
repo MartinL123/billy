@@ -27,12 +27,16 @@ export interface NowInput {
   meals: { time: string; label?: string }[]
   mission: { done: boolean; minutes: number }
   walks: { times: WalkTimes; done: Partial<Record<WalkSlot, string>> }
+  /** Pesée du mois à proposer (T-013), avec la date de la dernière pesée. */
+  weighing?: { due: boolean; last?: ISODate }
 }
 
 export type NowCard =
   | { kind: 'soin'; event: CareLike }
   | { kind: 'repas'; time: string; label?: string }
   | { kind: 'mission' }
+  /** La pesée du mois, tant que le chien grandit (T-013). */
+  | { kind: 'pesee'; last?: ISODate }
   | { kind: 'sortie'; slot: WalkSlot; time: string }
   | { kind: 'fini' }
   /** La mission est faite, plus de sortie à venir, mais toutes n’ont pas été faites. */
@@ -58,6 +62,8 @@ export function nowCard(input: NowInput): NowCard {
   })
   if (meal) return { kind: 'repas', time: meal.time, ...(meal.label ? { label: meal.label } : {}) }
   if (!input.mission.done) return { kind: 'mission' }
+  // La mission faite : la pesée du mois passe avant la prochaine sortie (T-013).
+  if (input.weighing?.due) return { kind: 'pesee', ...(input.weighing.last ? { last: input.weighing.last } : {}) }
   // « Tout est fait » seulement si la mission et les sorties du jour sont faites (audit R-012).
   const walk = nextWalk(input)
   if (walk) return { kind: 'sortie', slot: walk.slot, time: walk.time }

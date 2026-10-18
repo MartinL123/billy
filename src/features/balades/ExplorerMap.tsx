@@ -106,7 +106,26 @@ function drawFog(layout: FogLayout, color: string, opacity: number): HTMLCanvasE
     ctx.fillStyle = g
     ctx.fillRect(x - r, y - r, r * 2, r * 2)
   }
+  // Le bord de l'image (1 pixel) reste transparent : l'aplat du reste du monde passe dessous, sans trou ni double voile
+  // à la jonction (audit R-016).
+  ctx.globalCompositeOperation = 'destination-out'
+  ctx.fillStyle = '#000'
+  ctx.fillRect(0, 0, layout.width, EDGE)
+  ctx.fillRect(0, layout.height - EDGE, layout.width, EDGE)
+  ctx.fillRect(0, 0, EDGE, layout.height)
+  ctx.fillRect(layout.width - EDGE, 0, EDGE, layout.height)
   return canvas
+}
+
+/** Largeur du bord de l'image recouvert par l'aplat, en pixels d'image. */
+const EDGE = 1
+
+/** Le trou de l'aplat : le rectangle de l'image, rentré du bord transparent. */
+function innerBox(layout: FogLayout): [number, number, number, number] {
+  const [s, w, n, e] = layout.bbox
+  const dLat = ((n - s) / layout.height) * EDGE
+  const dLng = ((e - w) / layout.width) * EDGE
+  return [s + dLat, w + dLng, n - dLat, e - dLng]
 }
 
 /**
@@ -214,7 +233,7 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
         [-180, 85],
         [-180, -85],
       ]
-      const rings = layout ? [world, rectangle(layout.bbox)] : [world]
+      const rings = layout ? [world, rectangle(innerBox(layout))] : [world]
       m.addSource('brouillard', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: rings } } })
       m.addLayer({ id: 'brouillard', type: 'fill', source: 'brouillard', paint: { 'fill-color': FOG[mode].color, 'fill-opacity': FOG[mode].opacity, 'fill-antialias': false } })
       if (layout) {

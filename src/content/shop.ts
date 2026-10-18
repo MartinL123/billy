@@ -3,11 +3,12 @@
 
 export type ShopCategory = 'accessoire' | 'cadre' | 'fond' | 'sticker' | 'couleur'
 
-export const SHOP_CATEGORIES: { id: ShopCategory; label: string; /** Champ de `dog.cosmetics`. */ slot: 'accessory' | 'frame' | 'background' | 'sticker' | 'theme' }[] = [
+export const SHOP_CATEGORIES: { id: ShopCategory; label: string; /** Plus proposée dans la boutique. */ hidden?: boolean; /** Champ de `dog.cosmetics`. */ slot: 'accessory' | 'frame' | 'background' | 'sticker' | 'theme' }[] = [
   { id: 'accessoire', label: 'Accessoires', slot: 'accessory' },
   { id: 'cadre', label: 'Cadres photo', slot: 'frame' },
   { id: 'fond', label: 'Fonds de l’arbre', slot: 'background' },
-  { id: 'sticker', label: 'Stickers du Carnet', slot: 'sticker' },
+  // Les stickers s'affichaient dans le Carnet, retiré : la catégorie n'est plus proposée (les achats restent).
+  { id: 'sticker', label: 'Stickers', slot: 'sticker', hidden: true },
   { id: 'couleur', label: 'Couleurs de l’app', slot: 'theme' },
 ]
 

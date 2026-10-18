@@ -72,7 +72,7 @@ export default function Shop() {
         </section>
 
         <div role="group" aria-label="Catégories" className="scroll-row -mx-5 flex gap-2 px-5 pb-1">
-          {SHOP_CATEGORIES.map((c) => (
+          {SHOP_CATEGORIES.filter((c) => !c.hidden).map((c) => (
             <button
               key={c.id}
               type="button"

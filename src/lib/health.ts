@@ -28,6 +28,10 @@ export function careStatus<T extends CareEvent>(events: T[], type: EventType): C
   return { last, next }
 }
 
+/** Le prochain rendez-vous chez le véto pas encore passé (aujourd’hui compris). */
+export const nextVetVisit = <T extends { type: string; date: ISODate | ''; done: boolean }>(events: T[], today: ISODate): T | undefined =>
+  events.filter((e) => e.type === 'veto' && !e.done && e.date && e.date >= today).sort((a, b) => a.date.localeCompare(b.date))[0]
+
 /** Le jour du dernier soin fait d’un type (vide si aucun). */
 export const lastDone = <T extends CareEvent>(events: T[], type: EventType): ISODate | '' => {
   const last = careStatus(events, type).last

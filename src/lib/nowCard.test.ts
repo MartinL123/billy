@@ -62,3 +62,10 @@ describe('« Tout est fait » (audit R-012)', () => {
     expect(nowCard(morning)).toEqual({ kind: 'sortie', slot: 'midi', time: '13:00' })
   })
 })
+
+describe('soin chez le véto', () => {
+  it('un vaccin dû passe sur la carte du moment', () => {
+    const input = { ...base, care: [{ id: 'v', title: 'Vaccin', type: 'vaccin', date: '2026-10-10', done: false }] }
+    expect(nowCard(input)).toEqual({ kind: 'soin', event: input.care[0] })
+  })
+})

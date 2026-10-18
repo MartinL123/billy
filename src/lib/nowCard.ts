@@ -7,6 +7,9 @@ import { formatHour, timeToMinutes, walkName, WALK_SLOTS, type WalkSlot, type Wa
 
 /** Soins qui se font à la maison, à heure fixe : ils passent avant tout le reste le jour où ils sont dus. */
 const HOME_CARE = ['antiparasitaire', 'vermifuge', 'medicament', 'médicament']
+/** Soins qui demandent le véto : la carte propose le rendez-vous (ou de l'appeler) le jour où ils sont dus. */
+const VET_CARE = ['vaccin']
+export const needsVet = (type: string) => VET_CARE.includes(type.toLowerCase())
 
 export interface CareLike {
   id: string
@@ -36,7 +39,7 @@ export type NowCard =
   | { kind: 'soir'; done: number }
 
 const dueCare = (care: CareLike[], today: ISODate) =>
-  care.filter((e) => !e.done && e.date && e.date <= today && HOME_CARE.includes(e.type.toLowerCase())).sort((a, b) => a.date.localeCompare(b.date))
+  care.filter((e) => !e.done && e.date && e.date <= today && (HOME_CARE.includes(e.type.toLowerCase()) || needsVet(e.type))).sort((a, b) => a.date.localeCompare(b.date))
 
 /** Prochaine sortie pas encore faite, dont l’heure n’est pas passée depuis plus d’une heure. */
 function nextWalk(input: NowInput): { slot: WalkSlot; time: string; in: number } | undefined {

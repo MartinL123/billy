@@ -9,11 +9,12 @@ import { QUEST_XP } from '../../lib/quest'
 import { balance } from '../../lib/bones'
 import { formatDayHeading, formatLong } from '../../lib/dates'
 import { portion, sortMeals } from '../../lib/feeding'
-import { contextLine, nextLines, nowCard, type NowCard, type NowInput } from '../../lib/nowCard'
+import { contextLine, nextLines, nowCard, type NowCard, type NowInput, needsVet } from '../../lib/nowCard'
 import { questionnaireStatus } from '../../lib/questionnaire'
 import { formatRouteDistance } from '../../lib/route'
 import { useToday } from '../../lib/useToday'
 import { lateLabel } from '../../lib/events'
+import { nextVetVisit } from '../../lib/health'
 import { walkItems } from '../../lib/walkList'
 import { formatHour, walkTimes } from '../../lib/walks'
 import { InstallBanner, PasswordPrompt } from '../account/HomeNotices'
@@ -26,20 +27,72 @@ const nowMinutes = () => {
   return d.getHours() * 60 + d.getMinutes()
 }
 
+/** Un bouton de la carte : un écran de l’app, un lien (téléphone) ou une action. */
+type Action = { label: string; to?: string; href?: string; run?: () => void }
+
+/** Le bouton plein (principal) ou discret de la carte. */
+function CardButton({ action, main }: { action: Action; main?: boolean }) {
+  const cls = main ? 'btn btn-main min-h-[56px]' : 'btn btn-quiet min-h-11 self-center px-4 text-[15px] text-primary'
+  if (action.to)
+    return (
+      <Link to={action.to} className={cls}>
+        {action.label}
+      </Link>
+    )
+  if (action.href)
+    return (
+      <a href={action.href} className={cls}>
+        {action.label}
+      </a>
+    )
+  return (
+    <button type="button" onClick={action.run} className={cls}>
+      {action.label}
+    </button>
+  )
+}
+
 /** Ce que montre la carte « À faire maintenant » : une phrase, deux lignes, un seul bouton. */
 function useCardContent(card: NowCard) {
   const { dog, events, entries } = useData()
   const { quest, mission, minutes, canSkip, skips } = useQuest()
   const today = useToday()
   switch (card.kind) {
-    case 'soin':
+    case 'soin': {
+      const when = card.event.date && card.event.date < today ? lateLabel(card.event.date, today) : 'C’est le jour'
+      const phone = dog.vet?.phone.replace(/[^\d+]/g, '')
+      const callVet: Action = phone ? { label: 'Appeler le véto', href: `tel:${phone}` } : { label: 'Ajouter le numéro du véto', to: '/profil/modifier' }
+      const done = () => setEventDone(events.find((e) => e.id === card.event.id)!, true)
+      // Un vaccin se fait chez le véto : le rendez-vous, ou l’appeler pour en prendre un.
+      if (needsVet(card.event.type)) {
+        const visit = nextVetVisit(events, today)
+        if (visit)
+          return {
+            badge: 'À faire maintenant',
+            title: card.event.title,
+            text: `${when}. Rendez-vous chez le véto le ${formatLong(visit.date)}${visit.time ? ` à ${formatHour(visit.time)}` : ''}.`,
+            scene: undefined,
+            action: { label: 'Voir le rendez-vous', to: `/evenement/${visit.id}` } as Action,
+            other: { label: 'C’est fait', run: done } as Action,
+          }
+        return {
+          badge: 'À faire maintenant',
+          title: card.event.title,
+          text: `${when}. Il faut un rendez-vous chez le véto.`,
+          scene: undefined,
+          action: callVet,
+          other: { label: 'J’ai pris rendez-vous', to: `/evenement/nouveau?type=veto&date=${card.event.date && card.event.date > today ? card.event.date : today}` } as Action,
+        }
+      }
       return {
         badge: 'À faire maintenant',
         title: card.event.title,
-        text: `${card.event.date && card.event.date < today ? lateLabel(card.event.date, today) : 'C’est le jour'} : une minute, puis c’est noté dans Santé.`,
+        text: `${when} : une minute, puis c’est noté dans Santé.`,
         scene: undefined,
-        action: { label: 'C’est fait', run: () => setEventDone(events.find((e) => e.id === card.event.id)!, true) },
+        action: { label: 'C’est fait', run: done } as Action,
+        other: { label: 'Plus de produit ? Appeler le véto', ...(phone ? { href: `tel:${phone}` } : { to: '/profil/modifier' }) } as Action,
       }
+    }
     case 'repas':
       return {
         badge: `Repas de ${formatHour(card.time)}`,
@@ -145,20 +198,8 @@ export default function Today() {
         {content.scene && <Illustration scene={content.scene} className="h-[130px] bg-bg" />}
         <h1 className="font-display text-[26px] leading-tight font-extrabold">{content.title}</h1>
         <p className="line-clamp-2 text-[17px] leading-snug text-[#3F4946]">{content.text}</p>
-        {!content.action ? null : 'to' in content.action ? (
-          <Link to={content.action.to!} className="btn btn-main min-h-[56px]">
-            {content.action.label}
-          </Link>
-        ) : (
-          <button type="button" onClick={content.action.run} className="btn btn-main min-h-[56px]">
-            {content.action.label}
-          </button>
-        )}
-        {content.other && (
-          <button type="button" onClick={content.other.run} className="btn btn-quiet min-h-11 self-center px-4 text-[15px] text-primary">
-            {content.other.label}
-          </button>
-        )}
+        {content.action && <CardButton action={content.action} main />}
+        {content.other && <CardButton action={content.other} />}
       </section>
 
       {next.length > 0 && (

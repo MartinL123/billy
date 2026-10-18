@@ -14,6 +14,7 @@ import { isValidISO } from '../../lib/dates'
 import { sortMeals, type Meal } from '../../lib/feeding'
 import { nextTrainerSession, STERILISATION_PLANNED, sterilisationReminder, trainerSession } from '../../lib/events'
 import { lastDone } from '../../lib/health'
+import { agree, forSex } from '../../lib/gender'
 import { compressImage, PHOTO } from '../../lib/image'
 import {
   deriveTraits,
@@ -256,7 +257,9 @@ export default function Questionnaire() {
     go(index + 1)
   }
 
-  const title = step.title.replace('{nom}', draft.nom || (dog.unnamed ? 'votre chien' : dog.name))
+  // Accordé au féminin dès que « Femelle » est répondu (audit R-006) ; avant, les questions restent neutres.
+  const g = (text: string) => forSex(text, draft.sexe)
+  const title = g(step.title.replace('{nom}', draft.nom || (dog.unnamed ? 'votre chien' : dog.name)))
   const skill = SKILLS.find((s) => s.id === step.id)
   const choices = (draft[step.id] ?? '').split('|').filter(Boolean)
 
@@ -298,7 +301,7 @@ export default function Questionnaire() {
         {step.kind !== 'fin' && step.kind !== 'skill' && (
           <div className="flex flex-col gap-2">
             <h1 className="font-display text-[28px] leading-tight font-bold">{title}</h1>
-            {step.help && <p className="text-[17px] leading-snug text-muted">{step.help}</p>}
+            {step.help && <p className="text-[17px] leading-snug text-muted">{g(step.help)}</p>}
           </div>
         )}
 
@@ -329,7 +332,7 @@ export default function Questionnaire() {
               return (
                 <button key={value} type="button" role="radio" aria-checked={on} onClick={() => set(step.id, on ? '' : value)} className={option(on)}>
                   <Tick on={on} />
-                  <span className="text-[19px] font-bold">{text}</span>
+                  <span className="text-[19px] font-bold">{g(text)}</span>
                 </button>
               )
             })}
@@ -352,7 +355,7 @@ export default function Questionnaire() {
               return (
                 <button key={value} type="button" role="checkbox" aria-checked={on} onClick={() => set(step.id, (on ? choices.filter((c) => c !== value) : [...choices, value]).join('|'))} className={`${option(on)} gap-2.5 px-3`}>
                   <Tick on={on} />
-                  <span className="text-[17px] leading-tight font-bold">{text}</span>
+                  <span className="text-[17px] leading-tight font-bold">{g(text)}</span>
                 </button>
               )
             })}
@@ -448,7 +451,7 @@ export default function Questionnaire() {
               <legend className="px-1 text-[17px] font-bold">Ajouter une phrase</legend>
               <label className="flex flex-col gap-2">
                 <span className={label}>Quand…</span>
-                <input value={situation} onChange={(e) => setSituation(e.target.value)} placeholder="il croise un vélo" autoComplete="off" className={input} />
+                <input value={situation} onChange={(e) => setSituation(e.target.value)} placeholder={g('il croise un vélo')} autoComplete="off" className={input} />
               </label>
               <div className="flex flex-wrap gap-2">
                 {SITUATIONS.filter((s) => !reactions.some((r) => r.situation === s.text)).map((s) => (
@@ -459,10 +462,10 @@ export default function Questionnaire() {
               </div>
               {situation.trim() && (
                 <div className="flex flex-col gap-2">
-                  <span className={label}>…il est</span>
+                  <span className={label}>{g('…il est')}</span>
                   {REACTION_LEVELS.map(({ value, label: text }) => (
                     <button key={value} type="button" onClick={() => addReaction(value)} className="btn btn-outline">
-                      {text}
+                      {g(text.split(' ').map((w) => agree(w, draft.sexe)).join(' '))}
                     </button>
                   ))}
                 </div>

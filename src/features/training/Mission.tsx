@@ -10,6 +10,7 @@ import { neededTreats } from '../../lib/training-plan'
 import { Face } from '../journal/Face'
 import { useQuest } from '../today/useQuest'
 import { Illustration } from './Illustration'
+import { place } from '../../lib/garden'
 
 /** Minuteur d'une étape : il part tout seul et appelle `onEnd` à la fin. */
 function useCountdown(seconds: number | undefined, onEnd: () => void) {
@@ -109,7 +110,7 @@ export default function Mission() {
         <Sheet label="En savoir plus" onClose={() => setMore(false)}>
           <h2 className="mt-1 font-display text-[22px] font-extrabold">Bon à savoir</h2>
           {exercise.caution && <p className="text-[17px] leading-snug font-semibold">{exercise.caution}</p>}
-          <p className="text-[17px] leading-snug">S’il ne mange plus, il est trop stressé : arrêtez et revenez plus facile la prochaine fois.</p>
+          <p className="text-[17px] leading-snug">{place('S’il ne mange plus, il est trop stressé : arrêtez et revenez plus facile la prochaine fois.')}</p>
           <p className="text-[15px] text-muted">
             Source :{' '}
             {exercise.source.url ? (

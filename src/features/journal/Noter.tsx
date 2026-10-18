@@ -23,6 +23,7 @@ import { StepSuccess } from '../training/Celebration'
 import { takeDraftPhotos } from './draft'
 import { Face } from './Face'
 import { errorText } from '../../firebase/errors'
+import { place } from '../../lib/garden'
 
 const MAX_PHOTOS = 10
 interface Photo {
@@ -266,7 +267,7 @@ export default function Noter() {
             <label className={`flex min-h-16 items-center gap-3.5 rounded-[18px] border-2 border-solid px-4 py-3 ${movedAway ? 'border-primary bg-primary-soft' : 'border-border bg-surface'}`}>
               <input type="checkbox" checked={movedAway} onChange={(e) => setMovedAway(e.target.checked)} className="size-7 shrink-0 accent-primary" />
               <span className="flex flex-col gap-0.5">
-                <span className="text-[17px] leading-snug font-bold">On s'est éloignés pour qu'il se sente mieux</span>
+                <span className="text-[17px] leading-snug font-bold">{place('On s’est éloignés pour qu’il se sente mieux')}</span>
                 <span className="text-[15px] text-muted">C'est la bonne réaction</span>
               </span>
             </label>

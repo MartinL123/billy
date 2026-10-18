@@ -1,3 +1,4 @@
+import { place } from './garden'
 import { isFearSkill, SKILLS } from '../content/phrases'
 import { MAX_LEVEL, type Trait } from '../content/training'
 import type { ProgressMap } from './bossProgress'
@@ -68,7 +69,7 @@ export function skillHints(fears: string[], traits: Trait[], events: CareEvent[]
   if (vet) hints.soins = { kind: 'conseille', text: 'Conseillé : utile avant sa prochaine visite chez le véto' }
   for (const fear of fears) {
     const link = FEAR_LINKS.find((l) => l.match.test(fear))
-    if (link && !hints[link.bossId]?.text.startsWith('Tout doux')) hints[link.bossId] = { kind: 'doux', text: `Tout doux : ${link.hint}` }
+    if (link && !hints[link.bossId]?.text.startsWith('Tout doux')) hints[link.bossId] = { kind: 'doux', text: `Tout doux : ${place(link.hint)}` }
   }
   return hints
 }

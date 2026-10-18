@@ -7,7 +7,8 @@ import { isClosingAccount } from './erase'
 import type { Bone } from '../lib/bones'
 import type { WalkDay } from '../lib/walks'
 import { isExposure, isTrainingSession, type BillyDocument, type BillyEvent, type BossProgress, type DailyQuestDoc, type Dog, type FogZone, type InventoryItem, type Entry, type Exposure, type Place, type QuestWeek, type TrainingSession, type Weight, type WithId, type XpEntry } from './types'
-import { setNoGarden } from '../lib/garden'
+import { setFemale, setNoGarden } from '../lib/garden'
+import { isFemale } from '../lib/gender'
 import type { Commune } from '../lib/commune'
 
 interface Data {
@@ -135,6 +136,7 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
     const named = dog.name?.trim() ? dog : { ...dog, name: 'Votre chien', unnamed: true }
     // Sans jardin : les textes du dressage parlent de couloir, palier, parc vide.
     setNoGarden(dog.garden === 'Non')
+    setFemale(isFemale(dog.sex))
     return { dog: named, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, places, xpLog, questWeeks, dailyQuests, bones, inventory, fog, communes, walks, usage, pendingCount, online }
   }, [dog, events, weights, entries, documents, sessions, exposures, bossProgress, places, xpLog, questWeeks, dailyQuests, bones, inventory, fog, communes, walks, usage, online])
 

@@ -15,6 +15,7 @@ import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { DogPhoto } from '../shop/DogPhoto'
 import { BossIcon } from '../training/BossIcon'
+import { place } from '../../lib/garden'
 
 // Le sentier, dans un repère de 390 × 760 : l'étape 1 en bas, le trophée en haut.
 const W = 390
@@ -240,10 +241,10 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
         (opened <= progress.level ? (
           <Sheet label="Étape cochée" onClose={() => setOpened(null)}>
             <p className="text-[13px] font-extrabold tracking-[0.5px] uppercase" style={{ color: territory.color }}>
-              {skill.name} · {whenOf(opened) === 'Il savait déjà le faire' ? 'il savait déjà le faire' : `acquise le ${whenOf(opened)}`}
+              {skill.name} · {whenOf(opened) === 'Il savait déjà le faire' ? place('il savait déjà le faire') : `acquise le ${whenOf(opened)}`}
             </p>
             <h2 className="font-display text-[22px] leading-tight font-extrabold">{stepPhrase(skill.id, opened)}</h2>
-            <p className="text-[17px] leading-snug">Il ne le fait plus vraiment, ou c'était une erreur ? Décochez l'étape : elle redevient l'étape en cours. Le niveau sera recalculé.</p>
+            <p className="text-[17px] leading-snug">{place('Il ne le fait plus vraiment, ou c’était une erreur ? Décochez l’étape : elle redevient l’étape en cours. Le niveau sera recalculé.')}</p>
             {opened < progress.level && <p className="rounded-[14px] bg-[#FFF8E6] px-3.5 py-2.5 text-[15px] leading-snug text-gold-dark">Les étapes plus difficiles déjà cochées seront décochées aussi.</p>}
             <button type="button" onClick={() => setChecked(opened, false)} className="btn mt-1 border-2 border-solid border-danger bg-surface text-danger">
               Décocher cette étape
@@ -259,7 +260,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
             </p>
             <h2 className="font-display text-[22px] leading-tight font-extrabold">{stepPhrase(skill.id, opened)}</h2>
             <p className="text-[17px] leading-snug">
-              {dog.name} sait déjà faire ça ? Cochez l'étape : elle sera notée « Il savait déjà le faire ».{opened > current ? ' Les étapes plus faciles seront cochées aussi.' : ''}
+              {dog.name} sait déjà faire ça ? Cochez l’étape : elle sera notée « {place('Il savait déjà le faire')} ».{opened > current ? ' Les étapes plus faciles seront cochées aussi.' : ''}
             </p>
             <button type="button" onClick={() => setChecked(opened, true)} className="btn btn-on mt-1">
               Cocher cette étape

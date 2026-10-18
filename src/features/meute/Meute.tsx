@@ -17,6 +17,7 @@ import { useToday } from '../../lib/useToday'
 import { FeedPhoto } from './FeedPhoto'
 import { MemberAvatar } from './MemberAvatar'
 import { usePack } from './usePack'
+import { place } from '../../lib/garden'
 
 type LatLng = { lat: number; lng: number }
 const WELCOME_KEY = 'billy.meute.bienvenue'
@@ -290,8 +291,8 @@ export default function Meute() {
       )}
 
       {marking && (
-        <Sheet label={`Où ${dog.name} marque-t-il ?`} onClose={() => setMarking(false)}>
-          <h2 className="mt-1 font-display text-[24px] font-extrabold">Où {dog.name} marque-t-il ?</h2>
+        <Sheet label={place(`Où ${dog.name} marque-t-il ?`)} onClose={() => setMarking(false)}>
+          <h2 className="mt-1 font-display text-[24px] font-extrabold">{place(`Où ${dog.name} marque-t-il ?`)}</h2>
           <p className="text-[15px] text-muted">{position ? 'Les spots de la meute à moins de 300 m.' : 'Sans votre position, choisissez le spot où vous êtes.'}</p>
           {position === null && (
             <button type="button" onClick={() => locate()} className="btn btn-outline">

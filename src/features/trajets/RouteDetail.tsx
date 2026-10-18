@@ -8,6 +8,7 @@ import { useToday } from '../../lib/useToday'
 import { durationLabel, formatRouteDistance, hasReaction, momentReaction, routeMomentInfo, storeRoute, type Route } from '../../lib/route'
 import { MomentIcon } from './momentIcons'
 import { formatDuration } from '../../lib/balade'
+import { place } from '../../lib/garden'
 
 /** Le trajet dans le détail d'un moment : sa miniature, « Voir sur la carte » (la carte unique), les repères. */
 export function RouteDetail({ entryId, route }: { entryId: string; route: Route }) {
@@ -51,14 +52,14 @@ function ToProfile({ reaction }: { reaction: ReturnType<typeof momentReaction> }
   const today = useToday()
   if (!reaction) return null
   const current = dog.reactions ?? reactionsFromFears(dog.fears ?? [])
-  if (hasReaction(current, reaction)) return <span className="mt-1 text-[15px] font-semibold text-primary">✓ Dans « Comment il réagit »</span>
+  if (hasReaction(current, reaction)) return <span className="mt-1 text-[15px] font-semibold text-primary">✓ Dans « {place('Comment il réagit')} »</span>
   const add = () => {
     const reactions = [...current, reaction]
     updateDog({ reactions, traits: deriveTraits(dog.traits ?? [], reactions, dog.homeMood, dog.birthDate, today) })
   }
   return (
     <button type="button" onClick={add} className="mt-1 -ml-1 flex min-h-11 items-center self-start rounded-full border-0 bg-transparent px-1 text-left text-[15px] font-bold text-primary underline">
-      Ajouter à « Comment il réagit »
+      Ajouter à « {place('Comment il réagit')} »
     </button>
   )
 }

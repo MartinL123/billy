@@ -247,7 +247,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
         <section className="flex flex-col gap-2 rounded-[20px] bg-[#FFF8E6] p-4">
           <h2 className="text-[13px] font-extrabold tracking-[0.6px] text-gold-dark uppercase">Bon à savoir</h2>
           {exercise.caution && <p className="text-[17px] leading-snug font-semibold text-gold-dark">{exercise.caution}</p>}
-          <p className="text-[17px] leading-snug text-gold-dark">{GENERIC_TIP}</p>
+          <p className="text-[17px] leading-snug text-gold-dark">{place(GENERIC_TIP)}</p>
           {!exercise.verified && <p className="text-[15px] text-gold-dark">Exercice à vérifier avec votre éducateur.</p>}
         </section>
 

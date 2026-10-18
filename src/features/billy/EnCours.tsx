@@ -9,6 +9,7 @@ import { activeSkills, MAX_ACTIVE, skillHints, toggleActive } from '../../lib/ac
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { BossIcon } from '../training/BossIcon'
+import { place } from '../../lib/garden'
 
 /** « En cours » : le maître choisit lui-même jusqu'à 3 compétences. La quête du jour pioche dedans. */
 export default function EnCours() {
@@ -108,7 +109,7 @@ export default function EnCours() {
         <div className="mx-auto flex max-w-[430px] flex-col gap-2 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           {refused && (
             <p role="alert" className="rounded-[14px] bg-info-soft px-3.5 py-2.5 text-[15px] leading-snug text-[#1D3F73]">
-              Pour en choisir une autre, décochez-en d'abord une. Ce qu'il a déjà appris reste acquis.
+              Pour en choisir une autre, décochez-en d'abord une. {place('Ce qu’il a déjà appris reste acquis.')}
             </p>
           )}
           <button type="button" onClick={save} className="btn btn-main min-h-[60px] w-full text-[19px]">

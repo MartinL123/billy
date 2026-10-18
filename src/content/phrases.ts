@@ -103,7 +103,7 @@ export const stepPhraseLower = (bossId: string, step: number): string => {
 }
 
 /** L'étape en 4 à 6 mots, pour un badge. */
-export const stepShort = (bossId: string, step: number): string => TEXTS[bossId]?.short[step - 1] ?? stepPhrase(bossId, step)
+export const stepShort = (bossId: string, step: number): string => place(TEXTS[bossId]?.short[step - 1] ?? stepPhrase(bossId, step))
 
 /** Les trois groupes affichés, dans l'ordre : Les bases, Le quotidien, Le monde. */
 export const SKILL_GROUPS: { tier: Tier; label: string }[] = [

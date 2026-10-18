@@ -1,3 +1,5 @@
+import { feminize } from './gender'
+
 // Sans jardin ni cour (questionnaire : « Avez-vous un jardin ou une cour ? » → Non), les textes du dressage
 // parlent de « couloir, palier, parc vide » à la place (questionnaire-depart.md, partie 3).
 
@@ -17,11 +19,19 @@ export function withoutGarden(text: string): string {
   return RULES.reduce((t, [pattern, replacement]) => t.replace(pattern, (m) => keepCase(m, replacement)), text)
 }
 
-// Réglage du compte, posé par le store dès que le profil est lu : les textes du catalogue sont partout dans l'app.
+// Réglages du compte, posés par le store dès que le profil est lu : les textes du catalogue sont partout dans l'app.
 let noGarden = false
+let female = false
 export const setNoGarden = (value: boolean) => {
   noGarden = value
 }
+/** Une chienne : les textes qui parlent du chien passent au féminin (audit R-006). */
+export const setFemale = (value: boolean) => {
+  female = value
+}
 
-/** Le texte tel qu'il faut l'afficher pour ce chien. */
-export const place = (text: string): string => (noGarden ? withoutGarden(text) : text)
+/** Le texte tel qu'il faut l'afficher pour ce chien : sans jardin si besoin, accordé au féminin pour une chienne. */
+export const place = (text: string): string => {
+  const t = noGarden ? withoutGarden(text) : text
+  return female ? feminize(t) : t
+}

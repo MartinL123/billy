@@ -23,6 +23,7 @@ import { EveningReminder } from './EveningReminder'
 import { WalkSettings } from './WalkSettings'
 import { ProfileEdit } from './ProfileEdit'
 import { gamesLabel, treatsLabel } from '../../lib/training-plan'
+import { place } from '../../lib/garden'
 
 
 function InfoRow({ label, value, first }: { label: string; value: string; first?: boolean }) {
@@ -187,10 +188,10 @@ export default function Profile() {
         <h2 className="text-xl font-bold">Son identité</h2>
         <Pending show={dog.pending} />
         <div className="card px-4 py-1">
-          <InfoRow first label="Né le" value={isValidISO(dog.birthDate) ? `${formatLong(dog.birthDate)} · ${formatAgeShort(dog.birthDate, today)}` : 'Pas encore renseigné'} />
-          {(dog.sex || dog.neutered) && <InfoRow label={dog.sex || 'Stérilisé'} value={dog.neutered === 'Oui' ? 'Stérilisé' : dog.neutered === 'Non' ? 'Non stérilisé' : dog.neutered ? 'Stérilisation prévue' : '—'} />}
+          <InfoRow first label={place('Né le')} value={isValidISO(dog.birthDate) ? `${formatLong(dog.birthDate)} · ${formatAgeShort(dog.birthDate, today)}` : 'Pas encore renseigné'} />
+          {(dog.sex || dog.neutered) && <InfoRow label={dog.sex || place('Stérilisé')} value={dog.neutered === 'Oui' ? place('Stérilisé') : dog.neutered === 'Non' ? place('Non stérilisé') : dog.neutered ? 'Stérilisation prévue' : '—'} />}
           <InfoRow label="Race" value={dog.breed || 'Pas encore renseignée'} />
-          <InfoRow label="Adopté le" value={isValidISO(dog.adoptionDate) ? `${formatLong(dog.adoptionDate)}${dog.origin ? ` · ${dog.origin.toLocaleLowerCase('fr')}` : ''}` : 'Pas encore renseigné'} />
+          <InfoRow label={place('Adopté le')} value={isValidISO(dog.adoptionDate) ? `${formatLong(dog.adoptionDate)}${dog.origin ? ` · ${dog.origin.toLocaleLowerCase('fr')}` : ''}` : 'Pas encore renseigné'} />
           <InfoRow label="Puce" value={dog.chip || 'Pas encore renseignée'} />
           {lastWeight && <InfoRow label="Poids" value={`${String(lastWeight.kg).replace('.', ',')} kg · ${formatShort(lastWeight.date)}`} />}
         </div>
@@ -205,15 +206,15 @@ export default function Profile() {
           <div className="card px-4 py-1">
             <InfoRow first label="Ration" value={`${dog.feeding.gramsPerDay} g par jour`} />
             <InfoRow label="Repas" value={sortMeals(dog.feeding.meals).map((m) => formatTime(m.time)).join(' · ') || 'À compléter'} />
-            {treatsLabel(dog.treats) && <InfoRow label="Il adore" value={treatsLabel(dog.treats)!} />}
+            {treatsLabel(dog.treats) && <InfoRow label={place('Il adore')} value={treatsLabel(dog.treats)!} />}
             {gamesLabel(dog.games) ? <InfoRow label="Ses jeux" value={gamesLabel(dog.games)!} /> : null}
-            {dog.aloneTime && <InfoRow label="Seul" value={`${dog.aloneTime.toLocaleLowerCase('fr')}${dog.aloneTime === 'Jamais' ? '' : ' par jour'}`} />}
+            {dog.aloneTime && <InfoRow label={place('Seul')} value={`${dog.aloneTime.toLocaleLowerCase('fr')}${dog.aloneTime === 'Jamais' ? '' : ' par jour'}`} />}
           </div>
         </section>
       )}
 
       <section className="flex flex-col gap-2.5">
-        <h2 className="text-xl font-bold">Comment il réagit</h2>
+        <h2 className="text-xl font-bold">{place('Comment il réagit')}</h2>
         <div className="card flex flex-col gap-3 p-4">
           {sentences.length > 0 ? (
             <ul className="m-0 flex list-none flex-col gap-1.5 p-0 text-[17px] leading-snug">
@@ -224,7 +225,7 @@ export default function Profile() {
           ) : (
             <p className="text-[17px] leading-snug text-muted">Pas encore renseigné.</p>
           )}
-          {dog.homeMood && <p className="text-[17px] leading-snug">À la maison, il est plutôt {dog.homeMood.toLocaleLowerCase('fr')}.</p>}
+          {dog.homeMood && <p className="text-[17px] leading-snug">{place(`À la maison, il est plutôt ${dog.homeMood.toLocaleLowerCase('fr')}.`)}</p>}
           <Link to="/questionnaire?etape=reactions" className="btn btn-outline">
             Modifier ses réactions
           </Link>

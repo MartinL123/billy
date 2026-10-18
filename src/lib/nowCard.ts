@@ -32,6 +32,8 @@ export type NowCard =
   | { kind: 'mission' }
   | { kind: 'sortie'; slot: WalkSlot; time: string }
   | { kind: 'fini' }
+  /** La mission est faite, plus de sortie à venir, mais toutes n'ont pas été faites. */
+  | { kind: 'soir'; done: number }
 
 const dueCare = (care: CareLike[], today: ISODate) =>
   care.filter((e) => !e.done && e.date && e.date <= today && HOME_CARE.includes(e.type.toLowerCase())).sort((a, b) => a.date.localeCompare(b.date))
@@ -53,9 +55,11 @@ export function nowCard(input: NowInput): NowCard {
   })
   if (meal) return { kind: 'repas', time: meal.time, ...(meal.label ? { label: meal.label } : {}) }
   if (!input.mission.done) return { kind: 'mission' }
+  // « Tout est fait » seulement si la mission et les sorties du jour sont faites (audit R-012).
   const walk = nextWalk(input)
-  if (walk && walk.in <= 60) return { kind: 'sortie', slot: walk.slot, time: walk.time }
-  return { kind: 'fini' }
+  if (walk) return { kind: 'sortie', slot: walk.slot, time: walk.time }
+  const done = WALK_SLOTS.filter((s) => input.walks.done[s.id]).length
+  return done === WALK_SLOTS.length ? { kind: 'fini' } : { kind: 'soir', done }
 }
 
 /** « Il est 17 h 40. Prochaine sortie à 19 h : d'ici là, 3 minutes de mission. » */

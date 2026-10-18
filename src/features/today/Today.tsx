@@ -65,6 +65,14 @@ function useCardContent(card: NowCard) {
         // Pas de bouton : la balade arrive avec l'import Strava, rien à faire d'ici (pas d'export depuis l'iPhone).
         action: undefined,
       }
+    case 'soir':
+      return {
+        badge: 'Aujourd’hui',
+        title: 'La mission est faite',
+        text: `${card.done ? `${card.done} sortie${card.done > 1 ? 's' : ''} sur 3 aujourd’hui.` : 'Pas encore de sortie cochée aujourd’hui.'} Elles se cochent toutes seules avec vos balades Strava.`,
+        scene: undefined,
+        action: { label: 'Noter un souvenir', to: '/noter' },
+      }
     default: {
       const last = walkItems(entries)[0]
       return {

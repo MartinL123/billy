@@ -50,3 +50,15 @@ describe('Ensuite : soin en retard (audit R-002)', () => {
     expect(line.detail).toMatch(/^En retard de \d+ jours$/)
   })
 })
+
+describe('« Tout est fait » (audit R-012)', () => {
+  it('jamais tant qu’une sortie reste à faire', () => {
+    const evening = { ...base, now: 22 * 60, mission: { done: true, minutes: 3 }, care: [], meals: [] }
+    expect(nowCard({ ...evening, walks: { ...base.walks, done: {} } })).toEqual({ kind: 'soir', done: 0 })
+    expect(nowCard({ ...evening, walks: { ...base.walks, done: { matin: '8', midi: '13', soir: '19' } } }).kind).toBe('fini')
+  })
+  it('après la mission, propose la prochaine sortie même si elle est loin', () => {
+    const morning = { ...base, now: 9 * 60, mission: { done: true, minutes: 3 }, care: [], meals: [], walks: { ...base.walks, done: { matin: '8' } } }
+    expect(nowCard(morning)).toEqual({ kind: 'sortie', slot: 'midi', time: '13:00' })
+  })
+})

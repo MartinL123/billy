@@ -59,14 +59,14 @@ const ICONS = {
   ),
 }
 
-function Tile({ to, icon, tint, title, text, detail, detailColor, children }: { to: string; icon: React.ReactNode; tint: string; title: string; text: React.ReactNode; detail?: React.ReactNode; detailColor: string; children?: React.ReactNode }) {
+function Tile({ to, icon, tint, title, text, detail, detailColor, alert = false, children }: { to: string; icon: React.ReactNode; tint: string; title: string; text: React.ReactNode; detail?: React.ReactNode; detailColor: string; /** La ligne principale en rouge (un soin en retard). */ alert?: boolean; children?: React.ReactNode }) {
   return (
     <Link to={to} className="card tap flex min-h-[150px] flex-col gap-1.5 rounded-[22px] p-4 text-text no-underline">
       <span className="flex size-11 items-center justify-center rounded-[14px]" style={{ background: tint }}>
         {icon}
       </span>
       <span className="mt-1 text-[17px] font-extrabold">{title}</span>
-      <span className="text-[15px] leading-snug text-[#3F4946]">{text}</span>
+      <span className={`text-[15px] leading-snug ${alert ? 'font-bold text-danger' : 'text-[#3F4946]'}`}>{text}</span>
       {children}
       {detail && (
         <span className="mt-auto text-[14px] leading-snug font-bold" style={{ color: detailColor }}>
@@ -116,7 +116,7 @@ export function LifeTiles({ arrival = false }: { /** Première ouverture du jour
           )}
         </Tile>
         <Tile to={walks.length ? '/territoire' : '/importer'} icon={ICONS.balades} tint="#E3EAF8" title="Ses balades" text={walks.length ? <>{walks.length} balade{walks.length > 1 ? 's' : ''} · <CountUp value={balades.km} format={km} fromZero={arrival} /> km</> : balades.text} detail={share ? <CountUp value={share.value} format={(n) => shareLabel(n, share.name)} fromZero={arrival} /> : balades.detail} detailColor="#2559A8" />
-        <Tile to="/sante" icon={ICONS.sante} tint="#FBE6D4" title="Sa santé" text={sante.text} detail={sante.detail} detailColor={sante.late ? '#B3261E' : '#B34A10'} />
+        <Tile to="/sante" icon={ICONS.sante} tint="#FBE6D4" title="Sa santé" text={sante.text} detail={sante.detail} detailColor="#B34A10" alert={sante.late} />
         <Tile to={souvenirs.count ? '/balades' : '/noter'} icon={ICONS.souvenirs} tint="#FCEFD3" title="Ses souvenirs" text={souvenirs.text} detail={souvenirs.detail} detailColor="#6B4E0E" />
       </div>
       <div className="grid grid-cols-2 gap-3">

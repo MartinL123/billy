@@ -268,11 +268,16 @@ export default function Today() {
   // La carte affichée à l’ouverture de l’écran : seules les suivantes montent (pas d’animation à chaque visite).
   const [firstCard] = useState(() => cardKey(card))
   useEffect(() => {
-    try {
-      localStorage.setItem(ARRIVAL_KEY, today)
-    } catch {
-      // Stockage indisponible : la cascade reviendra, ce n’est pas grave.
-    }
+    // Retenue après 1 s vraiment passée sur l’accueil (la cascade a joué) : un affichage éclair avant l’écran
+    // d’ouverture ne compte pas.
+    const timer = window.setTimeout(() => {
+      try {
+        localStorage.setItem(ARRIVAL_KEY, today)
+      } catch {
+        // Stockage indisponible : la cascade reviendra, ce n’est pas grave.
+      }
+    }, 1000)
+    return () => window.clearTimeout(timer)
   }, [today])
   const questionnaire = questionnaireStatus(dog.questionnaire)
   const profilePart = nextPart(dog.questionnaire)

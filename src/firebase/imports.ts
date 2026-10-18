@@ -18,7 +18,7 @@ import type { Entry } from './types'
  * La balade coche la sortie de son créneau (spec V4 § 1 : plus de coche à la main) et en donne les os une fois,
  * seulement si elle date des 7 derniers jours.
  */
-export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: ISODate, times?: WalkTimes, source: 'strava' | 'watch' = 'strava'): { entryId: string; bones: Bone[] } {
+export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: ISODate, times?: WalkTimes, source: 'strava' | 'watch' | 'gps' = 'strava'): { entryId: string; bones: Bone[] } {
   const entryId = newId('entries')
   const date = walk.date && walk.date <= today ? walk.date : today
   const entry: Entry = {
@@ -33,9 +33,10 @@ export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: I
       points: walk.points,
       distanceM: walk.distanceM,
       moments: [],
-      source: source === 'watch' ? 'watch' : 'gpx',
+      source: source === 'strava' ? 'gpx' : source,
       ...(walk.durationMin ? { durationMin: walk.durationMin } : {}),
       ...(walk.startTime ? { startTime: walk.startTime } : {}),
+      ...(walk.endTime ? { endTime: walk.endTime } : {}),
     }),
   }
   const minutes = walk.startTime ? parisMinutes(walk.startTime) : undefined

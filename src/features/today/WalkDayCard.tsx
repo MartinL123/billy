@@ -63,6 +63,12 @@ export function WalkDayCard({ plan }: { plan: WalkDayPlan }) {
         ))}
       </ul>
       <p className="text-[14px] leading-snug text-[#3F4946]">{plan.tip}</p>
+      {/* App iOS (T-036) : une sortie reste à faire, on la lance d’ici ; le GPS de l’iPhone l’enregistre. */}
+      {isNative() && plan.slots.some((s) => s.state === 'a-venir') && (
+        <Link to="/balade-en-cours?depart=1" className="tap btn btn-main min-h-[56px]">
+          Partir en balade
+        </Link>
+      )}
       <Link to={walks.length ? '/territoire' : '/importer'} className="tap btn btn-outline min-h-12 gap-2">
         <MapIcon size={20} />
         {walks.length ? 'Explorer la carte' : isNative() ? 'Importer un fichier GPX' : 'Importer mes balades'}

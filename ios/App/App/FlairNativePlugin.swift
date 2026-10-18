@@ -1,16 +1,22 @@
 import Foundation
+import UIKit
 import Capacitor
 import CoreLocation
 import HealthKit
 
-/// Le pont entre l'app web et l'iPhone (phase 2, docs/ios.md) : les marches de l'Apple Watch (HealthKit).
-/// Côté JS : `src/native/flair.ts`. Rien n'est écrit dans Santé : Flair ne fait que lire.
+/// Le pont entre l'app web et l'iPhone (phase 2, docs/ios.md) : les marches de l'Apple Watch (HealthKit, T-001) et la
+/// balade enregistrée par le GPS de l'iPhone (T-036). Côté JS : `src/native/flair.ts`. Rien n'est écrit dans Santé.
 @objc(FlairNativePlugin)
-public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin {
+public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDelegate {
     public let identifier = "FlairNativePlugin"
     public let jsName = "FlairNative"
     public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "getWalks", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "getWalks", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "startWalk", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "stopWalk", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "cancelWalk", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "currentWalk", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "keepAwake", returnType: CAPPluginReturnPromise)
     ]
 
     private let health = HKHealthStore()
@@ -128,5 +134,162 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin {
             }
         }
         health.execute(query)
+    }
+
+    // MARK: - Balade enregistrée par l'iPhone (T-036)
+    //
+    // Démarrée et arrêtée seulement par les boutons de l'app. Autorisation « Pendant l'utilisation » : la pastille bleue
+    // garde le GPS actif écran verrouillé. Chaque point est écrit tout de suite dans un fichier de l'app : si l'app est
+    // tuée, la balade n'est pas perdue (`currentWalk` la retrouve, `startWalk` la reprend).
+
+    /// Au-delà de 3 h, l'enregistrement s'arrête seul (une balade oubliée ne vide pas la batterie).
+    private let maxDuration: TimeInterval = 3 * 3600
+    /// Un point moins précis que 50 m est ignoré (sous un pont, en intérieur).
+    private let maxAccuracy: CLLocationAccuracy = 50
+    private var location: CLLocationManager?
+    private var pendingStart: CAPPluginCall?
+    private var recording = false
+
+    private var walkDir: URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("balade-en-cours", isDirectory: true)
+    }
+    private var stateFile: URL { walkDir.appendingPathComponent("etat.json") }
+    private var pointsFile: URL { walkDir.appendingPathComponent("points.txt") }
+
+    private func readState() -> [String: Any]? {
+        guard let data = try? Data(contentsOf: stateFile) else { return nil }
+        return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+    }
+
+    private func writeState(_ state: [String: Any]) {
+        try? FileManager.default.createDirectory(at: walkDir, withIntermediateDirectories: true)
+        if let data = try? JSONSerialization.data(withJSONObject: state) { try? data.write(to: stateFile, options: .atomic) }
+    }
+
+    /// Les points enregistrés : une ligne « lat,lng,heure » par point.
+    private func readPoints() -> [[String: Any]] {
+        guard let text = try? String(contentsOf: pointsFile, encoding: .utf8) else { return [] }
+        return text.split(separator: "\n").compactMap { line in
+            let parts = line.split(separator: ",")
+            guard parts.count == 3, let lat = Double(parts[0]), let lng = Double(parts[1]) else { return nil }
+            return ["lat": lat, "lng": lng, "time": String(parts[2])]
+        }
+    }
+
+    private func append(_ point: CLLocation) {
+        let line = "\(point.coordinate.latitude),\(point.coordinate.longitude),\(FlairNativePlugin.format(point.timestamp))\n"
+        guard let data = line.data(using: .utf8) else { return }
+        if let handle = try? FileHandle(forWritingTo: pointsFile) {
+            handle.seekToEndOfFile()
+            handle.write(data)
+            handle.closeFile()
+        } else {
+            try? data.write(to: pointsFile)
+        }
+    }
+
+    private func walkSummary() -> [String: Any] {
+        guard let state = readState(), let startedAt = state["startedAt"] as? String else { return ["active": false, "recording": false, "points": []] }
+        return ["active": true, "recording": recording, "startedAt": startedAt, "autoStopped": state["autoStopped"] as? Bool ?? false, "points": readPoints()]
+    }
+
+    /// `startWalk()` : démarre une balade, ou reprend celle en cours (app tuée). Refuse si la position n'est pas autorisée.
+    @objc func startWalk(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            let manager = self.location ?? CLLocationManager()
+            self.location = manager
+            manager.delegate = self
+            switch manager.authorizationStatus {
+            case .notDetermined:
+                self.pendingStart = call
+                manager.requestWhenInUseAuthorization()
+            case .denied, .restricted:
+                call.reject("La position n'est pas autorisée", "denied")
+            default:
+                self.begin(call)
+            }
+        }
+    }
+
+    public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        guard let call = pendingStart, manager.authorizationStatus != .notDetermined else { return }
+        pendingStart = nil
+        if manager.authorizationStatus == .denied || manager.authorizationStatus == .restricted {
+            call.reject("La position n'est pas autorisée", "denied")
+        } else {
+            begin(call)
+        }
+    }
+
+    private func begin(_ call: CAPPluginCall) {
+        guard let manager = location else { return }
+        if readState() == nil { writeState(["startedAt": FlairNativePlugin.format(Date())]) }
+        else if var state = readState() {
+            state["autoStopped"] = false
+            writeState(state)
+        }
+        manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.distanceFilter = 5
+        manager.activityType = .fitness
+        manager.allowsBackgroundLocationUpdates = true
+        manager.pausesLocationUpdatesAutomatically = false
+        manager.showsBackgroundLocationIndicator = true
+        manager.startUpdatingLocation()
+        recording = true
+        call.resolve(walkSummary())
+    }
+
+    public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard recording, let state = readState(), let started = (state["startedAt"] as? String).flatMap(FlairNativePlugin.parseDate) else { return }
+        for point in locations where point.horizontalAccuracy >= 0 && point.horizontalAccuracy <= maxAccuracy {
+            append(point)
+            notifyListeners("walkPoint", data: ["lat": point.coordinate.latitude, "lng": point.coordinate.longitude, "time": FlairNativePlugin.format(point.timestamp)])
+        }
+        if Date().timeIntervalSince(started) > maxDuration {
+            stopUpdates()
+            var stopped = state
+            stopped["autoStopped"] = true
+            writeState(stopped)
+            notifyListeners("walkStopped", data: [:])
+        }
+    }
+
+    private func stopUpdates() {
+        location?.stopUpdatingLocation()
+        location?.allowsBackgroundLocationUpdates = false
+        recording = false
+    }
+
+    /// `stopWalk()` : arrête et renvoie la balade (`startedAt`, `points`), puis efface le fichier.
+    @objc func stopWalk(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            self.stopUpdates()
+            let summary = self.walkSummary()
+            try? FileManager.default.removeItem(at: self.walkDir)
+            call.resolve(summary)
+        }
+    }
+
+    /// `cancelWalk()` : arrête sans rien garder.
+    @objc func cancelWalk(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            self.stopUpdates()
+            try? FileManager.default.removeItem(at: self.walkDir)
+            call.resolve()
+        }
+    }
+
+    /// `currentWalk()` : la balade en cours (ou celle d'avant si l'app a été tuée), sans rien changer.
+    @objc func currentWalk(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { call.resolve(self.walkSummary()) }
+    }
+
+    /// `keepAwake({ on })` : l'écran reste allumé tant que l'écran « Balade en cours » est affiché.
+    @objc func keepAwake(_ call: CAPPluginCall) {
+        let on = call.getBool("on") ?? false
+        DispatchQueue.main.async {
+            UIApplication.shared.isIdleTimerDisabled = on
+            call.resolve()
+        }
     }
 }

@@ -123,6 +123,7 @@ export interface ImportedActivity {
   name: string
   date?: ISODate
   startTime?: string
+  endTime?: string
   durationMin?: number
   distanceM: number
   /** Trajet allégé (200 points au plus) : c’est tout ce qui est enregistré du parcours. */
@@ -146,6 +147,7 @@ export function toImported(activity: Activity): ImportedActivity | undefined {
     key: importKey(points),
     name: frenchName(activity.name, activity.type),
     ...(startTime ? { date: parisDay(startTime), startTime } : {}),
+    ...(endTime && endTime !== startTime ? { endTime } : {}),
     ...(durationMin ? { durationMin } : {}),
     distanceM: Math.round(walkDistance(points)),
     points: simplifyWalk(

@@ -5,6 +5,7 @@ import { knownImportKeys } from '../../lib/activity'
 import type { Bone } from '../../lib/bones'
 import type { Commune } from '../../lib/commune'
 import type { ISODate } from '../../lib/dates'
+import { withoutGpsDuplicates } from '../../lib/gpsWalk'
 import { newWatchWalks, shouldSync, watchActivity, watchSince } from '../../lib/watch'
 import type { WalkTimes } from '../../lib/walks'
 import { FlairNative } from '../../native/flair'
@@ -56,13 +57,15 @@ export async function syncWatch(ctx: () => WatchContext, onAdded: (count: number
     const saved = (await getDoc(accountDoc())).data() as { watchSyncedAt?: string } | undefined
     // Rien trouvé la première fois : on relit les 30 derniers jours, au cas où la lecture vient d'être autorisée.
     const since = watchSince(watchLooksBlocked() ? undefined : saved?.watchSyncedAt, new Date(now))
+    // Une balade de l’iPhone en cours : on attend qu’elle soit gardée (sinon la séance Watch du même moment passerait avant).
+    if ((await FlairNative.currentWalk()).active) return
     const read = await FlairNative.getWalks({ since })
     if (!read.available) return
     const first = !saved?.watchSyncedAt || watchLooksBlocked()
     if (read.walks.length) setLooksBlocked(false)
     else if (first && read.workouts === 0) setLooksBlocked(true)
     const data = ctx()
-    const fresh = newWatchWalks(read.walks, data.entries.map((e) => e.route ?? {}))
+    const fresh = withoutGpsDuplicates(newWatchWalks(read.walks, data.entries.map((e) => e.route ?? {})), data.entries)
     if (fresh.length) {
       const result = await importActivities(fresh.length, async (i) => watchActivity(fresh[i]!), { knownKeys: knownImportKeys(data.entries), bones: data.bones, fog: data.fog, communes: data.communes, today: data.today, times: data.times }, () => undefined, { source: 'watch' })
       if (result.walks.length) onAdded(result.walks.length)

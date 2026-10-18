@@ -21,6 +21,7 @@ import HealthWeight from './features/calendar/HealthWeight'
 import HealthMeals from './features/calendar/HealthMeals'
 import HealthDocuments from './features/calendar/HealthDocuments'
 import ImportResult from './features/balades/ImportResult'
+import LiveWalk from './features/balades/LiveWalk'
 import { CommunitySync } from './features/meute/CommunitySync'
 import { BonesBackfill } from './features/shop/BonesBackfill'
 import { FogBackfill } from './features/balades/FogBackfill'
@@ -184,6 +185,7 @@ export default function App() {
             <Route path="ajouter-balade" element={<Navigate to="/territoire" replace />} />
             <Route path="importer" element={<ImportStrava />} />
             <Route path="importer/resultat" element={<ImportResult />} />
+            <Route path="balade-en-cours" element={<LiveWalk />} />
             <Route path="installer" element={<InstallRoute />} />
             <Route path="profil" element={<Profile />} />
             <Route path="profil/modifier" element={<ProfileEditScreen />} />

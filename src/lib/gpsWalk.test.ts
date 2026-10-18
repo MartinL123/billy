@@ -1,0 +1,35 @@
+import { describe, expect, it } from 'vitest'
+import { chrono, gpsActivity, minutesSince, overlapShare, tooShort, withoutGpsDuplicates, type GpsPoint } from './gpsWalk'
+import type { WatchWalk } from './watch'
+
+const start = '2026-10-18T17:00:00.000Z'
+const at = (minutes: number) => new Date(Date.parse(start) + minutes * 60_000).toISOString()
+/** Une ligne droite vers le nord, un point par minute, `step` mètres entre deux points. */
+const line = (count: number, step = 100): GpsPoint[] => Array.from({ length: count }, (_, i) => ({ lat: 48.6 + (i * step) / 111_000, lng: -2.06, time: at(i) }))
+
+describe('balade enregistrée par l’iPhone (T-036)', () => {
+  it('le chrono et la durée de la carte', () => {
+    expect(chrono(247_000)).toBe('4:07')
+    expect(chrono(3_729_000)).toBe('1:02:09')
+    expect(minutesSince(23 * 60_000 + 5_000)).toBe('23 min')
+    expect(minutesSince(65 * 60_000)).toBe('1 h 05')
+  })
+
+  it('moins de 100 m ou moins de 2 minutes : pas gardée', () => {
+    expect(tooShort(line(2, 50), start, Date.parse(at(10)))).toBe(true) // 50 m
+    expect(tooShort(line(5), start, Date.parse(at(1)))).toBe(true) // 1 minute
+    expect(tooShort(line(5), start, Date.parse(at(10)))).toBe(false)
+  })
+
+  it('devient une activité nommée selon l’heure de départ', () => {
+    expect(gpsActivity(line(3), start)).toMatchObject({ name: 'Balade du soir', type: 'walking' })
+  })
+
+  it('une séance Watch couverte à plus de la moitié par une balade de l’iPhone est ignorée', () => {
+    expect(overlapShare({ start: at(0), end: at(40) }, { start: at(5), end: at(45) })).toBeCloseTo(35 / 40)
+    expect(overlapShare({ start: at(0), end: at(40) }, { start: at(50), end: at(60) })).toBe(0)
+    const watch = (from: number, to: number): WatchWalk => ({ uuid: String(from), start: at(from), end: at(to), type: 'walking', points: [] })
+    const known = [{ source: 'gps', route: { source: 'gps', startTime: at(2), endTime: at(38) } }, { route: { source: 'gpx', startTime: at(100), endTime: at(140) } }]
+    expect(withoutGpsDuplicates([watch(0, 40), watch(30, 90), watch(100, 140)], known).map((w) => w.uuid)).toEqual(['30', '100'])
+  })
+})

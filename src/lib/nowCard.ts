@@ -30,11 +30,15 @@ export interface NowInput {
   walks: { times: WalkTimes; done: Partial<Record<WalkSlot, string>> }
   /** La règle des 5 minutes par mois d’âge (T-019) : durée de la prochaine sortie. */
   budget?: WalkBudget
+  /** App iOS : une balade enregistrée par l’iPhone est commencée (T-036). `recording` faux si l’app a été fermée. */
+  walking?: { startedAt: string; recording: boolean }
   /** Pesée du mois à proposer (T-013), avec la date de la dernière pesée. */
   weighing?: { due: boolean; last?: ISODate }
 }
 
 export type NowCard =
+  /** Une balade de l’iPhone en cours : la reprendre ou la terminer passe avant tout (T-036). */
+  | { kind: 'balade'; startedAt: string; recording: boolean }
   | { kind: 'soin'; event: CareLike }
   | { kind: 'repas'; time: string; label?: string }
   | { kind: 'mission' }
@@ -57,6 +61,7 @@ function nextWalk(input: NowInput): { slot: WalkSlot; time: string; in: number }
 
 /** La carte, dans l’ordre de la spec : soin dû, repas dans 30 min, mission, sortie dans l’heure, sinon « tout est fait ». */
 export function nowCard(input: NowInput): NowCard {
+  if (input.walking) return { kind: 'balade', ...input.walking }
   const care = dueCare(input.care, input.today)[0]
   if (care) return { kind: 'soin', event: care }
   const meal = input.meals.find((m) => {

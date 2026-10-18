@@ -21,6 +21,11 @@ describe('Aujourd’hui : une seule chose à faire', () => {
     ])
   })
 
+  it('une balade de l’iPhone en cours passe avant tout (T-036)', () => {
+    const input = { ...base, care: [{ ...base.care[0]!, date: '2026-10-10' }], walking: { startedAt: '2026-10-17T15:20:00Z', recording: false } }
+    expect(nowCard(input)).toEqual({ kind: 'balade', startedAt: '2026-10-17T15:20:00Z', recording: false })
+  })
+
   it('un soin dû passe avant tout', () => {
     const input = { ...base, care: [{ ...base.care[0]!, date: '2026-10-17' }] }
     const card = nowCard(input)

@@ -53,7 +53,7 @@ export async function importActivities(
   read: (index: number) => Promise<Activity | undefined>,
   ctx: ImportContext,
   onProgress: (done: number, total: number) => void,
-  { tally = emptyTally(), source = 'strava' }: { tally?: ImportTally; source?: 'strava' | 'watch' } = {},
+  { tally = emptyTally(), source = 'strava' }: { tally?: ImportTally; source?: 'strava' | 'watch' | 'gps' } = {},
 ): Promise<ImportResult> {
   const walks: ImportResult['walks'] = []
   const tracks: { lat: number; lng: number }[][] = []

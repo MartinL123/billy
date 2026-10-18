@@ -22,10 +22,12 @@ import { DogPhoto } from '../shop/DogPhoto'
 import { Illustration } from '../training/Illustration'
 import { useQuest } from './useQuest'
 import { weighingDue } from '../../lib/weighing'
-import { minutesLabel, walkBudget, type WalkBudget } from '../../lib/walkBudget'
+import { walkBudget } from '../../lib/walkBudget'
 import { upcomingSlots, walkDayPlan } from '../../lib/walkDay'
 import { WalkDayCard } from './WalkDayCard'
 import { LifeTiles } from './LifeTiles'
+import { useCurrentWalk } from '../balades/useCurrentWalk'
+import { elapsedMs, minutesSince } from '../../lib/gpsWalk'
 import { isNative } from '../../native'
 import { CountUp } from '../../components/CountUp'
 
@@ -100,20 +102,8 @@ function RunButton({ action, className }: { action: Action; className: string })
   )
 }
 
-/**
- * La carte sortie selon la règle des 5 minutes par mois d’âge (T-019) : la durée conseillée, raccourcie après une
- * grosse balade, ou juste ses besoins quand le temps de marche du jour est fait.
- */
-function sortieText(budget?: WalkBudget): { title: string; text: string } {
-  if (!budget) return { title: 'Une vraie sortie, même 15 minutes', text: `Elle se cochera toute seule avec votre balade ${isNative() ? 'de l’Apple Watch' : 'Strava'}.` }
-  if (budget.next === 0) return { title: 'Juste ses besoins, 5 min', text: `Ses ${minutesLabel(budget.daily)} de marche du jour sont faites : pas de balade.` }
-  // Raccourcie : ce qui est fait sur le temps du jour, pour comprendre la durée proposée.
-  if (budget.next < budget.perWalk) return { title: `Une sortie courte : ${budget.next} min`, text: `Déjà ${minutesLabel(budget.walked)} de marche sur ${minutesLabel(budget.daily)} aujourd’hui : la suite reste courte.` }
-  return { title: `Une sortie de ${budget.perWalk} min`, text: `5 min par mois d’âge, 3 fois par jour. Elle se coche toute seule avec ${isNative() ? 'la Watch' : 'Strava'}.` }
-}
-
 /** Ce que montre la carte « À faire maintenant » : une phrase, deux lignes, un seul bouton. */
-function useCardContent(card: NowCard, onWeighLater: () => void, budget?: WalkBudget) {
+function useCardContent(card: NowCard, onWeighLater: () => void) {
   const { dog, events, entries } = useData()
   const { quest, mission, minutes, canSkip, skips } = useQuest()
   const today = useToday()
@@ -182,14 +172,21 @@ function useCardContent(card: NowCard, onWeighLater: () => void, budget?: WalkBu
         action: { label: 'Commencer', to: '/mission' },
         other: canSkip ? { label: 'Une autre idée', run: () => skipQuest(today, skips + 1) } : undefined,
       }
+    // La sortie n’a plus de carte à elle : « Ses sorties du jour » la montre déjà (retour de Martin, 18 oct.).
     case 'sortie':
+      return { badge: '', title: '', text: '' }
+    // Une balade de l’iPhone commencée (T-036) : la reprendre, ou la terminer.
+    case 'balade': {
+      const minutes = minutesSince(elapsedMs(card.startedAt, Date.now()))
       return {
-        badge: `Sortie de ${formatHour(card.time)}`,
-        ...sortieText(budget),
+        badge: 'Balade en cours',
+        title: `Balade en cours · ${minutes}`,
+        text: card.recording ? 'Le GPS l’enregistre, même écran verrouillé.' : 'L’enregistrement s’est arrêté quand l’app s’est fermée.',
         scene: undefined,
-        // Pas de bouton : la balade arrive avec l’import Strava, rien à faire d’ici (pas d’export depuis l’iPhone).
-        action: undefined,
+        action: { label: card.recording ? 'Voir la balade' : 'Reprendre', to: '/balade-en-cours' },
+        other: { label: 'Terminer', to: '/balade-en-cours?terminer=1' },
       }
+    }
     case 'pesee':
       return {
         badge: 'Pesée du mois',
@@ -244,6 +241,7 @@ export default function Today() {
     return () => clearInterval(timer)
   }, [])
 
+  const currentWalk = useCurrentWalk()
   const times = walkTimes(dog.walkTimes)
   const walksDone = walks.find((w) => w.date === today)?.done ?? {}
   // Les balades du jour (importées de Strava) : leur créneau et leur durée.
@@ -263,10 +261,11 @@ export default function Today() {
       // Ce qui reste du jour se répartit sur les sorties encore à venir (pas sur celles manquées).
       walksLeft: upcomingSlots(times, walksDone, now).length,
     }),
+    ...(currentWalk ? { walking: currentWalk } : {}),
     weighing: { due: weighingDue({ today, birthDate: dog.birthDate, lastWeighed: weights[0]?.date, postponedOn: weighLater }), ...(weights[0] ? { last: weights[0].date } : {}) },
   }
   const card = nowCard(input)
-  const content = useCardContent(card, postponeWeighing, input.budget)
+  const content = useCardContent(card, postponeWeighing)
   const walkPlan = walkDayPlan({ times, done: walksDone, walks: todayWalks, budget: input.budget, now })
   const fromOpening = Boolean((location.state as { fromOpening?: boolean } | null)?.fromOpening)
   // Arrivée en cascade (T-033) : à la première ouverture de la journée seulement ; les autres fois, affichage direct.
@@ -309,6 +308,7 @@ export default function Today() {
       </header>
 
       {/* Une nouvelle carte du moment (soin fait, mission faite…) monte à la place de l’ancienne (T-033). */}
+      {card.kind !== 'sortie' && (
       <section key={cardKey(card)} aria-label="À faire maintenant" className={`card flex flex-col gap-3 rounded-[26px] p-4 ${cardKey(card) !== firstCard ? 'anim-in' : ''}`}>
         <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{content.badge}</span>
         {content.scene && <Illustration scene={content.scene} className="h-[130px] bg-bg" />}
@@ -318,6 +318,7 @@ export default function Today() {
         {content.other && <CardButton action={content.other} />}
         {content.third && <CardButton action={content.third} />}
       </section>
+      )}
 
       {/* Ses sorties du jour (T-035) : chaque sortie avec sa durée, ce qui reste, un conseil, l’aperçu de la carte. */}
       <WalkDayCard plan={walkPlan} />

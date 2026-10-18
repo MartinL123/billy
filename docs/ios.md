@@ -73,9 +73,32 @@ En attendant, le site web marche toujours : https://martinl123.github.io/billy/
   restent sur le web : garde le site installé sur l'écran d'accueil si tu veux les recevoir.
 - **HealthKit** (séances de l'Apple Watch) et le **GPS en arrière-plan** (Background Modes › Location updates)
   sont disponibles avec un compte gratuit : ils sont déclarés dans le projet (`Info.plist`, `App.entitlements`).
-  Phase 2 : les marches de l'Apple Watch arrivent seules à chaque ouverture (T-001, plugin local
-  `ios/App/App/FlairNativePlugin.swift`, côté JS `src/native/flair.ts`) ; le GPS de l'iPhone viendra avec T-036.
+  Ils servent depuis la phase 2 (voir plus bas).
 - Pas de TestFlight ni d'App Store : l'app ne s'installe que sur tes appareils, depuis ton Mac.
+
+## Phase 2 : Apple Watch et GPS de l'iPhone
+
+Code natif : un plugin local, `ios/App/App/FlairNativePlugin.swift` (enregistré par `MainViewController.swift`),
+appelé depuis `src/native/flair.ts`, toujours derrière `isNative()`. Le site web ne change pas.
+
+- **Marches de l'Apple Watch (T-001)** : à chaque ouverture de l'app (et au retour au premier plan, 5 min au plus),
+  Flair lit dans Santé les séances « Marche » et « Randonnée » avec leur tracé, depuis la dernière lecture (30 jours
+  la première fois). Elles passent par le même circuit que l'import GPX (brouillard, os, coche de la sortie).
+  Une séance sans tracé (en intérieur) n'est pas importée. Une marche déjà importée de Strava (départ à moins de
+  5 min) est ignorée.
+- **Balade enregistrée par l'iPhone (T-036)** : « Partir en balade » (« Ses sorties du jour » sur l'accueil, ou la
+  carte des balades) ouvre l'écran « Balade en cours » ; « Terminer » la garde. Le GPS ne démarre et ne s'arrête
+  que par ces boutons. Les points sont écrits au fur et à mesure dans un fichier de l'app : si l'app est tuée, l'accueil
+  propose « Reprendre / Terminer ». Moins de 100 m ou 2 min : pas gardée. Une séance Watch qui recouvre à plus de la
+  moitié une balade de l'iPhone est ignorée.
+
+Limites :
+- iOS ne dit jamais à une app que la lecture de Santé est refusée : si la première lecture ne trouve aucune séance,
+  la tuile « Ses balades » propose d'autoriser Flair (Réglages › Santé › Accès aux données › Flair).
+- La position est autorisée « Pendant l'utilisation » seulement : la pastille bleue en haut de l'écran garde le GPS
+  actif écran verrouillé. Arrêt automatique après 3 h. Le GPS consomme de la batterie pendant la balade.
+- Le code natif ne se met à jour qu'en réinstallant l'app depuis Xcode ; le reste (écrans, textes) arrive avec le
+  déploiement du site.
 
 ## Changer le nom
 

@@ -353,6 +353,11 @@ export default function Explorer() {
               <h1 className="font-display text-[22px] font-extrabold">Le territoire {ofName(dog.name)}</h1>
               {/* App iOS (T-001) : les marches de la Watch arrivent seules ; le fichier GPX reste en secours. */}
               <p className="text-[17px] leading-snug text-[#3F4946]">{isNative() ? 'Vos marches de l’Apple Watch arrivent seules et lèvent le brouillard.' : 'Importez vos balades Strava pour lever le brouillard.'}</p>
+              {isNative() && (
+                <Link to="/balade-en-cours?depart=1" className="btn btn-main min-h-[56px]">
+                  Partir en balade
+                </Link>
+              )}
               <Link to="/importer" className={`btn ${isNative() ? 'btn-outline min-h-12' : 'btn-main min-h-[56px]'}`}>
                 {isNative() ? 'Importer un fichier GPX' : 'Importer mes balades'}
               </Link>
@@ -365,6 +370,12 @@ export default function Explorer() {
               <span className="h-2.5 overflow-hidden rounded-full bg-placeholder" aria-hidden="true">
                 <span className="block h-full rounded-full bg-gold" style={{ width: `${Math.max(3, Math.min(100, (share ?? 0) * 100))}%` }} />
               </span>
+              {/* App iOS (T-036) : enregistrer une balade avec le GPS de l’iPhone. */}
+              {isNative() && (
+                <Link to="/balade-en-cours?depart=1" className="btn btn-main min-h-[52px]">
+                  Partir en balade
+                </Link>
+              )}
               {/* Les dernières balades affichées, avec leur couleur : un toucher la met en avant sur la carte. */}
               {shown.length === 0 ? (
                 <p className="text-[15px] text-muted">Aucune balade pour ce choix.</p>

@@ -44,7 +44,7 @@ export function DressageAwards() {
     if (profilePartsEarnBones(dog.questionnaire))
       for (let part = 1; part <= PARTS.length; part++) {
         const gain = profilePartBone(part, today)
-        if (!has(gain.id) && partComplete(dog.questionnaire, part)) return give(gain, `Profil complété : ${PARTS[part - 1]!.toLowerCase()}`)
+        if (!has(gain.id) && partComplete(dog.questionnaire, part)) return give(gain, `Profil complété : ${PARTS[part - 1]!.toLowerCase()}`)
       }
 
     // Questionnaire terminé : aussi pour un questionnaire fini avant l’arrivée des os.

@@ -6,12 +6,11 @@ import { setEventDone } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { completeQuest, skipQuest } from '../../firebase/training'
 import { QUEST_XP } from '../../lib/quest'
-import { balance } from '../../lib/bones'
+import { balance, BONES } from '../../lib/bones'
 import { formatDayHeading, formatLong } from '../../lib/dates'
 import { portion, sortMeals } from '../../lib/feeding'
 import { contextLine, nextLines, nowCard, type NowCard, type NowInput, needsVet } from '../../lib/nowCard'
 import { essentialsDone, nextPart, PARTS, profilePartsEarnBones, questionnaireStatus } from '../../lib/questionnaire'
-import { BONES } from '../../lib/bones'
 import { formatRouteDistance } from '../../lib/route'
 import { useToday } from '../../lib/useToday'
 import { lateLabel } from '../../lib/events'
@@ -160,7 +159,7 @@ function useCardContent(card: NowCard, onWeighLater: () => void, budget?: WalkBu
       return {
         badge: 'Pesée du mois',
         title: `Peser ${dog.name}`,
-        text: `${card.last ? `Dernière pesée le ${formatLong(card.last)}.` : 'Aucune pesée notée.'} Il grandit : une pesée par mois suffit.`,
+        text: `${card.last ? `Dernière pesée le ${formatLong(card.last)}.` : 'Aucune pesée notée.'} Il grandit : une pesée par mois suffit.`,
         scene: undefined,
         action: { label: 'Noter son poids', to: '/sante/poids?ajouter=1' },
         other: { label: 'Plus tard', run: onWeighLater },
@@ -221,7 +220,7 @@ export default function Today() {
       walks: entries.filter((e) => e.date === today && e.route?.durationMin).map((e) => e.route!.durationMin!),
       walksLeft: WALK_SLOTS.filter((s) => !(walks.find((w) => w.date === today)?.done ?? {})[s.id]).length,
     }),
-    weighing: { due: weighLater !== today && weighingDue({ today, birthDate: dog.birthDate, lastWeighed: weights[0]?.date }), ...(weights[0] ? { last: weights[0].date } : {}) },
+    weighing: { due: weighingDue({ today, birthDate: dog.birthDate, lastWeighed: weights[0]?.date, postponedOn: weighLater }), ...(weights[0] ? { last: weights[0].date } : {}) },
   }
   const card = nowCard(input)
   const content = useCardContent(card, postponeWeighing, input.budget)

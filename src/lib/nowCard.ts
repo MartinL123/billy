@@ -8,7 +8,7 @@ import { formatHour, timeToMinutes, walkName, WALK_SLOTS, type WalkSlot, type Wa
 
 /** Soins qui se font à la maison, à heure fixe : ils passent avant tout le reste le jour où ils sont dus. */
 const HOME_CARE = ['antiparasitaire', 'vermifuge', 'medicament', 'médicament']
-/** Soins qui demandent le véto : la carte propose le rendez-vous (ou de l'appeler) le jour où ils sont dus. */
+/** Soins qui demandent le véto : la carte propose le rendez-vous (ou de l’appeler) le jour où ils sont dus. */
 const VET_CARE = ['vaccin']
 export const needsVet = (type: string) => VET_CARE.includes(type.toLowerCase())
 

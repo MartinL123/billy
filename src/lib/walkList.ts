@@ -66,7 +66,9 @@ export function walkTags(item: WalkItem): string[] {
 
 /**
  * Une couleur par balade, pour les distinguer sur la carte (vives, lisibles sur le plan comme sur le satellite,
- * avec un liseré blanc). Attribuée dans l’ordre chronologique : une nouvelle balade ne change pas la couleur des autres.
+ * avec un liseré blanc). Attribuée dans l’ordre chronologique : deux balades qui se suivent n’ont jamais la même couleur.
+ * Une balade plus récente ne change pas la couleur des autres ; une balade plus ancienne, importée après coup, décale
+ * celle des balades suivantes.
  */
 export const WALK_COLORS = ['#FF7A1A', '#22B8F0', '#FF4FA3', '#9BD400', '#FFC21A', '#8C6BFF', '#00C99A', '#FF5A4E']
 

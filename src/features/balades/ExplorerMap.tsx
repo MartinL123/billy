@@ -150,7 +150,7 @@ function drawFog(layout: FogLayout, color: string, opacity: number): HTMLCanvasE
     ctx.fillStyle = g
     ctx.fillRect(x - r, y - r, r * 2, r * 2)
   }
-  // Le bord de l'image (1 pixel) reste transparent : l'aplat du reste du monde passe dessous, sans trou ni double voile
+  // Le bord de l’image (1 pixel) reste transparent : l’aplat du reste du monde passe dessous, sans trou ni double voile
   // à la jonction (audit R-016).
   ctx.globalCompositeOperation = 'destination-out'
   ctx.fillStyle = '#000'
@@ -161,10 +161,10 @@ function drawFog(layout: FogLayout, color: string, opacity: number): HTMLCanvasE
   return canvas
 }
 
-/** Largeur du bord de l'image recouvert par l'aplat, en pixels d'image. */
+/** Largeur du bord de l’image recouvert par l’aplat, en pixels d’image. */
 const EDGE = 1
 
-/** Le trou de l'aplat : le rectangle de l'image, rentré du bord transparent. */
+/** Le trou de l’aplat : le rectangle de l’image, rentré du bord transparent. */
 function innerBox(layout: FogLayout): [number, number, number, number] {
   const [s, w, n, e] = layout.bbox
   const dLat = ((n - s) / layout.height) * EDGE
@@ -186,7 +186,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
   const allTracks = useRef(framePoints)
   allTracks.current = framePoints
   const framed = useRef(false)
-  // Tant que le style de carte n'est pas chargé : un indicateur discret (audit R-015).
+  // Tant que le style de carte n’est pas chargé : un indicateur discret (audit R-015).
   const [ready, setReady] = useState(false)
   // Le plan s’affiche d’abord (tuiles légères) ; le satellite arrive par-dessus une fois le plan dessiné (audit R-032).
   const [planDrawn, setPlanDrawn] = useState(false)

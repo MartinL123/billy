@@ -5,17 +5,6 @@ import { updateDog } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { ESSENTIALS, essentialsDone } from '../../lib/questionnaire'
 
-const SEEN_KEY = 'billy-ouverture-vue'
-
-/** L’écran d’ouverture a-t-il déjà été passé sur cet appareil ? (sans stockage : on le montre, ce n’est pas grave) */
-export function openingSeen(): boolean {
-  try {
-    return localStorage.getItem(SEEN_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
 /** Écran d’ouverture, à chaque lancement : on touche la photo du chien pour entrer. */
 export default function Opening() {
   const { dog } = useData()
@@ -24,11 +13,6 @@ export default function Opening() {
   const starting = !essentialsDone(dog.questionnaire)
 
   const enter = () => {
-    try {
-      localStorage.setItem(SEEN_KEY, '1')
-    } catch {
-      // Stockage indisponible : l’ouverture reviendra au prochain lancement.
-    }
     // Tant que les questions du départ ne sont pas faites, elles s’ouvrent toutes seules. « Continuer plus tard » reste possible.
     if (starting) {
       if (!dog.questionnaire?.startedAt) updateDog({ questionnaire: { answers: {}, ...dog.questionnaire, startedAt: new Date().toISOString() } })

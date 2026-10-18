@@ -93,7 +93,7 @@ export function feminize(text: string): string {
 
 /**
  * Une phrase dont le chien est le sujet sans le dire (« Reste serein seul quelques minutes ») : tous les adjectifs
- * connus s'accordent, en plus des règles de `feminize`.
+ * connus s’accordent, en plus des règles de `feminize`.
  */
 export function feminizeImplicit(text: string): string {
   return feminize(text).replace(WORD, (w) => (ADJ.has(w.toLowerCase()) ? keepCase(w, ADJ.get(w.toLowerCase())!) : w))

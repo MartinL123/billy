@@ -259,7 +259,7 @@ export default function Questionnaire() {
 
   // Accordé au féminin dès que « Femelle » est répondu (audit R-006) ; avant, les questions restent neutres.
   const g = (text: string) => forSex(text, draft.sexe)
-  const title = g(step.title.replace('{nom}', draft.nom || (dog.unnamed ? 'votre chien' : dog.name)))
+  const title = g(step.title.replace('de {nom}', ofName(draft.nom || (dog.unnamed ? 'votre chien' : dog.name))).replace('{nom}', draft.nom || (dog.unnamed ? 'votre chien' : dog.name)))
   const skill = SKILLS.find((s) => s.id === step.id)
   const choices = (draft[step.id] ?? '').split('|').filter(Boolean)
 

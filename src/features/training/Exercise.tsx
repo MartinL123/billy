@@ -113,7 +113,7 @@ function RestDay() {
   const toast = useToast()
   const finish = () => {
     completeQuest(today, { kind: 'repos' }, skips, QUEST_XP)
-    toast(<BonesGained label="Journée de repos notée" amount={BONES.mission + BONES.rest} />)
+    toast(<BonesGained label="Journée de repos notée" amount={BONES.mission + BONES.rest} />, undefined, { bones: true })
     back()
   }
   return (

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { CountUp } from '../../components/CountUp'
 import { PawIcon } from '../../components/Icons'
 import { auth } from '../../firebase/app'
 import { watchMembers } from '../../firebase/community'
@@ -58,7 +59,7 @@ const ICONS = {
   ),
 }
 
-function Tile({ to, icon, tint, title, text, detail, detailColor, children }: { to: string; icon: React.ReactNode; tint: string; title: string; text: string; detail?: string; detailColor: string; children?: React.ReactNode }) {
+function Tile({ to, icon, tint, title, text, detail, detailColor, children }: { to: string; icon: React.ReactNode; tint: string; title: string; text: React.ReactNode; detail?: React.ReactNode; detailColor: string; children?: React.ReactNode }) {
   return (
     <Link to={to} className="card tap flex min-h-[150px] flex-col gap-1.5 rounded-[22px] p-4 text-text no-underline">
       <span className="flex size-11 items-center justify-center rounded-[14px]" style={{ background: tint }}>
@@ -77,7 +78,7 @@ function Tile({ to, icon, tint, title, text, detail, detailColor, children }: { 
 }
 
 /** « Sa vie avec vous » (T-031) : 4 tuiles vivantes, puis la boutique et la meute. Chaque tuile ouvre son écran. */
-export function LifeTiles() {
+export function LifeTiles({ arrival = false }: { /** Première ouverture du jour : cascade, compteurs et pattes animés (T-033). */ arrival?: boolean }) {
   const { dog, bossProgress, entries, events, bones, fog, communes } = useData()
   const today = useToday()
   const [friends, setFriends] = useState(0)
@@ -88,29 +89,33 @@ export function LifeTiles() {
   const share = useMemo(() => {
     const start = walks[0]?.route.points[0]
     const commune = start ? communeAt(communes, { lat: start[0], lng: start[1] }, inPolygon) : undefined
-    return commune ? shareLabel(discoveredShare(knownFog(fog), commune), commune.name) : undefined
+    return commune ? { value: discoveredShare(knownFog(fog), commune), name: commune.name } : undefined
   }, [walks, communes, fog])
 
   const active = activeSkills(dog.activeSkills, dog.traits ?? [], bossProgress)
   const progress = progressTile(active, Object.fromEntries(active.map((id) => [id, bossProgress[id]?.level])))
-  const balades = walksTile(walks.map((w) => w.route), share)
+  const balades = walksTile(walks.map((w) => w.route), share && shareLabel(share.value, share.name))
+  // Les km et le % défilent jusqu’à leur valeur quand ils changent (et à l’arrivée du jour).
+  const km = (n: number) => n.toFixed(1).replace('.', ',')
   const sante = healthTile(events, today)
   const souvenirs = memoriesTile(entries, today)
 
   return (
     <>
       <h2 className="mt-1 font-display text-[20px] font-extrabold">Sa vie avec vous</h2>
-      <div className="grid grid-cols-2 gap-3">
+      <div className={`grid grid-cols-2 gap-3 ${arrival ? 'anim-stagger' : ''}`}>
         <Tile to="/billy" icon={ICONS.progres} tint="#DCEBE6" title="Ses progrès" text={progress.text} detail={progress.detail} detailColor="#1E5A50">
           {progress.paws > 0 && (
             <span role="img" aria-label={`Déjà ${progress.paws} étape${progress.paws > 1 ? 's' : ''} franchie${progress.paws > 1 ? 's' : ''}`} className="mt-auto flex gap-1">
               {Array.from({ length: 5 }, (_, k) => (
-                <PawIcon key={k} size={18} color={k < progress.paws ? '#1E5A50' : '#D3D9D6'} />
+                <span key={k} className={arrival && k < progress.paws ? 'anim-pop' : ''} style={arrival ? { animationDelay: `${600 + k * 90}ms` } : undefined}>
+                  <PawIcon size={18} color={k < progress.paws ? '#1E5A50' : '#D3D9D6'} />
+                </span>
               ))}
             </span>
           )}
         </Tile>
-        <Tile to={walks.length ? '/territoire' : '/importer'} icon={ICONS.balades} tint="#E3EAF8" title="Ses balades" text={balades.text} detail={balades.detail} detailColor="#2559A8" />
+        <Tile to={walks.length ? '/territoire' : '/importer'} icon={ICONS.balades} tint="#E3EAF8" title="Ses balades" text={walks.length ? <>{walks.length} balade{walks.length > 1 ? 's' : ''} · <CountUp value={balades.km} format={km} fromZero={arrival} /> km</> : balades.text} detail={share ? <CountUp value={share.value} format={(n) => shareLabel(n, share.name)} fromZero={arrival} /> : balades.detail} detailColor="#2559A8" />
         <Tile to="/sante" icon={ICONS.sante} tint="#FBE6D4" title="Sa santé" text={sante.text} detail={sante.detail} detailColor={sante.late ? '#B3261E' : '#B34A10'} />
         <Tile to={souvenirs.count ? '/balades' : '/noter'} icon={ICONS.souvenirs} tint="#FCEFD3" title="Ses souvenirs" text={souvenirs.text} detail={souvenirs.detail} detailColor="#6B4E0E" />
       </div>
@@ -119,7 +124,9 @@ export function LifeTiles() {
           {ICONS.boutique}
           <span className="flex min-w-0 flex-col">
             <span className="text-[15px] font-extrabold">La boutique</span>
-            <span className="text-[13px] text-[#3F4946]">{balance(bones)} os à dépenser</span>
+            <span className="text-[13px] text-[#3F4946]">
+              <CountUp value={balance(bones)} fromZero={arrival} /> os à dépenser
+            </span>
           </span>
         </Link>
         <Link to="/meute" className="card tap flex min-h-[60px] items-center gap-2.5 rounded-[18px] px-3.5 py-3 text-text no-underline">

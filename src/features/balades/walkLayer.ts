@@ -1,4 +1,4 @@
-import { addMarker, dot, fitPoints, lngLat, setLine, whenReady, type MapLibreMap, type Marker } from '../../components/maplibre'
+import { addMarker, dot, fitPoints, lngLat, setLine, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
 import { loadFile } from '../../firebase/files'
 import { distanceMeters } from '../../lib/community'
 import { bearing, cumulative, easeInOut, pointAlong, REPLAY_MS, turnToward } from '../../lib/replay'
@@ -19,14 +19,27 @@ const walkPadding = (m: MapLibreMap) => fitPadding(WALK_PADDING, m.getContainer(
 export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPhoto: (index: number) => void, color = '#9A4413'): () => void {
   const markers: Marker[] = []
   const urls: string[] = []
+  let frame = 0
   whenReady(m, () => {
     // Un liseré blanc, puis la couleur de la balade : elle se détache des autres tracés.
-    setLine(m, 'balade-liseré', [route.points], { color: '#FFFFFF', width: 9 })
-    setLine(m, 'balade', [route.points], { color, width: 5 })
+    const draw = (points: LatLng[]) => {
+      setLine(m, 'balade-liseré', [points], { color: '#FFFFFF', width: 9 })
+      setLine(m, 'balade', [points], { color, width: 5 })
+    }
+    draw(route.points.slice(0, 2))
     m.setPaintProperty('balade', 'line-color', color)
     m.moveLayer('balade-liseré')
     m.moveLayer('balade')
     fitPoints(m, route.points, walkPadding(m), true)
+    // Le tracé se dessine du départ à l’arrivée en 1 s (T-033) ; d’un coup si l’on réduit les animations.
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return draw(route.points)
+    const start = performance.now()
+    const step = (now: number) => {
+      const p = Math.min(1, (now - start) / 1000)
+      draw(route.points.slice(0, Math.max(2, Math.ceil(route.points.length * (1 - Math.pow(1 - p, 2))))))
+      if (p < 1) frame = requestAnimationFrame(step)
+    }
+    frame = requestAnimationFrame(step)
   })
   const first = route.points[0]
   const last = route.points[route.points.length - 1]
@@ -54,6 +67,7 @@ export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPh
     markers.push(addMarker(m, [photo.lat, photo.lng], el, { anchor: 'bottom' }))
   }
   return () => {
+    cancelAnimationFrame(frame)
     markers.forEach((marker) => marker.remove())
     urls.forEach((url) => URL.revokeObjectURL(url))
     whenReady(m, () => {

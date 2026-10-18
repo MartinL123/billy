@@ -188,6 +188,8 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
   const allTracks = useRef(framePoints)
   allTracks.current = framePoints
   const framed = useRef(false)
+  // Le dernier brouillard dessiné : pour le faire s’effacer en fondu quand de nouvelles zones sont découvertes.
+  const lastFog = useRef<{ mode: string; cells: number; canvas?: HTMLCanvasElement; coordinates: [[number, number], [number, number], [number, number], [number, number]] } | null>(null)
   // Tant que le style de carte n’est pas chargé : un indicateur discret (audit R-015).
   const [ready, setReady] = useState(false)
   // Le plan s’affiche d’abord (tuiles légères) ; le satellite arrive par-dessus une fois le plan dessiné (audit R-032).
@@ -331,6 +333,14 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     whenReady(m, () => {
       const mode = sat ? 'satellite' : 'plan'
       const layout = fogLayout(cells)
+      // De nouvelles zones découvertes (après un import) : l’ancien brouillard reste par-dessus et s’efface en fondu
+      // (T-033). Pas au premier dessin, ni en changeant de fond de carte.
+      const previous = lastFog.current
+      const revealed = previous && previous.mode === mode && cells.size > previous.cells && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      for (const id of ['brouillard-ancien']) {
+        if (m.getLayer(id)) m.removeLayer(id)
+        if (m.getSource(id)) m.removeSource(id)
+      }
       for (const id of ['brouillard-image', 'brouillard']) {
         if (m.getLayer(id)) m.removeLayer(id)
         if (m.getSource(id)) m.removeSource(id)
@@ -361,6 +371,17 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
         })
         m.addLayer({ id: 'brouillard-image', type: 'raster', source: 'brouillard-image', paint: { 'raster-fade-duration': 0, 'raster-resampling': 'linear' } })
       }
+      if (revealed && previous.canvas) {
+        m.addSource('brouillard-ancien', { type: 'canvas', canvas: previous.canvas, animate: false, coordinates: previous.coordinates })
+        m.addLayer({ id: 'brouillard-ancien', type: 'raster', source: 'brouillard-ancien', paint: { 'raster-fade-duration': 0, 'raster-opacity': 1, 'raster-opacity-transition': { duration: 900, delay: 150 } } })
+        requestAnimationFrame(() => m.getLayer('brouillard-ancien') && m.setPaintProperty('brouillard-ancien', 'raster-opacity', 0))
+        window.setTimeout(() => {
+          if (m.getLayer('brouillard-ancien')) m.removeLayer('brouillard-ancien')
+          if (m.getSource('brouillard-ancien')) m.removeSource('brouillard-ancien')
+        }, 1200)
+      }
+      const image = m.getSource('brouillard-image') as { getCanvas?: () => HTMLCanvasElement; coordinates?: [number, number][] } | undefined
+      lastFog.current = { mode, cells: cells.size, canvas: image?.getCanvas?.(), coordinates: (image?.coordinates ?? []) as [[number, number], [number, number], [number, number], [number, number]] }
       drawWalks(m, tracks, Boolean(walkRoute))
     })
   }, [cells, tracks, sat, Boolean(walkRoute)]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -388,6 +409,8 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
 
   return (
     <div className="absolute inset-0 isolate">
+      {/* Tant que la carte charge : un fond qui scintille doucement (squelette, T-033) et l’indicateur (R-015). */}
+      {!ready && <span aria-hidden="true" className="skeleton pointer-events-none absolute inset-0 z-[5] rounded-none" />}
       {!ready && (
         <div role="status" className="pointer-events-none absolute inset-x-0 top-[40%] z-10 flex justify-center">
           <span className="flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-[15px] font-semibold text-text shadow-[0_2px_8px_rgba(24,32,30,0.2)]">

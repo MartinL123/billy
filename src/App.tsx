@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
-import { HashRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { HashRouter, Navigate, Route, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
 import { TabLayout } from './components/TabBar'
 import { ToastProvider } from './components/Toast'
 import Login from './features/auth/Login'
@@ -45,6 +45,7 @@ import Exercise from './features/training/Exercise'
 import { watchUser, type User } from './firebase/auth'
 import { setClosingAccount } from './firebase/erase'
 import { DataProvider } from './firebase/store'
+import { SkeletonList, SkeletonScreen } from './components/Skeleton'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -78,6 +79,33 @@ function OpenOnLogo() {
   return null
 }
 
+/** Les onglets : passer de l’un à l’autre se fait en fondu, pas en glissé. */
+const TABS = ['/', '/territoire', '/sante']
+
+/**
+ * Transitions d’écran (T-033) : un écran ouvert glisse depuis la droite (250 ms), au retour l’écran d’avant revient
+ * de la gauche, les onglets passent en fondu. Pas de transition sur l’écran d’ouverture ni au premier affichage.
+ */
+function Screen({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation()
+  const type = useNavigationType()
+  const previous = useRef<string | null>(null)
+  const from = previous.current
+  useEffect(() => {
+    previous.current = pathname
+  }, [pathname])
+  let effect = ''
+  if (from !== null && from !== pathname && pathname !== '/ouverture' && from !== '/ouverture') {
+    if (TABS.includes(from) && TABS.includes(pathname)) effect = 'screen-fade'
+    else effect = type === 'POP' ? 'screen-back' : 'screen-in'
+  }
+  return (
+    <div key={pathname} className={effect}>
+      {children}
+    </div>
+  )
+}
+
 function InstallRoute() {
   const back = useBack('/profil')
   return <InstallGuide onBack={back} />
@@ -106,7 +134,8 @@ export default function App() {
         offline ? (
           <Splash title="Pas de réseau">Le tout premier lancement a besoin d’Internet pour préparer votre espace.</Splash>
         ) : (
-          <Splash />
+          // Les données arrivent : la forme de l’écran plutôt qu’un écran vide (T-033).
+          <SkeletonScreen />
         )
       }
     >
@@ -119,6 +148,7 @@ export default function App() {
         <HashRouter>
           <OpenOnLogo />
           <ScrollToTop />
+          <Screen>
           <Routes>
             <Route element={<TabLayout />}>
               <Route index element={<Today />} />
@@ -128,7 +158,7 @@ export default function App() {
               <Route
                 path="meute"
                 element={
-                  <Suspense fallback={<p className="px-5 text-muted">Chargement…</p>}>
+                  <Suspense fallback={<SkeletonList />}>
                     <Meute />
                   </Suspense>
                 }
@@ -176,6 +206,7 @@ export default function App() {
             <Route path="document/:id" element={<DocumentView />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </Screen>
         </HashRouter>
       </ToastProvider>
     </DataProvider>

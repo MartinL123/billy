@@ -25,7 +25,7 @@ export function DressageAwards() {
     const give = (gain: BoneWithId, label: string) => {
       given.current.add(gain.id)
       awardBone(gain)
-      toast(<BonesGained label={label} amount={gain.amount} />)
+      toast(<BonesGained label={label} amount={gain.amount} />, undefined, { bones: true })
     }
 
     const week = weekId(today)

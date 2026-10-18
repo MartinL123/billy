@@ -26,7 +26,7 @@ export function BonesBackfill() {
     for (const gain of gains) batch.set(userDoc('bones', gain.id), { date: gain.date, amount: gain.amount, reason: gain.reason, refId: gain.refId })
     batch.update(userDoc('dog', 'billy'), { bonesBackfilled: today })
     send(batch.commit())
-    if (gains.length) toast(<BonesGained label="Pour ce que vous aviez déjà fait :" amount={balance(gains)} />)
+    if (gains.length) toast(<BonesGained label="Pour ce que vous aviez déjà fait :" amount={balance(gains)} />, undefined, { bones: true })
   }, [dog, entries, xpLog, bones, online, today, toast])
 
   return null

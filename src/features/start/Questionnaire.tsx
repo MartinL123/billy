@@ -92,6 +92,7 @@ export default function Questionnaire() {
   })
   const flow = route.flow
   const [pos, setPos] = useState(route.start)
+  const [direction, setDirection] = useState(0)
   const index = flow[Math.min(pos, flow.length - 1)]!
   const step = STEPS[index]!
   const [error, setError] = useState('')
@@ -156,7 +157,9 @@ export default function Questionnaire() {
       if (allPartsDone(dog.questionnaire, flow.map((i) => STEPS[i]!.id))) answerQuestion('fin', 'ok', { 'questionnaire.completedAt': new Date().toISOString() })
       return navigate('/', { replace: true })
     }
-    setPos(Math.max(0, Math.min(flow.length - 1, next)))
+    const target = Math.max(0, Math.min(flow.length - 1, next))
+    setDirection(Math.sign(target - pos))
+    setPos(target)
     window.scrollTo(0, 0)
   }
 
@@ -318,7 +321,8 @@ export default function Questionnaire() {
           </button>
         </div>
         <div role="progressbar" aria-label="Avancement du questionnaire" aria-valuemin={1} aria-valuemax={flow.length} aria-valuenow={pos + 1} className="h-2.5 overflow-hidden rounded-full bg-placeholder">
-          <div className="h-full rounded-full bg-primary transition-[width] duration-300" style={{ width: `${((pos + 1) / flow.length) * 100}%` }} />
+          {/* La barre glisse (transform seulement, fluide sur iPhone ; T-033). */}
+          <div className="h-full origin-left rounded-full bg-primary transition-transform duration-[250ms] ease-[cubic-bezier(.2,.8,.3,1)]" style={{ transform: `scaleX(${(pos + 1) / flow.length})` }} />
         </div>
         {/* La partie est rappelée ici, sous la barre : la ligne du haut garde ses boutons sur une seule ligne. */}
         <p className="flex flex-wrap justify-between gap-x-3 text-[13px] font-bold tracking-[0.6px] uppercase" aria-live="polite">
@@ -327,7 +331,8 @@ export default function Questionnaire() {
         </p>
       </header>
 
-      <div className="flex flex-1 flex-col gap-5">
+      {/* La question suivante arrive de la droite, la précédente de la gauche (T-033). */}
+      <div key={pos} className={`flex flex-1 flex-col gap-5 ${direction > 0 ? 'q-next' : direction < 0 ? 'q-prev' : ''}`}>
         {step.kind !== 'fin' && step.kind !== 'skill' && (
           <div className="flex flex-col gap-2">
             <h1 className="font-display text-[28px] leading-tight font-bold">{title}</h1>

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { stepPhraseLower, territoryOf } from '../../content/phrases'
 import { Badge } from '../billy/Badge'
 import { bossById, MAX_LEVEL } from '../../content/training'
+import { BoneShower } from '../../components/BoneShower'
 
 /** Confettis aux couleurs du territoire : ils tombent dans le haut de l’écran, jamais sur les boutons. */
 function Confetti({ colors, count }: { colors: string[]; count: number }) {
@@ -61,6 +62,7 @@ export function StepSuccess({ dogName, bossId, level, inCarnet = true, onClose }
   return (
     <FullScreen label="C’est réussi">
       <Confetti colors={[territory.color, territory.soft, '#F2B544', '#FFFFFF']} count={14} />
+      <BoneShower />
       <span className="cel-badge flex size-40 shrink-0 items-center justify-center rounded-full bg-white shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
         <Badge bossId={bossId} acquired={level} size={136} animateStep={level} lit="#F2B544" />
       </span>

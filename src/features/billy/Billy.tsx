@@ -64,7 +64,10 @@ export default function Billy() {
                   {level ? (
                     <span role="img" aria-label={`Déjà ${level} étape${level > 1 ? 's' : ''} franchie${level > 1 ? 's' : ''}`} className="flex gap-1">
                       {Array.from({ length: MAX_LEVEL }, (_, k) => (
-                        <PawIcon key={k} size={22} color={k < level ? '#1E5A50' : '#D3D9D6'} />
+                        // Elles se remplissent une par une, avec un petit rebond (T-033).
+                        <span key={k} className={k < level ? 'anim-pop' : ''} style={k < level ? { animationDelay: `${150 + (i * MAX_LEVEL + k) * 70}ms` } : undefined}>
+                          <PawIcon size={22} color={k < level ? '#1E5A50' : '#D3D9D6'} />
+                        </span>
                       ))}
                     </span>
                   ) : (
@@ -83,7 +86,7 @@ export default function Billy() {
 
       <nav aria-label={`Tout sur ${dog.name}`} className="card flex flex-col p-0">
         {lines.map((line, i) => (
-          <Link key={line.title} to={line.to} className={`flex min-h-[60px] items-center gap-3 px-4 py-2.5 text-text no-underline ${i ? 'border-t border-divider' : ''}`}>
+          <Link key={line.title} to={line.to} className={`tap flex min-h-[60px] items-center gap-3 px-4 py-2.5 text-text no-underline ${i ? 'border-t border-divider' : ''}`}>
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="text-[17px] font-bold">{line.title}</span>
               <span className="truncate text-[15px] text-muted">{line.detail}</span>

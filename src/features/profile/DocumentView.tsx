@@ -11,6 +11,7 @@ import { openPdf, renderPdfPage } from '../../lib/pdf'
 import { safeFileName, shareFiles } from '../../lib/share'
 import { useBack } from '../../lib/useBack'
 import { categoryLabel } from './documents'
+import { Skeleton } from '../../components/Skeleton'
 
 /** Pages d’un PDF dessinées une à une (iOS n’affiche pas un PDF multipage dans une page web). */
 function PdfPages({ blob }: { blob: Blob }) {
@@ -153,7 +154,7 @@ export default function DocumentView() {
             Ce document n’est pas encore sur cet appareil. Reconnectez-vous à Internet pour le télécharger une première fois.
           </p>
         )}
-        {!failed && !blobs && <p className="py-8 text-center text-muted">Chargement…</p>}
+        {!failed && !blobs && <Skeleton className="mx-auto my-4 h-[60vh] w-full rounded-[18px]" />}
         {blobs && (document_.kind === 'pdf' && blobs[0] ? <PdfPages blob={blobs[0]} /> : <ImagePages blobs={blobs} />)}
         <button type="button" onClick={() => setConfirmDelete(true)} className="btn btn-danger">
           <TrashIcon size={20} />

@@ -38,7 +38,7 @@
   --shadow-card: 0 1px 2px rgba(24, 32, 30, 0.06);
   --shadow-fab: 0 6px 16px rgba(30, 90, 80, 0.35);
 
-  --animate-sheet: sheet-up 0.22s ease-out;
+  --animate-sheet: sheet-up 0.4s cubic-bezier(0.3, 1.15, 0.5, 1);
   --animate-fade: fade-in 0.2s ease-out;
   --animate-breathe: breathe 2.4s ease-in-out infinite;
   --animate-rise: rise 0.9s ease-out both;
@@ -103,6 +103,11 @@
   text-align: center;
   text-decoration: none;
   cursor: pointer;
+  /* Retour au toucher (T-033) : le bouton s'enfonce légèrement puis revient. */
+  transition: transform var(--dur-tap) var(--ease-out);
+  &:active {
+    transform: scale(0.96);
+  }
 }
 /* L'action principale : plein orange. */
 @utility btn-main {
@@ -148,6 +153,10 @@
   color: var(--color-text);
   text-decoration: none;
   text-align: left;
+  transition: transform var(--dur-tap) var(--ease-out);
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
 html,
@@ -490,5 +499,128 @@ input::-webkit-date-and-time-value {
   .op-ring,
   .op-ring-late {
     display: none;
+  }
+}
+
+/* ——— Animations dans toute l'app (T-033) ——— */
+
+/* Le compteur d'os rebondit quand un os arrive. */
+.bump {
+  animation: bump 0.4s var(--ease-spring);
+}
+@keyframes bump {
+  40% {
+    transform: scale(1.22);
+  }
+}
+/* Le bandeau d'os glisse depuis le haut. */
+.toast-drop {
+  animation: toast-drop var(--dur-in) var(--ease-spring) both;
+}
+@keyframes toast-drop {
+  from {
+    transform: translateY(-140%);
+    opacity: 0;
+  }
+}
+/* Le petit os qui vole du bandeau jusqu'au compteur. */
+.bone-fly {
+  animation: bone-fly 0.65s cubic-bezier(0.5, 0, 0.3, 1) 0.35s both;
+}
+@keyframes bone-fly {
+  to {
+    transform: translate(var(--dx), var(--dy)) scale(0.6);
+    opacity: 0.2;
+  }
+}
+/* Fin de mission, nouvelle étape : une gerbe d'os (1 s). */
+.shower-bone {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  animation: shower 1s cubic-bezier(0.2, 0.7, 0.4, 1) var(--delay, 0s) both;
+}
+@keyframes shower {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1) rotate(var(--rot));
+    opacity: 0;
+  }
+}
+/* « C'est fait » dessine sa coche. */
+.check-draw path {
+  stroke-dasharray: 24;
+  animation: check-draw 0.3s var(--ease-out) both;
+}
+@keyframes check-draw {
+  from {
+    stroke-dashoffset: 24;
+  }
+}
+/* Transitions d'écran : un écran ouvert glisse depuis la droite, au retour l'écran d'avant revient de la gauche,
+   les onglets passent en fondu. Pas de « forwards » : une fois finie, l'animation ne laisse aucun transform (sinon les
+   éléments « fixed » de l'écran ne seraient plus fixés à la fenêtre). */
+.screen-in {
+  animation: screen-in var(--dur-move) var(--ease-out) backwards;
+}
+.screen-back {
+  animation: screen-back var(--dur-move) var(--ease-out) backwards;
+}
+.screen-fade {
+  animation: fade-in var(--dur-move) ease-out backwards;
+}
+@keyframes screen-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes screen-back {
+  from {
+    transform: translateX(-30%);
+    opacity: 0.6;
+  }
+}
+/* Squelettes de chargement : des blocs gris qui scintillent doucement. */
+.skeleton {
+  border-radius: 18px;
+  background: linear-gradient(100deg, #e6eae7 30%, #f3f5f2 50%, #e6eae7 70%) 0 0 / 300% 100%;
+  animation: skeleton 1.4s ease-in-out infinite;
+}
+@keyframes skeleton {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+/* Questionnaire : la question suivante arrive de la droite, la précédente de la gauche. */
+.q-next {
+  animation: q-slide var(--dur-move) var(--ease-out) backwards;
+  --from: 40px;
+}
+.q-prev {
+  animation: q-slide var(--dur-move) var(--ease-out) backwards;
+  --from: -40px;
+}
+@keyframes q-slide {
+  from {
+    transform: translateX(var(--from));
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shower-bone,
+  .bone-fly {
+    display: none;
+  }
+  .skeleton {
+    background: #e6eae7;
   }
 }

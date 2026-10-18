@@ -113,7 +113,7 @@ export default function Walks() {
                   {group.items.map((row, i) =>
                     row.kind === 'souvenir' ? (
                       <li key={row.id} className={i ? 'border-t border-divider' : ''}>
-                        <Link to={`/souvenir/${row.id}`} className="flex items-center gap-3 px-3 py-2.5 text-text no-underline">
+                        <Link to={`/souvenir/${row.id}`} className="tap flex items-center gap-3 px-3 py-2.5 text-text no-underline">
                           {row.thumb ? (
                             <FileImage fileId={row.thumb} alt="" className="size-14 shrink-0 rounded-[14px]" />
                           ) : (
@@ -129,7 +129,7 @@ export default function Walks() {
                       </li>
                     ) : (
                       <li key={row.item.id} className={i ? 'border-t border-divider' : ''}>
-                        <Link to={`/souvenir/${row.item.id}`} className="flex items-center gap-3 px-3 py-2.5 text-text no-underline">
+                        <Link to={`/souvenir/${row.item.id}`} className="tap flex items-center gap-3 px-3 py-2.5 text-text no-underline">
                           <RouteThumb points={row.item.route.points} moments={row.item.route.moments} size={56} />
                           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                             <span className="flex min-w-0 items-center gap-2">

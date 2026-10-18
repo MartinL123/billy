@@ -25,6 +25,7 @@ import { weighingDue } from '../../lib/weighing'
 import { minutesLabel, walkBudget, type WalkBudget } from '../../lib/walkBudget'
 import { WALK_SLOTS } from '../../lib/walks'
 import { LifeTiles } from './LifeTiles'
+import { CountUp } from '../../components/CountUp'
 
 // « Plus tard » sur la pesée : on n’en reparle pas avant demain (choix gardé sur cet appareil).
 const WEIGH_LATER_KEY = 'billy-pesee-plus-tard'
@@ -33,6 +34,19 @@ const readWeighLater = () => {
     return localStorage.getItem(WEIGH_LATER_KEY) ?? ''
   } catch {
     return ''
+  }
+}
+
+/** Ce qui identifie la carte du moment : quand il change, la nouvelle carte monte. */
+const cardKey = (card: NowCard) => (card.kind === 'soin' ? `soin-${card.event.id}` : card.kind === 'sortie' ? `sortie-${card.slot}` : card.kind)
+
+const ARRIVAL_KEY = 'billy.accueil-cascade'
+/** Première ouverture de l’accueil aujourd’hui sur cet appareil ? (lecture seule ; la visite est retenue après l’affichage) */
+function firstVisitToday(today: string): boolean {
+  try {
+    return localStorage.getItem(ARRIVAL_KEY) !== today
+  } catch {
+    return false
   }
 }
 
@@ -59,9 +73,27 @@ function CardButton({ action, main }: { action: Action; main?: boolean }) {
         {action.label}
       </a>
     )
+  return <RunButton action={action} className={cls} />
+}
+
+/** Un bouton d’action ; « C’est fait » dessine d’abord sa coche (300 ms), puis la carte suivante monte (T-033). */
+function RunButton({ action, className }: { action: Action; className: string }) {
+  const [checking, setChecking] = useState(false)
+  const done = action.label.startsWith('C’est fait')
+  const click = () => {
+    if (!done || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return action.run?.()
+    setChecking(true)
+    window.setTimeout(() => action.run?.(), 350)
+  }
   return (
-    <button type="button" onClick={action.run} className={cls}>
-      {action.label}
+    <button type="button" onClick={click} disabled={checking} className={className}>
+      {checking ? (
+        <svg className="check-draw" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-label="Fait">
+          <path d="M5 12l5 5 9-10" />
+        </svg>
+      ) : (
+        action.label
+      )}
     </button>
   )
 }
@@ -231,12 +263,23 @@ export default function Today() {
   const content = useCardContent(card, postponeWeighing, input.budget)
   const walkLine = nextLines(input, card).find((line) => line.key === 'sortie')
   const fromOpening = Boolean((location.state as { fromOpening?: boolean } | null)?.fromOpening)
+  // Arrivée en cascade (T-033) : à la première ouverture de la journée seulement ; les autres fois, affichage direct.
+  const [arrival] = useState(() => firstVisitToday(today))
+  // La carte affichée à l’ouverture de l’écran : seules les suivantes montent (pas d’animation à chaque visite).
+  const [firstCard] = useState(() => cardKey(card))
+  useEffect(() => {
+    try {
+      localStorage.setItem(ARRIVAL_KEY, today)
+    } catch {
+      // Stockage indisponible : la cascade reviendra, ce n’est pas grave.
+    }
+  }, [today])
   const questionnaire = questionnaireStatus(dog.questionnaire)
   const profilePart = nextPart(dog.questionnaire)
 
   return (
     // Depuis l’écran d’ouverture (T-032) : l’accueil monte à sa place.
-    <div className={`flex flex-col gap-4 px-5 ${fromOpening ? 'op-arrive' : ''}`}>
+    <div className={`flex flex-col gap-4 px-5 ${fromOpening ? 'op-arrive' : ''} ${arrival ? 'anim-stagger' : ''}`}>
       <header className="flex items-center gap-3">
         {/* La photo et le nom forment un seul bouton vers l’écran du chien (audit R-009). */}
         <Link to="/billy" aria-label={`${dog.name}, ses progrès`} className="tap flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-[20px] text-text no-underline">
@@ -248,13 +291,14 @@ export default function Today() {
             <span className="truncate font-display text-[26px] leading-tight font-extrabold">Bonjour, {dog.name}</span>
           </span>
         </Link>
-        <Link to="/boutique" aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[17px] font-extrabold text-gold-dark no-underline">
+        <Link to="/boutique" data-bones-counter aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[17px] font-extrabold text-gold-dark no-underline">
           <BoneIcon size={20} />
-          {balance(bones)}
+          <CountUp value={balance(bones)} fromZero={arrival} />
         </Link>
       </header>
 
-      <section aria-label="À faire maintenant" className="card flex flex-col gap-3 rounded-[26px] p-4">
+      {/* Une nouvelle carte du moment (soin fait, mission faite…) monte à la place de l’ancienne (T-033). */}
+      <section key={cardKey(card)} aria-label="À faire maintenant" className={`card flex flex-col gap-3 rounded-[26px] p-4 ${cardKey(card) !== firstCard ? 'anim-in' : ''}`}>
         <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{content.badge}</span>
         {content.scene && <Illustration scene={content.scene} className="h-[130px] bg-bg" />}
         <h1 className="font-display text-[26px] leading-tight font-extrabold">{content.title}</h1>
@@ -276,7 +320,7 @@ export default function Today() {
         </Link>
       )}
 
-      <LifeTiles />
+      <LifeTiles arrival={arrival} />
 
       {/* « Noter un souvenir » une seule fois : en bouton contour, sauf si c’est déjà le bouton de la carte (audit R-023). */}
       {content.action?.to !== '/noter' && (

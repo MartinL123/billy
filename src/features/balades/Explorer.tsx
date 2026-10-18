@@ -295,11 +295,6 @@ export default function Explorer() {
               </button>
             </div>
           </div>
-          {/* Les spots de la meute : un calque de la carte, pas un filtre des balades. */}
-          <button type="button" aria-pressed={packLayer} onClick={() => setPackLayer(!packLayer)} className={`pointer-events-auto flex min-h-11 items-center gap-1.5 rounded-full border-0 px-3.5 text-[15px] font-bold shadow-[0_2px_6px_rgba(24,32,30,0.2)] ${packLayer ? 'bg-text text-white' : 'bg-surface text-text'}`}>
-            <span className="size-2.5 rounded-full bg-[#2559A8]" aria-hidden="true" />
-            Meute
-          </button>
           {/* Autour de moi (T-020) : la carte, la commune et les idées suivent l’endroit où l’on est. */}
           <button type="button" onClick={locate} aria-label="Autour de moi : les balades et les idées du coin où je suis" className={`pointer-events-auto flex size-12 items-center justify-center rounded-full border-0 shadow-[0_2px_6px_rgba(24,32,30,0.2)] ${myPos ? 'bg-[#2F7BF6] text-white' : 'bg-surface text-text'}`}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true" className={locating ? 'animate-pulse' : ''}>
@@ -347,6 +342,11 @@ export default function Explorer() {
                   {f.id === 'toutes' ? `Toutes · ${walks.length}` : f.label}
                 </button>
               ))}
+              {/* Les spots de la meute, avec les filtres (T-031). */}
+              <button type="button" aria-pressed={packLayer} onClick={() => setPackLayer(!packLayer)} className={`flex items-center gap-1.5 ${chip(packLayer)}`}>
+                <span className="size-2.5 rounded-full bg-[#2559A8]" aria-hidden="true" />
+                Spots de la meute
+              </button>
             </div>
           )}
           {walks.length === 0 ? (

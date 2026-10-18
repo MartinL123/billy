@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { BoneIcon } from '../../components/BoneIcon'
-import { ChevronRightIcon, PlusIcon } from '../../components/Icons'
+import { PlusIcon } from '../../components/Icons'
 import { setEventDone } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { completeQuest, skipQuest } from '../../firebase/training'
@@ -9,7 +9,7 @@ import { QUEST_XP } from '../../lib/quest'
 import { balance, BONES } from '../../lib/bones'
 import { formatDayHeading, formatLong } from '../../lib/dates'
 import { portion, sortMeals } from '../../lib/feeding'
-import { nextLines, nowCard, type NowCard, type NowInput, needsVet } from '../../lib/nowCard'
+import { nowCard, type NowCard, type NowInput, needsVet } from '../../lib/nowCard'
 import { essentialsDone, nextPart, PARTS, profilePartsEarnBones, questionnaireStatus } from '../../lib/questionnaire'
 import { formatRouteDistance } from '../../lib/route'
 import { useToday } from '../../lib/useToday'
@@ -23,7 +23,8 @@ import { Illustration } from '../training/Illustration'
 import { useQuest } from './useQuest'
 import { weighingDue } from '../../lib/weighing'
 import { minutesLabel, walkBudget, type WalkBudget } from '../../lib/walkBudget'
-import { WALK_SLOTS } from '../../lib/walks'
+import { upcomingSlots, walkDayPlan } from '../../lib/walkDay'
+import { WalkDayCard } from './WalkDayCard'
 import { LifeTiles } from './LifeTiles'
 import { CountUp } from '../../components/CountUp'
 
@@ -105,8 +106,8 @@ function RunButton({ action, className }: { action: Action; className: string })
 function sortieText(budget?: WalkBudget): { title: string; text: string } {
   if (!budget) return { title: 'Une vraie sortie, même 15 minutes', text: 'Elle se cochera toute seule avec votre balade Strava.' }
   if (budget.next === 0) return { title: 'Juste ses besoins, 5 min', text: `Ses ${minutesLabel(budget.daily)} de marche du jour sont faites : pas de balade.` }
-  if (budget.longWalk && budget.next < budget.perWalk) return { title: `Une petite sortie de ${budget.next} min`, text: `Déjà une grosse balade aujourd’hui (${minutesLabel(budget.longWalk)} au lieu de ${budget.perWalk}).` }
-  if (budget.next < budget.perWalk) return { title: `Une sortie de ${budget.next} min`, text: `Déjà ${minutesLabel(budget.walked)} de marche aujourd’hui, sur ${minutesLabel(budget.daily)}.` }
+  // Raccourcie : ce qui est fait sur le temps du jour, pour comprendre la durée proposée.
+  if (budget.next < budget.perWalk) return { title: `Une sortie courte : ${budget.next} min`, text: `Déjà ${minutesLabel(budget.walked)} de marche sur ${minutesLabel(budget.daily)} aujourd’hui : la suite reste courte.` }
   return { title: `Une sortie de ${budget.perWalk} min`, text: `5 min par mois d’âge, 3 fois par jour. Elle se coche toute seule avec Strava.` }
 }
 
@@ -242,6 +243,10 @@ export default function Today() {
     return () => clearInterval(timer)
   }, [])
 
+  const times = walkTimes(dog.walkTimes)
+  const walksDone = walks.find((w) => w.date === today)?.done ?? {}
+  // Les balades du jour (importées de Strava) : leur créneau et leur durée.
+  const todayWalks = entries.filter((e) => e.date === today && e.route?.durationMin).map((e) => ({ minutes: e.route!.durationMin!, ...(e.walkSlot?.date === today ? { slot: e.walkSlot.creneau } : {}) }))
   const input: NowInput = {
     today,
     now,
@@ -249,19 +254,19 @@ export default function Today() {
     meals: sortMeals(dog.feeding?.meals ?? []),
     // Journée de repos : pas de « minutes de mission » à annoncer.
     mission: { done: missionDone, minutes: quest.kind === 'repos' ? 0 : minutes },
-    walks: { times: walkTimes(dog.walkTimes), done: walks.find((w) => w.date === today)?.done ?? {} },
+    walks: { times, done: walksDone },
     budget: walkBudget({
       birthDate: dog.birthDate,
       today,
-      // Les balades du jour (importées de Strava) avec leur durée.
-      walks: entries.filter((e) => e.date === today && e.route?.durationMin).map((e) => e.route!.durationMin!),
-      walksLeft: WALK_SLOTS.filter((s) => !(walks.find((w) => w.date === today)?.done ?? {})[s.id]).length,
+      walks: todayWalks.map((w) => w.minutes),
+      // Ce qui reste du jour se répartit sur les sorties encore à venir (pas sur celles manquées).
+      walksLeft: upcomingSlots(times, walksDone, now).length,
     }),
     weighing: { due: weighingDue({ today, birthDate: dog.birthDate, lastWeighed: weights[0]?.date, postponedOn: weighLater }), ...(weights[0] ? { last: weights[0].date } : {}) },
   }
   const card = nowCard(input)
   const content = useCardContent(card, postponeWeighing, input.budget)
-  const walkLine = nextLines(input, card).find((line) => line.key === 'sortie')
+  const walkPlan = walkDayPlan({ times, done: walksDone, walks: todayWalks, budget: input.budget, now })
   const fromOpening = Boolean((location.state as { fromOpening?: boolean } | null)?.fromOpening)
   // Arrivée en cascade (T-033) : à la première ouverture de la journée seulement ; les autres fois, affichage direct.
   const [arrival] = useState(() => firstVisitToday(today))
@@ -313,17 +318,8 @@ export default function Today() {
         {content.third && <CardButton action={content.third} />}
       </section>
 
-      {/* La prochaine sortie (règle des 5 minutes par mois d’âge), quand ce n’est pas déjà la carte du moment. */}
-      {walkLine && (
-        <Link to={walkLine.to} className="tap grid min-h-14 grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 rounded-[18px] bg-primary-soft px-4 py-3 text-text no-underline">
-          <span className="text-[15px] leading-tight font-extrabold text-primary">{walkLine.when}</span>
-          <span className="flex min-w-0 flex-col">
-            <span className="text-[16px] font-bold">{walkLine.title}</span>
-            <span className="text-[14px] text-[#3F4946]">{walkLine.detail}</span>
-          </span>
-          <ChevronRightIcon size={20} className="shrink-0 text-muted" />
-        </Link>
-      )}
+      {/* Ses sorties du jour (T-035) : chaque sortie avec sa durée, ce qui reste, un conseil, l’aperçu de la carte. */}
+      <WalkDayCard plan={walkPlan} />
 
       <LifeTiles arrival={arrival} />
 

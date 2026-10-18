@@ -18,7 +18,8 @@ describe('balade importée', () => {
     // Le pire cas pour Douglas-Peucker (chaque point est un virage), à la taille d'une longue balade.
     const zigzag: RoutePoint[] = Array.from({ length: 2000 }, (_, i) => [48.85 + i * 0.00005, 2.35 + (i % 2) * 0.0003])
     expect(simplifyWalk(zigzag).length).toBeLessThanOrEqual(500)
-  })
+    // Calcul lourd : plus de 5 s quand toute la suite tourne en parallèle sur une machine chargée.
+  }, 20000)
 
   it('écrit la durée', () => {
     expect(formatDuration(47)).toBe('47 min')

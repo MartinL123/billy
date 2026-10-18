@@ -273,17 +273,18 @@ export default function Questionnaire() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col px-5 pt-[calc(env(safe-area-inset-top)+12px)] pb-[calc(env(safe-area-inset-bottom)+20px)]">
       <header className="flex flex-col gap-3 pb-5">
+        {/* « Retour » toujours en haut à gauche, sur toutes les questions (audit R-019). */}
         <div className="flex items-center justify-between gap-3">
-          <span className="flex items-center gap-1">
-            {unknown && index > 0 && (
-              <button type="button" onClick={() => go(index - 1)} className="btn btn-quiet min-h-12 px-3 whitespace-nowrap">
-                Retour
-              </button>
-            )}
-            <button type="button" onClick={later} className="btn btn-quiet min-h-12 px-3 whitespace-nowrap">
-              Continuer plus tard
+          {index > 0 ? (
+            <button type="button" onClick={() => go(index - 1)} className="btn btn-quiet -ml-3 min-h-12 px-3 whitespace-nowrap">
+              Retour
             </button>
-          </span>
+          ) : (
+            <span />
+          )}
+          <button type="button" onClick={later} className="btn btn-quiet -mr-3 min-h-12 px-3 whitespace-nowrap">
+            Continuer plus tard
+          </button>
         </div>
         <div role="progressbar" aria-label="Avancement du questionnaire" aria-valuemin={1} aria-valuemax={STEPS.length} aria-valuenow={index + 1} className="h-2.5 overflow-hidden rounded-full bg-placeholder">
           <div className="h-full rounded-full bg-primary transition-[width] duration-300" style={{ width: `${((index + 1) / STEPS.length) * 100}%` }} />
@@ -528,15 +529,11 @@ export default function Questionnaire() {
         )}
       </div>
 
-      <footer className="mt-6 grid grid-cols-[auto_minmax(0,1fr)] gap-2.5">
-        {unknown ? (
+      <footer className={`mt-6 grid gap-2.5 ${unknown ? 'grid-cols-[auto_minmax(0,1fr)]' : 'grid-cols-1'}`}>
+        {unknown && (
           // « Je ne sais pas » prend la largeur de son texte, sur une ligne ; « Suivant » prend le reste.
           <button type="button" onClick={dontKnow} className="btn btn-outline min-h-[60px] px-5 whitespace-nowrap">
             Je ne sais pas
-          </button>
-        ) : (
-          <button type="button" onClick={() => go(index - 1)} disabled={index === 0} className={`btn ${step.kind === 'fin' ? 'btn-outline' : 'btn-quiet'} px-5 disabled:opacity-40`}>
-            Retour
           </button>
         )}
         <button type="button" onClick={next} className={`btn btn-main ${unknown ? 'min-h-[60px]' : ''}`}>

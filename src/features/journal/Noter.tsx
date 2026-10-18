@@ -24,6 +24,7 @@ import { takeDraftPhotos } from './draft'
 import { Face } from './Face'
 import { errorText } from '../../firebase/errors'
 import { place } from '../../lib/garden'
+import { ofName } from '../../lib/gender'
 
 const MAX_PHOTOS = 10
 interface Photo {
@@ -235,7 +236,7 @@ export default function Noter() {
               setText(e.target.value)
               setError('')
             }}
-            placeholder={`Une balade, un jeu, un progrès de ${dog.name}…`}
+            placeholder={`Une balade, un jeu, un progrès ${ofName(dog.name)}…`}
             className="resize-none rounded-[18px] border-2 border-solid border-border bg-surface px-4 py-3.5 text-[17px] leading-[1.45] text-text focus:border-primary"
           />
         </label>

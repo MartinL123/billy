@@ -24,6 +24,7 @@ import { WalkSettings } from './WalkSettings'
 import { ProfileEdit } from './ProfileEdit'
 import { gamesLabel, treatsLabel } from '../../lib/training-plan'
 import { place } from '../../lib/garden'
+import { ofName } from '../../lib/gender'
 
 
 function InfoRow({ label, value, first }: { label: string; value: string; first?: boolean }) {
@@ -174,7 +175,7 @@ export default function Profile() {
       </header>
 
       <div className="flex flex-col items-center gap-2 text-center">
-        <DogPhoto size={120} alt={`Photo de ${dog.name}`} className="rounded-full shadow-[0_2px_8px_rgba(24,32,30,0.12)]" />
+        <DogPhoto size={120} alt={`Photo ${ofName(dog.name)}`} className="rounded-full shadow-[0_2px_8px_rgba(24,32,30,0.12)]" />
         <h1 className="mt-1 font-display text-[32px] leading-none font-extrabold">{dog.name}</h1>
         <p className="text-base text-muted">
           {[formatAgeShort(dog.birthDate, today)].filter(Boolean).join(' · ')}

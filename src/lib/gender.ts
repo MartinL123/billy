@@ -86,3 +86,9 @@ export const agree = (word: string, sex: string | undefined): string => {
   const fem = ADJ.get(word.toLowerCase())
   return fem ? keepCase(word, fem) : word
 }
+
+/**
+ * « de » + un nom propre, avec élision (audit R-007) : « d’Oslo », « d’Hector », « d’Élise », mais « de Billy ».
+ * Le « h » est traité comme muet (cas le plus courant pour un prénom).
+ */
+export const ofName = (name: string): string => (/^[aeiouyhàâäéèêëîïôöùûüœæAEIOUYHÀÂÄÉÈÊËÎÏÔÖÙÛÜŒÆ]/.test(name.trim()) && !/^[Yy][aeiouéèêàâôû]/.test(name.trim()) ? `d’${name}` : `de ${name}`)

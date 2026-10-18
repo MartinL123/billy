@@ -5,6 +5,7 @@ import { formatRouteDistance } from '../../lib/route'
 import { RouteThumb } from '../trajets/RouteThumb'
 import { takeImportResult } from './importRun'
 import { useData } from '../../firebase/store'
+import { ofName } from '../../lib/gender'
 
 const percent = (share: number) => (share > 0 && share < 0.01 ? 'moins de 1' : String(Math.round(share * 100)))
 
@@ -27,7 +28,7 @@ export default function ImportResult() {
           <>
             {result.share && (
               <span className="self-start rounded-full bg-gold px-3 py-1.5 text-[15px] font-extrabold text-gold-dark">
-                {gained >= 1 ? `+ ${gained} % découvert` : `${percent(result.share.after)} % de ${result.share.name}`}
+                {gained >= 1 ? `+ ${gained} % découvert` : `${percent(result.share.after)} % ${ofName(result.share.name)}`}
               </span>
             )}
             <div className="grid grid-cols-3 gap-2 text-center">

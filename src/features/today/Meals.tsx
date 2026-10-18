@@ -3,6 +3,7 @@ import { buildMealsIcs } from '../../lib/ics'
 import { formatTime, type ISODate } from '../../lib/dates'
 import { nextMealIndex, portion, sortMeals, type Feeding } from '../../lib/feeding'
 import { shareFiles } from '../../lib/share'
+import { ofName } from '../../lib/gender'
 
 function useClock(): string {
   const read = () => new Date().toTimeString().slice(0, 5)
@@ -30,7 +31,7 @@ export function Meals({ dogName, feeding, today }: { dogName: string; feeding: F
   // Une app web ne peut pas programmer de notification sur iPhone : les rappels passent par l'app Calendrier.
   const installReminders = async () => {
     const ics = buildMealsIcs(dogName, meals, grams, today)
-    const outcome = await shareFiles([new File([ics], `Repas de ${dogName}.ics`, { type: 'text/calendar' })], `Repas de ${dogName}`)
+    const outcome = await shareFiles([new File([ics], `Repas ${ofName(dogName)}.ics`, { type: 'text/calendar' })], `Repas ${ofName(dogName)}`)
     setMessage(outcome === 'downloaded' ? 'Fichier téléchargé : ouvrez-le pour ajouter les rappels au calendrier.' : '')
   }
 

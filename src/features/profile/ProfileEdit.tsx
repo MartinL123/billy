@@ -12,6 +12,7 @@ import { sortMeals, type Meal } from '../../lib/feeding'
 import { compressImage, PHOTO, type CompressedImage } from '../../lib/image'
 import { useToday } from '../../lib/useToday'
 import { errorText } from '../../firebase/errors'
+import { ofName } from '../../lib/gender'
 
 const contact = (name: string, phone: string): Contact | undefined => (name.trim() || phone.trim() ? { name: name.trim(), phone: phone.trim() } : undefined)
 
@@ -90,7 +91,7 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
         {photo ? (
           <img src={photo.previewUrl} alt="Nouvelle photo" className="size-[120px] rounded-full border-4 border-white object-cover shadow-[0_2px_8px_rgba(24,32,30,0.12)]" />
         ) : dog.photoThumbFileId ? (
-          <FileImage fileId={dog.photoThumbFileId} alt={`Photo de ${dog.name}`} className="size-[120px] rounded-full border-4 border-white shadow-[0_2px_8px_rgba(24,32,30,0.12)]" eager />
+          <FileImage fileId={dog.photoThumbFileId} alt={`Photo ${ofName(dog.name)}`} className="size-[120px] rounded-full border-4 border-white shadow-[0_2px_8px_rgba(24,32,30,0.12)]" eager />
         ) : (
           <div className="flex size-[120px] items-center justify-center rounded-full border-4 border-white bg-milestone-soft font-display text-5xl font-bold text-milestone-dark">
             {dog.name.charAt(0).toUpperCase()}

@@ -1,5 +1,6 @@
 import { addDays, type ISODate } from './dates'
 import type { Recurrence } from './recurrence'
+import { ofName } from './gender'
 
 export interface IcsEvent {
   id: string
@@ -86,7 +87,7 @@ export function buildMealsIcs(dogName: string, meals: MealReminder[], gramsPerMe
   const portion = gramsPerMeal ? ` (${gramsPerMeal} g)` : ''
   const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Billy//App de suivi//FR', 'CALSCALE:GREGORIAN']
   meals.forEach((meal, i) => {
-    const summary = escapeText(`Repas de ${dogName}${portion}`)
+    const summary = escapeText(`Repas ${ofName(dogName)}${portion}`)
     lines.push(
       'BEGIN:VEVENT',
       `UID:repas-${i + 1}@billy`,

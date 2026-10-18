@@ -1,5 +1,6 @@
 import { addMonths, isValidISO, parseISO, type ISODate } from './dates'
 import { nextAnnual } from './recurrence'
+import { ofName } from './gender'
 
 interface Milestone {
   title: string
@@ -20,7 +21,7 @@ export function lifeMilestones(name: string, { birth, adoption }: { birth?: ISOD
   const out: Record<string, Milestone> = {}
   if (birth && isValidISO(birth)) {
     const { m, d } = parseISO(birth)
-    out['seed-anniversaire'] = milestone(`Anniversaire de ${name}`, nextAnnual(m, d, today), 'yearly')
+    out['seed-anniversaire'] = milestone(`Anniversaire ${ofName(name)}`, nextAnnual(m, d, today), 'yearly')
     const sixMonths = addMonths(birth, 6)
     const oneYear = addMonths(birth, 12)
     if (sixMonths >= today) out['seed-6-mois'] = milestone(`${name} a 6 mois`, sixMonths, 'none')

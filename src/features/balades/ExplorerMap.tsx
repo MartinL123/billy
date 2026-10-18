@@ -3,6 +3,7 @@ import { addMarker, createMap, fitPoints, onMarker, set3D, setLine, setSatellite
 import { fogLayout, type FogLayout } from '../../lib/fogCanvas'
 import { distanceToRoute, NEAR_ROUTE, type Route } from '../../lib/route'
 import { replayWalk, showWalk, type WalkPhoto } from './walkLayer'
+import { ofName } from '../../lib/gender'
 
 export interface MapPlace {
   id: string
@@ -260,7 +261,7 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
 
   return (
     <div className="absolute inset-0 isolate">
-      <div ref={host} role="application" aria-label={`Carte du territoire de ${dogName}`} className="size-full" />
+      <div ref={host} role="application" aria-label={`Carte du territoire ${ofName(dogName)}`} className="size-full" />
     </div>
   )
 }

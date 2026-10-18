@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { feminize, forSex, isFemale } from './gender'
+import { feminize, forSex, isFemale, ofName } from './gender'
 
 describe('accord au féminin (audit R-006)', () => {
   it('passe le chien au féminin', () => {
@@ -24,5 +24,16 @@ describe('accord au féminin (audit R-006)', () => {
     expect(isFemale('Mâle')).toBe(false)
     expect(forSex('Est-il stérilisé ?', undefined)).toBe('Est-il stérilisé ?')
     expect(forSex('Est-il stérilisé ?', 'Femelle')).toBe('Est-elle stérilisée ?')
+  })
+})
+
+describe('élision devant un nom (audit R-007)', () => {
+  it('d’Oslo, d’Hector, de Billy', () => {
+    expect(ofName('Oslo')).toBe('d’Oslo')
+    expect(ofName('Hector')).toBe('d’Hector')
+    expect(ofName('Élise')).toBe('d’Élise')
+    expect(ofName('Billy')).toBe('de Billy')
+    expect(ofName('Yoda')).toBe('de Yoda')
+    expect(ofName('Yvette')).toBe('d’Yvette')
   })
 })

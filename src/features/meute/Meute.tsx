@@ -18,6 +18,7 @@ import { FeedPhoto } from './FeedPhoto'
 import { MemberAvatar } from './MemberAvatar'
 import { usePack } from './usePack'
 import { place } from '../../lib/garden'
+import { ofName } from '../../lib/gender'
 
 type LatLng = { lat: number; lng: number }
 const WELCOME_KEY = 'billy.meute.bienvenue'
@@ -186,7 +187,7 @@ export default function Meute() {
       )}
 
       <div role="group" aria-label="Filtrer les spots" className="scroll-row flex gap-2 px-5 pb-1">
-        {([['tout', 'Tout'], ['calme', 'Calme'], ...SPOT_CATEGORIES.filter((c) => c.id !== 'eviter').map((c) => [c.id, c.filter]), ['territoire', `Territoire de ${dog.name}`]] as [Filter, string][]).map(([id, label]) => (
+        {([['tout', 'Tout'], ['calme', 'Calme'], ...SPOT_CATEGORIES.filter((c) => c.id !== 'eviter').map((c) => [c.id, c.filter]), ['territoire', `Territoire ${ofName(dog.name)}`]] as [Filter, string][]).map(([id, label]) => (
           <button key={id} type="button" aria-pressed={filter === id} onClick={() => setFilter(id)} className={`min-h-12 shrink-0 rounded-full px-4 text-[15px] font-bold whitespace-nowrap ${filter === id ? 'border-0 bg-primary text-white' : 'border-2 border-solid border-border bg-surface text-text'}`}>
             {label}
           </button>

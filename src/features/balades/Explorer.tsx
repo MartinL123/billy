@@ -20,6 +20,7 @@ import { arrowTo, KIND, metersLabel } from '../../lib/ideas'
 import { formatRelative } from '../../lib/dates'
 import { formatRouteDistance } from '../../lib/route'
 import { RouteThumb } from '../trajets/RouteThumb'
+import { ofName } from '../../lib/gender'
 
 const ExplorerMap = lazy(() => import('./ExplorerMap').then((m) => ({ default: m.ExplorerMap })))
 
@@ -277,7 +278,7 @@ export default function Explorer() {
       {/* Panneau du bas, dans la zone du pouce : il suit le doigt et se cale ouvert ou réduit (filtres toujours visibles). */}
       <section
         ref={sheet.ref}
-        aria-label={`Le territoire de ${dog.name}`}
+        aria-label={`Le territoire ${ofName(dog.name)}`}
         {...sheet.handlers}
         style={sheet.style}
         className={`absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-[430px] touch-pan-x ${selected || walk ? 'invisible' : ''} flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 pb-9 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]`}
@@ -301,7 +302,7 @@ export default function Explorer() {
         <div ref={sheet.bodyRef} style={sheet.bodyStyle} className="flex flex-col gap-3" aria-hidden={sheet.collapsed || undefined} inert={sheet.collapsed || undefined}>
           {walks.length === 0 ? (
             <>
-              <h1 className="font-display text-[22px] font-extrabold">Le territoire de {dog.name}</h1>
+              <h1 className="font-display text-[22px] font-extrabold">Le territoire {ofName(dog.name)}</h1>
               <p className="text-[17px] leading-snug text-[#3F4946]">Importez vos balades Strava pour lever le brouillard.</p>
               <Link to="/importer" className="btn btn-main min-h-[56px]">
                 Importer mes balades

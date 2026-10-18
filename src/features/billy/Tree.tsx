@@ -16,6 +16,7 @@ import { balance } from '../../lib/bones'
 import { BACKGROUNDS } from '../shop/Art'
 import { DogPhoto } from '../shop/DogPhoto'
 import { Badge } from './Badge'
+import { ofName } from '../../lib/gender'
 
 const DAY_NAMES = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
 const STATE_WORDS: Record<DayState, string> = { fait: 'noté', repos: 'repos', attente: 'rien de noté' }
@@ -139,12 +140,12 @@ export default function Tree() {
       {/* Fond de l'arbre acheté dans la boutique : derrière tout, les cartes restent blanches. */}
       {dog.cosmetics?.background && BACKGROUNDS[dog.cosmetics.background] && <div aria-hidden="true" className="fixed inset-0 -z-10" style={BACKGROUNDS[dog.cosmetics.background]} />}
       <header className="flex items-center gap-3.5 px-1">
-        <Link to="/profil" aria-label={`Voir le profil de ${dog.name}`} className="relative size-[72px] shrink-0 no-underline">
+        <Link to="/profil" aria-label={`Voir le profil ${ofName(dog.name)}`} className="relative size-[72px] shrink-0 no-underline">
           <DogPhoto size={72} className="rounded-full ring-[3px] ring-gold" />
           <span className="absolute -right-2 -bottom-2 rounded-full border-[3px] border-solid border-bg bg-primary px-2 py-0.5 text-xs font-bold text-white">profil</span>
         </Link>
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <h1 className="font-display text-[28px] leading-none font-extrabold">L'arbre de {dog.name}</h1>
+          <h1 className="font-display text-[28px] leading-none font-extrabold">L’arbre {ofName(dog.name)}</h1>
         </div>
       </header>
 

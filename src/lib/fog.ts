@@ -1,4 +1,5 @@
 import { distanceMeters } from './community'
+import { ofName } from './gender'
 
 // Le brouillard de la carte qui se découvre (docs/specs/carte-a-decouvrir.md § 3).
 // Grille fixe d'environ 25 m ; une balade découvre toutes les cases dont le centre est à 25 m ou moins du trajet,
@@ -125,7 +126,7 @@ export function discoveredShare(cells: Iterable<string>, commune: { ring: LatLng
 }
 
 /** « 2 % de Saint-Briac-sur-Mer découvert », « moins de 1 % … ». */
-export const shareLabel = (share: number, name: string) => `${share > 0 && share < 0.01 ? 'moins de 1' : Math.round(share * 100)} % de ${name} découvert`
+export const shareLabel = (share: number, name: string) => `${share > 0 && share < 0.01 ? 'moins de 1' : Math.round(share * 100)} % ${ofName(name)} découvert`
 
 /** « 56 cases » */
 export const cellsLabel = (n: number) => `${n.toLocaleString('fr-FR')} case${n > 1 ? 's' : ''}`

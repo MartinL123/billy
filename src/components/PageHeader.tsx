@@ -4,6 +4,7 @@ import { useData } from '../firebase/store'
 import { formatDayHeading } from '../lib/dates'
 import { useToday } from '../lib/useToday'
 import { DogPhoto } from '../features/shop/DogPhoto'
+import { ofName } from '../lib/gender'
 
 /** En-tête commun aux onglets : date du jour, titre de l'écran, avatar vers le profil. */
 export function PageHeader({ title, className = '', after }: { title: string; className?: string; /** À côté du titre (le sticker du Carnet). */ after?: ReactNode }) {
@@ -20,7 +21,7 @@ export function PageHeader({ title, className = '', after }: { title: string; cl
       </div>
       <Link
         to="/profil"
-        aria-label={`Profil de ${dog.name}`}
+        aria-label={`Profil ${ofName(dog.name)}`}
         className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-primary-soft font-display text-xl font-bold text-primary-dark no-underline shadow-[0_1px_3px_rgba(24,32,30,0.15)]"
       >
         <DogPhoto size={44} />

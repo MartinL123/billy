@@ -14,7 +14,7 @@ import { isValidISO } from '../../lib/dates'
 import { sortMeals, type Meal } from '../../lib/feeding'
 import { nextTrainerSession, STERILISATION_PLANNED, sterilisationReminder, trainerSession } from '../../lib/events'
 import { lastDone } from '../../lib/health'
-import { agree, forSex } from '../../lib/gender'
+import { agree, forSex, ofName } from '../../lib/gender'
 import { compressImage, PHOTO } from '../../lib/image'
 import {
   deriveTraits,
@@ -372,7 +372,7 @@ export default function Questionnaire() {
         {step.kind === 'photo' && (
           <div className="flex flex-col items-center gap-4">
             {dog.photoThumbFileId ? (
-              <FileImage fileId={dog.photoThumbFileId} alt={`Photo de ${dog.name}`} className="size-40 rounded-full" eager />
+              <FileImage fileId={dog.photoThumbFileId} alt={`Photo ${ofName(dog.name)}`} className="size-40 rounded-full" eager />
             ) : (
               <span className="flex size-40 items-center justify-center rounded-full bg-milestone-soft font-display text-6xl font-bold text-milestone-dark">{(draft.nom || '?').charAt(0).toUpperCase()}</span>
             )}

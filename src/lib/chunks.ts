@@ -1,6 +1,6 @@
-/** Taille d'un morceau de PDF dans Firestore (limite d'un document : 1 Mio). */
+/** Taille d’un morceau de PDF dans Firestore (limite d’un document : 1 Mio). */
 export const CHUNK_SIZE = 750 * 1024
-/** Taille maximale d'un PDF importé. */
+/** Taille maximale d’un PDF importé. */
 export const MAX_PDF_SIZE = 5 * 1024 * 1024
 
 export function splitBytes(bytes: Uint8Array, size: number = CHUNK_SIZE): Uint8Array[] {

@@ -3,9 +3,9 @@ import { simplifyWalk, type TimedPoint } from './balade'
 import type { ISODate } from './dates'
 import type { RoutePoint } from './route'
 
-// Import des balades Strava (docs/specs/carte-a-decouvrir.md § 6) : fichiers GPX de l'archive ou d'une seule balade.
+// Import des balades Strava (docs/specs/carte-a-decouvrir.md § 6) : fichiers GPX de l’archive ou d’une seule balade.
 // Billy ne garde que le trajet allégé, la distance, la durée, la date et le nom. Jamais le rythme cardiaque,
-// l'altitude point par point ni l'heure de chaque point.
+// l’altitude point par point ni l’heure de chaque point.
 
 export interface Activity {
   name?: string
@@ -31,12 +31,12 @@ const decode = (text: string) =>
     .trim()
 
 /**
- * Lit un GPX (texte) : le nom et le type de l'activité, et les points du parcours avec leur heure.
- * Le rythme cardiaque (gpxtpx:hr) et l'altitude (ele) sont ignorés dès la lecture.
+ * Lit un GPX (texte) : le nom et le type de l’activité, et les points du parcours avec leur heure.
+ * Le rythme cardiaque (gpxtpx:hr) et l’altitude (ele) sont ignorés dès la lecture.
  */
 export function parseActivity(xml: string): Activity {
   const track = /<trk\b[\s\S]*?<\/trk>/.exec(xml)?.[0] ?? ''
-  // Le nom et le type de la trace, avant ses segments (pas ceux d'un point ou d'un waypoint).
+  // Le nom et le type de la trace, avant ses segments (pas ceux d’un point ou d’un waypoint).
   const head = track.split(/<trkseg\b/)[0] ?? ''
   const name = tag(head, 'name')
   const type = tag(head, 'type')
@@ -51,7 +51,7 @@ export function parseActivity(xml: string): Activity {
   return { ...(name ? { name: decode(name) } : {}), ...(type ? { type: decode(type).toLowerCase() } : {}), points }
 }
 
-/** Les marches et randonnées sont gardées ; un fichier sans type aussi (un GPX exporté d'une seule balade). */
+/** Les marches et randonnées sont gardées ; un fichier sans type aussi (un GPX exporté d’une seule balade). */
 export const isWalk = (type: string | undefined) => !type || /^(walk|walking|hike|hiking|marche|randonn[ée]e)$/i.test(type)
 
 /** « 3 sorties à vélo ignorées » : le mot à afficher pour un type écarté. */
@@ -73,7 +73,7 @@ export function frenchName(name: string | undefined, type?: string): string {
   return /hik/i.test(type ?? '') ? 'Randonnée' : 'Balade'
 }
 
-/** Clé de doublon : l'heure de départ + le premier point arrondi à 4 décimales. Réimporter ne crée jamais de doublon. */
+/** Clé de doublon : l’heure de départ + le premier point arrondi à 4 décimales. Réimporter ne crée jamais de doublon. */
 export function importKey(points: TimedPoint[]): string {
   const first = points[0]
   if (!first) return ''
@@ -91,7 +91,7 @@ export function knownImportKeys(entries: { importKey?: string; route?: { startTi
   return keys
 }
 
-/** Distance en mètres : on ne compte un point que s'il est à 8 m ou plus du précédent (les sauts du GPS à l'arrêt). */
+/** Distance en mètres : on ne compte un point que s’il est à 8 m ou plus du précédent (les sauts du GPS à l’arrêt). */
 export function walkDistance(points: { lat: number; lng: number }[], minStep = 8): number {
   let total = 0
   let last = points[0]
@@ -105,13 +105,13 @@ export function walkDistance(points: { lat: number; lng: number }[], minStep = 8
   return total
 }
 
-/** Le jour d'une heure ISO, à Paris (fuseau de Martin), quel que soit le fuseau du téléphone. */
+/** Le jour d’une heure ISO, à Paris (fuseau de Martin), quel que soit le fuseau du téléphone. */
 export function parisDay(time: string): ISODate {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(time))
   return parts as ISODate
 }
 
-/** L'heure de départ à Paris, en minutes depuis minuit (pour rattacher la balade à un créneau de sortie). */
+/** L’heure de départ à Paris, en minutes depuis minuit (pour rattacher la balade à un créneau de sortie). */
 export function parisMinutes(time: string): number {
   const [h, m] = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(time)).split(':')
   return Number(h) * 60 + Number(m)
@@ -125,14 +125,14 @@ export interface ImportedActivity {
   startTime?: string
   durationMin?: number
   distanceM: number
-  /** Trajet allégé (200 points au plus) : c'est tout ce qui est enregistré du parcours. */
+  /** Trajet allégé (200 points au plus) : c’est tout ce qui est enregistré du parcours. */
   points: RoutePoint[]
-  /** Points complets, avec l'heure : seulement en mémoire, pour le brouillard et les photos. Jamais enregistrés. */
+  /** Points complets, avec l’heure : seulement en mémoire, pour le brouillard et les photos. Jamais enregistrés. */
   full: TimedPoint[]
 }
 
 export const MAX_STORED_POINTS = 200
-/** Un fichier de balade : quelques centaines de Ko ; au-delà de 5 Mo, ce n'est pas une balade. */
+/** Un fichier de balade : quelques centaines de Ko ; au-delà de 5 Mo, ce n’est pas une balade. */
 export const MAX_GPX_BYTES = 5 * 1024 * 1024
 
 export function toImported(activity: Activity): ImportedActivity | undefined {
@@ -156,7 +156,7 @@ export function toImported(activity: Activity): ImportedActivity | undefined {
   }
 }
 
-/** Un fichier `.gz` de l'archive Strava : décompressé par le navigateur, sans bibliothèque. */
+/** Un fichier `.gz` de l’archive Strava : décompressé par le navigateur, sans bibliothèque. */
 export async function readActivityFile(file: Blob & { name?: string }): Promise<string> {
   if (/\.gz$/i.test(file.name ?? '')) {
     const stream = file.stream().pipeThrough(new DecompressionStream('gzip'))

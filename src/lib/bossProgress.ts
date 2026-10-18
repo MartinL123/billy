@@ -14,7 +14,7 @@ export interface BossProgress {
   validations: Validation[]
   /** Donnée de la V2, conservée : lieux validés après la dernière étape. Plus affichée. */
   masteryPlaces: string[]
-  /** Étapes déclarées acquises « avant l'app » (questionnaire de départ, « Billy sait déjà faire ça »). */
+  /** Étapes déclarées acquises « avant l’app » (questionnaire de départ, « Billy sait déjà faire ça »). */
   preApp?: number[]
 }
 
@@ -32,7 +32,7 @@ export interface Remaining {
   needed: number
 }
 
-/** Où en est la validation de l'étape visée : « encore 1 fois, un autre jour ». */
+/** Où en est la validation de l’étape visée : « encore 1 fois, un autre jour ». */
 export function remaining(progress: BossProgress): Remaining {
   if (progress.level >= MAX_LEVEL) return { done: 0, needed: 0 }
   const target = progress.level + 1
@@ -49,8 +49,8 @@ export interface ValidationResult {
 }
 
 /**
- * Ajoute un « c'est réussi » pour l'étape visée. Une étape s'acquiert après 3 réussites sur 3 jours différents,
- * la cinquième comme les autres. Une étape acquise l'est pour toujours.
+ * Ajoute un « c’est réussi » pour l’étape visée. Une étape s’acquiert après 3 réussites sur 3 jours différents,
+ * la cinquième comme les autres. Une étape acquise l’est pour toujours.
  */
 export function addValidation(progress: BossProgress, date: ISODate): ValidationResult {
   if (progress.level >= MAX_LEVEL) return { progress, validated: false }
@@ -62,7 +62,7 @@ export function addValidation(progress: BossProgress, date: ISODate): Validation
 }
 
 /**
- * « Billy sait déjà faire ça » : acquiert directement les étapes jusqu'à `level`, marquées « avant l'app ».
+ * « Billy sait déjà faire ça » : acquiert directement les étapes jusqu’à `level`, marquées « avant l’app ».
  * Ne fait jamais baisser. Renvoie aussi les étapes nouvellement acquises.
  */
 export function markPreApp(progress: BossProgress, level: number): { progress: BossProgress; gained: number[] } {
@@ -94,14 +94,14 @@ export function softAdvice(boss: Boss, map: ProgressMap): Advice | undefined {
   return missing.length ? { level: target, missing } : undefined
 }
 
-/** Un lien de l'arbre s'allume quand son prérequis conseillé est atteint. */
+/** Un lien de l’arbre s’allume quand son prérequis conseillé est atteint. */
 export const linkLit = (map: ProgressMap, requirement: { bossId: string; level: number }) => levelOf(map, requirement.bossId) >= requirement.level
 
-// ——— Corriger « ce qu'il savait déjà faire » (écran de résultat du questionnaire) ———
+// ——— Corriger « ce qu’il savait déjà faire » (écran de résultat du questionnaire) ———
 
 /**
- * Une étape n'est décochable que si elle a été déclarée « avant l'app », ainsi que toutes les étapes plus difficiles
- * déjà acquises : une étape validée dans l'app ne se décoche jamais, et décocher emporte les étapes au-dessus.
+ * Une étape n’est décochable que si elle a été déclarée « avant l’app », ainsi que toutes les étapes plus difficiles
+ * déjà acquises : une étape validée dans l’app ne se décoche jamais, et décocher emporte les étapes au-dessus.
  */
 export function canUncheck(progress: BossProgress, step: number): boolean {
   if (step < 1 || step > progress.level) return false
@@ -110,7 +110,7 @@ export function canUncheck(progress: BossProgress, step: number): boolean {
   return true
 }
 
-/** Décoche une étape « avant l'app » et toutes les plus difficiles. Sans effet si une étape validée dans l'app est concernée. */
+/** Décoche une étape « avant l’app » et toutes les plus difficiles. Sans effet si une étape validée dans l’app est concernée. */
 export function uncheckPreApp(progress: BossProgress, step: number): { progress: BossProgress; removed: number[] } {
   if (!canUncheck(progress, step)) return { progress, removed: [] }
   const removed = Array.from({ length: progress.level - step + 1 }, (_, i) => step + i)
@@ -123,11 +123,11 @@ export function xpWithout<T extends { id: string; xp: number }>(log: T[], bossId
   return log.filter((e) => !ids.has(e.id)).reduce((sum, e) => sum + e.xp, 0)
 }
 
-// ——— Corriger une étape depuis le chemin d'une compétence (spec V3 § 5.5) ———
+// ——— Corriger une étape depuis le chemin d’une compétence (spec V3 § 5.5) ———
 
 /**
- * Décoche une étape et toutes les plus difficiles : elle redevient l'étape en cours, à refaire 3 fois.
- * C'est une correction, pas une baisse : l'XP et le niveau déjà gagnés ne sont pas touchés (rien ici ne lit le journal d'XP).
+ * Décoche une étape et toutes les plus difficiles : elle redevient l’étape en cours, à refaire 3 fois.
+ * C’est une correction, pas une baisse : l’XP et le niveau déjà gagnés ne sont pas touchés (rien ici ne lit le journal d’XP).
  */
 export function uncheckStep(progress: BossProgress, step: number): { progress: BossProgress; removed: number[] } {
   if (step < 1 || step > progress.level) return { progress, removed: [] }

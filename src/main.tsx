@@ -7,7 +7,7 @@ import './index.css'
 import { isConfigured } from './firebase/config'
 import { Splash } from './features/auth/Splash'
 
-// Nouvelle version : l'app se recharge seule. Sur iPhone l'app reste ouverte des jours,
+// Nouvelle version : l’app se recharge seule. Sur iPhone l’app reste ouverte des jours,
 // on revérifie donc à chaque retour au premier plan.
 registerSW({
   immediate: true,
@@ -24,7 +24,7 @@ registerSW({
 const root = createRoot(document.getElementById('root')!)
 
 if (isConfigured) {
-  // Firebase n'est chargé que s'il est configuré.
+  // Firebase n’est chargé que s’il est configuré.
   void import('./App').then(({ default: App }) =>
     root.render(
       <StrictMode>
@@ -35,7 +35,7 @@ if (isConfigured) {
 } else {
   root.render(
     <Splash title="Bonjour">
-      L'app n'est pas encore reliée à Firebase. Suivez <strong>docs/setup/setup-firebase.md</strong>, puis ajoutez les variables
+      L’app n’est pas encore reliée à Firebase. Suivez <strong>docs/setup/setup-firebase.md</strong>, puis ajoutez les variables
       <code> VITE_FIREBASE_*</code> dans <code>.env.local</code> et dans les secrets du repo GitHub.
     </Splash>,
   )

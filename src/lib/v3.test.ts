@@ -306,7 +306,7 @@ describe('anciennes cartes de réussite', () => {
   it('s’affichent avec les mots d’aujourd’hui, sans toucher aux autres souvenirs', () => {
     const old = { text: 'Palier acquis : Le Rappel, P2 « Mobile ».\nRevient en lâchant un jouet.', tags: ['Dressage'] }
     const shown = modernCard(old)
-    expect(shown.text).toBe(`C'est réussi ! ${stepPhrase('rappel', 2)}.`)
+    expect(shown.text).toBe(`C’est réussi ! ${stepPhrase('rappel', 2)}.`)
     expect(shown.tags).toEqual(['Réussite'])
     expect(`${shown.text} ${shown.tags.join(' ')}`).not.toMatch(BANNED)
     for (const label of ['Première séance', 'Première exposition notée', 'Première retraite stratégique', 'Premier palier acquis', 'Premier palier « Dehors au calme »', 'Première étoile de maîtrise', 'Un déclencheur croisé en restant détendu', 'Trois boss travaillés', 'Cinq réussites sur cinq']) {

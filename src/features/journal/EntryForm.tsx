@@ -64,13 +64,13 @@ export default function EntryForm() {
         const item: Item = { key: crypto.randomUUID(), full, thumb, previewUrl: URL.createObjectURL(thumb), clue }
         setItems((current) => [...current, item])
       } catch (err) {
-        setError(errorText(err, "Une photo n'a pas pu être importée."))
+        setError(errorText(err, "Une photo n’a pas pu être importée."))
       }
     }
     setProgress('')
   }
 
-  // Photos choisies depuis l'accueil ; aperçus libérés en quittant l'écran.
+  // Photos choisies depuis l’accueil ; aperçus libérés en quittant l’écran.
   useEffect(() => {
     const draft = takeDraftPhotos()
     if (draft.length) void addFiles(draft)
@@ -83,7 +83,7 @@ export default function EntryForm() {
   if (id && !existing && !saving) {
     return (
       <FormScreen title="Souvenir" submitLabel="Retour au souvenir" onCancel={back} onSubmit={back}>
-        <p className="text-muted">Ce souvenir n'existe plus.</p>
+        <p className="text-muted">Ce souvenir n’existe plus.</p>
       </FormScreen>
     )
   }
@@ -125,7 +125,7 @@ export default function EntryForm() {
         photos,
         createdAt: existing?.createdAt ?? new Date().toISOString(),
       })
-      // Photos retirées d'une entrée existante : leurs fichiers ne servent plus.
+      // Photos retirées d’une entrée existante : leurs fichiers ne servent plus.
       for (const old of existing?.photos ?? []) {
         if (!photos.some((p) => p.fileId === old.fileId)) {
           deleteFile(old.fileId)
@@ -135,7 +135,7 @@ export default function EntryForm() {
       back()
     } catch (err) {
       setSaving(false)
-      setError(errorText(err, "L'enregistrement a échoué."))
+      setError(errorText(err, "L’enregistrement a échoué."))
     }
   }
 
@@ -199,7 +199,7 @@ export default function EntryForm() {
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="texte" className="text-[17px] font-semibold">
-            Ce qui s'est passé
+            Ce qui s’est passé
           </label>
           <textarea id="texte" rows={4} value={text} onChange={(e) => setText(e.target.value)} className="field resize-none py-3.5 leading-[1.45]" />
         </div>
@@ -281,7 +281,7 @@ export default function EntryForm() {
           onConfirm={() => {
             setSaving(true)
             deleteEntry(existing)
-            // Le détail n'existe plus : on revient à ses balades.
+            // Le détail n’existe plus : on revient à ses balades.
             navigate('/balades', { replace: true })
           }}
         />

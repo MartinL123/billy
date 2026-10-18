@@ -1,6 +1,6 @@
 import type { ISODate } from './dates'
 
-// Les os : la monnaie de l'effort du maître (spec V3 § 2 bis). On en gagne, on n'en perd jamais
+// Les os : la monnaie de l’effort du maître (spec V3 § 2 bis). On en gagne, on n’en perd jamais
 // (ni par une correction, ni par un mauvais jour). Seul un achat dans la boutique en dépense, par choix.
 // Chaque gain a un identifiant fixe : il ne peut pas être compté deux fois.
 
@@ -9,9 +9,9 @@ export const BONES = {
   mission: 10,
   /** Noter un moment, 3 fois par jour au maximum. */
   note: 3,
-  /** Une réussite sur l'étape en cours (« Oui »). */
+  /** Une réussite sur l’étape en cours (« Oui »). */
   success: 5,
-  /** Nouvelle étape acquise dans l'app (jamais les étapes « Il savait déjà »). */
+  /** Nouvelle étape acquise dans l’app (jamais les étapes « Il savait déjà »). */
   step: 25,
   /** Défi de la semaine réussi. */
   challenge: 30,
@@ -56,7 +56,7 @@ export const balance = (bones: { amount: number }[]): number => bones.reduce((su
 export const earned = (bones: { amount: number; reason: string }[]): number => bones.filter((b) => b.reason !== 'achat').reduce((sum, b) => sum + b.amount, 0)
 
 /**
- * Os d'un moment noté : +3 (jusqu'à 3 moments par jour), +5 par réussite sur l'étape en cours, +25 par étape acquise.
+ * Os d’un moment noté : +3 (jusqu’à 3 moments par jour), +5 par réussite sur l’étape en cours, +25 par étape acquise.
  * Les photos ne rapportent rien. `existing` = os déjà enregistrés (pour le plafond du jour).
  */
 export function momentBones(entryId: string, date: ISODate, validated: { bossId: string; level: number }[], stepsGained: { bossId: string; level: number }[], existing: Bone[]): BoneWithId[] {
@@ -84,7 +84,7 @@ export function regularWeekBone(week: ISODate[], notedDays: ISODate[], date: ISO
   return days >= REGULAR_DAYS ? bone('semaine', week[0]!, date, BONES.regularWeek) : undefined
 }
 
-/** Marquer un spot : +5, ou +10 si ce chien ne l'avait jamais marqué. Une fois par spot et par jour. */
+/** Marquer un spot : +5, ou +10 si ce chien ne l’avait jamais marqué. Une fois par spot et par jour. */
 export const markBone = (spotId: string, date: ISODate, firstTime: boolean) => bone('marque', `${spotId}-${date}`, date, firstTime ? BONES.newSpot : BONES.mark)
 
 
@@ -106,9 +106,9 @@ export const HOW_TO_EARN: { label: string; amount: number }[] = [
 ]
 
 /**
- * Os rétroactifs, une seule fois : ce qui a été fait avant l'arrivée des os, au barème actuel.
- * Moments notés (3 par jour), étapes acquises dans l'app (pas « avant l'app »), missions du jour, jours de repos,
- * questionnaire terminé. Les identifiants sont ceux des gains habituels : rien n'est jamais compté deux fois.
+ * Os rétroactifs, une seule fois : ce qui a été fait avant l’arrivée des os, au barème actuel.
+ * Moments notés (3 par jour), étapes acquises dans l’app (pas « avant l’app »), missions du jour, jours de repos,
+ * questionnaire terminé. Les identifiants sont ceux des gains habituels : rien n’est jamais compté deux fois.
  */
 export function backfillBones(
   done: {

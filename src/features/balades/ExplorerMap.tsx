@@ -23,12 +23,12 @@ interface Props {
   three: boolean
   /** Sans balade : la position (si autorisée) ou Paris. */
   center?: LatLng
-  /** Le lieu ouvert dans la petite fenêtre : la carte s'y centre, au-dessus de la fenêtre. */
+  /** Le lieu ouvert dans la petite fenêtre : la carte s’y centre, au-dessus de la fenêtre. */
   focus?: LatLng
   /** Un toucher sur la carte, hors des repères. */
   onMapTap?: () => void
   onPlace?: (id: string) => void
-  /** L'orientation de la carte (degrés), pour la boussole. */
+  /** L’orientation de la carte (degrés), pour la boussole. */
   onBearing?: (bearing: number) => void
   /** Change à chaque toucher sur la boussole : la carte revient face au nord. */
   north?: number
@@ -58,7 +58,7 @@ const rectangle = ([s, w, n, e]: [number, number, number, number]): [number, num
   [w, s],
 ]
 
-/** Petit hasard reproductible : la texture des nuages ne bouge pas d'un affichage à l'autre. */
+/** Petit hasard reproductible : la texture des nuages ne bouge pas d’un affichage à l’autre. */
 function seeded(seed: number) {
   let x = seed || 1
   return () => {
@@ -203,7 +203,7 @@ export function ExplorerMap({ cells, tracks, places, satellite, three, center, f
         if (m.getLayer(id)) m.removeLayer(id)
         if (m.getSource(id)) m.removeSource(id)
       }
-      // Hors de l'image : un aplat, troué exactement là où l'image commence.
+      // Hors de l’image : un aplat, troué exactement là où l’image commence.
       const world: [number, number][] = [
         [-180, -85],
         [180, -85],

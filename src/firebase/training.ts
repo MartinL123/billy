@@ -13,12 +13,12 @@ import { levelTitle, stepPhraseLower } from '../content/phrases'
 
 const now = () => new Date().toISOString()
 
-// Les gains d'XP ont des identifiants fixes quand ils ne peuvent arriver qu'une fois (palier, étoile, validation du jour) :
+// Les gains d’XP ont des identifiants fixes quand ils ne peuvent arriver qu’une fois (palier, étoile, validation du jour) :
 // rejouer la même écriture, ou la faire depuis deux appareils, ne les compte jamais deux fois.
 const xpRef = (id: string) => userDoc('xpLog', id)
 const boneData = ({ date, amount, reason, refId }: BoneWithId): Bone => ({ date, amount, reason, refId })
 
-/** Un gain d'os unique (défi, semaine régulière, questionnaire) : l'identifiant fixe empêche tout doublon. */
+/** Un gain d’os unique (défi, semaine régulière, questionnaire) : l’identifiant fixe empêche tout doublon. */
 export function awardBone(gain: BoneWithId): void {
   send(setDoc(userDoc('bones', gain.id), boneData(gain)))
 }
@@ -40,7 +40,7 @@ export interface Outcome {
   xp: number
   /** Un résultat par boss dont le critère a été déclaré atteint. */
   results: BossOutcome[]
-  /** Annule la saisie. À n'offrir que dans les secondes qui suivent : ensuite, rien ne baisse. */
+  /** Annule la saisie. À n’offrir que dans les secondes qui suivent : ensuite, rien ne baisse. */
   undo: () => void
 }
 
@@ -49,7 +49,7 @@ export interface ValidationInput {
   current: BossProgress | undefined
 }
 
-/** Enregistre une exposition et son XP. La distance n'entre jamais dans le calcul. */
+/** Enregistre une exposition et son XP. La distance n’entre jamais dans le calcul. */
 export function recordExposure(exposure: Exposure): { undo: () => void } {
   const id = newId('exposures')
   const batch = writeBatch(db)
@@ -65,8 +65,8 @@ export function recordExposure(exposure: Exposure): { undo: () => void } {
 }
 
 /**
- * « Billy sait déjà faire ça » (fiche d'une compétence, questionnaire de départ) : les étapes jusqu'à `level`
- * sont acquises « avant l'app ». Chaque nouvelle étape rapporte l'XP normale, une seule fois. Ne fait jamais baisser.
+ * « Billy sait déjà faire ça » (fiche d’une compétence, questionnaire de départ) : les étapes jusqu’à `level`
+ * sont acquises « avant l’app ». Chaque nouvelle étape rapporte l’XP normale, une seule fois. Ne fait jamais baisser.
  */
 export function declarePreApp(bossId: string, current: BossProgress | undefined, level: number, date: ISODate): number[] {
   const { progress, gained } = markPreApp(current ?? EMPTY_PROGRESS, level)
@@ -75,16 +75,16 @@ export function declarePreApp(bossId: string, current: BossProgress | undefined,
   const batch = writeBatch(db)
   batch.set(userDoc('bossProgress', bossId), strip(progress))
   for (const step of gained) {
-    batch.set(xpRef(`palier-${bossId}-${step}`), strip<XpEntry>({ date, kind: 'palier', xp: XP.level, bossId, key: 'avant', label: `${boss?.name} · avant l'app`, createdAt: now() }))
+    batch.set(xpRef(`palier-${bossId}-${step}`), strip<XpEntry>({ date, kind: 'palier', xp: XP.level, bossId, key: 'avant', label: `${boss?.name} · avant l’app`, createdAt: now() }))
   }
   send(batch.commit())
   return gained
 }
 
 /**
- * Écran de résultat du questionnaire : décoche une étape « avant l'app » et les plus difficiles.
- * Leurs lignes d'XP « étape acquise » sont retirées : c'est une correction avant le départ, pas une baisse.
- * Une étape validée dans l'app n'est jamais concernée. Renvoie de quoi annuler.
+ * Écran de résultat du questionnaire : décoche une étape « avant l’app » et les plus difficiles.
+ * Leurs lignes d’XP « étape acquise » sont retirées : c’est une correction avant le départ, pas une baisse.
+ * Une étape validée dans l’app n’est jamais concernée. Renvoie de quoi annuler.
  */
 export function uncheckSteps(bossId: string, current: BossProgress, step: number, log: (XpEntry & { id: string })[]): { removed: number[]; undo: () => void } {
   const { progress, removed } = uncheckPreApp(current, step)
@@ -107,7 +107,7 @@ export function uncheckSteps(bossId: string, current: BossProgress, step: number
 }
 
 /**
- * Chemin d'une compétence : coche ou décoche une étape. Seule la progression change ; le journal d'XP n'est jamais touché.
+ * Chemin d’une compétence : coche ou décoche une étape. Seule la progression change ; le journal d’XP n’est jamais touché.
  * Renvoie de quoi annuler.
  */
 export function setStepChecked(bossId: string, current: BossProgress | undefined, step: number, checked: boolean): { changed: number[]; undo: () => void } {
@@ -121,7 +121,7 @@ export function setStepChecked(bossId: string, current: BossProgress | undefined
   return { changed, undo: () => send(current ? setDoc(ref, plain(current)) : deleteDoc(ref)) }
 }
 
-/** Gain d'XP unique (première fois, quête, repos du jour) : l'identifiant fixe empêche tout doublon. */
+/** Gain d’XP unique (première fois, quête, repos du jour) : l’identifiant fixe empêche tout doublon. */
 export function awardOnce(id: string, entry: Omit<XpEntry, 'createdAt'>): void {
   send(setDoc(xpRef(id), strip<XpEntry>({ ...entry, createdAt: now() })))
 }
@@ -139,14 +139,14 @@ export function declareRest(date: ISODate, sniff: boolean, xp: number): { undo: 
 
 // ——— Mission du jour (V3 § 5.9) ———
 
-/** « Autre idée » : on retient combien de fois on l'a demandé aujourd'hui. */
+/** « Autre idée » : on retient combien de fois on l’a demandé aujourd’hui. */
 export function skipQuest(date: ISODate, skips: number): void {
   send(setDoc(userDoc('dailyQuest', date), { date, done: false, skips } satisfies DailyQuestDoc, { merge: true }))
 }
 
 /**
  * Mission du jour faite : +15 XP, une seule fois par jour (identifiant fixe).
- * Une journée de repos compte comme une vraie action, et s'ajoute au Carnet.
+ * Une journée de repos compte comme une vraie action, et s’ajoute au Carnet.
  */
 export function completeQuest(date: ISODate, quest: { kind: 'exercice' | 'revision' | 'repos'; bossId?: string; exerciseId?: string }, skips: number, xp: number): void {
   const batch = writeBatch(db)
@@ -161,7 +161,7 @@ export function completeQuest(date: ISODate, quest: { kind: 'exercice' | 'revisi
   send(batch.commit())
 }
 
-// ——— Noter ce qu'on a fait (V3) ———
+// ——— Noter ce qu’on a fait (V3) ———
 
 export interface MomentOutcome {
   /** Os gagnés par ce moment. */
@@ -177,7 +177,7 @@ export interface MomentOutcome {
 }
 
 /**
- * Enregistre un moment raconté : une entrée du Carnet, son XP, et les « oui, c'est réussi » qui comptent.
+ * Enregistre un moment raconté : une entrée du Carnet, son XP, et les « oui, c’est réussi » qui comptent.
  * Une étape acquise et un passage de niveau ajoutent chacun une carte au Carnet.
  */
 export function recordMoment(entry: Entry, yes: string[], progress: Record<string, BossProgress | undefined>, dogName: string, bones: Bone[] = []): MomentOutcome {
@@ -191,7 +191,7 @@ export function recordMoment(entry: Entry, yes: string[], progress: Record<strin
   }
   const entryId = newId('entries')
   const skills = entry.skills ?? []
-  // Le champ `xp` des anciens moments est conservé, mais on n'en écrit plus : le niveau vient des étapes acquises.
+  // Le champ `xp` des anciens moments est conservé, mais on n’en écrit plus : le niveau vient des étapes acquises.
   add(userDoc('entries', entryId), strip({ ...entry, validations: preview.validated, createdAt: now() }))
   const base = preview.xp - preview.steps.length * MOMENT_XP.step
   add(xpRef(entryId), strip<XpEntry>({ date: entry.date, kind: 'moment', xp: base, bossId: skills[0], bossIds: skills.length ? skills : undefined, createdAt: now() }))
@@ -207,7 +207,7 @@ export function recordMoment(entry: Entry, yes: string[], progress: Record<strin
       add(xpRef(`palier-${bossId}-${result.levelGained}`), strip<XpEntry>({ date: entry.date, kind: 'palier', xp: MOMENT_XP.step, bossId, label: boss?.name, createdAt: now() }))
       add(userDoc('entries', `palier-${bossId}-${result.levelGained}`), {
         date: entry.date,
-        text: `C'est réussi ! ${dogName} ${stepPhraseLower(bossId, result.levelGained)}.`,
+        text: `C’est réussi ! ${dogName} ${stepPhraseLower(bossId, result.levelGained)}.`,
         tags: [],
         photos: [],
         skills: [bossId],
@@ -217,7 +217,7 @@ export function recordMoment(entry: Entry, yes: string[], progress: Record<strin
   }
 
   const stepsBefore = stepsAcquired(progress)
-  // Os de l'effort : +3 pour la note (3 par jour), +5 par réussite, +25 par étape acquise dans l'app.
+  // Os de l’effort : +3 pour la note (3 par jour), +5 par réussite, +25 par étape acquise dans l’app.
   const validatedLevels = preview.validated.map((bossId) => ({ bossId, level: (progress[bossId]?.level ?? 0) + 1 }))
   const gains = momentBones(entryId, entry.date, validatedLevels, preview.steps, bones)
   for (const gain of gains) add(userDoc('bones', gain.id), boneData(gain))

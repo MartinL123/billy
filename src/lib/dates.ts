@@ -70,7 +70,7 @@ export function formatLong(iso: ISODate): string {
   return `${dayLabel(iso)} ${format(toLocalDate(iso), 'MMMM yyyy', { locale: fr })}`
 }
 
-/** « 13 oct. » (ou « 13 oct. 2027 » si l'année diffère de `refYear`) */
+/** « 13 oct. » (ou « 13 oct. 2027 » si l’année diffère de `refYear`) */
 export function formatShort(iso: ISODate, refYear?: number): string {
   const withYear = refYear !== undefined && parseISO(iso).y !== refYear
   return `${dayLabel(iso)} ${format(toLocalDate(iso), withYear ? 'MMM yyyy' : 'MMM', { locale: fr })}`
@@ -101,10 +101,10 @@ export function formatDayHeading(iso: ISODate): string {
   return capitalize(`${format(toLocalDate(iso), 'EEEE', { locale: fr })} ${dayLabel(iso)} ${format(toLocalDate(iso), 'MMMM', { locale: fr })}`)
 }
 
-/** « aujourd'hui », « demain », « dans 4 jours », « hier », « il y a 3 jours » */
+/** « aujourd’hui », « demain », « dans 4 jours », « hier », « il y a 3 jours » */
 export function formatRelative(iso: ISODate, today: ISODate): string {
   const diff = diffDays(today, iso)
-  if (diff === 0) return "aujourd'hui"
+  if (diff === 0) return "aujourd’hui"
   if (diff === 1) return 'demain'
   if (diff === -1) return 'hier'
   return diff > 0 ? `dans ${diff} jours` : `il y a ${-diff} jours`

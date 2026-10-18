@@ -9,7 +9,7 @@ import { SubScreen } from './SubScreen'
 
 const DONE_PREVIEW = 3
 
-// Le dernier filtre choisi est retenu sur l'appareil : une préférence d'affichage, pas une donnée.
+// Le dernier filtre choisi est retenu sur l’appareil : une préférence d’affichage, pas une donnée.
 const FILTER_KEY = 'billy.sante.filtre'
 function storedFilter(): CareFilter {
   try {

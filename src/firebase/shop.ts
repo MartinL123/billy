@@ -5,7 +5,7 @@ import type { ISODate } from '../lib/dates'
 import { db } from './app'
 import { send, userDoc } from './paths'
 
-/** Acheter un objet : il rejoint l'inventaire, et ses os sont dépensés (une seule fois par objet). */
+/** Acheter un objet : il rejoint l’inventaire, et ses os sont dépensés (une seule fois par objet). */
 export function buyItem(item: ShopItem, date: ISODate): void {
   const batch = writeBatch(db)
   const spent = purchaseBone(item.id, item.price, date)
@@ -14,7 +14,7 @@ export function buyItem(item: ShopItem, date: ISODate): void {
   send(batch.commit())
 }
 
-/** Porter un objet (ou l'enlever) : un seul par emplacement (accessoire, cadre, fond, sticker, couleurs). */
+/** Porter un objet (ou l’enlever) : un seul par emplacement (accessoire, cadre, fond, sticker, couleurs). */
 export function wear(slot: 'accessory' | 'frame' | 'background' | 'sticker' | 'theme', itemId: string | undefined): void {
   send(updateDoc(userDoc('dog', 'billy'), { [`cosmetics.${slot}`]: itemId ?? deleteField() }))
 }

@@ -10,8 +10,8 @@ interface FilePickerProps {
 }
 
 /**
- * Import depuis la photothèque ou l'app Fichiers. Jamais d'attribut `capture` :
- * l'app n'ouvre pas l'appareil photo.
+ * Import depuis la photothèque ou l’app Fichiers. Jamais d’attribut `capture` :
+ * l’app n’ouvre pas l’appareil photo.
  */
 export function FilePicker({ accept, multiple = true, onFiles, className, children }: FilePickerProps) {
   return (

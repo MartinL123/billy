@@ -4,7 +4,7 @@ import { stepPhraseLower, territoryOf } from '../../content/phrases'
 import { Badge } from '../billy/Badge'
 import { bossById, MAX_LEVEL } from '../../content/training'
 
-/** Confettis aux couleurs du territoire : ils tombent dans le haut de l'écran, jamais sur les boutons. */
+/** Confettis aux couleurs du territoire : ils tombent dans le haut de l’écran, jamais sur les boutons. */
 function Confetti({ colors, count }: { colors: string[]; count: number }) {
   return (
     <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[55%] overflow-hidden">
@@ -27,7 +27,7 @@ function Confetti({ colors, count }: { colors: string[]; count: number }) {
   )
 }
 
-/** Plein écran de récompense. Un toucher n'importe où passe l'animation ; « Continuer » ferme. */
+/** Plein écran de récompense. Un toucher n’importe où passe l’animation ; « Continuer » ferme. */
 function FullScreen({ label, children }: { label: string; children: ReactNode }) {
   const [skip, setSkip] = useState(false)
   useEffect(() => {
@@ -54,18 +54,18 @@ function FullScreen({ label, children }: { label: string; children: ReactNode })
 const continueButton = 'mt-auto flex min-h-[60px] w-full shrink-0 items-center justify-center rounded-full border-0 bg-gold text-[19px] font-extrabold text-gold-dark'
 const pill = 'rounded-2xl bg-white/15 px-3.5 py-2 text-base font-bold'
 
-/** Nouvelle étape : « C'est réussi ! », la phrase de l'étape en grand, la suivante. Ni étoile ni compteur. */
+/** Nouvelle étape : « C’est réussi ! », la phrase de l’étape en grand, la suivante. Ni étoile ni compteur. */
 export function StepSuccess({ dogName, bossId, level, inCarnet = true, onClose }: { dogName: string; bossId: string; level: number; inCarnet?: boolean; onClose: () => void }) {
   const boss = bossById(bossId)
   const territory = territoryOf(bossId)
   return (
-    <FullScreen label="C'est réussi">
+    <FullScreen label="C’est réussi">
       <Confetti colors={[territory.color, territory.soft, '#F2B544', '#FFFFFF']} count={14} />
       <span className="cel-badge flex size-40 shrink-0 items-center justify-center rounded-full bg-white shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
         <Badge bossId={bossId} acquired={level} size={136} animateStep={level} lit="#F2B544" />
       </span>
       <div className="cel-text flex w-full flex-1 flex-col items-center">
-        <p className="mt-7 text-[15px] font-bold tracking-[1px] text-[#F7D58A] uppercase">C'est réussi ! · {boss?.name}</p>
+        <p className="mt-7 text-[15px] font-bold tracking-[1px] text-[#F7D58A] uppercase">C’est réussi ! · {boss?.name}</p>
         <h1 className="mt-3 font-display text-[30px] leading-tight font-extrabold">
           {dogName} {stepPhraseLower(bossId, level)}
         </h1>

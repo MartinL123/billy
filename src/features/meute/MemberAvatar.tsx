@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Member } from '../../firebase/community'
 
-/** La miniature publique d'un chien de la meute, ou son initiale sur sa couleur. */
+/** La miniature publique d’un chien de la meute, ou son initiale sur sa couleur. */
 export function MemberAvatar({ member, size = 44 }: { member: Pick<Member, 'dogName' | 'color' | 'thumb'>; size?: number }) {
   const [url, setUrl] = useState<string>()
   useEffect(() => {

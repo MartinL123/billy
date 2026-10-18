@@ -3,7 +3,7 @@ import { ChevronLeftIcon } from '../../components/Icons'
 import { useBack } from '../../lib/useBack'
 
 /** Un écran de détail de Santé : « ‹ Santé », un titre, le contenu. */
-export function SubScreen({ title, children, titleInContent = false }: { title: string; children: ReactNode; /** Le contenu a déjà son titre visible : celui de l'écran reste pour les lecteurs d'écran. */ titleInContent?: boolean }) {
+export function SubScreen({ title, children, titleInContent = false }: { title: string; children: ReactNode; /** Le contenu a déjà son titre visible : celui de l’écran reste pour les lecteurs d’écran. */ titleInContent?: boolean }) {
   const back = useBack('/sante')
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">

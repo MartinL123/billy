@@ -19,7 +19,7 @@ export interface CareStatus<T> {
   next?: T
 }
 
-/** Dernier soin fait et prochain soin prévu pour un type d'événement. */
+/** Dernier soin fait et prochain soin prévu pour un type d’événement. */
 export function careStatus<T extends CareEvent>(events: T[], type: EventType): CareStatus<T> {
   const own = events.filter((e) => e.type === type)
   const done = own.filter((e) => e.done)
@@ -28,7 +28,7 @@ export function careStatus<T extends CareEvent>(events: T[], type: EventType): C
   return { last, next }
 }
 
-/** Le jour du dernier soin fait d'un type (vide si aucun). */
+/** Le jour du dernier soin fait d’un type (vide si aucun). */
 export const lastDone = <T extends CareEvent>(events: T[], type: EventType): ISODate | '' => {
   const last = careStatus(events, type).last
   return last ? doneDate(last) : ''

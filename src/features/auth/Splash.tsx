@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Logo } from './Login'
 
-/** Écran d'attente ou de message plein écran, aux couleurs de l'app. */
+/** Écran d’attente ou de message plein écran, aux couleurs de l’app. */
 export function Splash({ title, children }: { title?: string; children?: ReactNode }) {
   return (
     <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col items-center justify-center gap-4 px-6 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-center">

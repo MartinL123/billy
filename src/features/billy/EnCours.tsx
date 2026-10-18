@@ -11,7 +11,7 @@ import { useToday } from '../../lib/useToday'
 import { BossIcon } from '../training/BossIcon'
 import { place } from '../../lib/garden'
 
-/** « En cours » : le maître choisit lui-même jusqu'à 3 compétences. La quête du jour pioche dedans. */
+/** « En cours » : le maître choisit lui-même jusqu’à 3 compétences. La quête du jour pioche dedans. */
 export default function EnCours() {
   const { dog, events, bossProgress } = useData()
   const today = useToday()
@@ -19,7 +19,7 @@ export default function EnCours() {
   const toast = useToast()
   const [chosen, setChosen] = useState(() => activeSkills(dog.activeSkills, dog.traits ?? [], bossProgress))
   const [refused, setRefused] = useState(false)
-  // Les peurs déclarées au questionnaire : ses réactions, ou les anciennes cases tant qu'il n'a pas été refait.
+  // Les peurs déclarées au questionnaire : ses réactions, ou les anciennes cases tant qu’il n’a pas été refait.
   const fears = dog.reactions ? dog.reactions.filter((r) => r.reaction === 'peur').map((r) => r.situation) : [...(dog.fears ?? []), dog.fearsOther ?? ''].filter(Boolean)
   const hints = skillHints(fears, dog.traits ?? [], events, today)
 
@@ -48,7 +48,7 @@ export default function EnCours() {
       <main className="flex flex-col gap-4 px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+130px)]">
         <h1 className="font-display text-[26px] leading-tight font-extrabold">Sur quoi travailler en ce moment ?</h1>
         <p className="text-[15px] leading-snug text-[#3F4946]">
-          Choisissez jusqu'à <strong>{MAX_ACTIVE} compétences</strong>. La mission du jour vous proposera leurs exercices, à tour de rôle. Les autres ne sont pas oubliées : elles reviennent de temps en temps en révision.
+          Choisissez jusqu’à <strong>{MAX_ACTIVE} compétences</strong>. La mission du jour vous proposera leurs exercices, à tour de rôle. Les autres ne sont pas oubliées : elles reviennent de temps en temps en révision.
         </p>
         <p aria-live="polite" className="self-start rounded-full bg-primary-soft px-3.5 py-1.5 text-[15px] font-bold text-primary-dark">
           {chosen.length} choisie{chosen.length > 1 ? 's' : ''} sur {MAX_ACTIVE}
@@ -109,7 +109,7 @@ export default function EnCours() {
         <div className="mx-auto flex max-w-[430px] flex-col gap-2 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           {refused && (
             <p role="alert" className="rounded-[14px] bg-info-soft px-3.5 py-2.5 text-[15px] leading-snug text-[#1D3F73]">
-              Pour en choisir une autre, décochez-en d'abord une. {place('Ce qu’il a déjà appris reste acquis.')}
+              Pour en choisir une autre, décochez-en d’abord une. {place('Ce qu’il a déjà appris reste acquis.')}
             </p>
           )}
           <button type="button" onClick={save} className="btn btn-main min-h-[60px] w-full text-[19px]">

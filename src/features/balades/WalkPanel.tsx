@@ -4,7 +4,7 @@ import { formatDuration } from '../../lib/balade'
 import { formatLong } from '../../lib/dates'
 import { durationLabel, formatRouteDistance, type Route } from '../../lib/route'
 
-/** Le panneau d'une balade ouverte sur la carte : ce qu'elle est, la revoir, y placer des repères. */
+/** Le panneau d’une balade ouverte sur la carte : ce qu’elle est, la revoir, y placer des repères. */
 export function WalkPanel({ entryId, name, date, route, replaying, missed, onReplay }: { entryId: string; name: string; date: string; route: Route; replaying: boolean; missed: boolean; onReplay: () => void }) {
   const stats = [formatLong(date), formatRouteDistance(route.distanceM), route.durationMin ? (route.source === 'gpx' ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} repère${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
   return (

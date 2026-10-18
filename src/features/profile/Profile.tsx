@@ -68,8 +68,8 @@ function ContactRow({ role, callLabel, contact, first }: { role: string; callLab
 }
 
 /**
- * Supprimer le compte : un panneau dans l'app, jamais de fenêtre système. Il faut retaper son mot de passe.
- * D'abord toutes les données sous users/{uid}/…, puis le compte.
+ * Supprimer le compte : un panneau dans l’app, jamais de fenêtre système. Il faut retaper son mot de passe.
+ * D’abord toutes les données sous users/{uid}/…, puis le compte.
  */
 function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; online: boolean; onClose: () => void }) {
   const [password, setPassword] = useState('')
@@ -90,7 +90,7 @@ function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; onl
       return setError(authErrorMessage(err).text)
     }
     try {
-      // Tant que la suppression est en cours, l'app ne recrée pas de profil vide.
+      // Tant que la suppression est en cours, l’app ne recrée pas de profil vide.
       setClosingAccount(true)
       await leavePack(auth.currentUser?.uid ?? '')
       await eraseUserData()
@@ -130,7 +130,7 @@ function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; onl
   )
 }
 
-/** Le profil du chien : on l'ouvre en touchant sa photo dans son onglet. */
+/** Le profil du chien : on l’ouvre en touchant sa photo dans son onglet. */
 export default function Profile() {
   const { dog, documents, weights, usage, pendingCount, online } = useData()
   const today = useToday()
@@ -237,7 +237,7 @@ export default function Profile() {
         <h2 className="text-xl font-bold">Contacts</h2>
         <div className="card px-4 py-1">
           <ContactRow first role="Vétérinaire" callLabel="Appeler le vétérinaire" contact={dog.vet} />
-          <ContactRow role="Éducateur" callLabel="Appeler l'éducateur" contact={dog.trainer} />
+          <ContactRow role="Éducateur" callLabel="Appeler l’éducateur" contact={dog.trainer} />
         </div>
       </section>
 
@@ -245,7 +245,7 @@ export default function Profile() {
 
       <EveningReminder dogName={dog.name} />
 
-      {/* Une fois terminé, on arrive sur le résultat : c'est là qu'on corrige ce qu'il savait déjà faire. */}
+      {/* Une fois terminé, on arrive sur le résultat : c’est là qu’on corrige ce qu’il savait déjà faire. */}
       <Link to={status.complete ? '/questionnaire?etape=fin' : '/questionnaire'} className="card-link min-h-16">
         <NoteIcon size={24} className="shrink-0 text-primary" />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -275,7 +275,7 @@ export default function Profile() {
               <>
                 <CloudPendingIcon size={20} className="shrink-0 text-info" />
                 <span className="flex-1 text-[15px] font-semibold text-info">
-                  {pendingCount > 1 ? `${pendingCount} éléments en attente d'envoi` : "1 élément en attente d'envoi"}
+                  {pendingCount > 1 ? `${pendingCount} éléments en attente d’envoi` : "1 élément en attente d’envoi"}
                 </span>
               </>
             )}
@@ -293,7 +293,7 @@ export default function Profile() {
           Changer mon mot de passe
         </button>
         <Link to="/installer" className="btn btn-outline">
-          Mettre l'app sur mon téléphone
+          Mettre l’app sur mon téléphone
         </Link>
         <button type="button" onClick={() => setConfirmLogout(true)} className="btn btn-quiet">
           Se déconnecter
@@ -301,7 +301,7 @@ export default function Profile() {
         <button type="button" onClick={() => setDeleting(true)} className="btn border-2 border-solid border-danger bg-surface text-danger">
           Supprimer mon compte et mes données
         </button>
-        <p className="text-[13px] leading-snug text-muted">Vos données restent privées. Martin, qui gère l'app, peut techniquement y accéder.</p>
+        <p className="text-[13px] leading-snug text-muted">Vos données restent privées. Martin, qui gère l’app, peut techniquement y accéder.</p>
       </section>
 
       <p className="text-center text-[13px] text-muted">
@@ -316,7 +316,7 @@ export default function Profile() {
           title="Se déconnecter ?"
           message={
             pendingCount > 0
-              ? `Attention : ${pendingCount > 1 ? `${pendingCount} éléments ne sont pas encore envoyés` : "1 élément n'est pas encore envoyé"}. Reconnectez-vous à Internet avant de vous déconnecter pour ne rien perdre.`
+              ? `Attention : ${pendingCount > 1 ? `${pendingCount} éléments ne sont pas encore envoyés` : "1 élément n’est pas encore envoyé"}. Reconnectez-vous à Internet avant de vous déconnecter pour ne rien perdre.`
               : 'Vos données restent en sécurité dans votre compte. Il faudra votre mot de passe pour revenir.'
           }
           confirmLabel="Se déconnecter"

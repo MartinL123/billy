@@ -9,7 +9,7 @@ import { ofName } from '../../lib/gender'
 
 const percent = (share: number) => (share > 0 && share < 0.01 ? 'moins de 1' : String(Math.round(share * 100)))
 
-/** « Le brouillard s'est levé ! » (maquette V3-ImportResultat). */
+/** « Le brouillard s’est levé ! » (maquette V3-ImportResultat). */
 export default function ImportResult() {
   const { dog } = useData()
   const result = takeImportResult()
@@ -26,16 +26,13 @@ export default function ImportResult() {
         </div>
         {!nothing && (
           <>
-            {result.share && (
-              <span className="self-start rounded-full bg-gold px-3 py-1.5 text-[15px] font-extrabold text-gold-dark">
-                {gained >= 1 ? `+ ${gained} % découvert` : `${percent(result.share.after)} % ${ofName(result.share.name)}`}
-              </span>
-            )}
-            <div className="grid grid-cols-3 gap-2 text-center">
+            {result.share && gained >= 1 && <span className="self-start rounded-full bg-gold px-3 py-1.5 text-[15px] font-extrabold text-gold-dark">+ {gained} % découvert</span>}
+            {/* Des km et un % de la commune, pas de « cases » (audit R-018). */}
+            <div className={`grid gap-2 text-center ${result.share ? 'grid-cols-3' : 'grid-cols-2'}`}>
               {[
                 [String(result.walks.length), `balade${result.walks.length > 1 ? 's' : ''} ajoutée${result.walks.length > 1 ? 's' : ''}`],
                 [formatRouteDistance(result.distanceM), 'parcourus'],
-                [result.newCells.toLocaleString('fr-FR'), `case${result.newCells > 1 ? 's' : ''} découverte${result.newCells > 1 ? 's' : ''}`],
+                ...(result.share ? [[`${percent(result.share.after)} %`, `${ofName(result.share.name)} découvert`]] : []),
               ].map(([value, label]) => (
                 <div key={label} className="card flex flex-col items-center gap-0.5 px-2 py-3">
                   <span className="font-display text-[22px] font-extrabold">{value}</span>
@@ -59,7 +56,7 @@ export default function ImportResult() {
             {result.walks.length > 30 && <p className="text-[15px] text-muted">Et {result.walks.length - 30} autres, dans ses balades.</p>}
           </>
         )}
-        <p className="text-[15px] text-muted">{result.line}</p>
+        {result.line && <p className="text-[15px] text-muted">{result.line}</p>}
       </main>
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto max-w-[430px] px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">

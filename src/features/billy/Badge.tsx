@@ -9,10 +9,10 @@ const GAP = 6.5
 const SEG = CIRC / MAX_LEVEL - GAP
 
 /**
- * Badge d'une compétence : cercle à la couleur du territoire, entouré d'un anneau en 5 segments
- * qui s'allument au fil des étapes. Aucun chiffre. Doré quand tout est acquis, pâle quand rien ne l'est, jamais grisé.
+ * Badge d’une compétence : cercle à la couleur du territoire, entouré d’un anneau en 5 segments
+ * qui s’allument au fil des étapes. Aucun chiffre. Doré quand tout est acquis, pâle quand rien ne l’est, jamais grisé.
  */
-export function Badge({ bossId, acquired, size = 84, animateStep, lit }: { bossId: string; acquired: number; size?: number; /** Étape tout juste gagnée : son segment se remplit (« C'est réussi ! »). */ animateStep?: number; /** Couleur des segments allumés, à la place de celle du territoire. */ lit?: string }) {
+export function Badge({ bossId, acquired, size = 84, animateStep, lit }: { bossId: string; acquired: number; size?: number; /** Étape tout juste gagnée : son segment se remplit (« C’est réussi ! »). */ animateStep?: number; /** Couleur des segments allumés, à la place de celle du territoire. */ lit?: string }) {
   const territory = territoryOf(bossId)
   const mastered = acquired >= MAX_LEVEL
   const litColor = mastered ? '#F2B544' : (lit ?? territory.color)

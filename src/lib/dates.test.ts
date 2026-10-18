@@ -16,7 +16,7 @@ describe('dates', () => {
   })
 
   it('donne des dates relatives', () => {
-    expect(formatRelative('2026-10-13', '2026-10-13')).toBe("aujourd'hui")
+    expect(formatRelative('2026-10-13', '2026-10-13')).toBe("aujourd’hui")
     expect(formatRelative('2026-10-14', '2026-10-13')).toBe('demain')
     expect(formatRelative('2026-10-12', '2026-10-13')).toBe('hier')
     expect(formatRelative('2026-10-17', '2026-10-13')).toBe('dans 4 jours')

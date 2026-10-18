@@ -67,7 +67,7 @@ export interface Dog {
   cosmetics?: Cosmetics
   /** Le mot de passe donné par Martin a été changé, ou la proposition fermée. */
   passwordPromptDone?: boolean
-  /** Os rétroactifs déjà versés (le jour où c'est fait). */
+  /** Os rétroactifs déjà versés (le jour où c’est fait). */
   bonesBackfilled?: ISODate
   /** Ancienne exploration (geohash, 14-17 octobre) : plus lue, gardée. */
   explorationBackfilled?: ISODate
@@ -75,11 +75,11 @@ export interface Dog {
   fogBackfilled?: ISODate
   /** Le brouillard recalculé sur la grille de 25 m. */
   fog25Backfilled?: ISODate
-  /** Compétences en cours choisies par le maître (3 au plus). Absent : l'app propose les 3 premières non maîtrisées. */
+  /** Compétences en cours choisies par le maître (3 au plus). Absent : l’app propose les 3 premières non maîtrisées. */
   activeSkills?: string[]
-  /** Calculé à la lecture, jamais enregistré : le nom n'a pas encore été donné (on affiche « Votre chien »). */
+  /** Calculé à la lecture, jamais enregistré : le nom n’a pas encore été donné (on affiche « Votre chien »). */
   unnamed?: boolean
-  /** Ancien marqueur des données de départ. Plus aucune n'est appliquée ; conservé pour les comptes existants. */
+  /** Ancien marqueur des données de départ. Plus aucune n’est appliquée ; conservé pour les comptes existants. */
   seedVersion?: number
 }
 
@@ -120,19 +120,19 @@ export interface Entry {
   photos: EntryPhoto[]
   createdAt?: string
   // ——— Moment raconté (V3) : champs optionnels, une entrée du Journal reste valide sans eux ———
-  /** Compétences travaillées, choisies par l'utilisateur. */
+  /** Compétences travaillées, choisies par l’utilisateur. */
   skills?: string[]
   feeling?: Feeling
   /** « Il a eu peur ? » */
   fear?: boolean
-  /** « On s'est éloignés pour qu'il se sente mieux. » */
+  /** « On s’est éloignés pour qu’il se sente mieux. » */
   movedAway?: boolean
-  /** Compétences où « oui, c'est réussi » a compté ce jour-là. */
+  /** Compétences où « oui, c’est réussi » a compté ce jour-là. */
   validations?: string[]
   xp?: number
   /** Le trajet de la balade (docs/specs/trajets.md). */
   route?: StoredRoute
-  /** Balade importée d'un fichier Strava (carte-a-decouvrir.md § 6). */
+  /** Balade importée d’un fichier Strava (carte-a-decouvrir.md § 6). */
   source?: 'strava'
   /** Clé de doublon : heure de départ + premier point. */
   importKey?: string
@@ -177,7 +177,7 @@ export interface Place {
   createdAt?: string
 }
 
-/** Distance approximative au déclencheur. Informative : elle ne rapporte jamais d'XP. */
+/** Distance approximative au déclencheur. Informative : elle ne rapporte jamais d’XP. */
 export type DistanceBand = '<2' | '2-5' | '5-10' | '>10'
 
 /** users/{uid}/sessions/{id} — une séance de 5 essais sur un exercice. */
@@ -186,9 +186,9 @@ export interface TrainingSession {
   exerciseId: string
   /** Boss principal de la séance. */
   bossId: string
-  /** Tous les boss que l'exercice nourrit (le principal compris). Absent : seulement `bossId`. */
+  /** Tous les boss que l’exercice nourrit (le principal compris). Absent : seulement `bossId`. */
   bossIds?: string[]
-  /** Niveau de difficulté N1–N5 de l'exercice pendant la séance. */
+  /** Niveau de difficulté N1–N5 de l’exercice pendant la séance. */
   difficulty: number
   trials: boolean[]
   /** « A-t-il pris ses friandises ? » */
@@ -196,7 +196,7 @@ export interface TrainingSession {
   /** Réaction 0–4 pendant la séance. */
   reaction?: number
   suggestion: Decision
-  /** Ce que Martin a choisi : la suggestion n'est jamais appliquée d'office. */
+  /** Ce que Martin a choisi : la suggestion n’est jamais appliquée d’office. */
   decision: Decision
   xp: number
   createdAt?: string
@@ -219,13 +219,13 @@ export interface Exposure {
 
 export type XpKind = 'moment' | 'defi' | 'seance' | 'exposition' | 'repos' | 'validation' | 'palier' | 'etoile' | 'premiere' | 'quete'
 
-/** users/{uid}/xpLog/{id} — journal d'XP, en ajout seul. Tout le reste (niveau, stats, radar) en découle. */
+/** users/{uid}/xpLog/{id} — journal d’XP, en ajout seul. Tout le reste (niveau, stats, radar) en découle. */
 export interface XpEntry {
   date: ISODate
   kind: XpKind
   xp: number
   bossId?: string
-  /** Séance d'un exercice qui nourrit plusieurs boss : l'XP compte pour chacun. */
+  /** Séance d’un exercice qui nourrit plusieurs boss : l’XP compte pour chacun. */
   bossIds?: string[]
   /** Libellé affiché (« Première exposition notée »). */
   label?: string
@@ -241,7 +241,7 @@ export interface QuestWeek {
   replaced: string[]
 }
 
-/** Les anciens documents de `sessions` et `exposures` (avant la spec V2) n'ont pas ces champs : ils sont ignorés. */
+/** Les anciens documents de `sessions` et `exposures` (avant la spec V2) n’ont pas ces champs : ils sont ignorés. */
 export const isTrainingSession = (doc: Partial<TrainingSession>): doc is TrainingSession => Array.isArray(doc.trials) && typeof doc.bossId === 'string'
 export const isExposure = (doc: Partial<Exposure>): doc is Exposure => typeof doc.reaction === 'number' && typeof doc.bossId === 'string'
 
@@ -251,7 +251,7 @@ export type WithId<T> = T & {
   pending: boolean
 }
 
-/** users/{uid}/bones/{id} : les os, la monnaie de l'effort (gains et achats). */
+/** users/{uid}/bones/{id} : les os, la monnaie de l’effort (gains et achats). */
 export type { Bone } from '../lib/bones'
 
 /** users/{uid}/inventory/{itemId} : un objet acheté dans la boutique. */
@@ -260,7 +260,7 @@ export interface InventoryItem {
   price: number
 }
 
-/** Ce que le chien porte et les choix d'affichage achetés dans la boutique. Tous facultatifs. */
+/** Ce que le chien porte et les choix d’affichage achetés dans la boutique. Tous facultatifs. */
 export interface Cosmetics {
   accessory?: string
   frame?: string

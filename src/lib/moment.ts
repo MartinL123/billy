@@ -3,7 +3,7 @@ import { MAX_LEVEL } from '../content/training'
 import { addValidation, EMPTY_PROGRESS, type ProgressMap } from './bossProgress'
 import type { ISODate } from './dates'
 
-/** Comment ça s'est passé : trois visages. */
+/** Comment ça s’est passé : trois visages. */
 export type Feeling = 'difficile' | 'bien' | 'super'
 
 export const FEELINGS: { value: Feeling; label: string }[] = [
@@ -14,7 +14,7 @@ export const FEELINGS: { value: Feeling; label: string }[] = [
 
 export const feelingLabel = (feeling: string | undefined) => FEELINGS.find((f) => f.value === feeling)?.label
 
-/** XP d'un moment raconté (docs/specs/spec-v3-simplification.md § 2). Les photos ne rapportent rien. */
+/** XP d’un moment raconté (docs/specs/spec-v3-simplification.md § 2). Les photos ne rapportent rien. */
 export const MOMENT_XP = {
   /** Raconter un moment, du jour ou passé. */
   moment: 10,
@@ -22,9 +22,9 @@ export const MOMENT_XP = {
   great: 5,
   /** Une situation de peur : ressenti « Difficile » sur une compétence de peur. */
   fear: 5,
-  /** « On s'est éloignés » : la bonne réaction. */
+  /** « On s’est éloignés » : la bonne réaction. */
   movedAway: 8,
-  /** « Oui, c'est réussi » à la prochaine étape d'une compétence. */
+  /** « Oui, c’est réussi » à la prochaine étape d’une compétence. */
   yes: 10,
   /** Nouvelle étape acquise. */
   step: 50,
@@ -46,8 +46,8 @@ export function momentBaseXp({ feeling, fear, movedAway }: MomentInput): number 
 export const isFearMoment = (feeling: Feeling | undefined, skills: string[]) => feeling === 'difficile' && skills.some(isFearSkill)
 
 /**
- * On ne demande « c'est réussi ? » que si le moment s'est bien passé : pas un jour difficile.
- * L'app ne récompense jamais le fait d'avoir poussé le chien.
+ * On ne demande « c’est réussi ? » que si le moment s’est bien passé : pas un jour difficile.
+ * L’app ne récompense jamais le fait d’avoir poussé le chien.
  */
 export const canAskStep = ({ feeling, fear }: MomentInput) => feeling !== 'difficile' && !fear
 
@@ -59,7 +59,7 @@ export interface MomentPreview {
   steps: { bossId: string; level: number }[]
 }
 
-/** Gain d'un moment avant de l'enregistrer, mis à jour en direct sur le bouton. */
+/** Gain d’un moment avant de l’enregistrer, mis à jour en direct sur le bouton. */
 export function previewMoment(input: MomentInput, yes: string[], progress: ProgressMap, date: ISODate): MomentPreview {
   let xp = momentBaseXp(input)
   const validated: string[] = []

@@ -12,7 +12,7 @@ const mastered = (progress: ProgressMap, id: string) => (progress[id]?.level ?? 
 
 /**
  * Les compétences en cours. Celles choisies par le maître (`dog.activeSkills`), sinon les 3 premières non maîtrisées
- * dans l'ordre conseillé par le questionnaire. Une compétence maîtrisée n'est jamais « en cours » : elle se révise.
+ * dans l’ordre conseillé par le questionnaire. Une compétence maîtrisée n’est jamais « en cours » : elle se révise.
  */
 export function activeSkills(chosen: string[] | undefined, traits: Trait[], progress: ProgressMap): string[] {
   const known = (id: string) => SKILLS.some((s) => s.id === id)
@@ -21,7 +21,7 @@ export function activeSkills(chosen: string[] | undefined, traits: Trait[], prog
   return order.filter((id) => known(id) && !mastered(progress, id)).slice(0, MAX_ACTIVE)
 }
 
-/** Ajoute ou retire une compétence du choix. Une 4e est refusée : il faut d'abord en décocher une. */
+/** Ajoute ou retire une compétence du choix. Une 4e est refusée : il faut d’abord en décocher une. */
 export function toggleActive(chosen: string[], id: string): { chosen: string[]; refused: boolean } {
   if (chosen.includes(id)) return { chosen: chosen.filter((c) => c !== id), refused: false }
   if (chosen.length >= MAX_ACTIVE) return { chosen, refused: true }
@@ -58,7 +58,7 @@ interface CareEvent {
 const VET_SOON_DAYS = 30
 
 /**
- * Indications de l'écran « En cours », calculées sans IA :
+ * Indications de l’écran « En cours », calculées sans IA :
  * « Tout doux » sur une compétence liée à une peur déclarée au questionnaire,
  * « Conseillé » pour Les Soins avant une visite véto du calendrier, et pour les compétences conseillées par le questionnaire.
  */

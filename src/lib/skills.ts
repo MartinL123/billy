@@ -6,7 +6,7 @@ export interface AcquiredStep {
   bossId: string
   step: number
   phrase: string
-  /** Jour où l'étape a été acquise ; absent pour une étape acquise « avant l'app ». */
+  /** Jour où l’étape a été acquise ; absent pour une étape acquise « avant l’app ». */
   date?: ISODate
 }
 
@@ -17,8 +17,8 @@ interface LogLike {
 }
 
 /**
- * Tout ce qu'il sait déjà faire, en phrases : la plus récente en haut, puis ce qui était acquis avant l'app.
- * Une étape est datée si elle a été gagnée par la pratique (journal d'XP) et pas déclarée « avant l'app ».
+ * Tout ce qu’il sait déjà faire, en phrases : la plus récente en haut, puis ce qui était acquis avant l’app.
+ * Une étape est datée si elle a été gagnée par la pratique (journal d’XP) et pas déclarée « avant l’app ».
  */
 export function acquiredSteps(progress: ProgressMap, log: LogLike[]): AcquiredStep[] {
   const dates = new Map(log.filter((e) => e.kind === 'palier').map((e) => [e.id, e.date]))

@@ -17,7 +17,7 @@ interface Props {
 
 const external = 'flex min-h-11 items-center gap-1 font-bold text-primary underline'
 
-/** La petite fenêtre d'un lieu touché sur la carte : ce que c'est, s'il existe, et comment y aller. */
+/** La petite fenêtre d’un lieu touché sur la carte : ce que c’est, s’il existe, et comment y aller. */
 export function PlaceCard({ selected, here, me, onClose, onRemove }: Props) {
   const [confirm, setConfirm] = useState(false)
   const at = selected.kind === 'idea' ? selected.idea : selected.spot

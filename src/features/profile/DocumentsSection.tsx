@@ -7,7 +7,7 @@ import { formatShort, parseISO } from '../../lib/dates'
 import { useToday } from '../../lib/useToday'
 import { categoryLabel, kindBadge } from './documents'
 
-/** Les papiers de Billy, dans l'onglet Santé. */
+/** Les papiers de Billy, dans l’onglet Santé. */
 export function DocumentsSection() {
   const { documents, events } = useData()
   const year = parseISO(useToday()).y

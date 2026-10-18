@@ -5,7 +5,7 @@ import { watchCalm, watchSpots, type CalmVote, type Spot, type WithId } from '..
 import { formatDistance, pickCalmSpot } from '../../lib/community'
 import { useGrantedPosition } from '../../lib/useGrantedPosition'
 
-/** « Un spot calme pour ça » dans une mission « rue calme », « lieu calme »… (communaute.md § 4). Rien s'il n'y en a pas. */
+/** « Un spot calme pour ça » dans une mission « rue calme », « lieu calme »… (communaute.md § 4). Rien s’il n’y en a pas. */
 export function CalmSpotCard() {
   const [spots, setSpots] = useState<WithId<Spot>[]>([])
   const [calm, setCalm] = useState<Record<string, WithId<CalmVote>[]>>({})

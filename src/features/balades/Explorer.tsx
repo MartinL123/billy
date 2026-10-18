@@ -43,7 +43,7 @@ function writePrefs(prefs: { satellite: boolean; three: boolean }) {
 
 const chip = (on: boolean) => `min-h-11 shrink-0 rounded-full border-0 px-3.5 text-[15px] font-bold ${on ? 'bg-primary text-white' : 'bg-bg text-text'}`
 
-/** Réduit, le panneau garde la poignée et les filtres, plus cette marge (le bouton Aujourd'hui déborde dessus). */
+/** Réduit, le panneau garde la poignée et les filtres, plus cette marge (le bouton Aujourd’hui déborde dessus). */
 const PEEK_MARGIN = 24
 const SNAP = 'transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1)'
 
@@ -77,7 +77,7 @@ function useSheet() {
     if (!ref.current) return
     ref.current.style.transition = animate ? SNAP : 'none'
     ref.current.style.transform = `translateY(${y}px)`
-    // Le contenu s'efface à mesure qu'il passe sous la barre d'onglets.
+    // Le contenu s’efface à mesure qu’il passe sous la barre d’onglets.
     if (bodyRef.current) {
       bodyRef.current.style.transition = animate ? 'opacity 0.32s' : 'none'
       bodyRef.current.style.opacity = String(travel ? Math.min(1, Math.max(0, 1 - y / travel)) : 1)
@@ -150,7 +150,7 @@ export default function Explorer() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const [filter, setFilter] = useState<WalkFilter>(() => (params.get('filtre') as WalkFilter | null) ?? 'toutes')
-  // « Spots de la meute » : un calque de la carte (spec V4 § 1), activé d'un toucher.
+  // « Spots de la meute » : un calque de la carte (spec V4 § 1), activé d’un toucher.
   // Depuis la meute : « Voir sur la carte » (?meute=1) ou un spot précis (?spot=…).
   const [packLayer, setPackLayer] = useState(() => params.has('meute') || params.has('spot'))
   const [spots, setSpots] = useState<WithId<Spot>[]>([])
@@ -187,7 +187,7 @@ export default function Explorer() {
     const pack = packLayer ? spots.filter((s) => !mine.has(s.id)).map((s) => ({ id: `meute:${s.id}`, lat: s.lat, lng: s.lng, name: s.name, hidden: false, icon: '🐾' })) : []
     return [...marked, ...pack, ...found]
   }, [spots, marks, me, ideas, packLayer])
-  // Un lieu touché : la carte s'y centre et la petite fenêtre dit ce que c'est.
+  // Un lieu touché : la carte s’y centre et la petite fenêtre dit ce que c’est.
   const [selectedId, setSelectedId] = useState<string | null>(() => params.get('spot'))
   const selected = useMemo<Selected | undefined>(() => {
     if (!selectedId) return undefined
@@ -226,7 +226,7 @@ export default function Explorer() {
           onPhoto: () => navigate(`/souvenir/${walkEntry.id}`),
         }
       : undefined
-  // La boussole : l'aiguille suit la carte ; un toucher la remet face au nord.
+  // La boussole : l’aiguille suit la carte ; un toucher la remet face au nord.
   const [bearing, setBearing] = useState(0)
   const [north, setNorth] = useState(0)
 
@@ -322,7 +322,7 @@ export default function Explorer() {
                   <span className="flex min-w-0 flex-1 flex-col">
                     <span className="truncate text-[17px] font-bold">{last.name}</span>
                     <span className="truncate text-[15px] text-muted">
-                      {formatRelative(last.date, today).replace(/^./, (c) => c.toLocaleUpperCase('fr'))} · {formatRouteDistance(last.route.distanceM)} · voir les {walks.length} balade{walks.length > 1 ? 's' : ''}
+                      {formatRelative(last.date, today).replace(/^./, (c) => c.toLocaleUpperCase('fr'))} · {formatRouteDistance(last.route.distanceM)} · {walks.length > 1 ? `voir les ${walks.length} balades` : 'voir la balade'}
                     </span>
                   </span>
                   <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />

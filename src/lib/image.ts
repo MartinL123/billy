@@ -1,4 +1,4 @@
-/** Taille maximale d'une image dans un document Firestore. */
+/** Taille maximale d’une image dans un document Firestore. */
 export const MAX_IMAGE_BYTES = 900 * 1024
 
 export interface ImagePreset {
@@ -14,8 +14,8 @@ export class UnreadableImageError extends Error {
   constructor(public readonly heic: boolean) {
     super(
       heic
-        ? "Cette photo est au format HEIC et n'a pas pu être lue. Dans Réglages › Appareil photo › Formats, choisis « Le plus compatible », ou exporte-la en JPEG."
-        : "Cette image n'a pas pu être lue. Essayez avec une photo JPEG ou PNG.",
+        ? "Cette photo est au format HEIC et n’a pas pu être lue. Dans Réglages › Appareil photo › Formats, choisis « Le plus compatible », ou exporte-la en JPEG."
+        : "Cette image n’a pas pu être lue. Essayez avec une photo JPEG ou PNG.",
     )
   }
 }
@@ -32,7 +32,7 @@ export function fitWithin(width: number, height: number, maxSide: number): { wid
 
 /**
  * Encode en baissant la qualité tant que le résultat dépasse `maxBytes`.
- * `encode` reçoit la qualité (0–1) et un facteur d'échelle (1 = taille prévue).
+ * `encode` reçoit la qualité (0–1) et un facteur d’échelle (1 = taille prévue).
  */
 export async function encodeUnderLimit(
   encode: (quality: number, scale: number) => Promise<Blob>,
@@ -74,7 +74,7 @@ function drawToBlob(source: Drawable, width: number, height: number, quality: nu
   canvas.height = height
   const ctx = canvas.getContext('2d')
   if (!ctx) return Promise.reject(new Error('Canvas indisponible'))
-  // Fond blanc : le JPEG n'a pas de transparence.
+  // Fond blanc : le JPEG n’a pas de transparence.
   ctx.fillStyle = '#FFFFFF'
   ctx.fillRect(0, 0, width, height)
   ctx.drawImage(source, 0, 0, width, height)

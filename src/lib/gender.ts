@@ -1,10 +1,10 @@
 // Accord au féminin (audit R-006) : pour une chienne, les textes qui parlent du chien passent au féminin.
-// Les textes sont écrits au masculin ; on ne transforme que ceux qui parlent du chien (jamais ce que l'utilisateur a écrit).
+// Les textes sont écrits au masculin ; on ne transforme que ceux qui parlent du chien (jamais ce que l’utilisateur a écrit).
 
 /** « Femelle » dans le profil. */
 export const isFemale = (sex: string | undefined) => (sex ?? '').trim().toLowerCase() === 'femelle'
 
-// Participes et adjectifs qui s'accordent avec le chien, dans la phrase où il est le sujet.
+// Participes et adjectifs qui s’accordent avec le chien, dans la phrase où il est le sujet.
 const ADJECTIVES: [string, string][] = [
   ['content', 'contente'],
   ['détendu', 'détendue'],
@@ -43,7 +43,7 @@ const ADJ = new Map(ADJECTIVES)
 const WORD = /[A-Za-zÀ-ÿ]+/g
 
 // « il » impersonnel : il faut, il y a, il est 17 h, il reste 3 minutes…
-const IMPERSONAL = /^\s+(faut|faudra|fallait|y\s|est\s+\d|reste\s+[\d$]|vaut|suffit|s’agit|s'agit|pleut|fait\s+(beau|froid|chaud|nuit|jour)|vous\s+rest)/i
+const IMPERSONAL = /^\s+(faut|faudra|fallait|y\s|est\s+\d|reste\s+[\d$]|vaut|suffit|s’agit|s’agit|pleut|fait\s+(beau|froid|chaud|nuit|jour)|vous\s+rest)/i
 
 const keepCase = (from: string, to: string) => (/^[A-ZÀ-Ý]/.test(from) ? to.replace(/^./, (c) => c.toLocaleUpperCase('fr')) : to)
 
@@ -51,8 +51,8 @@ const keepCase = (from: string, to: string) => (/^[A-ZÀ-Ý]/.test(from) ? to.re
 export function feminize(text: string): string {
   let out = ''
   let i = 0
-  // Chaque sujet « il » trouvé : on accorde la fin de sa phrase (jusqu'au prochain signe fort).
-  const subject = /(\b[Ss]’il\b|\b[Ss]'il\b|\b[Qq]u’il\b|\b[Qq]u'il\b|-t-il\b|-il\b|\b[Ii]l\b)/g
+  // Chaque sujet « il » trouvé : on accorde la fin de sa phrase (jusqu’au prochain signe fort).
+  const subject = /(\b[Ss]’il\b|\b[Ss]'il\b|\b[Qq]u’il\b|\b[Qq]u’il\b|-t-il\b|-il\b|\b[Ii]l\b)/g
   let m: RegExpExecArray | null
   while ((m = subject.exec(text))) {
     const word = m[0]
@@ -62,7 +62,7 @@ export function feminize(text: string): string {
     out += text.slice(i, m.index)
     out += lower.startsWith('s') ? keepCase(word, 'si elle') : lower.startsWith('qu') ? word.slice(0, 3) + 'elle' : lower.startsWith('-t-') ? '-t-elle' : lower.startsWith('-') ? '-elle' : keepCase(word, 'elle')
     // La fin de la phrase : accords des adjectifs.
-    // (jusqu'au prochain sujet « il » aussi, qui sera traité à son tour)
+    // (jusqu’au prochain sujet « il » aussi, qui sera traité à son tour)
     const end = after.search(/[.;:!?\n]|\b[Ii]l\b|[’']il\b|-il\b/)
     const clause = end < 0 ? after : after.slice(0, end)
     out += clause.replace(WORD, (w) => (ADJ.has(w.toLowerCase()) ? keepCase(w, ADJ.get(w.toLowerCase())!) : w))
@@ -77,7 +77,7 @@ export function feminize(text: string): string {
     .replace(/l’avez-vous adopté(?![A-Za-zÀ-ÿ])/g, 'l’avez-vous adoptée')
 }
 
-/** Le texte accordé selon le sexe du chien (masculin par défaut, tel qu'il est écrit). */
+/** Le texte accordé selon le sexe du chien (masculin par défaut, tel qu’il est écrit). */
 export const forSex = (text: string, sex: string | undefined): string => (isFemale(sex) ? feminize(text) : text)
 
 /** Un adjectif seul (« Détendu », « Inquiet »), accordé selon le sexe du chien. */

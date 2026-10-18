@@ -7,11 +7,11 @@ import { momentMarker } from '../trajets/momentIcons'
 
 export type WalkPhoto = { index: number; thumbFileId: string; lat: number; lng: number }
 
-/** Les marges de la carte autour d'une balade : le panneau du bas en couvre une partie. */
+/** Les marges de la carte autour d’une balade : le panneau du bas en couvre une partie. */
 export const WALK_PADDING = { top: 120, bottom: 300, left: 40, right: 40 }
 
 /**
- * Une balade mise en avant sur la carte unique : son tracé plein, le départ, l'arrivée, ses repères et ses photos.
+ * Une balade mise en avant sur la carte unique : son tracé plein, le départ, l’arrivée, ses repères et ses photos.
  * Renvoie de quoi tout retirer.
  */
 export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPhoto: (index: number) => void): () => void {
@@ -55,7 +55,7 @@ export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPh
 
 /**
  * « Revoir la balade » : la caméra suit le tracé en ~10 s, inclinée, en tournant doucement vers la suite du chemin.
- * Un toucher sur la carte arrête ; si l'iPhone réduit les animations, on montre simplement tout le trajet.
+ * Un toucher sur la carte arrête ; si l’iPhone réduit les animations, on montre simplement tout le trajet.
  * Renvoie la fonction qui arrête.
  */
 export function replayWalk(m: MapLibreMap, route: Route, dogName: string, onEnd: () => void): () => void {

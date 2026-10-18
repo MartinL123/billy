@@ -23,7 +23,7 @@ export function revealFog(tracks: LatLng[][], known: WithId<FogZone>[], extra?: 
 
 /**
  * Une seule fois par compte (et à chaque changement de grille) : tous les trajets enregistrés lèvent le brouillard
- * de la grille actuelle. Les cases de l'ancienne grille de 50 m (`fog/`) sont ensuite effacées.
+ * de la grille actuelle. Les cases de l’ancienne grille de 50 m (`fog/`) sont ensuite effacées.
  */
 export function backfillFog(tracks: LatLng[][], known: WithId<FogZone>[], date: ISODate): number {
   const batch = writeBatch(db)

@@ -21,7 +21,7 @@ const RRULE: Record<Recurrence, string | undefined> = {
 const compact = (date: ISODate) => date.replace(/-/g, '')
 const escapeText = (text: string) => text.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/([,;])/g, '\\$1')
 
-/** Lignes de 75 octets maximum (RFC 5545), la suite précédée d'une espace. */
+/** Lignes de 75 octets maximum (RFC 5545), la suite précédée d’une espace. */
 function fold(line: string): string {
   const parts: string[] = []
   let rest = line
@@ -36,7 +36,7 @@ function fold(line: string): string {
 }
 
 /**
- * Fichier .ics d'un événement, pour l'ajouter au calendrier de l'iPhone avec un rappel.
+ * Fichier .ics d’un événement, pour l’ajouter au calendrier de l’iPhone avec un rappel.
  * Sans heure : journée entière, rappel la veille à 18 h. Avec heure : heure locale, rappel 1 h avant.
  */
 export function buildIcs(event: IcsEvent, now: Date = new Date()): string {
@@ -79,7 +79,7 @@ export interface MealReminder {
 }
 
 /**
- * Rappels quotidiens des repas : un événement répété chaque jour par repas, avec une alerte à l'heure dite.
+ * Rappels quotidiens des repas : un événement répété chaque jour par repas, avec une alerte à l’heure dite.
  * Les identifiants sont fixes : réimporter le fichier met à jour les rappels au lieu de les doubler.
  */
 export function buildMealsIcs(dogName: string, meals: MealReminder[], gramsPerMeal: number | undefined, start: ISODate, now: Date = new Date()): string {

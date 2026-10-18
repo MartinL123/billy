@@ -1,8 +1,8 @@
 import { bossById, STATS, type Stat } from '../content/training'
 import type { ISODate } from './dates'
 
-// Règles d'XP du § 3 de docs/specs/spec-v2-dressage.md. L'XP ne baisse jamais : chaque gain est une ligne
-// ajoutée au journal d'XP, et tout le reste (total, niveau, stats, radar) se calcule à partir de ce journal.
+// Règles d’XP du § 3 de docs/specs/spec-v2-dressage.md. L’XP ne baisse jamais : chaque gain est une ligne
+// ajoutée au journal d’XP, et tout le reste (total, niveau, stats, radar) se calcule à partir de ce journal.
 
 export const XP = {
   /** Séance enregistrée, quel que soit le résultat. */
@@ -23,7 +23,7 @@ export const XP = {
   rest: 5,
   /** …compté au plus 3 fois par semaine. */
   restPerWeek: 3,
-  /** Validation d'un critère de palier. */
+  /** Validation d’un critère de palier. */
   validation: 10,
   /** Palier acquis. */
   level: 50,
@@ -43,12 +43,12 @@ export function sessionXp(trials: boolean[], suggestion: Decision, decision: Dec
   return XP.session + successes + goodRead
 }
 
-/** La distance ne compte jamais : l'app ne récompense pas le fait de se rapprocher. */
+/** La distance ne compte jamais : l’app ne récompense pas le fait de se rapprocher. */
 export function exposureXp(reaction: number, retreat: boolean): number {
   return XP.exposure + (reaction <= 1 ? XP.calmExposure : 0) + (retreat ? XP.retreat : 0)
 }
 
-// ——— Journal d'XP ———
+// ——— Journal d’XP ———
 
 export interface XpLike {
   date: ISODate
@@ -63,7 +63,7 @@ export const bossesOf = (record: { bossId?: string; bossIds?: string[] }): strin
 
 export const totalXp = (log: XpLike[]) => log.reduce((sum, entry) => sum + Math.max(0, entry.xp), 0)
 
-/** XP cumulée par stat. Avec `upTo`, l'état à cette date (pour l'aire d'il y a 30 jours du radar). */
+/** XP cumulée par stat. Avec `upTo`, l’état à cette date (pour l’aire d’il y a 30 jours du radar). */
 export function xpByStat(log: XpLike[], upTo?: ISODate): Record<Stat, number> {
   const out = Object.fromEntries(STATS.map((s) => [s.id, 0])) as Record<Stat, number>
   for (const entry of log) {
@@ -81,13 +81,13 @@ export function xpByBoss(log: XpLike[]): Record<string, number> {
   return out
 }
 
-/** XP d'un jour de repos ou d'une balade reniflage : +5, au plus 3 fois par semaine (les suivants sont notés, sans XP). */
+/** XP d’un jour de repos ou d’une balade reniflage : +5, au plus 3 fois par semaine (les suivants sont notés, sans XP). */
 export function restXp(log: XpLike[], week: ISODate[]): number {
   const already = log.filter((e) => e.kind === 'repos' && week.includes(e.date) && e.xp > 0).length
   return already < XP.restPerWeek ? XP.rest : 0
 }
 
-// ——— Niveau global : l'effort fourni ———
+// ——— Niveau global : l’effort fourni ———
 
 /**
  * XP cumulée demandée pour atteindre le niveau L. On commence au niveau 1 :

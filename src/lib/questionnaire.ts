@@ -4,14 +4,14 @@ import { ageAt } from './age'
 import { isValidISO, type ISODate } from './dates'
 
 // Questionnaire de départ en 5 parties (docs/specs/questionnaire-depart.md).
-// Une question par écran ; une réponse ne compte qu'après « Suivant ».
+// Une question par écran ; une réponse ne compte qu’après « Suivant ».
 
 export interface Questionnaire {
   answers: Record<string, string>
-  /** Le questionnaire s'est déjà ouvert une première fois. */
+  /** Le questionnaire s’est déjà ouvert une première fois. */
   startedAt?: string
   completedAt?: string
-  /** Souvenirs des premières semaines notés depuis l'écran de résultat (identifiants du Carnet). */
+  /** Souvenirs des premières semaines notés depuis l’écran de résultat (identifiants du Carnet). */
   souvenirs?: string[]
 }
 
@@ -88,7 +88,7 @@ const SKILL_QUESTIONS: Record<string, string> = {
   congeneres: 'Il reste détendu quand il voit un autre chien…',
 }
 
-/** Les écrans du questionnaire, dans l'ordre : identité, santé, quotidien, réactions, ce qu'il sait déjà faire. */
+/** Les écrans du questionnaire, dans l’ordre : identité, santé, quotidien, réactions, ce qu’il sait déjà faire. */
 export const STEPS: Step[] = [
   ...BASE,
   ...SKILLS.map((skill): Step => ({ id: skill.id, part: 5, kind: 'skill', title: SKILL_QUESTIONS[skill.id] ?? skill.name })),
@@ -97,9 +97,9 @@ export const STEPS: Step[] = [
 
 export const isSkillStep = (step: string) => SKILLS.some((s) => s.id === step)
 
-// ——— Partie 5 : ce qu'il sait déjà faire ———
+// ——— Partie 5 : ce qu’il sait déjà faire ———
 
-/** Réponse à « ce qu'il sait déjà faire » pour une compétence. */
+/** Réponse à « ce qu’il sait déjà faire » pour une compétence. */
 export type SkillAnswer = 'non' | 'maison' | 'dehors' | 'anime' | 'partout' | 'nsp'
 
 const SKILL_LABELS: Record<string, [string, string, string]> = {
@@ -108,7 +108,7 @@ const SKILL_LABELS: Record<string, [string, string, string]> = {
   congeneres: ['Pas encore', 'De loin', 'Même de près'],
 }
 
-/** Les 3 réponses d'une compétence : Pas encore · À la maison · Même dehors (ou leurs équivalents). */
+/** Les 3 réponses d’une compétence : Pas encore · À la maison · Même dehors (ou leurs équivalents). */
 export function skillOptions(bossId: string): { value: SkillAnswer; label: string }[] {
   const [no, home, out] = SKILL_LABELS[bossId] ?? ['Pas encore', 'À la maison', 'Même dehors']
   return [
@@ -124,12 +124,12 @@ export const FOLLOW_UPS: { value: SkillAnswer; question: string }[] = [
   { value: 'partout', question: 'Partout où vous allez ?' },
 ]
 
-/** Étapes acquises d'après la réponse : à la maison → 1 et 2 ; même dehors → 1 à 3 ; lieu animé → 4 ; partout → 5. */
+/** Étapes acquises d’après la réponse : à la maison → 1 et 2 ; même dehors → 1 à 3 ; lieu animé → 4 ; partout → 5. */
 export function stepsForAnswer(answer: string | undefined): number {
   return answer === 'partout' ? 5 : answer === 'anime' ? 4 : answer === 'dehors' ? 3 : answer === 'maison' ? 2 : 0
 }
 
-/** La réponse qui correspond aux étapes cochées sur l'écran de résultat. */
+/** La réponse qui correspond aux étapes cochées sur l’écran de résultat. */
 export function answerForSteps(steps: number): SkillAnswer {
   return steps >= 5 ? 'partout' : steps === 4 ? 'anime' : steps === 3 ? 'dehors' : steps === 2 ? 'maison' : 'non'
 }
@@ -140,7 +140,7 @@ export type ReactionLevel = 'aise' | 'inquiet' | 'peur'
 
 export interface Reaction {
   situation: string
-  /** À l'aise, un peu inquiet, il a peur ou il réagit — ou un texte libre. */
+  /** À l’aise, un peu inquiet, il a peur ou il réagit — ou un texte libre. */
   reaction: ReactionLevel | string
   /** Compétence concernée, quand la situation en a une. */
   bossId?: string
@@ -203,7 +203,7 @@ export const fearSkills = (reactions: Reaction[]): string[] => [...new Set(afrai
 /** Âge à partir duquel un chien est considéré âgé. */
 const SENIOR_YEARS = 8
 
-/** « C'est un chiot » se déduit de la date de naissance : moins de 6 mois. */
+/** « C’est un chiot » se déduit de la date de naissance : moins de 6 mois. */
 export const isPuppy = (birthDate: ISODate, today: ISODate) => {
   if (!isValidISO(birthDate)) return false
   const age = ageAt(birthDate, today)
@@ -211,7 +211,7 @@ export const isPuppy = (birthDate: ISODate, today: ISODate) => {
 }
 
 /**
- * Plus d'étiquettes à cocher : l'app déduit. Deux peurs ou plus → chien craintif ; « très excité » → énergique ;
+ * Plus d’étiquettes à cocher : l’app déduit. Deux peurs ou plus → chien craintif ; « très excité » → énergique ;
  * peur des autres chiens → réactif ; chiot et âgé viennent de la date de naissance.
  * Les traits que le questionnaire ne sait pas déduire (adopté adulte) sont conservés.
  */
@@ -229,7 +229,7 @@ export function deriveTraits(existing: Trait[], reactions: Reaction[], mood: str
 
 // ——— Avancement ———
 
-/** Les réponses données à l'ancien questionnaire restent valides quand elles ont un équivalent. */
+/** Les réponses données à l’ancien questionnaire restent valides quand elles ont un équivalent. */
 export function normalizeAnswers(answers: Record<string, string>): Record<string, string> {
   if (!answers.identite) return answers
   const fromOld = { nom: 'ok', naissance: 'ok', race: 'ok', adoption: 'ok' }

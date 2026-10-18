@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
-/** « Importer mes balades Strava » : ouvre l'écran d'import (archive Strava ou une seule balade). */
-export function ImportWalkButton({ main = false, className = 'px-5' }: { /** Action principale de l'écran (bouton plein). */ main?: boolean; className?: string }) {
+/** « Importer mes balades Strava » : ouvre l’écran d’import (archive Strava ou une seule balade). */
+export function ImportWalkButton({ main = false, className = 'px-5' }: { /** Action principale de l’écran (bouton plein). */ main?: boolean; className?: string }) {
   return (
     <div className={className}>
       <Link to="/importer" className={`btn ${main ? 'btn-main min-h-[54px]' : 'btn-outline min-h-12'} w-full gap-2`}>

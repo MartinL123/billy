@@ -356,7 +356,7 @@ const SCENES: Record<string, (name: string) => ReactNode> = {
 
 export const hasScene = (scene: string) => scene in SCENES
 
-/** Illustration d'un exercice, d'un jeu ou d'une chose à mâcher. Décorative : le texte dit la même chose. */
+/** Illustration d’un exercice, d’un jeu ou d’une chose à mâcher. Décorative : le texte dit la même chose. */
 export function Illustration({ scene, className = '' }: { scene: string; className?: string }) {
   const { dog } = useData()
   const draw = SCENES[scene]

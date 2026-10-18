@@ -1,7 +1,7 @@
 import { addDays, type ISODate } from './dates'
 import { isWalk, ignoredLabel, toImported, type Activity, type ImportedActivity } from './activity'
 
-// Ce que fait l'import d'un lot de fichiers (carte-a-decouvrir.md § 6), sans Firestore : trier, sauter les doublons,
+// Ce que fait l’import d’un lot de fichiers (carte-a-decouvrir.md § 6), sans Firestore : trier, sauter les doublons,
 // compter ce qui est ignoré, dire quelles balades rapportent des os.
 
 export interface ImportTally {
@@ -39,13 +39,13 @@ export function tallyActivity(tally: ImportTally, activity: Activity | undefined
   return walk
 }
 
-/** Les os : seulement pour une balade des 7 derniers jours (pas d'os rétroactifs pour des mois d'historique). */
+/** Les os : seulement pour une balade des 7 derniers jours (pas d’os rétroactifs pour des mois d’historique). */
 export const earnsBones = (date: ISODate | undefined, today: ISODate) => Boolean(date && date <= today && date > addDays(today, -7))
 
-/** « 3 sorties à vélo ignorées · 0 balade déjà importée. » */
+/** « 3 sorties à vélo ignorées · 2 balades déjà importées. » (rien quand il n’y a rien à dire) */
 export function ignoredLine(tally: ImportTally): string {
   const parts = Object.entries(tally.ignored).map(([label, n]) => `${n} sortie${n > 1 ? 's' : ''} ${label} ignorée${n > 1 ? 's' : ''}`)
-  parts.push(`${tally.duplicates} balade${tally.duplicates > 1 ? 's' : ''} déjà importée${tally.duplicates > 1 ? 's' : ''}`)
+  if (tally.duplicates) parts.push(`${tally.duplicates} balade${tally.duplicates > 1 ? 's' : ''} déjà importée${tally.duplicates > 1 ? 's' : ''}`)
   if (tally.unreadable) parts.push(`${tally.unreadable} fichier${tally.unreadable > 1 ? 's' : ''} illisible${tally.unreadable > 1 ? 's' : ''}`)
-  return `${parts.join(' · ')}.`
+  return parts.length ? `${parts.join(' · ')}.` : ''
 }

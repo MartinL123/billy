@@ -1,4 +1,4 @@
-// Photos choisies depuis l'accueil ou l'état vide, en attente du formulaire d'entrée.
+// Photos choisies depuis l’accueil ou l’état vide, en attente du formulaire d’entrée.
 let draft: File[] = []
 
 export function setDraftPhotos(files: File[]): void {

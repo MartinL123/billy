@@ -3,12 +3,12 @@ import { place } from '../lib/garden'
 
 // Ce que voit le joueur (docs/specs/spec-v3-simplification.md) : chaque étape est une phrase concrète,
 // jamais un numéro. Les phrases commencent par un verbe : « Billy revient… », « Prochaine étape : revient… ».
-// Rédigées pour l'app, à faire relire par l'éducateur.
+// Rédigées pour l’app, à faire relire par l’éducateur.
 
 interface SkillText {
   /** Une phrase par étape, de la plus facile à la plus difficile. */
   steps: [string, string, string, string, string]
-  /** Les mêmes étapes en plus court, pour les badges de l'arbre : toujours avec les mots de la phrase complète. */
+  /** Les mêmes étapes en plus court, pour les badges de l’arbre : toujours avec les mots de la phrase complète. */
   short: [string, string, string, string, string]
   /** Question du questionnaire de départ, à compléter par « à la maison » ou « même dehors ». */
   question: string
@@ -93,19 +93,19 @@ const TEXTS: Record<string, SkillText> = {
 
 export const skillText = (bossId: string): SkillText | undefined => TEXTS[bossId]
 
-/** Phrase d'une étape (1 à 5), telle qu'on l'affiche : « Revient quand on l'appelle d'une autre pièce ». */
+/** Phrase d’une étape (1 à 5), telle qu’on l’affiche : « Revient quand on l’appelle d’une autre pièce ». */
 export const stepPhrase = (bossId: string, step: number): string => place(TEXTS[bossId]?.steps[step - 1] ?? bossById(bossId)?.levels[step - 1]?.criterion ?? '')
 
-/** « revient quand on l'appelle… » : la même phrase, sans majuscule, pour la mettre après « Billy » ou « Prochaine étape : ». */
+/** « revient quand on l’appelle… » : la même phrase, sans majuscule, pour la mettre après « Billy » ou « Prochaine étape : ». */
 export const stepPhraseLower = (bossId: string, step: number): string => {
   const phrase = stepPhrase(bossId, step)
   return phrase.charAt(0).toLocaleLowerCase('fr') + phrase.slice(1)
 }
 
-/** L'étape en 4 à 6 mots, pour un badge. */
+/** L’étape en 4 à 6 mots, pour un badge. */
 export const stepShort = (bossId: string, step: number): string => place(TEXTS[bossId]?.short[step - 1] ?? stepPhrase(bossId, step))
 
-/** Les trois groupes affichés, dans l'ordre : Les bases, Le quotidien, Le monde. */
+/** Les trois groupes affichés, dans l’ordre : Les bases, Le quotidien, Le monde. */
 export const SKILL_GROUPS: { tier: Tier; label: string }[] = [
   { tier: 'fondations', label: 'La Maison' },
   { tier: 'quotidien', label: 'Le Quartier' },
@@ -120,11 +120,11 @@ export interface Territory {
   /** Couleur du territoire, et son fond clair. */
   color: string
   soft: string
-  /** Carte-lien en bas de l'étage : vers quel étage, et pourquoi. */
+  /** Carte-lien en bas de l’étage : vers quel étage, et pourquoi. */
   link: { to: Tier; label: string; text: string; up?: boolean }
 }
 
-/** Les 3 étages de l'arbre, des racines aux branches. */
+/** Les 3 étages de l’arbre, des racines aux branches. */
 export const TERRITORIES: Territory[] = [
   {
     tier: 'fondations', name: 'La Maison', floor: 'Étage 1 · les racines', subtitle: 'Là où tout commence', color: '#1E5A50', soft: '#DCEBE6',
@@ -140,7 +140,7 @@ export const TERRITORIES: Territory[] = [
   },
 ]
 
-/** Couleur du texte sur le fond clair du territoire. L'orange du Grand Monde y serait trop pâle (4:1) : on le fonce (AA). */
+/** Couleur du texte sur le fond clair du territoire. L’orange du Grand Monde y serait trop pâle (4:1) : on le fonce (AA). */
 export const inkOn = (territory: Territory): string => (territory.tier === 'monde' ? '#9A4413' : territory.color)
 
 export const territoryOf = (bossId: string): Territory => TERRITORIES.find((t) => t.tier === bossById(bossId)?.tier) ?? TERRITORIES[0]!
@@ -149,7 +149,7 @@ export const territoryOf = (bossId: string): Territory => TERRITORIES.find((t) =
 export const FEAR_SKILLS = ['nouveaute', 'ville', 'rencontres', 'congeneres']
 export const isFearSkill = (bossId: string) => FEAR_SKILLS.includes(bossId)
 
-/** Les 10 compétences dans l'ordre d'affichage : Les bases → Le monde. */
+/** Les 10 compétences dans l’ordre d’affichage : Les bases → Le monde. */
 export const SKILLS: Boss[] = SKILL_GROUPS.flatMap((group) => BOSSES.filter((b) => b.tier === group.tier))
 
 /** Titre de Billy selon son niveau. */

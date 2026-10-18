@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { watchCalm, watchFeed, watchMarks, watchMembers, watchSpots, type CalmVote, type FeedItem, type Mark, type Member, type Spot, type WithId } from '../../firebase/community'
 import type { ISODate } from '../../lib/dates'
 
-/** Toute la meute, en direct, seulement pendant qu'on regarde l'onglet. */
+/** Toute la meute, en direct, seulement pendant qu’on regarde l’onglet. */
 export function usePack(_week?: ISODate) {
   const [members, setMembers] = useState<WithId<Member>[]>([])
   const [spots, setSpots] = useState<WithId<Spot>[]>([])

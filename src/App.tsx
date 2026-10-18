@@ -25,7 +25,7 @@ import { CommunitySync } from './features/meute/CommunitySync'
 import { BonesBackfill } from './features/shop/BonesBackfill'
 import { FogBackfill } from './features/balades/FogBackfill'
 import DogPublic from './features/meute/DogPublic'
-// La carte (Leaflet) n'est chargée qu'en ouvrant l'onglet Meute.
+// La carte (Leaflet) n’est chargée qu’en ouvrant l’onglet Meute.
 const Meute = lazy(() => import('./features/meute/Meute'))
 import { AppTheme } from './features/shop/Theme'
 import { InstallGuide } from './features/account/Install'
@@ -53,11 +53,11 @@ function ScrollToTop() {
   return null
 }
 
-/** L'écran d'ouverture, la toute première fois seulement (sur cet appareil) ; ensuite on arrive sur l'accueil. */
+/** L’écran d’ouverture, la toute première fois seulement (sur cet appareil) ; ensuite on arrive sur l’accueil. */
 function OpenOnLogo() {
   const navigate = useNavigate()
   useEffect(() => {
-    // Ouverte depuis une notification : on arrive directement sur l'écran qu'elle montre.
+    // Ouverte depuis une notification : on arrive directement sur l’écran qu’elle montre.
     if (window.location.hash.includes('depuis=rappel')) return
     if (!openingSeen()) navigate('/ouverture', { replace: true })
     // Une seule fois, au lancement.
@@ -92,7 +92,7 @@ export default function App() {
       key={user.uid}
       fallback={(offline) =>
         offline ? (
-          <Splash title="Pas de réseau">Le tout premier lancement a besoin d'Internet pour préparer votre espace.</Splash>
+          <Splash title="Pas de réseau">Le tout premier lancement a besoin d’Internet pour préparer votre espace.</Splash>
         ) : (
           <Splash />
         )
@@ -142,7 +142,7 @@ export default function App() {
             <Route path="installer" element={<InstallRoute />} />
             <Route path="profil" element={<Profile />} />
             <Route path="profil/modifier" element={<ProfileEditScreen />} />
-            {/* Anciennes adresses : rien n'est perdu, tout a une nouvelle place. */}
+            {/* Anciennes adresses : rien n’est perdu, tout a une nouvelle place. */}
             <Route path="calendrier" element={<Navigate to="/sante" replace />} />
             <Route path="dressage" element={<Navigate to="/billy" replace />} />
             <Route path="boss/:id" element={<Navigate to="/billy" replace />} />

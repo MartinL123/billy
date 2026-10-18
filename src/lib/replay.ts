@@ -33,11 +33,11 @@ export function bearing(a: RoutePoint, b: RoutePoint): number {
   return (Math.atan2(y, x) / rad + 360) % 360
 }
 
-/** Tourne de `current` vers `target` d'une fraction, par le plus court chemin (pas de tour complet à 359° → 1°). */
+/** Tourne de `current` vers `target` d’une fraction, par le plus court chemin (pas de tour complet à 359° → 1°). */
 export function turnToward(current: number, target: number, fraction: number): number {
   const diff = ((target - current + 540) % 360) - 180
   return (current + diff * fraction + 360) % 360
 }
 
-/** Douceur au départ et à l'arrivée. */
+/** Douceur au départ et à l’arrivée. */
 export const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2)

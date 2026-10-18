@@ -12,7 +12,7 @@ import { useQuest } from '../today/useQuest'
 import { Illustration } from './Illustration'
 import { place } from '../../lib/garden'
 
-/** Minuteur d'une étape : il part tout seul et appelle `onEnd` à la fin. */
+/** Minuteur d’une étape : il part tout seul et appelle `onEnd` à la fin. */
 function useCountdown(seconds: number | undefined, onEnd: () => void) {
   const [left, setLeft] = useState(seconds ?? 0)
   const end = useRef(onEnd)
@@ -49,7 +49,7 @@ export default function Mission() {
   const reminder = mission.title
   const needs = [neededTreats(dog.treats).replace(/^Ses friandises préférées/, 'friandises'), exercise?.needs].filter(Boolean).join(', ').toLocaleLowerCase('fr')
 
-  // « Ça s'est bien passé ? » : le ressenti part avec la mission notée, puis « C'est réussi ! » et les os.
+  // « Ça s’est bien passé ? » : le ressenti part avec la mission notée, puis « C’est réussi ! » et les os.
   const finish = (feeling: string) => navigate(`/noter?depuis=quete&ressenti=${feeling}&auto=1`, { replace: true })
 
   return (

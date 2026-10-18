@@ -11,7 +11,7 @@ import { notedDays, weekId, weekOf } from '../../lib/rhythm'
 import { useToday } from '../../lib/useToday'
 
 /**
- * Récompenses qui ne dépendent pas d'un écran : défi de la semaine réussi (+30 os), semaine régulière (+20 os),
+ * Récompenses qui ne dépendent pas d’un écran : défi de la semaine réussi (+30 os), semaine régulière (+20 os),
  * questionnaire de départ terminé (+50 os). Chaque gain a un identifiant fixe : il ne peut pas être compté deux fois.
  */
 export function DressageAwards() {
@@ -32,7 +32,7 @@ export function DressageAwards() {
     const challenge = weekChallenge(week, bossProgress)
     const defi = challengeBone(week, today)
     if (!has(defi.id) && challengeProgress(challenge, today, entries, sessions) >= challenge.target) {
-      // Ancienne trace du défi (journal interne), gardée pour l'historique.
+      // Ancienne trace du défi (journal interne), gardée pour l’historique.
       if (!xpLog.some((e) => e.id === `defi-${week}`)) awardOnce(`defi-${week}`, { date: today, kind: 'defi', xp: MOMENT_XP.challenge, bossId: challenge.bossId, label: challenge.label })
       return give(defi, 'Défi de la semaine réussi !')
     }
@@ -40,7 +40,7 @@ export function DressageAwards() {
     const regular = regularWeekBone(weekOf(today), notedDays(entries, sessions, exposures), today)
     if (regular && !has(regular.id)) return give(regular, 'Semaine régulière, bravo !')
 
-    // Questionnaire terminé : aussi pour un questionnaire fini avant l'arrivée des os.
+    // Questionnaire terminé : aussi pour un questionnaire fini avant l’arrivée des os.
     const done = questionnaireBone(today)
     if (!has(done.id) && questionnaireStatus(dog.questionnaire).complete) give(done, 'Questionnaire terminé !')
   }, [dog.questionnaire, bossProgress, entries, sessions, exposures, xpLog, bones, today, toast])

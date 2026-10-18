@@ -1,23 +1,23 @@
 import { CELL_LAT, CELL_LNG } from './fog'
 
 // Le brouillard dessiné dans une image (maquettes V3-Explorer, V4-Balades) : les zones découvertes sont des
-// trouées rondes aux bords flous, pas des carrés. L'image couvre les cases découvertes et une marge ; au-delà,
+// trouées rondes aux bords flous, pas des carrés. L’image couvre les cases découvertes et une marge ; au-delà,
 // un simple aplat de la même couleur continue le brouillard.
 
 /** Marge autour des cases découvertes, en cases (≈ 1 km). */
 const MARGIN = 20
-/** Pixels par case, et taille maximale de l'image (mémoire de l'iPhone). */
+/** Pixels par case, et taille maximale de l’image (mémoire de l’iPhone). */
 const PX_PER_CELL = 8
 const MAX_SIDE = 4096
 
 export interface FogLayout {
-  /** [sud, ouest, nord, est] de l'image. */
+  /** [sud, ouest, nord, est] de l’image. */
   bbox: [number, number, number, number]
   width: number
   height: number
-  /** Centres des cases découvertes, en pixels de l'image. */
+  /** Centres des cases découvertes, en pixels de l’image. */
   holes: [number, number][]
-  /** Rayon d'une trouée, en pixels : un peu plus qu'une case, pour que les trouées voisines se fondent. */
+  /** Rayon d’une trouée, en pixels : un peu plus qu’une case, pour que les trouées voisines se fondent. */
   radius: number
 }
 

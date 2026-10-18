@@ -3,10 +3,10 @@ import { collection } from 'firebase/firestore'
 import { db } from './app'
 import { accountDoc, userCol } from './paths'
 
-/** Toutes les collections d'un compte, sous users/{uid}/… */
+/** Toutes les collections d’un compte, sous users/{uid}/… */
 export const USER_COLLECTIONS = ['dog', 'events', 'weights', 'entries', 'documents', 'sessions', 'exposures', 'bossProgress', 'places', 'xpLog', 'quests', 'dailyQuest', 'push', 'routes', 'exploration', 'fog', 'fog25', 'communes', 'walks', 'bones', 'inventory', 'files']
 
-// Pendant la suppression du compte, l'app ne doit pas recréer un profil vide en voyant le sien disparaître.
+// Pendant la suppression du compte, l’app ne doit pas recréer un profil vide en voyant le sien disparaître.
 let closing = false
 export const isClosingAccount = () => closing
 export const setClosingAccount = (value: boolean) => {
@@ -39,6 +39,6 @@ export async function eraseUserData(): Promise<void> {
     }
     await deleteAll(snap.docs.map((d) => d.ref))
   }
-  // Le document du compte lui-même (compteur d'espace).
+  // Le document du compte lui-même (compteur d’espace).
   await deleteDoc(accountDoc())
 }

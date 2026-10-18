@@ -55,7 +55,7 @@ export function communesOf(items: WalkItem[]): string[] {
   return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([name]) => name)
 }
 
-/** Étiquettes d'une ligne : d'où vient le trajet, et ses moments (« 1 peur », « Super rappel »). */
+/** Étiquettes d’une ligne : d’où vient le trajet, et ses moments (« 1 peur », « Super rappel »). */
 export function walkTags(item: WalkItem): string[] {
   const tags = [item.source === 'strava' || item.route.source ? 'Strava' : 'Tracé à la main']
   const fears = item.route.moments.filter((m) => m.type === 'peur' || m.type === 'grogne').length

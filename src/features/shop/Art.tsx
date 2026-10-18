@@ -66,7 +66,7 @@ export function Worn({ accessory, frame }: { accessory?: string; frame?: string 
   )
 }
 
-/** Fonds de l'arbre : un motif léger, toujours derrière des cartes blanches (les contrastes ne changent pas). */
+/** Fonds de l’arbre : un motif léger, toujours derrière des cartes blanches (les contrastes ne changent pas). */
 export const BACKGROUNDS: Record<string, CSSProperties> = {
   'fond-automne': {
     backgroundColor: '#FBF1E4',
@@ -137,7 +137,7 @@ export function Sticker({ id, size = 28 }: { id?: string; size?: number }) {
   )
 }
 
-/** L'illustration d'un objet sur sa carte de la boutique. */
+/** L’illustration d’un objet sur sa carte de la boutique. */
 export function ItemArt({ id, category }: { id: string; category: string }) {
   if (category === 'sticker') return <Sticker id={id} size={56} />
   if (category === 'fond') return <span className="block size-[76px] rounded-2xl border border-solid border-divider" style={BACKGROUNDS[id]} />

@@ -5,7 +5,7 @@ import { useToast } from '../../components/Toast'
 import { authErrorMessage, changePassword, MIN_PASSWORD } from '../../firebase/auth'
 import { updateDog } from '../../firebase/db'
 
-/** Changer son mot de passe : l'ancien, puis le nouveau (8 caractères au moins). */
+/** Changer son mot de passe : l’ancien, puis le nouveau (8 caractères au moins). */
 export function PasswordSheet({ onClose }: { onClose: () => void }) {
   const toast = useToast()
   const [current, setCurrent] = useState('')

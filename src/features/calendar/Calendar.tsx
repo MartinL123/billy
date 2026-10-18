@@ -13,7 +13,7 @@ import { formatKg } from './WeightSheet'
 
 const MONTH_NAMES = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
 
-/** « Dans 8 jours », « Aujourd'hui », « En retard de 3 jours » */
+/** « Dans 8 jours », « Aujourd’hui », « En retard de 3 jours » */
 function inDays(date: ISODate, today: ISODate): string {
   const days = diffDays(today, date)
   if (days === 0) return 'aujourd’hui'

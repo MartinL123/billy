@@ -24,7 +24,7 @@ interface NominatimArea {
 
 const MAX_RING = 400
 
-/** Lit la réponse de Nominatim (reverse, zoom 10, polygon_geojson=1) ; rien si ce n'est pas une surface. */
+/** Lit la réponse de Nominatim (reverse, zoom 10, polygon_geojson=1) ; rien si ce n’est pas une surface. */
 export function communeFromNominatim(json: NominatimArea | null | undefined): (Commune & { id: string }) | undefined {
   const geo = json?.geojson
   if (!geo || !json?.osm_id) return undefined
@@ -47,6 +47,6 @@ export function communeFromNominatim(json: NominatimArea | null | undefined): (C
   return { id: `${json.osm_type ?? 'r'}${json.osm_id}`, name, areaM2: Math.round(polygonArea(outer)), bbox: [Math.min(...lats), Math.min(...lngs), Math.max(...lats), Math.max(...lngs)], ring }
 }
 
-/** La commune connue qui contient ce point, s'il y en a une. */
+/** La commune connue qui contient ce point, s’il y en a une. */
 export const communeAt = <C extends Commune>(communes: C[], p: { lat: number; lng: number }, inside: (p: { lat: number; lng: number }, ring: Commune['ring']) => boolean) =>
   communes.find((c) => p.lat >= c.bbox[0] && p.lat <= c.bbox[2] && p.lng >= c.bbox[1] && p.lng <= c.bbox[3] && inside(p, c.ring))

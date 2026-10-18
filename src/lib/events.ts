@@ -16,7 +16,7 @@ export const EVENT_TYPES: Record<EventType, TypeInfo> = {
   vermifuge: { label: 'Vermifuge', title: 'Vermifuge', color: '#7B4FC9', recurrence: 'quarterly' },
   antiparasitaire: { label: 'Antiparasitaire', title: 'Antiparasitaire', color: '#7B4FC9', recurrence: 'monthly' },
   veto: { label: 'Véto', title: 'RDV vétérinaire', color: '#C4423A', recurrence: 'none' },
-  educateur: { label: 'Éducateur', title: "Séance avec l'éducateur", color: '#1E5A50', recurrence: 'none' },
+  educateur: { label: 'Éducateur', title: "Séance avec l’éducateur", color: '#1E5A50', recurrence: 'none' },
   sejour: { label: 'Séjour', title: 'Séjour', color: '#8C9692', recurrence: 'none' },
   etape: { label: 'Étape', title: '', color: '#D9661F', recurrence: 'none' },
   autre: { label: 'Autre', title: '', color: '#8C9692', recurrence: 'none' },
@@ -36,13 +36,13 @@ interface Schedulable {
 
 export const isOverdue = (e: Schedulable, today: ISODate) => !e.done && !!e.date && diffDays(e.date, today) > 0
 
-/** « En retard de 3 jours » (audit R-002) ; vide si ce n'est pas en retard. */
+/** « En retard de 3 jours » (audit R-002) ; vide si ce n’est pas en retard. */
 export function lateLabel(date: ISODate | '', today: ISODate): string {
   const late = date ? diffDays(date, today) : 0
   return late > 0 ? `En retard de ${late} jour${late > 1 ? 's' : ''}` : ''
 }
 
-/** Événements non faits et datés : retards d'abord (du plus ancien au plus récent), puis à venir. */
+/** Événements non faits et datés : retards d’abord (du plus ancien au plus récent), puis à venir. */
 export function upcoming<T extends Schedulable>(events: T[], today: ISODate): T[] {
   return events
     .filter((e) => !e.done && e.date)
@@ -79,7 +79,7 @@ export const CARE_FILTERS: FilterInfo[] = [
 
 export const filterInfo = (id: string): FilterInfo => CARE_FILTERS.find((f) => f.id === id) ?? CARE_FILTERS[0]!
 
-/** Catégorie d'un événement. Les anniversaires et « Billy a 6 mois / 1 an » sont des étapes. Séjours et autres : seulement dans « Tout ». */
+/** Catégorie d’un événement. Les anniversaires et « Billy a 6 mois / 1 an » sont des étapes. Séjours et autres : seulement dans « Tout ». */
 export function eventCategory(event: { type: string; title: string }): CareFilter | undefined {
   if (event.type === 'etape' || /anniversaire/i.test(event.title)) return 'etapes'
   if (event.type === 'vaccin') return 'vaccins'
@@ -94,7 +94,7 @@ export const matchesFilter = (event: { type: string; title: string }, filter: Ca
 /** « 2 soins à venir », « 1 vaccin à venir ». */
 export const filterSummary = (filter: CareFilter, count: number) => `${count} ${count > 1 ? filterInfo(filter).many : filterInfo(filter).one}`
 
-/** La prochaine séance avec l'éducateur déjà prévue (pour pré-remplir le questionnaire). */
+/** La prochaine séance avec l’éducateur déjà prévue (pour pré-remplir le questionnaire). */
 export function nextTrainerSession<E extends { type: string; date: string; time?: string; done: boolean }>(events: E[], today: string): E | undefined {
   return events.filter((e) => e.type === 'educateur' && !e.done && e.date >= today).sort((a, b) => a.date.localeCompare(b.date))[0]
 }
@@ -117,13 +117,13 @@ export function trainerSession(events: { type: string; date: string; done: boole
   }
 }
 
-/** Réponse « C'est prévu » à « Est-il stérilisé ? ». */
+/** Réponse « C’est prévu » à « Est-il stérilisé ? ». */
 export const STERILISATION_PLANNED = 'C’est prévu'
 const STERILISATION = /st[ée]rilisation/i
 
 /**
- * « C'est prévu » → un rappel dans Santé (questionnaire-depart.md, partie 1). Avec une date : « Stérilisation » ce jour-là.
- * Sans date : « Prendre rendez-vous pour la stérilisation » à ses 6 mois, ou dans un mois s'il les a déjà.
+ * « C’est prévu » → un rappel dans Santé (questionnaire-depart.md, partie 1). Avec une date : « Stérilisation » ce jour-là.
+ * Sans date : « Prendre rendez-vous pour la stérilisation » à ses 6 mois, ou dans un mois s’il les a déjà.
  * Rien si un rappel de stérilisation est déjà prévu.
  */
 export function sterilisationReminder(events: { title: string; done: boolean }[], date: ISODate | '', birthDate: ISODate | '' | undefined, today: ISODate) {

@@ -8,8 +8,8 @@ import { SkillPath } from './Skill'
 import { place } from '../../lib/garden'
 
 /**
- * « Revient quand on l'appelle… » : une pastille-bouton qui ouvre le chemin de la compétence par-dessus l'écran en cours.
- * L'écran d'origine reste en place derrière : au retour, rien de ce qui était saisi n'est perdu.
+ * « Revient quand on l’appelle… » : une pastille-bouton qui ouvre le chemin de la compétence par-dessus l’écran en cours.
+ * L’écran d’origine reste en place derrière : au retour, rien de ce qui était saisi n’est perdu.
  */
 export function SkillPill({ bossId, onDark = false }: { bossId: string; onDark?: boolean }) {
   const [open, setOpen] = useState(false)
@@ -26,7 +26,7 @@ export function SkillPill({ bossId, onDark = false }: { bossId: string; onDark?:
   }, [open])
 
   if (!skill) return null
-  // Spec V4 § 8 : une phrase plutôt qu'un nom de catégorie (« Répond à son nom… » plutôt que « Le Lien »).
+  // Spec V4 § 8 : une phrase plutôt qu’un nom de catégorie (« Répond à son nom… » plutôt que « Le Lien »).
   const goal = place((bossById(bossId)?.goal ?? skill.name).replace(/\.$/, ''))
   return (
     <>

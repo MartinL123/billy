@@ -8,8 +8,8 @@ import { dogLevel } from '../../lib/level'
 import { auth } from '../../firebase/app'
 
 /**
- * Tient à jour ce que la meute voit de ce chien (son profil public). Rien de privé n'en sort : ni santé, ni documents,
- * ni Carnet. Le défi de la meute n'est plus affiché ni compté (spec V4 : une seule récompense, les os).
+ * Tient à jour ce que la meute voit de ce chien (son profil public). Rien de privé n’en sort : ni santé, ni documents,
+ * ni Carnet. Le défi de la meute n’est plus affiché ni compté (spec V4 : une seule récompense, les os).
  */
 export function CommunitySync() {
   const { dog, bossProgress } = useData()

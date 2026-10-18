@@ -7,7 +7,7 @@ export const LONG_SESSIONS_FROM_MONTHS = 6
 export const SHORT_SESSION_MINUTES = 3
 export const LONG_SESSION_MINUTES = 5
 
-/** Durée d'une séance : 3 minutes avant 6 mois (depuis la date de naissance), 5 minutes ensuite. */
+/** Durée d’une séance : 3 minutes avant 6 mois (depuis la date de naissance), 5 minutes ensuite. */
 export function sessionMinutes(birthDate: ISODate, today: ISODate): number {
   // Sans date de naissance, on ne suppose pas un chiot.
   if (!isValidISO(birthDate)) return LONG_SESSION_MINUTES
@@ -27,8 +27,8 @@ export interface PlannedExercise {
 }
 
 /**
- * Les exercices de l'étape en cours d'une compétence, au bon réglage.
- * `acquired` = nombre d'étapes acquises ; une compétence maîtrisée se révise avec sa dernière étape.
+ * Les exercices de l’étape en cours d’une compétence, au bon réglage.
+ * `acquired` = nombre d’étapes acquises ; une compétence maîtrisée se révise avec sa dernière étape.
  */
 export function exercisesForStep(bossId: string, acquired: number): PlannedExercise[] {
   return stepExercises(bossId, Math.min(MAX_LEVEL, acquired + 1)).flatMap(({ id, level }) => {
@@ -37,13 +37,13 @@ export function exercisesForStep(bossId: string, acquired: number): PlannedExerc
   })
 }
 
-/** L'exercice du moment d'une compétence : le premier de son étape en cours. */
+/** L’exercice du moment d’une compétence : le premier de son étape en cours. */
 export const currentExercise = (bossId: string, acquired: number): PlannedExercise | undefined => exercisesForStep(bossId, acquired)[0]
 
-/** Réponses qui ne nomment aucune friandise : un mot générique, ou l'exemple du champ. */
+/** Réponses qui ne nomment aucune friandise : un mot générique, ou l’exemple du champ. */
 const NO_TREAT = /^(treats?|friandises?|des friandises|croquettes?|oui|non|aucune?|rien|\?+|-+|fromage, poulet séché…?)$/i
 
-/** « Ce qu'il faut » : le nom des friandises seulement s'il est vraiment renseigné dans le profil. */
+/** « Ce qu’il faut » : le nom des friandises seulement s’il est vraiment renseigné dans le profil. */
 export function neededTreats(treats: string | undefined): string {
   const name = (treats ?? '').trim().replace(/\.$/, '')
   return name && !NO_TREAT.test(name) ? `Ses friandises préférées (${name})` : 'Ses friandises préférées'

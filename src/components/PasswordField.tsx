@@ -1,6 +1,6 @@
 import { useId, useState, type InputHTMLAttributes } from 'react'
 
-/** Champ mot de passe avec un bouton (œil) pour l'afficher. */
+/** Champ mot de passe avec un bouton (œil) pour l’afficher. */
 export function PasswordField({ label, error, ...input }: { label: string; error?: string } & InputHTMLAttributes<HTMLInputElement>) {
   const id = useId()
   const [shown, setShown] = useState(false)

@@ -34,7 +34,7 @@ const writeFlag = (key: string) => {
   try {
     localStorage.setItem(key, '1')
   } catch {
-    // Stockage indisponible : l'accueil de la meute reviendra, rien de grave.
+    // Stockage indisponible : l’accueil de la meute reviendra, rien de grave.
   }
 }
 
@@ -93,12 +93,12 @@ export default function Meute() {
     const id = markId(me, spot.id, today)
     if (marks.some((m) => m.id === id)) {
       setMarking(false)
-      return toast(`${dog.name} a déjà marqué ce spot aujourd'hui.`)
+      return toast(`${dog.name} a déjà marqué ce spot aujourd’hui.`)
     }
     const first = !territory.has(spot.id)
     const gain = markBone(spot.id, today, first)
     markSpot(id, { spotId: spot.id, uid: me, dogName: dog.name, date: today }, gain)
-    // Une balade d'aujourd'hui déjà tracée qui passe par ce spot : « A marqué » s'y ajoute tout seul.
+    // Une balade d’aujourd’hui déjà tracée qui passe par ce spot : « A marqué » s’y ajoute tout seul.
     for (const entry of entries) {
       const route = entry.date === today ? readRoute(entry.route) : undefined
       const next = route && withMarkMoments(route, [spot])
@@ -118,7 +118,7 @@ export default function Meute() {
     return (
       <div className="flex flex-col gap-5 px-5">
         <h1 className="font-display text-[32px] font-extrabold">La meute</h1>
-        <p className="text-[17px] leading-snug text-[#3F4946]">La meute, ce sont les amis qui ont un compte Billy. Pas d'invitation, pas de classement.</p>
+        <p className="text-[17px] leading-snug text-[#3F4946]">La meute, ce sont les amis qui ont un compte Billy. Pas d’invitation, pas de classement.</p>
         <ul className="card m-0 flex list-none flex-col gap-3.5 p-4">
           {[
             ['Les bons spots', 'Les balades, parcs et cafés que la meute aime, avec leur niveau de calme.'],
@@ -134,7 +134,7 @@ export default function Meute() {
             </li>
           ))}
         </ul>
-        <p className="text-[15px] leading-snug text-muted">Votre position sert seulement à trier les spots par distance et à proposer ceux tout proches. Elle n'est jamais enregistrée ni partagée.</p>
+        <p className="text-[15px] leading-snug text-muted">Votre position sert seulement à trier les spots par distance et à proposer ceux tout proches. Elle n’est jamais enregistrée ni partagée.</p>
         <button
           type="button"
           onClick={() => {
@@ -168,7 +168,7 @@ export default function Meute() {
         </p>
       </header>
 
-      {/* La carte des spots est celle de Balades (une seule carte dans l'app) : calque « Spots de la meute ». */}
+      {/* La carte des spots est celle de Balades (une seule carte dans l’app) : calque « Spots de la meute ». */}
       <div className="flex gap-2 px-5">
         <Link to="/territoire?meute=1" className="btn btn-outline min-h-14 flex-1">
           Voir sur la carte
@@ -219,12 +219,12 @@ export default function Meute() {
         )}
       </section>
 
-      {/* Sans heure, jamais : « aujourd'hui », c'est tout. */}
+      {/* Sans heure, jamais : « aujourd’hui », c’est tout. */}
       <section className="flex flex-col gap-2.5 px-5">
-        <h2 className="text-xl font-bold">Aujourd'hui dans la meute</h2>
+        <h2 className="text-xl font-bold">Aujourd’hui dans la meute</h2>
         <div className="card flex flex-col p-1">
           {todayMarks.length === 0 && feed.filter((f) => diffDays(f.date, today) <= 1).length === 0 ? (
-            <p className="px-3 py-3 text-[15px] text-muted">Rien encore aujourd'hui. Touchez « Marquer » pendant votre balade.</p>
+            <p className="px-3 py-3 text-[15px] text-muted">Rien encore aujourd’hui. Touchez « Marquer » pendant votre balade.</p>
           ) : (
             <>
               {todayMarks.map((m) => {
@@ -233,7 +233,7 @@ export default function Meute() {
                 return (
                   <p key={m.id} className="flex items-center gap-3 px-3 py-2.5 text-[15px] leading-snug">
                     {member && <MemberAvatar member={member} size={32} />}
-                    <span>{together ? `${dog.name} et ${m.dogName} sont passés au même spot aujourd'hui · ${spotName(m.spotId)}` : `${m.dogName} a marqué ${spotName(m.spotId)} aujourd'hui`}</span>
+                    <span>{together ? `${dog.name} et ${m.dogName} sont passés au même spot aujourd’hui · ${spotName(m.spotId)}` : `${m.dogName} a marqué ${spotName(m.spotId)} aujourd’hui`}</span>
                   </p>
                 )
               })}
@@ -245,7 +245,7 @@ export default function Meute() {
                     <div key={f.id} className="flex items-start gap-3 px-3 py-2.5 text-[15px] leading-snug">
                       {member && <MemberAvatar member={member} size={32} />}
                       <span className="min-w-0 flex-1">
-                        <strong>{f.dogName}</strong> · {f.date === today ? "aujourd'hui" : 'hier'} : {f.text}
+                        <strong>{f.dogName}</strong> · {f.date === today ? "aujourd’hui" : 'hier'} : {f.text}
                       </span>
                       {f.photo && <FeedPhoto photo={f.photo} size={56} />}
                     </div>
@@ -258,7 +258,7 @@ export default function Meute() {
 
       <section className="flex flex-col gap-2.5 px-5">
         <h2 className="text-xl font-bold">La meute</h2>
-        {others.length === 0 && <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[15px] leading-snug text-[#1D3F73]">Vous êtes seul pour l'instant. Martin peut créer un compte pour un ami.</p>}
+        {others.length === 0 && <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[15px] leading-snug text-[#1D3F73]">Vous êtes seul pour l’instant. Martin peut créer un compte pour un ami.</p>}
         <div className="flex flex-col gap-2">
           {members.map((m) => (
             <Link key={m.id} to={`/meute/chien/${m.id}`} className="card-link">
@@ -328,7 +328,7 @@ export default function Meute() {
           >
             Nouveau spot ici
           </button>
-          <p className="text-[13px] leading-snug text-muted">Seule votre meute voit les marques, avec le jour, jamais l'heure ni votre position.</p>
+          <p className="text-[13px] leading-snug text-muted">Seule votre meute voit les marques, avec le jour, jamais l’heure ni votre position.</p>
         </Sheet>
       )}
 
@@ -392,7 +392,7 @@ function SpotSheet({ spot, meters, addedBy, passed, passedToday, calm, canMark, 
             <p className="text-sm text-muted">{calm.detail}</p>
           </>
         ) : (
-          <p className="text-[15px]">Pas encore d'avis.</p>
+          <p className="text-[15px]">Pas encore d’avis.</p>
         )}
       </section>
       {spot.info.length > 0 && (
@@ -411,7 +411,7 @@ function SpotSheet({ spot, meters, addedBy, passed, passedToday, calm, canMark, 
         </p>
       )}
       <fieldset className="m-0 border-0 p-0">
-        <legend className="mb-2 p-0 text-[15px] font-bold">{slot === 'tot' || slot === 'matin' ? 'Ce matin' : slot === 'midi' ? 'Cet après-midi' : 'Ce soir'}, c'était…</legend>
+        <legend className="mb-2 p-0 text-[15px] font-bold">{slot === 'tot' || slot === 'matin' ? 'Ce matin' : slot === 'midi' ? 'Cet après-midi' : 'Ce soir'}, c’était…</legend>
         <div className="grid grid-cols-3 gap-2">
           {CALM_LEVELS.map((l) => (
             <button
@@ -479,7 +479,7 @@ function NewSpotSheet({ onCancel, onCreate }: { onCancel: () => void; onCreate: 
         </div>
       </fieldset>
       <fieldset className="m-0 border-0 p-0">
-        <legend className="mb-2 p-0 text-[15px] font-semibold">En ce moment, c'est…</legend>
+        <legend className="mb-2 p-0 text-[15px] font-semibold">En ce moment, c’est…</legend>
         <div className="grid grid-cols-3 gap-2">
           {CALM_LEVELS.map((l) => (
             <button key={l.id} type="button" aria-pressed={calmNow === l.id} onClick={() => setCalmNow(calmNow === l.id ? null : l.id)} className={`btn px-2 ${calmNow === l.id ? 'btn-on' : 'btn-outline'}`}>

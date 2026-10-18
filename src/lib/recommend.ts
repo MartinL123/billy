@@ -24,7 +24,7 @@ const newestFirst = (a: SessionLike, b: SessionLike) => b.date.localeCompare(a.d
 
 /**
  * Séance conseillée : on tourne entre les boss conseillés pour le chien (celui qui suit le boss de la dernière
- * séance), puis on prend, pour ce boss, l'exercice pratiqué il y a le plus longtemps, les jamais pratiqués d'abord.
+ * séance), puis on prend, pour ce boss, l’exercice pratiqué il y a le plus longtemps, les jamais pratiqués d’abord.
  */
 export function recommendSession(traits: Trait[], sessions: SessionLike[]): SessionAdvice | undefined {
   const featured = featuredBosses(traits)

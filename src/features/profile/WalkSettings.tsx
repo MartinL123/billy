@@ -4,7 +4,7 @@ import { canPush, disablePush, enablePush, isInstalled, readPush } from '../../f
 import { useData } from '../../firebase/store'
 import { WALK_SLOTS, walkTimes, type WalkSlot } from '../../lib/walks'
 
-/** Profil › Sorties : les heures des 3 sorties du jour et la notification à l'heure de chacune. */
+/** Profil › Sorties : les heures des 3 sorties du jour et la notification à l’heure de chacune. */
 export function WalkSettings() {
   const { dog } = useData()
   const times = walkTimes(dog.walkTimes)
@@ -40,7 +40,7 @@ export function WalkSettings() {
         if (error) setMessage(error)
         else {
           setEnabled(true)
-          setMessage("C'est noté : une notification à l'heure de chaque sortie, sauf si elle est déjà cochée.")
+          setMessage("C’est noté : une notification à l’heure de chaque sortie, sauf si elle est déjà cochée.")
         }
       }
     } catch {
@@ -53,7 +53,7 @@ export function WalkSettings() {
     <section className="flex flex-col gap-2.5">
       <h2 className="text-xl font-bold">Sorties</h2>
       <div className="card flex flex-col gap-3 p-4">
-        <p className="text-[15px] leading-snug text-muted">3 sorties par jour, hors du jardin. On les coche sur l'accueil.</p>
+        <p className="text-[15px] leading-snug text-muted">3 sorties par jour. Elles se cochent toutes seules avec vos balades Strava.</p>
         {WALK_SLOTS.map((slot) => (
           <label key={slot.id} className="flex items-center justify-between gap-3 border-t border-divider pt-3">
             <span className="text-[17px] font-semibold">{slot.label}</span>
@@ -64,7 +64,7 @@ export function WalkSettings() {
           <label className="flex min-h-12 items-center gap-3.5 border-t border-divider pt-3">
             <input type="checkbox" role="switch" checked={enabled} disabled={busy} onChange={() => void toggle()} className="size-7 shrink-0 accent-primary" />
             <span className="flex flex-col gap-0.5">
-              <span className="text-[17px] font-bold">Me prévenir à l'heure des sorties</span>
+              <span className="text-[17px] font-bold">Me prévenir à l’heure des sorties</span>
               <span className="text-[15px] text-muted">Jamais si la sortie est déjà cochée</span>
             </span>
           </label>

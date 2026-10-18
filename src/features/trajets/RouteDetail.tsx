@@ -10,7 +10,7 @@ import { MomentIcon } from './momentIcons'
 import { formatDuration } from '../../lib/balade'
 import { place } from '../../lib/garden'
 
-/** Le trajet dans le détail d'un moment : sa miniature, « Voir sur la carte » (la carte unique), les repères. */
+/** Le trajet dans le détail d’un moment : sa miniature, « Voir sur la carte » (la carte unique), les repères. */
 export function RouteDetail({ entryId, route }: { entryId: string; route: Route }) {
   const saveMoments = (moments: Route['moments']) => updateEntryRoute(entryId, storeRoute({ ...route, moments }))
   const stats = [formatRouteDistance(route.distanceM), route.durationMin ? (route.source === 'gpx' ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} repère${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
@@ -46,7 +46,7 @@ export function RouteDetail({ entryId, route }: { entryId: string; route: Route 
   )
 }
 
-/** « A eu peur » / « A grogné » : l'ajouter à « Comment il réagit », seulement si on le choisit. */
+/** « A eu peur » / « A grogné » : l’ajouter à « Comment il réagit », seulement si on le choisit. */
 function ToProfile({ reaction }: { reaction: ReturnType<typeof momentReaction> }) {
   const { dog } = useData()
   const today = useToday()

@@ -35,7 +35,7 @@ export function IdeaCard({ idea }: { idea: Idea }) {
   )
 }
 
-/** « À découvrir » (maquette V3-ExplorerIdees) : autour de vous, choisi pour le chien. Pas d'IA, rien d'inventé. */
+/** « À découvrir » (maquette V3-ExplorerIdees) : autour de vous, choisi pour le chien. Pas d’IA, rien d’inventé. */
 export default function Ideas() {
   const { dog } = useData()
   const back = useBack('/territoire')

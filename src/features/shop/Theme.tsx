@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { THEMES } from '../../content/shop'
 import { useData } from '../../firebase/store'
 
-/** Applique les couleurs de l'app achetées : seulement le vert principal ; territoires et orange de l'action ne bougent pas. */
+/** Applique les couleurs de l’app achetées : seulement le vert principal ; territoires et orange de l’action ne bougent pas. */
 export function AppTheme() {
   const { dog } = useData()
   const theme = THEMES[dog.cosmetics?.theme ?? '']

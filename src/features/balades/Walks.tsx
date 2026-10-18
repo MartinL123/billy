@@ -42,7 +42,7 @@ export default function Walks() {
     return () => {
       live = false
     }
-    // Une seule passe à l'ouverture de l'écran.
+    // Une seule passe à l’ouverture de l’écran.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

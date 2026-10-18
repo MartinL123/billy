@@ -11,7 +11,7 @@ import { emptyTally, ignoredLine, tallyActivity } from '../../lib/importPlan'
 import type { RoutePoint } from '../../lib/route'
 import type { WalkTimes } from '../../lib/walks'
 
-/** Le résultat d'un import, pour l'écran « Le brouillard s'est levé ! ». */
+/** Le résultat d’un import, pour l’écran « Le brouillard s’est levé ! ». */
 export interface ImportResult {
   walks: { entryId: string; name: string; date: ISODate; distanceM: number; durationMin?: number; points: RoutePoint[] }[]
   distanceM: number
@@ -53,7 +53,7 @@ export async function runImport(
     bones = [...bones, ...saved.bones]
     tracks.push(walk.full)
     walks.push({ entryId: saved.entryId, name: walk.name, date: walk.date ?? ctx.today, distanceM: walk.distanceM, ...(walk.durationMin ? { durationMin: walk.durationMin } : {}), points: walk.points })
-    // Laisser respirer l'écran entre deux fichiers (barre de progression, gestes).
+    // Laisser respirer l’écran entre deux fichiers (barre de progression, gestes).
     await new Promise((resolve) => setTimeout(resolve, 0))
   }
   onProgress(usable.length, usable.length)
@@ -72,7 +72,7 @@ export async function runImport(
       share = { name: commune.name, before: discoveredShare(before, commune), after: discoveredShare(after, commune) }
     }
   }
-  // Les mois récents d'abord.
+  // Les mois récents d’abord.
   walks.sort((a, b) => b.date.localeCompare(a.date))
   last = { walks, distanceM: walks.reduce((sum, w) => sum + w.distanceM, 0), newCells, ...(share ? { share } : {}), line: ignoredLine(tally) }
   return last

@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { ImportWalkButton } from '../balades/ImportWalkButton'
 import { ChevronRightIcon } from '../../components/Icons'
-import { cellsLabel, knownFog } from '../../lib/fog'
 import { useData } from '../../firebase/store'
 import { formatMonthYear } from '../../lib/dates'
 import { walksOfMonth } from '../../lib/route'
@@ -10,8 +9,7 @@ import { useToday } from '../../lib/useToday'
 
 /** « Ses balades » (trajets.md § 4) : où il a peur, où ça se passe bien. Pas de chiffre à battre, pas de kilomètres. */
 export function WalksCard() {
-  const { dog, entries, fog } = useData()
-  const cells = useMemo(() => knownFog(fog).size, [fog])
+  const { dog, entries } = useData()
   const today = useToday()
   const routes = useMemo(() => walksOfMonth(entries, today.slice(0, 7)), [entries, today])
   const month = formatMonthYear(today).split(' ')[0]!.toLocaleLowerCase('fr')
@@ -26,7 +24,7 @@ export function WalksCard() {
       </div>
       {routes.length === 0 && <ImportWalkButton className="" />}
       <Link to="/territoire" className="flex min-h-12 items-center justify-between rounded-[16px] bg-primary-soft px-4 text-[17px] font-bold text-primary-dark no-underline">
-        <span>Voir sur la carte · {cellsLabel(cells)}</span>
+        <span>Voir sur la carte</span>
         <ChevronRightIcon size={20} />
       </Link>
     </section>

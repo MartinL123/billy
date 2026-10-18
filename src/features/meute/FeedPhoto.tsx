@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Bytes } from 'firebase/firestore'
 
-/** La miniature d'un moment partagé (une copie légère : la photo d'origine reste privée). */
+/** La miniature d’un moment partagé (une copie légère : la photo d’origine reste privée). */
 export function FeedPhoto({ photo, size }: { photo: Bytes; size: number }) {
   const [url, setUrl] = useState<string>()
   useEffect(() => {

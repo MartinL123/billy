@@ -1,8 +1,8 @@
 import type { PhotoClue } from './balade'
 
 /**
- * Lit l'EXIF d'une photo de la photothèque (position GPS, heure de prise de vue) AVANT sa compression,
- * qui efface ces informations. Rien n'est envoyé nulle part ; sans EXIF, la photo n'est simplement pas placée.
+ * Lit l’EXIF d’une photo de la photothèque (position GPS, heure de prise de vue) AVANT sa compression,
+ * qui efface ces informations. Rien n’est envoyé nulle part ; sans EXIF, la photo n’est simplement pas placée.
  */
 export async function readPhotoClue(file: Blob): Promise<PhotoClue> {
   try {

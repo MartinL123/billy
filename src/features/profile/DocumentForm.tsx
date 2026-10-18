@@ -81,7 +81,7 @@ export default function DocumentForm() {
       }
     } catch (err) {
       const fallback = pdf
-        ? "Ce PDF n'a pas pu être lu. S'il est protégé par un mot de passe, retire-le avant de l'importer."
+        ? "Ce PDF n’a pas pu être lu. S’il est protégé par un mot de passe, retire-le avant de l’importer."
         : 'Import impossible.'
       setError(!pdf ? errorText(err, fallback) : fallback)
     } finally {
@@ -112,13 +112,13 @@ export default function DocumentForm() {
       back()
     } catch (err) {
       setSaving(false)
-      setError(errorText(err, "L'enregistrement a échoué."))
+      setError(errorText(err, "L’enregistrement a échoué."))
     }
   }
 
   const badge = picked && kindBadge(picked.kind)
   const pageCount = picked ? (picked.kind === 'pdf' ? picked.pageCount : picked.pages.length) : 0
-  // Les événements les plus proches de la date du document d'abord.
+  // Les événements les plus proches de la date du document d’abord.
   const distance = (eventDate: string) => Math.abs(diffDays(isValidISO(date) ? date : today, eventDate))
   const pickerEvents = events.filter((e) => e.date).sort((a, b) => distance(a.date) - distance(b.date))
 
@@ -167,7 +167,7 @@ export default function DocumentForm() {
 
         <div className="flex items-start gap-2.5 rounded-field bg-info-soft px-3.5 py-3">
           <InfoIcon size={20} className="mt-px shrink-0 text-info" />
-          <p className="text-sm leading-[1.4] text-[#1D3F73]">Pour scanner un papier, utilisez l'app Notes ou Fichiers de votre iPhone, puis importe le PDF ici.</p>
+          <p className="text-sm leading-[1.4] text-[#1D3F73]">Pour scanner un papier, utilisez l’app Notes ou Fichiers de votre iPhone, puis importe le PDF ici.</p>
         </div>
 
         <TextField label="Titre" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Carnet de santé, compte rendu…" enterKeyHint="done" />

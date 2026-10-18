@@ -19,7 +19,7 @@ interface WeightSheetProps {
   onClose: () => void
 }
 
-/** Ajout rapide d'une pesée : poids (clavier numérique) + date. */
+/** Ajout rapide d’une pesée : poids (clavier numérique) + date. */
 export function WeightSheet({ today, weights, editing, onClose }: WeightSheetProps) {
   const [raw, setRaw] = useState(editing ? formatKg(editing.kg) : '')
   const [date, setDate] = useState(editing?.date ?? today)

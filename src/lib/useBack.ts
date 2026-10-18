@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-/** Retour à l'écran précédent, ou à `fallback` si l'app a été ouverte directement sur cet écran. */
+/** Retour à l’écran précédent, ou à `fallback` si l’app a été ouverte directement sur cet écran. */
 export function useBack(fallback: string): () => void {
   const navigate = useNavigate()
   return useCallback(() => {

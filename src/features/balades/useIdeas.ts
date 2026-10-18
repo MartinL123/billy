@@ -12,10 +12,10 @@ import { walkItems } from '../../lib/walkList'
 const WEEK_MS = 7 * 24 * 3600 * 1000
 type Found = { places: Place[]; roads: { lat: number; lng: number }[][] }
 
-// Une requête en cours est partagée : si l'écran se redessine pendant les 30 s d'attente, on ne la relance pas.
+// Une requête en cours est partagée : si l’écran se redessine pendant les 30 s d’attente, on ne la relance pas.
 const inFlight = new Map<string, Promise<Found | undefined>>()
 
-/** Lieux OpenStreetMap autour d'un point : gardés 7 jours sur l'appareil (confort, rien de vital). */
+/** Lieux OpenStreetMap autour d’un point : gardés 7 jours sur l’appareil (confort, rien de vital). */
 function nearbyPlaces(lat: number, lng: number, roads: boolean): Promise<Found | undefined> {
   const key = `${lat.toFixed(2)}_${lng.toFixed(2)}${roads ? '-routes' : ''}`
   const running = inFlight.get(key) ?? askOverpass(lat, lng, roads).finally(() => inFlight.delete(key))
@@ -50,7 +50,7 @@ async function askOverpass(lat: number, lng: number, roads: boolean): Promise<Fo
 
 /**
  * Les idées « À découvrir » autour de la position (si elle est autorisée) ou de la dernière balade, choisies pour
- * le chien. Si OpenStreetMap ne répond pas : les spots calmes de la meute, sans message d'erreur.
+ * le chien. Si OpenStreetMap ne répond pas : les spots calmes de la meute, sans message d’erreur.
  */
 export function useIdeas(): { ideas: Idea[]; here?: { lat: number; lng: number }; loading: boolean } {
   const { dog, entries, fog } = useData()
@@ -91,7 +91,7 @@ export function useIdeas(): { ideas: Idea[]; here?: { lat: number; lng: number }
 
   const ideas = useMemo(() => {
     if (!here) return []
-    // Les spots de la meute jugés calmes s'ajoutent aux lieux d'OpenStreetMap.
+    // Les spots de la meute jugés calmes s’ajoutent aux lieux d’OpenStreetMap.
     const calmSpots: Place[] = spots.filter((s) => s.category !== 'eviter' && calmSummary(calm[s.id] ?? [])?.headline.startsWith('Plutôt calme')).map((s) => ({ id: `spot/${s.id}`, name: s.name, kind: 'spot', lat: s.lat, lng: s.lng }))
     const age = dog.birthDate ? ageAt(dog.birthDate, today) : undefined
     const months = age ? age.years * 12 + age.months : undefined

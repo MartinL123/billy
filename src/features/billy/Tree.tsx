@@ -22,7 +22,7 @@ const DAY_NAMES = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 
 const STATE_WORDS: Record<DayState, string> = { fait: 'noté', repos: 'repos', attente: 'rien de noté' }
 
 function DayPill({ state, today }: { state: DayState; today: boolean }) {
-  // Aujourd'hui a toujours son contour orange, qu'il soit coché, en repos ou encore vide.
+  // Aujourd’hui a toujours son contour orange, qu’il soit coché, en repos ou encore vide.
   const ring = today ? 'outline-[3px] outline-offset-2 outline-milestone outline-solid' : ''
   if (state === 'fait') {
     return (
@@ -76,7 +76,7 @@ function Floor({ territory, active }: { territory: Territory; active: string[] }
               aria-label={`${skill.name}. ${mastered ? 'Maîtrisé, à entretenir' : `Prochaine étape : ${stepShort(skill.id, acquired + 1)}`}${current ? '. En cours' : ''}`}
               className="flex flex-col items-center gap-1.5 rounded-[20px] bg-surface px-2.5 pt-2.5 pb-3 text-center text-text no-underline shadow-[0_2px_6px_rgba(24,32,30,0.08)]"
             >
-              {/* L'étiquette a sa propre ligne au-dessus du badge : elle ne recouvre jamais l'anneau. */}
+              {/* L’étiquette a sa propre ligne au-dessus du badge : elle ne recouvre jamais l’anneau. */}
               <span className={`rounded-lg px-2 py-0.5 text-xs font-bold text-white ${current ? '' : 'invisible'}`} style={{ background: territory.color }}>
                 En cours
               </span>
@@ -120,7 +120,7 @@ function Floor({ territory, active }: { territory: Territory; active: string[] }
   )
 }
 
-/** Onglet Billy : l'arbre de compétences. Trois étages, dix badges, aucun chiffre. */
+/** Onglet Billy : l’arbre de compétences. Trois étages, dix badges, aucun chiffre. */
 export default function Tree() {
   const { dog, entries, sessions, exposures, bossProgress, xpLog, bones } = useData()
   const back = useBack('/billy')
@@ -137,7 +137,7 @@ export default function Tree() {
         <ChevronLeftIcon size={20} />
         {dog.unnamed ? 'Votre chien' : dog.name}
       </button>
-      {/* Fond de l'arbre acheté dans la boutique : derrière tout, les cartes restent blanches. */}
+      {/* Fond de l’arbre acheté dans la boutique : derrière tout, les cartes restent blanches. */}
       {dog.cosmetics?.background && BACKGROUNDS[dog.cosmetics.background] && <div aria-hidden="true" className="fixed inset-0 -z-10" style={BACKGROUNDS[dog.cosmetics.background]} />}
       <header className="flex items-center gap-3.5 px-1">
         <Link to="/profil" aria-label={`Voir le profil ${ofName(dog.name)}`} className="relative size-[72px] shrink-0 no-underline">
@@ -149,7 +149,7 @@ export default function Tree() {
         </div>
       </header>
 
-      {/* Les os : l'effort du maître, à côté du niveau (ce que le chien sait faire). Toute la carte ouvre la boutique. */}
+      {/* Les os : l’effort du maître, à côté du niveau (ce que le chien sait faire). Toute la carte ouvre la boutique. */}
       <Link to="/boutique" aria-label={`${balance(bones)} os, pour vos efforts. Ouvrir la boutique`} className="flex min-h-[76px] items-center gap-3.5 rounded-[22px] border-2 border-solid border-gold bg-[#FFF8E6] px-4 py-3 text-text no-underline">
         <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-white shadow-[0_1px_3px_rgba(24,32,30,0.12)]">
           <BoneIcon size={30} />
@@ -174,7 +174,7 @@ export default function Tree() {
               {minutes < LONG_SESSION_MINUTES ? ` (${LONG_SESSION_MINUTES} min dès ses 6 mois, le ${formatShort(longSessionsDate(dog.birthDate))})` : ''}
             </p>
           </div>
-          <div role="img" aria-label={`Cette semaine : ${week.map((d, i) => `${DAY_NAMES[i]} ${STATE_WORDS[d.state]}${d.today ? " (aujourd'hui)" : ''}`).join(', ')}`} className="flex justify-between">
+          <div role="img" aria-label={`Cette semaine : ${week.map((d, i) => `${DAY_NAMES[i]} ${STATE_WORDS[d.state]}${d.today ? " (aujourd’hui)" : ''}`).join(', ')}`} className="flex justify-between">
             {week.map((day) => (
               <span key={day.date} className="flex flex-col items-center gap-1">
                 <DayPill state={day.state} today={day.today} />
@@ -182,7 +182,7 @@ export default function Tree() {
               </span>
             ))}
           </div>
-          <p className="text-[13px] leading-snug text-muted">Un jour de repos par semaine, et toujours le lendemain d'un moment difficile.</p>
+          <p className="text-[13px] leading-snug text-muted">Un jour de repos par semaine, et toujours le lendemain d’un moment difficile.</p>
           <Link to="/en-cours" className="btn btn-outline">
             Choisir ses compétences en cours
           </Link>

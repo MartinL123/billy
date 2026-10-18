@@ -19,7 +19,7 @@ export function withoutGarden(text: string): string {
   return RULES.reduce((t, [pattern, replacement]) => t.replace(pattern, (m) => keepCase(m, replacement)), text)
 }
 
-// Réglages du compte, posés par le store dès que le profil est lu : les textes du catalogue sont partout dans l'app.
+// Réglages du compte, posés par le store dès que le profil est lu : les textes du catalogue sont partout dans l’app.
 let noGarden = false
 let female = false
 export const setNoGarden = (value: boolean) => {
@@ -30,7 +30,7 @@ export const setFemale = (value: boolean) => {
   female = value
 }
 
-/** Le texte tel qu'il faut l'afficher pour ce chien : sans jardin si besoin, accordé au féminin pour une chienne. */
+/** Le texte tel qu’il faut l’afficher pour ce chien : sans jardin si besoin, accordé au féminin pour une chienne. */
 export const place = (text: string): string => {
   const t = noGarden ? withoutGarden(text) : text
   return female ? feminize(t) : t

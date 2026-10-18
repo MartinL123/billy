@@ -8,7 +8,7 @@ export interface Age {
 
 /**
  * Âge exact au jour près. Un « mois » est atteint le même quantième que la naissance,
- * ramené au dernier jour du mois s'il n'existe pas (né un 31 → 1 mois le 28/29 févr.).
+ * ramené au dernier jour du mois s’il n’existe pas (né un 31 → 1 mois le 28/29 févr.).
  */
 export function ageAt(birth: ISODate, today: ISODate): Age {
   if (diffDays(birth, today) < 0) return { years: 0, months: 0, days: 0 }
@@ -37,7 +37,7 @@ function join(parts: string[]): string {
 export function formatAge(birth: ISODate, today: ISODate): string {
   const age = ageAt(birth, today)
   if (age.years === 0 && age.months === 0) {
-    return age.days === 0 ? "Né aujourd'hui" : days(age.days)
+    return age.days === 0 ? "Né aujourd’hui" : days(age.days)
   }
   const parts: string[] = []
   if (age.years > 0) parts.push(years(age.years))
@@ -49,7 +49,7 @@ export function formatAge(birth: ISODate, today: ISODate): string {
 
 /** Version courte pour le profil : « 5 mois », « 1 an et 2 mois » */
 export function formatAgeShort(birth: ISODate, today: ISODate): string {
-  // Date de naissance pas encore donnée (questionnaire de départ) : pas d'âge à afficher.
+  // Date de naissance pas encore donnée (questionnaire de départ) : pas d’âge à afficher.
   if (!isValidISO(birth)) return ''
   const age = ageAt(birth, today)
   if (age.years === 0 && age.months === 0) return days(age.days)
@@ -60,8 +60,8 @@ export function formatAgeShort(birth: ISODate, today: ISODate): string {
 }
 
 /**
- * Message de célébration, seulement le jour même d'une étape de vie : ses 6 mois,
- * chaque anniversaire, et l'anniversaire d'adoption. `undefined` les autres jours.
+ * Message de célébration, seulement le jour même d’une étape de vie : ses 6 mois,
+ * chaque anniversaire, et l’anniversaire d’adoption. `undefined` les autres jours.
  */
 export function milestoneMessage(
   name: string,
@@ -74,10 +74,10 @@ export function milestoneMessage(
   const totalMonths = age.years * 12 + age.months
   if (age.days === 0 && totalMonths > 0) {
     if (age.months === 0) {
-      return `Joyeux anniversaire ${name} ! ${years(age.years)} aujourd'hui.`
+      return `Joyeux anniversaire ${name} ! ${years(age.years)} aujourd’hui.`
     }
     // Les autres mois sont déjà dits dans la carte du chien (« 5 mois · 6 mois le 13 novembre ») : on ne les répète pas.
-    if (totalMonths === 6) return `${name} a 6 mois aujourd'hui !`
+    if (totalMonths === 6) return `${name} a 6 mois aujourd’hui !`
   }
   if (adoption && isValidISO(adoption)) {
     const since = ageAt(adoption, today)
@@ -88,7 +88,7 @@ export function milestoneMessage(
   return undefined
 }
 
-/** Prochaine étape de vie : chaque mois jusqu'à 1 an, puis chaque anniversaire. « 6 mois », le 2026-11-13. */
+/** Prochaine étape de vie : chaque mois jusqu’à 1 an, puis chaque anniversaire. « 6 mois », le 2026-11-13. */
 export function nextLifeStep(birth: ISODate, today: ISODate): { label: string; date: ISODate } | undefined {
   if (!isValidISO(birth)) return undefined
   const age = ageAt(birth, today)

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-/** La position, seulement si elle est déjà autorisée : on ne la demande jamais pour ça. Rien n'est enregistré. */
+/** La position, seulement si elle est déjà autorisée : on ne la demande jamais pour ça. Rien n’est enregistré. */
 export function useGrantedPosition() {
   const [here, setHere] = useState<{ lat: number; lng: number }>()
   useEffect(() => {

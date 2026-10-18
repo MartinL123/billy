@@ -5,13 +5,13 @@ import type { ISODate } from '../lib/dates'
 import { db } from './app'
 import { send, uid } from './paths'
 
-// Données communes de la meute : community/meute/… Lisibles par tout compte connecté de l'app ;
-// chacun ne modifie que ce qu'il a créé (firestore.rules). Jamais d'heure, jamais de position en direct.
+// Données communes de la meute : community/meute/… Lisibles par tout compte connecté de l’app ;
+// chacun ne modifie que ce qu’il a créé (firestore.rules). Jamais d’heure, jamais de position en direct.
 
 export const packCol = (name: string) => collection(db, 'community', 'meute', name)
 export const packDoc = (name: string, id: string) => doc(db, 'community', 'meute', name, id)
 
-/** community/meute/members/{uid} : le profil public d'un chien (ni santé, ni documents, ni Carnet). */
+/** community/meute/members/{uid} : le profil public d’un chien (ni santé, ni documents, ni Carnet). */
 export interface Member {
   dogName: string
   breed?: string
@@ -20,7 +20,7 @@ export interface Member {
   /** Étapes acquises par compétence, pour ses badges. */
   badges: Record<string, number>
   color: string
-  /** Miniature de sa photo (copie légère, la photo d'origine reste privée). */
+  /** Miniature de sa photo (copie légère, la photo d’origine reste privée). */
   thumb?: Bytes
   photoFileId?: string
   updatedAt: string
@@ -40,7 +40,7 @@ export interface Mark {
   spotId: string
   uid: string
   dogName: string
-  /** Le jour seulement, jamais l'heure. */
+  /** Le jour seulement, jamais l’heure. */
   date: ISODate
 }
 
@@ -102,7 +102,7 @@ export function markSpot(id: string, mark: Mark, gain: BoneWithId): void {
 }
 
 /**
- * Retirer un spot de sa carte : ses marques partent ; s'il l'a créé, le spot part aussi (pour toute la meute).
+ * Retirer un spot de sa carte : ses marques partent ; s’il l’a créé, le spot part aussi (pour toute la meute).
  * Les os gagnés restent.
  */
 export function removeSpot(spot: WithId<Spot>, myMarkIds: string[]): void {

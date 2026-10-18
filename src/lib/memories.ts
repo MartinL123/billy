@@ -6,7 +6,7 @@ export interface Memory<T> {
   entry: T
 }
 
-/** Dates « anniversaires » d'aujourd'hui, de la plus récente à la plus ancienne. */
+/** Dates « anniversaires » d’aujourd’hui, de la plus récente à la plus ancienne. */
 export function memoryDates(today: ISODate, yearsBack: number = 15): { label: string; date: ISODate }[] {
   const dates = [
     { label: 'Il y a 1 semaine', date: addDays(today, -7) },
@@ -17,7 +17,7 @@ export function memoryDates(today: ISODate, yearsBack: number = 15): { label: st
   for (let years = 1; years <= yearsBack; years++) {
     dates.push({ label: years === 1 ? 'Il y a 1 an' : `Il y a ${years} ans`, date: addMonths(today, -12 * years) })
   }
-  // Un 31 n'a pas d'équivalent dans un mois de 30 jours : on ne ressort pas le souvenir du 30 deux jours de suite.
+  // Un 31 n’a pas d’équivalent dans un mois de 30 jours : on ne ressort pas le souvenir du 30 deux jours de suite.
   const day = parseISO(today).d
   return dates.filter(({ date }, i) => i === 0 || parseISO(date).d === day)
 }

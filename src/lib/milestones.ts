@@ -13,8 +13,8 @@ interface Milestone {
 const milestone = (title: string, date: ISODate, recurrence: Milestone['recurrence']): Milestone => ({ title, type: 'etape', date, recurrence, done: false })
 
 /**
- * Les étapes de vie d'un chien, à partir des dates données au questionnaire de départ :
- * son anniversaire, ses 6 mois et son 1 an s'ils sont encore à venir, l'anniversaire de son adoption.
+ * Les étapes de vie d’un chien, à partir des dates données au questionnaire de départ :
+ * son anniversaire, ses 6 mois et son 1 an s’ils sont encore à venir, l’anniversaire de son adoption.
  * Les identifiants sont fixes : les recréer ne fait jamais de doublon.
  */
 export function lifeMilestones(name: string, { birth, adoption }: { birth?: ISODate; adoption?: ISODate }, today: ISODate): Record<string, Milestone> {
@@ -29,7 +29,7 @@ export function lifeMilestones(name: string, { birth, adoption }: { birth?: ISOD
   }
   if (adoption && isValidISO(adoption)) {
     const { m, d } = parseISO(adoption)
-    out['seed-adoption'] = milestone("Anniversaire d'adoption", nextAnnual(m, d, today), 'yearly')
+    out['seed-adoption'] = milestone("Anniversaire d’adoption", nextAnnual(m, d, today), 'yearly')
   }
   return out
 }

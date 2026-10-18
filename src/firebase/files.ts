@@ -32,7 +32,7 @@ function track(delta: number): void {
   send(setDoc(accountDoc(), { usage: { bytes: increment(delta) } }, { merge: true }))
 }
 
-/** Recalcule l'espace à partir des fichiers enregistrés (comptes d'avant le compteur, ou pour corriger). */
+/** Recalcule l’espace à partir des fichiers enregistrés (comptes d’avant le compteur, ou pour corriger). */
 export function setUsage(bytes: number): void {
   knownUsage = bytes
   send(setDoc(accountDoc(), { usage: { bytes } }, { merge: true }))
@@ -68,7 +68,7 @@ export function savePdf(bytes: Uint8Array): string {
   return id
 }
 
-// Les fichiers ne changent jamais : le cache local d'abord, le serveur seulement s'il manque.
+// Les fichiers ne changent jamais : le cache local d’abord, le serveur seulement s’il manque.
 async function getFileDoc(id: string): Promise<DocumentSnapshot> {
   const ref = userDoc('files', id)
   try {

@@ -9,7 +9,7 @@ import { useToday } from '../../lib/useToday'
 import { FeedPhoto } from './FeedPhoto'
 import { MemberAvatar } from './MemberAvatar'
 
-/** Le profil public d'un chien de la meute : photo, âge, race, niveau, badges, territoire. Ni santé, ni documents, ni Carnet privé. */
+/** Le profil public d’un chien de la meute : photo, âge, race, niveau, badges, territoire. Ni santé, ni documents, ni Carnet privé. */
 export default function DogPublic() {
   const { id } = useParams()
   const back = useBack('/meute')
@@ -26,7 +26,7 @@ export default function DogPublic() {
   if (!member) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="text-[17px] text-muted">Ce chien n'est pas (ou plus) dans la meute.</p>
+        <p className="text-[17px] text-muted">Ce chien n’est pas (ou plus) dans la meute.</p>
         <button type="button" onClick={back} className="btn btn-main">
           Retour à la meute
         </button>

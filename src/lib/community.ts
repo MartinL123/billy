@@ -1,7 +1,7 @@
 import type { ISODate } from './dates'
 
-// La meute (docs/specs/communaute.md) : tous les comptes de l'app. On compare l'effort, jamais le chien ;
-// jamais d'heure, jamais de position en direct, seulement des spots publics.
+// La meute (docs/specs/communaute.md) : tous les comptes de l’app. On compare l’effort, jamais le chien ;
+// jamais d’heure, jamais de position en direct, seulement des spots publics.
 
 export type SpotCategory = 'balade' | 'parc' | 'eau' | 'cafe' | 'jeux' | 'eviter'
 
@@ -28,17 +28,17 @@ export const CALM_LEVELS: { id: CalmLevel; label: string }[] = [
 const SLOT_WORDS: Record<Exclude<CalmSlot, 'tot'>, string> = { matin: 'le matin', midi: 'en journée', soir: 'le soir' }
 const LEVEL_WORDS: Record<CalmLevel, string> = { calme: 'Plutôt calme', moyen: 'Moyennement fréquenté', anime: 'Plutôt animé' }
 
-/** Le créneau d'un avis, d'après l'heure locale (l'heure elle-même n'est jamais enregistrée). */
+/** Le créneau d’un avis, d’après l’heure locale (l’heure elle-même n’est jamais enregistrée). */
 export const slotOf = (hour: number): CalmSlot => (hour < 9 ? 'tot' : hour < 11 ? 'matin' : hour < 17 ? 'midi' : 'soir')
 
-/** « Plutôt calme le matin » : l'avis le plus fréquent, et le créneau le plus cité pour cet avis. */
+/** « Plutôt calme le matin » : l’avis le plus fréquent, et le créneau le plus cité pour cet avis. */
 export function calmSummary(votes: { level: CalmLevel; slot: CalmSlot }[]): { headline: string; detail: string } | undefined {
   if (votes.length === 0) return undefined
   const count = <T extends string>(items: T[]) => items.reduce<Record<string, number>>((acc, x) => ({ ...acc, [x]: (acc[x] ?? 0) + 1 }), {})
   const top = <T extends string>(counts: Record<string, number>, order: T[]) => order.reduce((best, x) => ((counts[x] ?? 0) > (counts[best] ?? 0) ? x : best), order[0]!)
   const level = top(count(votes.map((v) => v.level)), ['calme', 'moyen', 'anime'] as CalmLevel[])
   const same = votes.filter((v) => v.level === level)
-  // « avant 9 h » compte comme le matin ; on le précise quand la plupart des avis du matin sont d'avant 9 h.
+  // « avant 9 h » compte comme le matin ; on le précise quand la plupart des avis du matin sont d’avant 9 h.
   const slot = top(count(same.map((v) => (v.slot === 'tot' ? 'matin' : v.slot))), ['matin', 'midi', 'soir'] as const)
   const morning = same.filter((v) => v.slot === 'tot' || v.slot === 'matin')
   const early = slot === 'matin' && morning.filter((v) => v.slot === 'tot').length * 2 > morning.length
@@ -67,10 +67,10 @@ export function nearbySpots<T extends { lat: number; lng: number }>(spots: T[], 
 /** « à 80 m », « à 1,2 km » */
 export const formatDistance = (m: number) => (m < 1000 ? `à ${Math.round(m / 10) * 10} m` : `à ${(m / 1000).toFixed(1).replace('.', ',')} km`)
 
-/** Une marque par spot et par jour pour un chien : l'identifiant suffit à l'empêcher deux fois. */
+/** Une marque par spot et par jour pour un chien : l’identifiant suffit à l’empêcher deux fois. */
 export const markId = (uid: string, spotId: string, date: ISODate) => `${uid}_${spotId}_${date}`
 
-/** Les marques s'effacent de la carte au bout de 7 jours ; le territoire, lui, reste. */
+/** Les marques s’effacent de la carte au bout de 7 jours ; le territoire, lui, reste. */
 export const MARK_DAYS_ON_MAP = 7
 
 /** Chaque chien a sa couleur, toujours la même. */

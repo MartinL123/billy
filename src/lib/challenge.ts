@@ -4,7 +4,7 @@ import { dayNumber, type ISODate } from './dates'
 import { weekOf } from './rhythm'
 import { currentExercise } from './training-plan'
 
-/** Le défi de la semaine : un seul, sur une compétence, compté d'après ce que l'utilisateur choisit lui-même. */
+/** Le défi de la semaine : un seul, sur une compétence, compté d’après ce que l’utilisateur choisit lui-même. */
 export interface Challenge {
   bossId: string
   label: string
@@ -18,7 +18,7 @@ export const SAFE_CHALLENGE_SKILLS = ['lien', 'calme', 'manieres']
 
 /**
  * Le même sur tous les appareils ; il tourne chaque semaine entre Le Lien, Le Calme et Les Bonnes manières,
- * sur l'exercice de leur étape en cours.
+ * sur l’exercice de leur étape en cours.
  */
 export function weekChallenge(week: ISODate, progress: ProgressMap = {}): Challenge {
   const n = Math.floor(dayNumber(week) / 7)

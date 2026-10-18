@@ -1,20 +1,20 @@
 import { LngLatBounds, Map as MapLibreMap, Marker, setWorkerUrl, type GeoJSONSource } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-// Le worker de MapLibre, empaqueté par Vite (avec ce qu'il importe) : son chemin d'origine ne survit pas au build.
+// Le worker de MapLibre, empaqueté par Vite (avec ce qu’il importe) : son chemin d’origine ne survit pas au build.
 // En dev, MapLibre le trouve seul, à côté de son fichier (voir optimizeDeps dans vite.config.ts).
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 
 if (import.meta.env.PROD) setWorkerUrl(workerUrl)
 
-// Toutes les cartes de l'app : MapLibre GL, fond OpenFreeMap (gratuit, sans clé, bâtiments en 3D),
+// Toutes les cartes de l’app : MapLibre GL, fond OpenFreeMap (gratuit, sans clé, bâtiments en 3D),
 // relief des AWS Terrain Tiles (Terrarium). Aucun compte, aucune clé, rien de payant.
 
 export const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty'
 const TERRAIN_TILES = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'
-// Vue satellite : Esri World Imagery, sans clé (usage personnel ; conditions à relire avant d'ouvrir à des inconnus).
+// Vue satellite : Esri World Imagery, sans clé (usage personnel ; conditions à relire avant d’ouvrir à des inconnus).
 const SATELLITE_TILES = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
 
-/** Un point de l'app : [latitude, longitude]. MapLibre attend l'inverse. */
+/** Un point de l’app : [latitude, longitude]. MapLibre attend l’inverse. */
 export type LatLng = [number, number]
 export const lngLat = ([lat, lng]: LatLng): [number, number] => [lng, lat]
 
@@ -34,7 +34,7 @@ export function createMap(container: HTMLElement, { center = PARIS, zoom = 15, i
     maxPitch: 70,
   })
   map.once('load', () => ready.add(map))
-  // L'attribution reste repliée (un « i » qui l'ouvre) : sur un petit écran, dépliée, elle cache la carte.
+  // L’attribution reste repliée (un « i » qui l’ouvre) : sur un petit écran, dépliée, elle cache la carte.
   map.once('load', () => container.querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show'))
   return map
 }
@@ -43,7 +43,7 @@ export function createMap(container: HTMLElement, { center = PARIS, zoom = 15, i
 // on retient donc le premier « load », une fois pour toutes.
 const ready = new WeakSet<MapLibreMap>()
 
-/** Lance `run` quand le style est prêt (tout de suite s'il l'est déjà). */
+/** Lance `run` quand le style est prêt (tout de suite s’il l’est déjà). */
 export function whenReady(map: MapLibreMap, run: () => void): void {
   if (ready.has(map)) run()
   else map.once('load', run)
@@ -81,7 +81,7 @@ export function fitPoints(map: MapLibreMap, points: LatLng[], padding: number | 
 /** Un toucher sur un repère ne compte pas comme un toucher sur la carte. */
 export const onMarker = (event: Event | undefined) => Boolean((event?.target as Element | null)?.closest?.('.maplibregl-marker'))
 
-/** 3D : relief (Terrarium) et carte inclinée à 60° ; les bâtiments du style s'élèvent. 2D : à plat, vue du dessus. */
+/** 3D : relief (Terrarium) et carte inclinée à 60° ; les bâtiments du style s’élèvent. 2D : à plat, vue du dessus. */
 export function set3D(map: MapLibreMap, on: boolean): void {
   whenReady(map, () => {
     if (on) {
@@ -97,7 +97,7 @@ export function set3D(map: MapLibreMap, on: boolean): void {
   })
 }
 
-/** Satellite : l'imagerie passe sous les noms de rues et de lieux (premier calque de texte du style), au-dessus du reste. */
+/** Satellite : l’imagerie passe sous les noms de rues et de lieux (premier calque de texte du style), au-dessus du reste. */
 export function setSatellite(map: MapLibreMap, on: boolean): void {
   whenReady(map, () => {
     if (on) {

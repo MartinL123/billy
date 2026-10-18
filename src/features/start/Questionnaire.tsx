@@ -58,8 +58,8 @@ function Tick({ on }: { on: boolean }) {
 }
 
 /**
- * Questionnaire de départ, en 5 parties. Une question par écran, pré-remplie avec ce que l'app sait déjà :
- * on confirme au lieu de retaper. Une réponse ne compte qu'après « Suivant ».
+ * Questionnaire de départ, en 5 parties. Une question par écran, pré-remplie avec ce que l’app sait déjà :
+ * on confirme au lieu de retaper. Une réponse ne compte qu’après « Suivant ».
  */
 export default function Questionnaire() {
   const { dog, events, weights, bossProgress } = useData()
@@ -68,7 +68,7 @@ export default function Questionnaire() {
   const later = useBack('/')
   const answers = normalizeAnswers(dog.questionnaire?.answers ?? {})
   const [params] = useSearchParams()
-  // On reprend où on s'était arrêté, ou sur l'écran demandé (profil : « Modifier ses réactions »).
+  // On reprend où on s’était arrêté, ou sur l’écran demandé (profil : « Modifier ses réactions »).
   const [index, setIndex] = useState(() => {
     const asked = STEPS.findIndex((s) => s.id === params.get('etape'))
     return asked >= 0 ? asked : questionnaireStatus(dog.questionnaire).resumeAt
@@ -76,7 +76,7 @@ export default function Questionnaire() {
   const step = STEPS[Math.min(index, STEPS.length - 1)]!
   const [error, setError] = useState('')
 
-  // Brouillon : ce que l'app sait déjà. Rien n'est enregistré avant « Suivant ».
+  // Brouillon : ce que l’app sait déjà. Rien n’est enregistré avant « Suivant ».
   const [draft, setDraft] = useState<Record<string, string>>(() => ({
     nom: dog.unnamed ? '' : dog.name,
     naissance: dog.birthDate,
@@ -157,7 +157,7 @@ export default function Questionnaire() {
     return date
   }
 
-  /** « Suivant » : c'est seulement ici qu'une réponse compte. */
+  /** « Suivant » : c’est seulement ici qu’une réponse compte. */
   const next = () => {
     const id = step.id
     if (id === 'nom') {
@@ -165,18 +165,18 @@ export default function Questionnaire() {
       save({ name: text('nom') })
     } else if (id === 'naissance' || id === 'adoption') {
       const date = text(id)
-      // Facultatif, comme tout le questionnaire : sans date, l'âge n'est simplement pas affiché.
+      // Facultatif, comme tout le questionnaire : sans date, l’âge n’est simplement pas affiché.
       if (date && (!isValidISO(date) || date > today)) return setError('Choisissez une date, aujourd’hui ou avant.')
       if (id === 'adoption') save({ adoptionDate: date })
       else save({ birthDate: date, traits: deriveTraits(dog.traits ?? [], reactions, dog.homeMood, date, today) })
-      // Anniversaire, 6 mois, 1 an, anniversaire d'adoption : ajoutés au calendrier, une seule fois.
+      // Anniversaire, 6 mois, 1 an, anniversaire d’adoption : ajoutés au calendrier, une seule fois.
       if (date) ensureMilestones(events, text('nom') || dog.name, id === 'adoption' ? { adoption: date } : { birth: date }, today)
     } else if (id === 'sexe') save({ sex: text(id) })
     else if (id === 'sterilise') {
       const date = text('sterilise-date')
       if (text(id) === STERILISATION_PLANNED) {
         if (date && (!isValidISO(date) || date < today)) return setError('Choisissez une date à venir, ou laissez vide.')
-        // « C'est prévu » : un rappel dans Santé, à la date choisie ou pour prendre rendez-vous.
+        // « C’est prévu » : un rappel dans Santé, à la date choisie ou pour prendre rendez-vous.
         const reminder = sterilisationReminder(events, date, dog.birthDate, today)
         if (reminder) saveEvent(newId('events'), reminder)
       }
@@ -244,7 +244,7 @@ export default function Questionnaire() {
     go(index + 1)
   }
 
-  // « Je ne sais pas » (dates de santé, ce qu'il sait faire) : on passe à la question suivante sans rien enregistrer d'autre.
+  // « Je ne sais pas » (dates de santé, ce qu’il sait faire) : on passe à la question suivante sans rien enregistrer d’autre.
   const unknown = step.kind === 'skill' || (step.kind === 'date' && step.part === 2)
   const dontKnow = () => {
     if (step.kind === 'skill') {
@@ -401,7 +401,7 @@ export default function Questionnaire() {
                   <input aria-label="Date de la prochaine séance" type="date" min={today} value={draft['educateur-date'] ?? ''} onChange={(e) => set('educateur-date', e.target.value)} className={`${input} min-w-0 px-3`} />
                   <input aria-label="Heure de la prochaine séance" type="time" value={draft['educateur-heure'] ?? ''} onChange={(e) => set('educateur-heure', e.target.value)} className={`${input} w-[120px] px-3`} />
                 </div>
-                <p className="text-[15px] text-muted">Elle s'ajoutera dans Santé.</p>
+                <p className="text-[15px] text-muted">Elle s’ajoutera dans Santé.</p>
               </fieldset>
             )}
           </>

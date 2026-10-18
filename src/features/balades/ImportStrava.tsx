@@ -12,7 +12,7 @@ const STEPS: { title: string; text: string; link?: { label: string; href: string
   { title: 'Choisissez le dossier « activities »', text: 'Sélectionnez tous les fichiers : Billy garde les marches et randonnées et ignore le reste.' },
 ]
 
-/** « Importer vos balades Strava » (maquette V3-ImportStrava) : toute l'archive d'un coup. Jamais de connexion à Strava. */
+/** « Importer vos balades Strava » (maquette V3-ImportStrava) : toute l’archive d’un coup. Jamais de connexion à Strava. */
 export default function ImportStrava() {
   const back = useBack('/territoire')
 

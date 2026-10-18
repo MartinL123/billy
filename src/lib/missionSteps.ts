@@ -1,6 +1,6 @@
 import { place } from './garden'
-// La mission pas à pas (spec V4 § 3) : un écran par étape, découpé dans le « Comment faire » de l'exercice.
-// Une consigne en gros, 2 lignes d'aide au plus ; la dernière étape lance le minuteur toute seule.
+// La mission pas à pas (spec V4 § 3) : un écran par étape, découpé dans le « Comment faire » de l’exercice.
+// Une consigne en gros, 2 lignes d’aide au plus ; la dernière étape lance le minuteur toute seule.
 
 export interface MissionStep {
   /** La consigne, en gros. */

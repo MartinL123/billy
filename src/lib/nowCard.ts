@@ -2,8 +2,8 @@ import { diffDays, type ISODate } from './dates'
 import { lateLabel } from './events'
 import { formatHour, timeToMinutes, WALK_SLOTS, type WalkSlot, type WalkTimes } from './walks'
 
-// Aujourd'hui (spec V4 § 2) : une seule carte « À faire maintenant », choisie par une règle simple, et 2 lignes
-// « Ensuite ». L'app propose, l'utilisateur confirme.
+// Aujourd’hui (spec V4 § 2) : une seule carte « À faire maintenant », choisie par une règle simple, et 2 lignes
+// « Ensuite ». L’app propose, l’utilisateur confirme.
 
 /** Soins qui se font à la maison, à heure fixe : ils passent avant tout le reste le jour où ils sont dus. */
 const HOME_CARE = ['antiparasitaire', 'vermifuge', 'medicament', 'médicament']
@@ -32,20 +32,20 @@ export type NowCard =
   | { kind: 'mission' }
   | { kind: 'sortie'; slot: WalkSlot; time: string }
   | { kind: 'fini' }
-  /** La mission est faite, plus de sortie à venir, mais toutes n'ont pas été faites. */
+  /** La mission est faite, plus de sortie à venir, mais toutes n’ont pas été faites. */
   | { kind: 'soir'; done: number }
 
 const dueCare = (care: CareLike[], today: ISODate) =>
   care.filter((e) => !e.done && e.date && e.date <= today && HOME_CARE.includes(e.type.toLowerCase())).sort((a, b) => a.date.localeCompare(b.date))
 
-/** Prochaine sortie pas encore faite, dont l'heure n'est pas passée depuis plus d'une heure. */
+/** Prochaine sortie pas encore faite, dont l’heure n’est pas passée depuis plus d’une heure. */
 function nextWalk(input: NowInput): { slot: WalkSlot; time: string; in: number } | undefined {
   return WALK_SLOTS.map((s) => ({ slot: s.id, time: input.walks.times[s.id], in: timeToMinutes(input.walks.times[s.id]) - input.now }))
     .filter((w) => !input.walks.done[w.slot] && w.in > -60)
     .sort((a, b) => a.in - b.in)[0]
 }
 
-/** La carte, dans l'ordre de la spec : soin dû, repas dans 30 min, mission, sortie dans l'heure, sinon « tout est fait ». */
+/** La carte, dans l’ordre de la spec : soin dû, repas dans 30 min, mission, sortie dans l’heure, sinon « tout est fait ». */
 export function nowCard(input: NowInput): NowCard {
   const care = dueCare(input.care, input.today)[0]
   if (care) return { kind: 'soin', event: care }
@@ -62,7 +62,7 @@ export function nowCard(input: NowInput): NowCard {
   return done === WALK_SLOTS.length ? { kind: 'fini' } : { kind: 'soir', done }
 }
 
-/** « Il est 17 h 40. Prochaine sortie à 19 h : d'ici là, 3 minutes de mission. » */
+/** « Il est 17 h 40. Prochaine sortie à 19 h : d’ici là, 3 minutes de mission. » */
 export function contextLine(input: NowInput, card: NowCard): string {
   const h = Math.floor(input.now / 60)
   const m = input.now % 60

@@ -11,7 +11,7 @@ import { nextAfterDone, RECURRENCE_LABEL } from '../../lib/recurrence'
 
 type Event = WithId<BillyEvent>
 
-/** Coche « fait » avec confirmation discrète et possibilité d'annuler. */
+/** Coche « fait » avec confirmation discrète et possibilité d’annuler. */
 export function useToggleDone() {
   const toast = useToast()
   return (event: Event) => {
@@ -60,7 +60,7 @@ export function CalendarEventRow({ event, today, first }: { event: Event; today:
   const toggle = useToggleDone()
   const overdue = isOverdue(event, today)
   const info = typeInfo(event.type)
-  // Un rendez-vous avec une heure l'affiche en premier, sous son titre : « 10 h 30 · … ».
+  // Un rendez-vous avec une heure l’affiche en premier, sous son titre : « 10 h 30 · … ».
   const details = [
     event.time ? formatTime(event.time) : '',
     overdue ? 'En retard' : '',
@@ -68,7 +68,7 @@ export function CalendarEventRow({ event, today, first }: { event: Event; today:
     !event.time && event.recurrence === 'none' && !overdue ? info.label : '',
   ].filter(Boolean)
   const dateTone = overdue ? 'text-danger' : event.done ? 'text-muted' : ''
-  // Un soin fait s'affiche au jour où il a vraiment été fait (audit R-001).
+  // Un soin fait s’affiche au jour où il a vraiment été fait (audit R-001).
   const shown = event.done ? doneDate(event) : event.date
   const otherMonth = shown && shown.slice(0, 7) !== today.slice(0, 7)
 

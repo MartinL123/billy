@@ -20,7 +20,7 @@ function useClock(): string {
   return now
 }
 
-/** Ration du jour, heures des repas, et rappels à installer dans le calendrier de l'iPhone. */
+/** Ration du jour, heures des repas, et rappels à installer dans le calendrier de l’iPhone. */
 export function Meals({ dogName, feeding, today }: { dogName: string; feeding: Feeding; today: ISODate }) {
   const now = useClock()
   const [message, setMessage] = useState('')
@@ -28,7 +28,7 @@ export function Meals({ dogName, feeding, today }: { dogName: string; feeding: F
   const grams = portion(feeding)
   const next = nextMealIndex(meals, now)
 
-  // Une app web ne peut pas programmer de notification sur iPhone : les rappels passent par l'app Calendrier.
+  // Une app web ne peut pas programmer de notification sur iPhone : les rappels passent par l’app Calendrier.
   const installReminders = async () => {
     const ics = buildMealsIcs(dogName, meals, grams, today)
     const outcome = await shareFiles([new File([ics], `Repas ${ofName(dogName)}.ics`, { type: 'text/calendar' })], `Repas ${ofName(dogName)}`)
@@ -57,7 +57,7 @@ export function Meals({ dogName, feeding, today }: { dogName: string; feeding: F
           })}
         </ul>
         <button type="button" onClick={() => void installReminders()} className="btn btn-outline">
-          Recevoir les rappels sur l'iPhone
+          Recevoir les rappels sur l’iPhone
         </button>
         {message && (
           <p role="status" className="text-sm text-muted">

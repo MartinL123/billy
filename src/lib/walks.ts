@@ -1,5 +1,5 @@
 // Les sorties de Billy : 3 créneaux fixes par jour (matin, midi, soir), hors du jardin.
-// Ce fichier n'importe rien : il est lu tel quel par le script d'envoi (scripts/rappel-soir.mjs) et par les tests.
+// Ce fichier n’importe rien : il est lu tel quel par le script d’envoi (scripts/rappel-soir.mjs) et par les tests.
 
 export type WalkSlot = 'matin' | 'midi' | 'soir'
 
@@ -13,10 +13,10 @@ export type WalkTimes = Record<WalkSlot, string>
 
 export const DEFAULT_WALK_TIMES: WalkTimes = { matin: '08:00', midi: '13:00', soir: '19:00' }
 
-/** Après l'heure d'un créneau, la notification part encore pendant 90 minutes (retard des tâches planifiées), jamais avant. */
+/** Après l’heure d’un créneau, la notification part encore pendant 90 minutes (retard des tâches planifiées), jamais avant. */
 export const WALK_TOLERANCE_MINUTES = 90
 
-/** users/{uid}/walks/{date} : l'heure (« HH:MM ») à laquelle chaque sortie a été cochée. */
+/** users/{uid}/walks/{date} : l’heure (« HH:MM ») à laquelle chaque sortie a été cochée. */
 export interface WalkDay {
   date: string
   done: Partial<Record<WalkSlot, string>>
@@ -40,7 +40,7 @@ export const timeToMinutes = (time: string): number => {
 
 export type WalkState = 'fait' | 'a-faire' | 'plus-tard'
 
-/** Fait, à faire (l'heure est passée) ou plus tard dans la journée. */
+/** Fait, à faire (l’heure est passée) ou plus tard dans la journée. */
 export function walkState(time: string, doneAt: string | undefined, nowMinutes: number): WalkState {
   if (doneAt) return 'fait'
   return nowMinutes >= timeToMinutes(time) ? 'a-faire' : 'plus-tard'
@@ -67,14 +67,14 @@ export function walkReminderText(dogName: string, slot: WalkSlot, time: string):
   const label = WALK_SLOTS.find((s) => s.id === slot)?.label ?? ''
   return {
     title: `${formatHour(time)} : la sortie du ${label.toLowerCase()}`,
-    body: `C'est l'heure de sortir ${name} 🐾 Hors du jardin, même 15 minutes.`,
+    body: `C’est l’heure de sortir ${name} 🐾 Hors du jardin, même 15 minutes.`,
     tag: `sortie-${slot}`,
     url: './#/',
   }
 }
 
 /**
- * Le créneau d'une balade importée (spec V4 § 1) : celui dont l'heure est la plus proche du départ, à 3 h près.
+ * Le créneau d’une balade importée (spec V4 § 1) : celui dont l’heure est la plus proche du départ, à 3 h près.
  * Une balade à 2 h du matin ne coche rien.
  */
 export function slotForStart(times: WalkTimes, startMinutes: number): WalkSlot | undefined {

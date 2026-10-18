@@ -60,13 +60,13 @@ export function exposureAsMoment(exposure: LegacyExposure): LegacyMoment {
   }
 }
 
-/** Le Carnet est la seule liste : les plus récents d'abord. */
+/** Le Carnet est la seule liste : les plus récents d’abord. */
 export const byRecency = <T extends { date: ISODate; createdAt?: string }>(a: T, b: T) =>
   b.date.localeCompare(a.date) || (b.createdAt ?? '').localeCompare(a.createdAt ?? '')
 
 const OLD_CARD = /^Palier acquis : (.+), P([1-5]) «/
 
-/** Anciens noms d'exercices en anglais, tels qu'ils ont pu être enregistrés dans le texte d'un moment. */
+/** Anciens noms d’exercices en anglais, tels qu’ils ont pu être enregistrés dans le texte d’un moment. */
 const OLD_NAMES: [string, string][] = [
   ['Up-Down', 'Le regard qui remonte'],
   ['Engage-Disengage', 'Regarde, puis reviens'],
@@ -74,7 +74,7 @@ const OLD_NAMES: [string, string][] = [
   ['Treat & Retreat', 'Friandise au loin'],
 ]
 
-/** Les « premières fois » de la V2, avec les mots d'aujourd'hui. */
+/** Les « premières fois » de la V2, avec les mots d’aujourd’hui. */
 const OLD_FIRSTS: [string, string][] = [
   ['Première séance', 'Premier exercice'],
   ['Première exposition notée', 'Première situation qui lui fait peur notée'],
@@ -87,18 +87,18 @@ const OLD_FIRSTS: [string, string][] = [
 ]
 
 /**
- * Les cartes de réussite écrites avant la V3 parlaient de « palier » : on les affiche avec les mots d'aujourd'hui.
- * Rien n'est modifié dans les données.
+ * Les cartes de réussite écrites avant la V3 parlaient de « palier » : on les affiche avec les mots d’aujourd’hui.
+ * Rien n’est modifié dans les données.
  */
 export function modernCard<T extends { text: string; tags: string[] }>(original: T): T {
-  // Les moments notés avant la traduction gardent leur texte en base ; à l'écran, les noms d'exercices sont en français.
+  // Les moments notés avant la traduction gardent leur texte en base ; à l’écran, les noms d’exercices sont en français.
   const translated = OLD_NAMES.reduce((t, [before, now]) => t.replaceAll(before, now), original.text)
   const entry = translated === original.text ? original : { ...original, text: translated }
   if (!entry.tags.includes('Dressage')) return entry
   const tags = entry.tags.map((t) => (t === 'Dressage' ? 'Réussite' : t))
   const old = OLD_CARD.exec(entry.text)
   const boss = old && BOSSES.find((b) => b.name === old[1])
-  if (old && boss) return { ...entry, text: `C'est réussi ! ${stepPhrase(boss.id, Number(old[2]))}.`, tags }
+  if (old && boss) return { ...entry, text: `C’est réussi ! ${stepPhrase(boss.id, Number(old[2]))}.`, tags }
   // Plus de « Première fois : … » : la phrase seule suffit.
   const text = OLD_FIRSTS.reduce((t, [before, now]) => t.replace(before, now), entry.text).replace(/^Première fois : /, '')
   return { ...entry, text, tags }

@@ -19,7 +19,7 @@ describe('nouveau compte : un espace vide', () => {
     expect(events['seed-anniversaire']).toMatchObject({ title: 'Anniversaire de Rex', date: '2027-07-01', recurrence: 'yearly', type: 'etape' })
     expect(events['seed-6-mois']).toMatchObject({ title: 'Rex a 6 mois', date: '2027-01-01' })
     expect(events['seed-1-an']).toMatchObject({ title: 'Rex a 1 an', date: '2027-07-01' })
-    expect(events['seed-adoption']).toMatchObject({ title: "Anniversaire d'adoption", date: '2027-09-01' })
+    expect(events['seed-adoption']).toMatchObject({ title: "Anniversaire d’adoption", date: '2027-09-01' })
     for (const event of Object.values(events)) expect(event.title).not.toContain('Billy')
   })
 

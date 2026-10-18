@@ -165,7 +165,7 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
             Ajouter un repas
           </button>
         )}
-        <p className="text-[13px] leading-snug text-muted">Après un changement d'heure, retouche « Recevoir les rappels sur l'iPhone » sur l'accueil pour mettre les rappels à jour.</p>
+        <p className="text-[13px] leading-snug text-muted">Après un changement d’heure, retouche « Recevoir les rappels sur l’iPhone » sur l’accueil pour mettre les rappels à jour.</p>
       </fieldset>
 
       <fieldset className="m-0 flex flex-col gap-3 border-0 p-0">

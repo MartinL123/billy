@@ -15,7 +15,7 @@ import { PhotoViewer } from './PhotoViewer'
 import { readRoute } from '../../lib/route'
 import { RouteDetail } from '../trajets/RouteDetail'
 
-/** Le détail d'un souvenir (balade, photo ou note). C'est ici que se trouve « Modifier ». */
+/** Le détail d’un souvenir (balade, photo ou note). C’est ici que se trouve « Modifier ». */
 export default function EntryView() {
   const { id } = useParams()
   const { entries, dog } = useData()
@@ -26,7 +26,7 @@ export default function EntryView() {
   if (!found) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="text-[17px] text-muted">Ce moment n'existe plus.</p>
+        <p className="text-[17px] text-muted">Ce moment n’existe plus.</p>
         <button type="button" onClick={back} className="btn btn-main">
           Retour à ses balades
         </button>
@@ -71,7 +71,7 @@ export default function EntryView() {
 
 /**
  * Partager avec la meute, toujours par un choix explicite (désactivé par défaut) : le texte, le jour et la miniature
- * de la première photo. Ni heure, ni lieu, ni ressenti, ni trajet. On peut le retirer d'un toucher.
+ * de la première photo. Ni heure, ni lieu, ni ressenti, ni trajet. On peut le retirer d’un toucher.
  */
 function SharedWithPack({ entry, dogName }: { entry: { id: string; date: string; text: string; photos: { thumbFileId: string }[] }; dogName: string }) {
   const [shared, setShared] = useState(false)

@@ -3,8 +3,8 @@ import { useData } from '../../firebase/store'
 import { Worn } from './Art'
 
 /**
- * La photo ronde du chien, avec ce qu'il porte (boutique). Utilisée partout où sa photo apparaît.
- * `tryOn` : un objet essayé dans la boutique, à la place de celui qu'il porte.
+ * La photo ronde du chien, avec ce qu’il porte (boutique). Utilisée partout où sa photo apparaît.
+ * `tryOn` : un objet essayé dans la boutique, à la place de celui qu’il porte.
  */
 export function DogPhoto({ size, className = '', alt = '', tryOn }: { size: number; className?: string; alt?: string; tryOn?: { accessory?: string; frame?: string } }) {
   const { dog } = useData()

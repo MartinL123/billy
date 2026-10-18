@@ -6,14 +6,14 @@ interface FileImageProps {
   fileId: string | undefined
   alt: string
   className?: string
-  /** Charge tout de suite, sans attendre d'être à l'écran. */
+  /** Charge tout de suite, sans attendre d’être à l’écran. */
   eager?: boolean
   contain?: boolean
-  /** Photo introuvable : ne rien afficher du tout, plutôt qu'un grand bloc vide. */
+  /** Photo introuvable : ne rien afficher du tout, plutôt qu’un grand bloc vide. */
   hideMissing?: boolean
 }
 
-/** Image stockée dans Firestore, chargée seulement quand elle approche de l'écran. */
+/** Image stockée dans Firestore, chargée seulement quand elle approche de l’écran. */
 export function FileImage({ fileId, alt, className = '', eager = false, contain = false, hideMissing = false }: FileImageProps) {
   const ref = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(eager)
@@ -28,7 +28,7 @@ export function FileImage({ fileId, alt, className = '', eager = false, contain 
   }, [visible])
 
   const { url, error } = useFileUrl(fileId, visible)
-  // Hors ligne, la photo existe peut-être : on le dit. En ligne, une erreur veut dire qu'elle est introuvable.
+  // Hors ligne, la photo existe peut-être : on le dit. En ligne, une erreur veut dire qu’elle est introuvable.
   const offline = error && !navigator.onLine
   if (hideMissing && (!fileId || (error && !offline))) return null
 

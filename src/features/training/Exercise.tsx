@@ -45,7 +45,7 @@ function beep(audio: AudioContext | null) {
   }
 }
 
-/** Minuteur de la séance : l'écran reste allumé, la fin s'affiche et sonne. Pas de vibration (Safari iPhone ne la gère pas). */
+/** Minuteur de la séance : l’écran reste allumé, la fin s’affiche et sonne. Pas de vibration (Safari iPhone ne la gère pas). */
 function useTimer(minutes: number) {
   const [endsAt, setEndsAt] = useState<number | null>(null)
   const [left, setLeft] = useState(0)
@@ -124,7 +124,7 @@ function RestDay() {
           Accueil
         </button>
         <p className="text-[13px] font-extrabold tracking-[0.8px] uppercase">Mission du jour</p>
-        <h1 className="font-display text-[30px] leading-none font-extrabold">Aujourd'hui, repos</h1>
+        <h1 className="font-display text-[30px] leading-none font-extrabold">Aujourd’hui, repos</h1>
         <p className="text-[15px] leading-snug text-white/90">{quest.afterHardDay ? 'Hier était difficile : aujourd’hui, on souffle.' : 'Un jour sans exercice l’aide à retenir ce qu’il apprend.'}</p>
       </header>
       <main className="flex flex-col gap-4 px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+120px)]">
@@ -136,7 +136,7 @@ function RestDay() {
             </li>
           ))}
         </ul>
-        <p className="text-[15px] leading-snug text-muted">Aucun exercice aujourd'hui. Le repos compte comme une vraie action.</p>
+        <p className="text-[15px] leading-snug text-muted">Aucun exercice aujourd’hui. Le repos compte comme une vraie action.</p>
       </main>
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto max-w-[430px] px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
@@ -147,7 +147,7 @@ function RestDay() {
             </p>
           ) : (
             <button type="button" onClick={finish} className="btn btn-main min-h-[58px] w-full text-[18px]">
-              C'est fait !
+              C’est fait !
             </button>
           )}
         </div>
@@ -157,13 +157,13 @@ function RestDay() {
 }
 
 /**
- * L'écran d'un exercice : celui de la quête du jour, ou celui de l'étape en cours d'une compétence (« S'entraîner »).
+ * L’écran d’un exercice : celui de la quête du jour, ou celui de l’étape en cours d’une compétence (« S’entraîner »).
  * Le geste, le réglage du jour, un minuteur, puis on le note.
  */
 export default function Exercise() {
   const [params] = useSearchParams()
   const today0 = useQuest()
-  // On fige d'où l'on vient : la quête peut être marquée faite pendant qu'on est sur l'écran.
+  // On fige d’où l’on vient : la quête peut être marquée faite pendant qu’on est sur l’écran.
   const [fromQuest] = useState(() => params.get('depuis') === 'quete')
   if (fromQuest && today0.quest.kind === 'repos') return <RestDay />
   return <ExerciseScreen fromQuest={fromQuest && Boolean(today0.quest.planned)} />
@@ -185,7 +185,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
   const minutes = sessionMinutes(dog.birthDate, today)
   const timer = useTimer(minutes)
 
-  // Le réglage vient de l'étape en cours ; pour un autre exercice, celui de sa dernière séance.
+  // Le réglage vient de l’étape en cours ; pour un autre exercice, celui de sa dernière séance.
   const planned = (fromQuest && quest.planned?.exercise.id === exercise.id ? quest.planned : undefined) ?? exercisesForStep(skillId, acquired).find((p) => p.exercise.id === exercise.id)
   const level = planned?.level ?? currentDifficulty(sessions, exercise.id)
   const setting = place(exercise.levels[level - 1] ?? '')
@@ -220,7 +220,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
         {exercise.scene && <Illustration scene={exercise.scene} className="h-[150px] bg-surface" />}
 
         <section className="card flex flex-col gap-2 p-4">
-          <h2 className={sectionTitle}>Ce qu'il faut</h2>
+          <h2 className={sectionTitle}>Ce qu’il faut</h2>
           <p className="text-[17px] leading-snug">
             {neededTreats(dog.treats)}
             {exercise.needs ? `. ${exercise.needs}` : ''}.
@@ -253,8 +253,8 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
 
         {easier && (
           <section className="flex flex-col gap-1.5">
-            <h2 className={sectionTitle}>Trop difficile aujourd'hui ?</h2>
-            <p className="text-[17px] leading-snug">Revenez au réglage d'avant : « {easier} ». L'étape, elle, ne recule pas.</p>
+            <h2 className={sectionTitle}>Trop difficile aujourd’hui ?</h2>
+            <p className="text-[17px] leading-snug">Revenez au réglage d’avant : « {easier} ». L’étape, elle, ne recule pas.</p>
           </section>
         )}
 
@@ -304,20 +304,20 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
             className="min-h-12 rounded-full border-2 border-solid bg-transparent text-[17px] font-bold"
             style={{ borderColor: territory.color, color: territory.color }}
           >
-            C'est fait !
+            C’est fait !
           </button>
         </div>
       </div>
 
       {timer.finished && (
         <Sheet label="Temps écoulé" onClose={timer.dismiss}>
-          <h2 className="mt-1 font-display text-[26px] leading-tight font-extrabold">C'est fini, bravo !</h2>
-          <p className="text-[17px] leading-snug">Les {minutes} minutes sont passées. On s'arrête sur une réussite.</p>
+          <h2 className="mt-1 font-display text-[26px] leading-tight font-extrabold">C’est fini, bravo !</h2>
+          <p className="text-[17px] leading-snug">Les {minutes} minutes sont passées. On s’arrête sur une réussite.</p>
           <button type="button" onClick={() => navigate(fromQuest ? '/noter?depuis=quete' : `/noter?depuis=exercice&competences=${skill}`)} className="btn btn-main min-h-[58px] text-[18px]">
-            C'est fait, je le note
+            C’est fait, je le note
           </button>
           <button type="button" onClick={timer.dismiss} className="btn btn-outline">
-            Rester sur l'exercice
+            Rester sur l’exercice
           </button>
         </Sheet>
       )}

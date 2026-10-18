@@ -22,7 +22,7 @@ export async function confirmPassword(password: string): Promise<void> {
   await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password))
 }
 
-/** Changer son mot de passe : l'ancien est vérifié d'abord. */
+/** Changer son mot de passe : l’ancien est vérifié d’abord. */
 export async function changePassword(current: string, next: string): Promise<void> {
   await confirmPassword(current)
   if (auth.currentUser) await updatePassword(auth.currentUser, next)
@@ -45,7 +45,7 @@ export function authErrorMessage(error: unknown): AuthMessage {
   switch (code) {
     case 'auth/invalid-email':
     case 'auth/missing-email':
-      return { field: 'email', text: "Cette adresse e-mail n'est pas valide." }
+      return { field: 'email', text: "Cette adresse e-mail n’est pas valide." }
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
     case 'auth/user-not-found':

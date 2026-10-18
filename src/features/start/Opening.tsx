@@ -7,7 +7,7 @@ import { questionnaireStatus, statusLabel } from '../../lib/questionnaire'
 
 const SEEN_KEY = 'billy-ouverture-vue'
 
-/** L'écran d'ouverture a-t-il déjà été passé sur cet appareil ? (sans stockage : on le montre, ce n'est pas grave) */
+/** L’écran d’ouverture a-t-il déjà été passé sur cet appareil ? (sans stockage : on le montre, ce n’est pas grave) */
 export function openingSeen(): boolean {
   try {
     return localStorage.getItem(SEEN_KEY) === '1'
@@ -16,7 +16,7 @@ export function openingSeen(): boolean {
   }
 }
 
-/** Écran d'ouverture, la première fois : on touche le logo pour entrer. Les fois suivantes, l'app ouvre l'accueil. */
+/** Écran d’ouverture, la première fois : on touche le logo pour entrer. Les fois suivantes, l’app ouvre l’accueil. */
 export default function Opening() {
   const { dog } = useData()
   const navigate = useNavigate()
@@ -26,9 +26,9 @@ export default function Opening() {
     try {
       localStorage.setItem(SEEN_KEY, '1')
     } catch {
-      // Stockage indisponible : l'ouverture reviendra au prochain lancement.
+      // Stockage indisponible : l’ouverture reviendra au prochain lancement.
     }
-    // Tant que le questionnaire de départ n'est pas terminé, il s'ouvre tout seul. « Continuer plus tard » reste possible.
+    // Tant que le questionnaire de départ n’est pas terminé, il s’ouvre tout seul. « Continuer plus tard » reste possible.
     if (!status.complete) {
       if (!dog.questionnaire?.startedAt) updateDog({ questionnaire: { answers: {}, ...dog.questionnaire, startedAt: new Date().toISOString() } })
       navigate('/questionnaire', { replace: true })

@@ -66,7 +66,7 @@ export function MomentChips({ entry, activeTag }: { entry: Moment; activeTag?: s
 
 /** Une carte du Carnet : toute la partie texte est un bouton (chevron) qui ouvre le détail, où se trouve « Modifier ». */
 export function EntryCard({ entry, today, activeTag, onOpenPhoto }: EntryCardProps) {
-  // Une carte sans photo n'a pas de zone photo ; une photo sans fichier non plus.
+  // Une carte sans photo n’a pas de zone photo ; une photo sans fichier non plus.
   const photos = entry.photos.filter((p) => p.thumbFileId)
   const route = readRoute(entry.route)
   const photoButton = 'block w-full border-0 bg-transparent p-0'

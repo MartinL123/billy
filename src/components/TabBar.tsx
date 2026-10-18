@@ -1,7 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { HeartIcon, HomeIcon, MapIcon, PlusIcon } from './Icons'
 
-/** Hauteur de la barre (hors zone sûre) et dépassement du rond de l'accueil au-dessus d'elle. */
+/** Hauteur de la barre (hors zone sûre) et dépassement du rond de l’accueil au-dessus d’elle. */
 const BAR = 88
 const HOME_RISE = 26
 
@@ -23,7 +23,7 @@ function SideTab({ to, label, icon, className = '' }: { to: string; label: strin
 }
 
 /**
- * Balades · AUJOURD'HUI · Santé (spec V4 § 1). Aujourd'hui est au centre, en gros : un rond qui dépasse de la barre.
+ * Balades · AUJOURD’HUI · Santé (spec V4 § 1). Aujourd’hui est au centre, en gros : un rond qui dépasse de la barre.
  * Le Carnet, Billy et la Meute restent ouverts depuis les écrans (photo de Billy, Balades), plus depuis la barre.
  */
 function TabBar() {
@@ -31,7 +31,7 @@ function TabBar() {
     <nav aria-label="Navigation principale" className="fixed inset-x-0 bottom-0 z-20 border-t border-divider bg-surface pb-[env(safe-area-inset-bottom)]">
       <div className="mx-auto grid max-w-[430px] grid-cols-3" style={{ height: BAR }}>
         <SideTab to="/territoire" label="Balades" icon={<MapIcon />} />
-        <NavLink to="/" end aria-label="Aujourd'hui" className={({ isActive }) => `relative flex flex-col items-center justify-end gap-1 pb-[14px] text-[13px] no-underline ${isActive ? 'font-bold text-primary' : 'font-semibold text-[#3F4946]'}`}>
+        <NavLink to="/" end aria-label="Aujourd’hui" className={({ isActive }) => `relative flex flex-col items-center justify-end gap-1 pb-[14px] text-[13px] no-underline ${isActive ? 'font-bold text-primary' : 'font-semibold text-[#3F4946]'}`}>
           {({ isActive }) => (
             <>
               <span
@@ -51,7 +51,7 @@ function TabBar() {
   )
 }
 
-/** Écrans à onglets : contenu défilant au-dessus de la barre fixe, jamais caché par le rond de l'accueil ni par le « + ». */
+/** Écrans à onglets : contenu défilant au-dessus de la barre fixe, jamais caché par le rond de l’accueil ni par le « + ». */
 export function TabLayout() {
   return (
     <>
@@ -63,11 +63,11 @@ export function TabLayout() {
   )
 }
 
-// Le « + » reste au-dessus de la barre et du rond de l'accueil (88 px de barre + 16 px).
+// Le « + » reste au-dessus de la barre et du rond de l’accueil (88 px de barre + 16 px).
 const fabClass =
   'fixed right-5 bottom-[calc(env(safe-area-inset-bottom)+104px)] z-20 flex size-16 items-center justify-center rounded-full border-0 bg-primary text-white shadow-fab'
 
-/** Action principale de l'écran, sous le pouce. */
+/** Action principale de l’écran, sous le pouce. */
 export function Fab({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button type="button" aria-label={label} onClick={onClick} className={fabClass}>

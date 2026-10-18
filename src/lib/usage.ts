@@ -1,5 +1,5 @@
 // Espace par compte (docs/specs/communaute.md § 2) : Firestore gratuit = 1 Go en tout ; avec 10 comptes,
-// chacun a 80 Mo (marge gardée). Le texte reste toujours possible ; seules les photos et documents s'arrêtent.
+// chacun a 80 Mo (marge gardée). Le texte reste toujours possible ; seules les photos et documents s’arrêtent.
 
 export const USER_QUOTA = 80 * 1024 * 1024
 /** À partir de 90 %, un message doux. */

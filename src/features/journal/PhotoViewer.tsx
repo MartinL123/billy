@@ -26,7 +26,7 @@ interface PhotoViewerProps {
   onClose: () => void
 }
 
-/** Photo en plein écran, balayage horizontal entre les photos de l'entrée. */
+/** Photo en plein écran, balayage horizontal entre les photos de l’entrée. */
 export function PhotoViewer({ photos, start, onClose }: PhotoViewerProps) {
   const scroller = useRef<HTMLDivElement>(null)
   const [index, setIndex] = useState(start)

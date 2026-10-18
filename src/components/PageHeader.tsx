@@ -6,7 +6,7 @@ import { useToday } from '../lib/useToday'
 import { DogPhoto } from '../features/shop/DogPhoto'
 import { ofName } from '../lib/gender'
 
-/** En-tête commun aux onglets : date du jour, titre de l'écran, avatar vers le profil. */
+/** En-tête commun aux onglets : date du jour, titre de l’écran, avatar vers le profil. */
 export function PageHeader({ title, className = '', after }: { title: string; className?: string; /** À côté du titre (le sticker du Carnet). */ after?: ReactNode }) {
   const { dog } = useData()
   const today = useToday()

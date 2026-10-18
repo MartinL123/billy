@@ -5,7 +5,7 @@ const info = (traits: Trait[]) => TRAITS.filter((t) => traits.includes(t.id))
 
 /**
  * Ordre dans lequel suggérer les boss : on prend à tour de rôle le premier boss de chaque trait, puis le deuxième…
- * Les traits ne changent jamais les objectifs, seulement le chemin. Les autres boss suivent, dans l'ordre du catalogue.
+ * Les traits ne changent jamais les objectifs, seulement le chemin. Les autres boss suivent, dans l’ordre du catalogue.
  */
 export function suggestedBosses(traits: Trait[]): string[] {
   const lists = info(traits).map((t) => t.bossIds)
@@ -28,15 +28,15 @@ export const featuredBosses = (traits: Trait[]): string[] => (traits.length ? su
 /** Garde-fous de tous les traits cochés, sans doublon. */
 export const guards = (traits: Trait[]): string[] => [...new Set(info(traits).flatMap((t) => t.guards))]
 
-/** Exercices d'un boss : ceux qui correspondent aux traits du chien d'abord. */
+/** Exercices d’un boss : ceux qui correspondent aux traits du chien d’abord. */
 export function exercisesFor(bossId: string, traits: Trait[]): Exercise[] {
   const matches = (e: Exercise) => Number(Boolean(e.traits?.some((t) => traits.includes(t))))
   return EXERCISES.filter((e) => e.bossIds.includes(bossId)).sort((a, b) => matches(b) - matches(a))
 }
 
 /**
- * Garde-fou « craintif » : le palier Dehors animé (P4) n'est conseillé que si la météo du boss est au soleil
- * ou aux éclaircies. C'est un conseil affiché, jamais un verrou.
+ * Garde-fou « craintif » : le palier Dehors animé (P4) n’est conseillé que si la météo du boss est au soleil
+ * ou aux éclaircies. C’est un conseil affiché, jamais un verrou.
  */
 export function levelFourUnadvised(traits: Trait[], targetLevel: number, current: Weather | undefined): boolean {
   return traits.includes('craintif') && targetLevel === 4 && current !== undefined && current !== 'soleil' && current !== 'eclaircies'

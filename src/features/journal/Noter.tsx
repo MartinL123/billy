@@ -38,8 +38,8 @@ const legend = 'mb-2.5 p-0 text-lg font-bold'
 const choice = (on: boolean) => `btn px-2 ${on ? 'btn-on' : 'btn-outline'}`
 
 /**
- * Noter ce qu'on a fait : l'action principale de l'app. Tout est choisi par l'utilisateur, rien n'est deviné.
- * L'écran ne demande jamais ce qui est évident : depuis la quête du jour, la compétence est fixe et c'est aujourd'hui.
+ * Noter ce qu’on a fait : l’action principale de l’app. Tout est choisi par l’utilisateur, rien n’est deviné.
+ * L’écran ne demande jamais ce qui est évident : depuis la quête du jour, la compétence est fixe et c’est aujourd’hui.
  */
 export default function Noter() {
   const [params] = useSearchParams()
@@ -50,14 +50,14 @@ export default function Noter() {
 
   const from = params.get('depuis')
   const today0 = useQuest()
-  // Depuis la quête du jour : la compétence vient de la quête, elle n'est pas modifiable.
+  // Depuis la quête du jour : la compétence vient de la quête, elle n’est pas modifiable.
   const [fromQuest] = useState(() => from === 'quete' && !today0.done && today0.quest.kind !== 'repos')
   const asked = fromQuest ? [today0.quest.bossId ?? ''] : (params.get('competences') ?? '').split(',')
   const [text, setText] = useState(fromQuest ? today0.note : '')
   const [photos, setPhotos] = useState<Photo[]>([])
-  // La date : aujourd'hui (ou l'adoption pour un souvenir du questionnaire). Elle se change ensuite dans le détail.
+  // La date : aujourd’hui (ou l’adoption pour un souvenir du questionnaire). Elle se change ensuite dans le détail.
   const [date] = useState(() => (params.get('quand') === 'autre' && isValidISO(dog.adoptionDate) ? dog.adoptionDate : today))
-  // Depuis la mission pas à pas : le ressenti est déjà choisi (« Ça s'est bien passé ? »).
+  // Depuis la mission pas à pas : le ressenti est déjà choisi (« Ça s’est bien passé ? »).
   const [feeling, setFeeling] = useState<Feeling | undefined>(() => (FEELINGS.some((f) => f.value === params.get('ressenti')) ? (params.get('ressenti') as Feeling) : undefined))
   // Plus de grille de compétences : seule une compétence demandée (fiche, exercice terminé, mission) compte.
   const [skills] = useState<string[]>(() => asked.filter((id) => SKILLS.some((s) => s.id === id)))
@@ -99,7 +99,7 @@ export default function Noter() {
   const input = { feeling, fear, movedAway: fear && movedAway }
   const askable = canAskStep(input)
   const stepSkills = skills.filter((id) => hasNextStep(bossProgress, id))
-  // Depuis la mission pas à pas, « Bien » ou « Super » compte comme une réussite de l'étape en cours.
+  // Depuis la mission pas à pas, « Bien » ou « Super » compte comme une réussite de l’étape en cours.
   const auto = params.get('auto') === '1' && fromQuest
   const yesIds = askable ? stepSkills.filter((id) => (auto ? feeling !== 'difficile' : yes[id])) : []
   const leave = () => navigate(params.get('retour') === 'questionnaire' ? '/questionnaire?etape=fin' : '/', { replace: true })
@@ -120,7 +120,7 @@ export default function Noter() {
         bones,
       )
       if (fromQuest) completeQuest(today, { kind: today0.quest.kind, bossId: today0.quest.bossId, exerciseId: today0.quest.planned?.exercise.id }, today0.skips, QUEST_XP)
-      // Souvenir des premières semaines : l'écran de résultat du questionnaire le retrouve.
+      // Souvenir des premières semaines : l’écran de résultat du questionnaire le retrouve.
       if (params.get('retour') === 'questionnaire') answerQuestion('souvenir', result.entryId, { 'questionnaire.souvenirs': [...(dog.questionnaire?.souvenirs ?? []), result.entryId] })
       setOutcome(result)
     } catch (err) {
@@ -129,7 +129,7 @@ export default function Noter() {
     }
   }
 
-  // Mission pas à pas : on enregistre tout de suite, puis « C'est réussi ! » et les os.
+  // Mission pas à pas : on enregistre tout de suite, puis « C’est réussi ! » et les os.
   const autoSaved = useRef(false)
   useEffect(() => {
     if (!auto || autoSaved.current || !feeling) return
@@ -138,12 +138,12 @@ export default function Noter() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auto, feeling])
 
-  // Après l'enregistrement : les réussites une à une, puis retour.
-  // Une seule récompense, les os : plus d'écran « Nouveau niveau ».
+  // Après l’enregistrement : les réussites une à une, puis retour.
+  // Une seule récompense, les os : plus d’écran « Nouveau niveau ».
   const celebrations = outcome ? outcome.steps.length : 0
   useEffect(() => {
     if (outcome && shown >= celebrations) {
-      // « +10 os » avec l'os qui saute : les os du moment, plus ceux de la mission.
+      // « +10 os » avec l’os qui saute : les os du moment, plus ceux de la mission.
       toast(<BonesGained label="Noté !" amount={outcome.bones + (fromQuest ? BONES.mission : 0)} />, fromQuest ? undefined : { label: 'Annuler', run: outcome.undo })
       leave()
     }
@@ -156,7 +156,7 @@ export default function Noter() {
     return null
   }
 
-  // Mission pas à pas : rien à remplir, l'enregistrement est en cours.
+  // Mission pas à pas : rien à remplir, l’enregistrement est en cours.
   if (auto && !error)
     return (
       <main className="mx-auto flex min-h-dvh max-w-[430px] items-center justify-center px-5">
@@ -191,7 +191,7 @@ export default function Noter() {
           </div>
         )}
 
-        {/* 1. La photo : une grande zone, la photothèque (jamais l'appareil photo). */}
+        {/* 1. La photo : une grande zone, la photothèque (jamais l’appareil photo). */}
         <div className="flex flex-col gap-2">
           {photos.length > 0 && (
             <div className={`grid gap-2 ${photos.length > 1 ? 'grid-cols-3' : ''}`}>
@@ -264,12 +264,12 @@ export default function Noter() {
 
         {fear && (
           <fieldset className="m-0 flex flex-col gap-2.5 border-0 p-0">
-            <legend className={legend}>C'était difficile : qu'avez-vous fait ?</legend>
+            <legend className={legend}>C’était difficile : qu’avez-vous fait ?</legend>
             <label className={`flex min-h-16 items-center gap-3.5 rounded-[18px] border-2 border-solid px-4 py-3 ${movedAway ? 'border-primary bg-primary-soft' : 'border-border bg-surface'}`}>
               <input type="checkbox" checked={movedAway} onChange={(e) => setMovedAway(e.target.checked)} className="size-7 shrink-0 accent-primary" />
               <span className="flex flex-col gap-0.5">
                 <span className="text-[17px] leading-snug font-bold">{place('On s’est éloignés pour qu’il se sente mieux')}</span>
-                <span className="text-[15px] text-muted">C'est la bonne réaction</span>
+                <span className="text-[15px] text-muted">C’est la bonne réaction</span>
               </span>
             </label>
           </fieldset>
@@ -288,7 +288,7 @@ export default function Noter() {
                 <legend className="sr-only">{skill.name} : prochaine étape</legend>
                 <span className="text-[13px] font-bold tracking-[0.6px] text-milestone-dark uppercase">{skill.name} · prochaine étape</span>
                 <p className="text-[17px] leading-snug font-semibold">
-                  {stepPhrase(id, left.target ?? 1)}. {date === today ? "C'est réussi aujourd'hui ?" : "C'est réussi ?"}
+                  {stepPhrase(id, left.target ?? 1)}. {date === today ? "C’est réussi aujourd’hui ?" : "C’est réussi ?"}
                 </p>
                 <div className="flex items-center gap-3">
                   <span className="flex gap-1.5" aria-hidden="true">

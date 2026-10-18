@@ -1,4 +1,4 @@
-// La boutique (spec V3 § 2 bis.1) : ce qu'on peut s'offrir avec les os. Le catalogue vit dans le code, le même pour tous.
+// La boutique (spec V3 § 2 bis.1) : ce qu’on peut s’offrir avec les os. Le catalogue vit dans le code, le même pour tous.
 // Les identifiants sont enregistrés dans Firestore (inventaire, ce que le chien porte) : ne jamais les renommer.
 
 export type ShopCategory = 'accessoire' | 'cadre' | 'fond' | 'sticker' | 'couleur'
@@ -16,7 +16,7 @@ export interface ShopItem {
   category: ShopCategory
   name: string
   price: number
-  /** Objet gagné, pas acheté : visible seulement quand on l'a. */
+  /** Objet gagné, pas acheté : visible seulement quand on l’a. */
   earned?: boolean
 }
 
@@ -38,7 +38,7 @@ export const SHOP: ShopItem[] = [
   { id: 'sticker-coeur', category: 'sticker', name: 'Cœur', price: 40 },
   { id: 'sticker-os', category: 'sticker', name: 'Os', price: 40 },
   { id: 'sticker-soleil', category: 'sticker', name: 'Soleil', price: 40 },
-  // Gagné au premier défi de la meute tenu : il ne s'achète pas (n'apparaît qu'une fois gagné).
+  // Gagné au premier défi de la meute tenu : il ne s’achète pas (n’apparaît qu’une fois gagné).
   { id: 'sticker-meute', category: 'sticker', name: 'Meute', price: 0, earned: true },
   { id: 'couleur-nuit', category: 'couleur', name: 'Bleu nuit', price: 300 },
   { id: 'couleur-prune', category: 'couleur', name: 'Prune', price: 300 },
@@ -48,8 +48,8 @@ export const shopItem = (id: string | undefined) => SHOP.find((i) => i.id === id
 export const slotOf = (category: ShopCategory) => SHOP_CATEGORIES.find((c) => c.id === category)!.slot
 
 /**
- * Couleurs de l'app : elles remplacent seulement le vert principal (cartes, onglet actif, boutons contour).
- * Les couleurs des territoires et l'orange de l'action ne changent jamais. Blanc sur `primary` : contraste AA vérifié.
+ * Couleurs de l’app : elles remplacent seulement le vert principal (cartes, onglet actif, boutons contour).
+ * Les couleurs des territoires et l’orange de l’action ne changent jamais. Blanc sur `primary` : contraste AA vérifié.
  */
 export const THEMES: Record<string, { primary: string; dark: string; soft: string }> = {
   'couleur-nuit': { primary: '#2B4C7E', dark: '#1D355C', soft: '#E3EAF8' },
@@ -58,7 +58,7 @@ export const THEMES: Record<string, { primary: string; dark: string; soft: strin
 
 export type ButtonState = { kind: 'acheter'; price: number } | { kind: 'porter' } | { kind: 'porte' } | { kind: 'manque'; missing: number }
 
-/** Le seul bouton d'une carte d'objet, selon son état. Jamais rouge quand il manque des os. */
+/** Le seul bouton d’une carte d’objet, selon son état. Jamais rouge quand il manque des os. */
 export function buttonState(item: ShopItem, owned: boolean, worn: boolean, bones: number): ButtonState {
   if (worn) return { kind: 'porte' }
   if (owned) return { kind: 'porter' }

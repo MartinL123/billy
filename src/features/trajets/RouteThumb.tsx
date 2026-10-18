@@ -1,7 +1,7 @@
 import { routeMomentInfo, type RouteMoment, type RoutePoint } from '../../lib/route'
 
 /**
- * Mini-carte d'un trajet, dessinée en SVG (sans fond de carte) : légère à faire défiler dans le Carnet.
+ * Mini-carte d’un trajet, dessinée en SVG (sans fond de carte) : légère à faire défiler dans le Carnet.
  * Départ en vert, moments en couleur.
  */
 export function RouteThumb({ points, moments = [], size = 96, round = false }: { points: RoutePoint[]; moments?: RouteMoment[]; size?: number; round?: boolean }) {

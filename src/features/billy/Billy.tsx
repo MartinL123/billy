@@ -17,7 +17,7 @@ import { DogPhoto } from '../shop/DogPhoto'
 
 const capital = (text: string) => text.replace(/^./, (c) => c.toLocaleUpperCase('fr'))
 
-/** Billy (spec V4 § 6) : ouvert depuis sa photo. Ce qu'il apprend, en phrases simples ; le reste en 4 lignes. */
+/** Billy (spec V4 § 6) : ouvert depuis sa photo. Ce qu’il apprend, en phrases simples ; le reste en 4 lignes. */
 export default function Billy() {
   const { dog, bossProgress, bones } = useData()
   const today = useToday()

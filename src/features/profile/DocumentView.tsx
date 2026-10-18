@@ -12,7 +12,7 @@ import { safeFileName, shareFiles } from '../../lib/share'
 import { useBack } from '../../lib/useBack'
 import { categoryLabel } from './documents'
 
-/** Pages d'un PDF dessinées une à une (iOS n'affiche pas un PDF multipage dans une page web). */
+/** Pages d’un PDF dessinées une à une (iOS n’affiche pas un PDF multipage dans une page web). */
 function PdfPages({ blob }: { blob: Blob }) {
   const container = useRef<HTMLDivElement>(null)
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -48,7 +48,7 @@ function PdfPages({ blob }: { blob: Blob }) {
     <>
       <div ref={container} className="flex flex-col gap-3" />
       {state === 'loading' && <p className="py-8 text-center text-muted">Ouverture du PDF…</p>}
-      {state === 'error' && <p className="py-8 text-center text-danger">Ce PDF n'a pas pu être affiché. Vous pouvez quand même le partager pour l'ouvrir ailleurs.</p>}
+      {state === 'error' && <p className="py-8 text-center text-danger">Ce PDF n’a pas pu être affiché. Vous pouvez quand même le partager pour l’ouvrir ailleurs.</p>}
     </>
   )
 }
@@ -98,7 +98,7 @@ export default function DocumentView() {
   if (!document_) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="text-muted">Ce document n'existe plus.</p>
+        <p className="text-muted">Ce document n’existe plus.</p>
         <button type="button" onClick={back} className="btn btn-main">
           Retour
         </button>
@@ -150,7 +150,7 @@ export default function DocumentView() {
 
         {failed && (
           <p className="rounded-field bg-danger-soft px-3.5 py-3 text-sm font-medium text-danger">
-            Ce document n'est pas encore sur cet appareil. Reconnectez-vous à Internet pour le télécharger une première fois.
+            Ce document n’est pas encore sur cet appareil. Reconnectez-vous à Internet pour le télécharger une première fois.
           </p>
         )}
         {!failed && !blobs && <p className="py-8 text-center text-muted">Chargement…</p>}
@@ -183,7 +183,7 @@ export default function DocumentView() {
       {confirmDelete && (
         <ConfirmSheet
           title="Supprimer ce document ?"
-          message={`« ${document_.title} » sera supprimé définitivement de l'app.`}
+          message={`« ${document_.title} » sera supprimé définitivement de l’app.`}
           confirmLabel="Supprimer"
           onCancel={() => setConfirmDelete(false)}
           onConfirm={() => {

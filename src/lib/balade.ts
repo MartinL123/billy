@@ -1,6 +1,6 @@
 import { distanceToRoute, routeDistance, simplify, type RoutePoint } from './route'
 
-// Une balade importée d'un fichier GPX (Strava, montre…) : jamais de GPS en direct dans l'app.
+// Une balade importée d’un fichier GPX (Strava, montre…) : jamais de GPS en direct dans l’app.
 
 export interface TimedPoint {
   lat: number
@@ -14,7 +14,7 @@ export const SIMPLIFY_METERS = 5
 /** Au plus 500 points enregistrés : quelques Ko dans Firestore, même pour une longue balade. */
 export const MAX_WALK_POINTS = 500
 
-/** Distance d'un point à un segment, en mètres, sur une projection locale (suffisant à l'échelle d'une balade). */
+/** Distance d’un point à un segment, en mètres, sur une projection locale (suffisant à l’échelle d’une balade). */
 function segmentDistance(p: RoutePoint, a: RoutePoint, b: RoutePoint): number {
   const k = Math.cos((a[0] * Math.PI) / 180) * 111320
   const xy = ([lat, lng]: RoutePoint) => [lng * k, lat * 110540]
@@ -52,7 +52,7 @@ export function douglasPeucker(points: RoutePoint[], tolerance = SIMPLIFY_METERS
   return points.filter((_, i) => keep[i])
 }
 
-/** Simplifie jusqu'à tenir dans `max` points, en relâchant la tolérance si besoin. */
+/** Simplifie jusqu’à tenir dans `max` points, en relâchant la tolérance si besoin. */
 export function simplifyWalk(points: RoutePoint[], max = MAX_WALK_POINTS): RoutePoint[] {
   let tolerance = SIMPLIFY_METERS
   let out = douglasPeucker(simplify(points), tolerance)
@@ -71,7 +71,7 @@ export function formatDuration(min: number): string {
   return m ? `${h} h ${String(m).padStart(2, '0')}` : `${h} h`
 }
 
-/** Ce qu'une photo dit d'elle-même (EXIF) : où et quand elle a été prise. */
+/** Ce qu’une photo dit d’elle-même (EXIF) : où et quand elle a été prise. */
 export interface PhotoClue {
   lat?: number
   lng?: number
@@ -79,13 +79,13 @@ export interface PhotoClue {
   time?: number
 }
 
-/** Une photo prise à moins de 50 m du tracé s'y place ; on tolère 5 min avant le départ et après l'arrivée. */
+/** Une photo prise à moins de 50 m du tracé s’y place ; on tolère 5 min avant le départ et après l’arrivée. */
 export const PHOTO_NEAR_ROUTE = 50
 const PHOTO_MARGIN_MS = 5 * 60 * 1000
 
 /**
  * Où placer une photo sur la balade : sa position GPS si elle est près du tracé ; sinon, si elle a été prise
- * pendant la balade, l'endroit où l'on était à cette heure-là (d'après les heures du fichier GPX).
+ * pendant la balade, l’endroit où l’on était à cette heure-là (d’après les heures du fichier GPX).
  */
 export function placePhoto(clue: PhotoClue, points: RoutePoint[], timed: TimedPoint[] = []): { lat: number; lng: number } | undefined {
   if (clue.lat !== undefined && clue.lng !== undefined && distanceToRoute({ lat: clue.lat, lng: clue.lng }, points) <= PHOTO_NEAR_ROUTE) return { lat: clue.lat, lng: clue.lng }
@@ -105,8 +105,8 @@ export function placePhoto(clue: PhotoClue, points: RoutePoint[], timed: TimedPo
 }
 
 /**
- * Les heures le long d'un trajet enregistré (les heures de chaque point ne sont jamais gardées) : réparties selon la
- * distance entre le départ et l'arrivée. Assez juste pour placer une photo prise pendant la balade.
+ * Les heures le long d’un trajet enregistré (les heures de chaque point ne sont jamais gardées) : réparties selon la
+ * distance entre le départ et l’arrivée. Assez juste pour placer une photo prise pendant la balade.
  */
 export function timesAlong(points: RoutePoint[], startTime: string | undefined, durationMin: number | undefined): TimedPoint[] {
   const start = startTime ? Date.parse(startTime) : NaN

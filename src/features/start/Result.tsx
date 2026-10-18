@@ -15,9 +15,9 @@ import { Badge } from '../billy/Badge'
 const plural = (n: number, word: string) => `${n} étape${n > 1 ? 's' : ''} ${word}${n > 1 ? 's' : ''}`
 
 /**
- * Résultat du questionnaire : ce qu'il sait déjà faire, en cases à cocher rangées par étage.
+ * Résultat du questionnaire : ce qu’il sait déjà faire, en cases à cocher rangées par étage.
  * On corrige avant de commencer : décocher emporte les étapes plus difficiles, cocher prend les plus faciles.
- * Seules les étapes déclarées « il savait déjà le faire » se décochent ; une étape validée dans l'app, jamais.
+ * Seules les étapes déclarées « il savait déjà le faire » se décochent ; une étape validée dans l’app, jamais.
  */
 export function Result() {
   const { dog, entries, bossProgress, xpLog } = useData()
@@ -67,7 +67,7 @@ export function Result() {
         {dog.name} commence avec {steps} étape{steps > 1 ? 's' : ''} déjà acquise{steps > 1 ? 's' : ''}
       </h1>
       <p className="rounded-2xl bg-[#FFF8E6] px-3.5 py-3 text-[15px] leading-[1.45] text-gold-dark">
-        <strong>Vérifiez avant de commencer.</strong> Touchez une étape pour la décocher si on s'est trompé, ou pour cocher la suivante. Décocher une étape décoche aussi les plus difficiles de la même compétence.
+        <strong>Vérifiez avant de commencer.</strong> Touchez une étape pour la décocher si on s’est trompé, ou pour cocher la suivante. Décocher une étape décoche aussi les plus difficiles de la même compétence.
       </p>
 
       {TERRITORIES.map((territory) => (
@@ -105,7 +105,7 @@ export function Result() {
                       </span>
                       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                         <span className={`text-[15px] leading-snug ${acquired ? 'font-semibold' : 'text-muted'}`}>{stepPhrase(skill.id, step)}</span>
-                        {locked && <span className="text-[13px] text-muted">Validée dans l'app</span>}
+                        {locked && <span className="text-[13px] text-muted">Validée dans l’app</span>}
                       </span>
                     </button>
                   )

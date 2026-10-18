@@ -55,11 +55,11 @@ export function watchDog(onData: (dog: WithId<Dog> | null) => void): () => void 
 
 // ——— Premier lancement ———
 
-/** Les comptes n'ont plus de données de départ ; ce numéro marque qu'il n'y a rien à ajouter. */
+/** Les comptes n’ont plus de données de départ ; ce numéro marque qu’il n’y a rien à ajouter. */
 const SEED_VERSION = 3
 
 /**
- * Nouveau compte : un profil vide, rien d'autre. Vérifié sur le serveur pour ne jamais écraser un profil existant.
+ * Nouveau compte : un profil vide, rien d’autre. Vérifié sur le serveur pour ne jamais écraser un profil existant.
  * `seedVersion` est déjà à jour : aucune donnée de départ ne sera ajoutée plus tard.
  */
 export async function ensureProfile(): Promise<void> {
@@ -70,8 +70,8 @@ export async function ensureProfile(): Promise<void> {
 }
 
 /**
- * Étapes de vie créées par le questionnaire : anniversaire, 6 mois, 1 an, anniversaire d'adoption.
- * Identifiants fixes : jamais de doublon, et un compte qui les a déjà n'est pas touché.
+ * Étapes de vie créées par le questionnaire : anniversaire, 6 mois, 1 an, anniversaire d’adoption.
+ * Identifiants fixes : jamais de doublon, et un compte qui les a déjà n’est pas touché.
  */
 export function ensureMilestones(events: WithId<BillyEvent>[], name: string, dates: { birth?: ISODate; adoption?: ISODate }, today: ISODate): void {
   const wanted = lifeMilestones(name, dates, today)
@@ -104,8 +104,8 @@ export function answerQuestion(key: string, value: string, extra: Record<string,
 // ——— Événements ———
 
 /**
- * Questionnaire de départ : un soin déjà fait à une date donnée. S'il n'est pas déjà noté, il est ajouté comme fait,
- * avec son prochain rappel si aucun n'est prévu. Rien n'est jamais créé en double.
+ * Questionnaire de départ : un soin déjà fait à une date donnée. S’il n’est pas déjà noté, il est ajouté comme fait,
+ * avec son prochain rappel si aucun n’est prévu. Rien n’est jamais créé en double.
  */
 export function recordCare(events: WithId<BillyEvent>[], care: { type: BillyEvent['type']; title: string; date: ISODate; recurrence: BillyEvent['recurrence']; match?: RegExp }): void {
   const own = events.filter((e) => e.type === care.type && (!care.match || care.match.test(e.title)))
@@ -145,7 +145,7 @@ export function setEventDone(event: WithId<BillyEvent>, done: boolean): string |
     send(batch.commit())
     return undefined
   }
-  // En retard : fait aujourd'hui, la récurrence repart d'aujourd'hui (audit R-001).
+  // En retard : fait aujourd’hui, la récurrence repart d’aujourd’hui (audit R-001).
   const nextDate = event.nextId ? undefined : nextAfterDone(event.date, event.recurrence, todayISO())
   const nextId = nextDate ? newId('events') : undefined
   if (nextDate && nextId) {
@@ -167,7 +167,7 @@ export function setEventDone(event: WithId<BillyEvent>, done: boolean): string |
   return nextId
 }
 
-/** Annule un « fait » tout juste coché, et retire l'occurrence suivante qu'il avait créée. */
+/** Annule un « fait » tout juste coché, et retire l’occurrence suivante qu’il avait créée. */
 export function undoEventDone(eventId: string, createdNextId: string | undefined): void {
   const batch = writeBatch(db)
   if (createdNextId) {
@@ -191,12 +191,12 @@ export function deleteWeight(id: string): void {
 
 // ——— Journal ———
 
-/** Modifier le trajet d'un moment déjà noté. */
+/** Modifier le trajet d’un moment déjà noté. */
 export function updateEntryRoute(id: string, route: StoredRoute): void {
   send(updateDoc(userDoc('entries', id), { route } as DocumentData))
 }
 
-/** La commune d'une balade (Nominatim), gardée avec elle pour la liste « Ses balades ». */
+/** La commune d’une balade (Nominatim), gardée avec elle pour la liste « Ses balades ». */
 export function setEntryCommune(id: string, commune: string): void {
   send(updateDoc(userDoc('entries', id), { commune }))
 }

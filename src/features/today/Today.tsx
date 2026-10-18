@@ -71,9 +71,9 @@ function useCardContent(card: NowCard) {
       return {
         badge: `Sortie de ${formatHour(card.time)}`,
         title: `La sortie de ${formatHour(card.time)}`,
-        text: 'Hors du jardin, même 15 minutes. Elle se cochera toute seule avec votre balade Strava.',
+        text: 'Une vraie sortie, même 15 minutes. Elle se cochera toute seule avec votre balade Strava.',
         scene: undefined,
-        // Pas de bouton : la balade arrive avec l'import Strava, rien à faire d'ici (pas d'export depuis l'iPhone).
+        // Pas de bouton : la balade arrive avec l’import Strava, rien à faire d’ici (pas d’export depuis l’iPhone).
         action: undefined,
       }
     case 'soir':
@@ -97,7 +97,7 @@ function useCardContent(card: NowCard) {
   }
 }
 
-/** Aujourd'hui (spec V4 § 2) : on comprend en 10 secondes quoi faire. Une carte, un bouton plein. */
+/** Aujourd’hui (spec V4 § 2) : on comprend en 10 secondes quoi faire. Une carte, un bouton plein. */
 export default function Today() {
   const { dog, events, bones, walks } = useData()
   const today = useToday()

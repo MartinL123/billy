@@ -8,7 +8,7 @@ import { userDoc } from './paths'
 export const VAPID_KEY = (import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined) ?? ''
 const DEVICE_KEY = 'billy.appareil'
 
-/** Un identifiant par appareil, gardé sur l'appareil : chaque iPhone a son propre abonnement. */
+/** Un identifiant par appareil, gardé sur l’appareil : chaque iPhone a son propre abonnement. */
 export function deviceId(): string {
   try {
     const known = localStorage.getItem(DEVICE_KEY)
@@ -23,7 +23,7 @@ export function deviceId(): string {
 
 export const deviceRef = () => userDoc('push', deviceId())
 
-/** Sur iPhone, les notifications ne marchent que si l'app est installée sur l'écran d'accueil. */
+/** Sur iPhone, les notifications ne marchent que si l’app est installée sur l’écran d’accueil. */
 export const isInstalled = () => window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true
 export const canPush = () => Boolean(VAPID_KEY) && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
 
@@ -44,8 +44,8 @@ export async function readPush(): Promise<PushSettings> {
 }
 
 /**
- * Active un rappel. La permission est demandée au toucher, comme l'exige l'iPhone.
- * Renvoie un message d'erreur, ou rien si c'est fait.
+ * Active un rappel. La permission est demandée au toucher, comme l’exige l’iPhone.
+ * Renvoie un message d’erreur, ou rien si c’est fait.
  */
 export async function enablePush(kind: PushKind, extra: Record<string, unknown> = {}): Promise<string | undefined> {
   const permission = await Notification.requestPermission()
@@ -64,7 +64,7 @@ export async function enablePush(kind: PushKind, extra: Record<string, unknown> 
   return undefined
 }
 
-/** Coupe un rappel ; l'abonnement n'est supprimé que si plus aucun rappel ne s'en sert. */
+/** Coupe un rappel ; l’abonnement n’est supprimé que si plus aucun rappel ne s’en sert. */
 export async function disablePush(kind: PushKind): Promise<void> {
   const current = await readPush()
   const other = kind === 'evening' ? current.walks : current.evening

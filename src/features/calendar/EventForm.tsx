@@ -50,13 +50,13 @@ export default function EventForm() {
   if (id && !existing) {
     return (
       <FormScreen title="Événement" submitLabel="Retour au calendrier" onCancel={back} onSubmit={back}>
-        <p className="text-muted">Cet événement n'existe plus.</p>
+        <p className="text-muted">Cet événement n’existe plus.</p>
       </FormScreen>
     )
   }
 
   const chooseType = (next: EventType) => {
-    // Le titre suit le type tant qu'il n'a pas été personnalisé.
+    // Le titre suit le type tant qu’il n’a pas été personnalisé.
     if (!title.trim() || title === EVENT_TYPES[type].title) setTitle(EVENT_TYPES[next].title)
     if (!existing) setRecurrence(EVENT_TYPES[next].recurrence)
     setType(next)
@@ -89,7 +89,7 @@ export default function EventForm() {
     back()
   }
 
-  // Joindre un document enregistre d'abord l'événement, pour pouvoir les lier.
+  // Joindre un document enregistre d’abord l’événement, pour pouvoir les lier.
   const attach = () => {
     const event = build()
     if (!event) return
@@ -98,7 +98,7 @@ export default function EventForm() {
     navigate(`/document/nouveau?eventId=${eventId}`, { replace: true })
   }
 
-  // Rappel sur l'iPhone : l'événement part dans l'app Calendrier via le menu de partage.
+  // Rappel sur l’iPhone : l’événement part dans l’app Calendrier via le menu de partage.
   const exportToCalendar = () => {
     if (!existing?.date) return
     const ics = buildIcs({ ...existing, date: existing.date })
@@ -110,7 +110,7 @@ export default function EventForm() {
 
   return (
     <>
-      <FormScreen title={existing ? "Modifier l'événement" : 'Nouvel événement'} submitLabel="Enregistrer" onCancel={back} onSubmit={save}>
+      <FormScreen title={existing ? "Modifier l’événement" : 'Nouvel événement'} submitLabel="Enregistrer" onCancel={back} onSubmit={save}>
         <fieldset className="m-0 border-0 p-0">
           <legend className="mb-2.5 p-0 text-[17px] font-semibold">Type</legend>
           <div className="flex flex-wrap gap-2">
@@ -226,11 +226,11 @@ export default function EventForm() {
             {existing.date && !existing.done && (
               <button type="button" onClick={exportToCalendar} className="btn btn-outline">
                 <CalendarIcon size={20} />
-                Ajouter au calendrier de l'iPhone
+                Ajouter au calendrier de l’iPhone
               </button>
             )}
             <button type="button" onClick={() => setConfirmDelete(true)} className="btn btn-danger">
-              Supprimer l'événement
+              Supprimer l’événement
             </button>
           </div>
         )}

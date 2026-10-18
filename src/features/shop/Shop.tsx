@@ -12,7 +12,7 @@ import { useToday } from '../../lib/useToday'
 import { ItemArt } from './Art'
 import { DogPhoto } from './DogPhoto'
 
-/** La boutique : ce qu'on s'offre avec les os gagnés par ses efforts. */
+/** La boutique : ce qu’on s’offre avec les os gagnés par ses efforts. */
 export default function Shop() {
   const { dog, bones, inventory } = useData()
   const today = useToday()
@@ -26,7 +26,7 @@ export default function Shop() {
   const worn = (item: ShopItem) => dog.cosmetics?.[slotOf(item.category)] === item.id
   const wearing = shopItem(dog.cosmetics?.accessory)
 
-  // Toucher un accessoire ou un cadre l'essaie sur l'aperçu, avant de l'acheter.
+  // Toucher un accessoire ou un cadre l’essaie sur l’aperçu, avant de l’acheter.
   const tryOn = trying && (trying.category === 'accessoire' || trying.category === 'cadre') ? { [trying.category === 'accessoire' ? 'accessory' : 'frame']: trying.id } : undefined
 
   const act = (item: ShopItem) => {
@@ -41,7 +41,7 @@ export default function Shop() {
     if (!buying) return
     buyItem(buying, today)
     wear(slotOf(buying.category), buying.id)
-    toast(`C'est à vous ! ${buying.name}`)
+    toast(`C’est à vous ! ${buying.name}`)
     setBuying(null)
     setTrying(null)
   }
@@ -51,7 +51,7 @@ export default function Shop() {
       <header className="sticky top-0 z-10 flex items-center justify-between bg-bg px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5">
         <button type="button" onClick={back} className="btn btn-quiet min-h-12 px-4">
           <ChevronLeftIcon size={20} />
-          L'arbre
+          L’arbre
         </button>
         <span className="flex items-center gap-1.5 rounded-full bg-[#FFF8E6] px-3.5 py-2 text-[17px] font-extrabold text-gold-dark" aria-label={`${solde} os`}>
           <BoneIcon size={22} />
@@ -67,7 +67,7 @@ export default function Shop() {
           <span className="flex min-w-0 flex-col gap-1">
             <span className="font-display text-xl font-extrabold">{dog.name}</span>
             <span className="text-[15px] font-semibold text-[#3F4946]">{trying ? `Essaie : ${trying.name.toLocaleLowerCase('fr')}` : wearing ? `Porte : ${wearing.name.toLocaleLowerCase('fr')}` : 'Ne porte rien pour l’instant'}</span>
-            <span className="text-[13px] leading-snug text-muted">Touchez un objet pour l'essayer avant de l'acheter.</span>
+            <span className="text-[13px] leading-snug text-muted">Touchez un objet pour l’essayer avant de l’acheter.</span>
           </span>
         </section>
 

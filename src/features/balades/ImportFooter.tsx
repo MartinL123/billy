@@ -9,7 +9,7 @@ import { runImport } from './importRun'
 
 const ACCEPT = '.gpx,.gz,application/gpx+xml,application/gzip,application/x-gzip,application/xml,text/xml'
 
-/** Le bas des écrans d'import : le bouton qui ouvre Fichiers, puis la barre de progression, puis le résultat. */
+/** Le bas des écrans d’import : le bouton qui ouvre Fichiers, puis la barre de progression, puis le résultat. */
 export function ImportFooter({ label, multiple = true }: { label: string; multiple?: boolean }) {
   const { dog, entries, bones, fog, communes } = useData()
   const today = useToday()

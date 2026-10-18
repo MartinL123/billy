@@ -18,7 +18,7 @@ export function periodLabel(date: ISODate): string {
 const RANK: Record<Feeling, number> = { difficile: 0, bien: 1, super: 2 }
 const BEFORE_WORDS = ['souvent difficile', 'plutôt bien', 'super']
 
-/** Ressenti dominant d'une série de moments : le plus fréquent ; à égalité, celui du milieu. */
+/** Ressenti dominant d’une série de moments : le plus fréquent ; à égalité, celui du milieu. */
 export function dominantFeeling(feelings: Feeling[]): Feeling {
   const count = (f: Feeling) => feelings.filter((x) => x === f).length
   const sorted = [...feelings].sort((a, b) => count(b) - count(a) || Math.abs(RANK[a] - 1) - Math.abs(RANK[b] - 1))
@@ -44,7 +44,7 @@ export interface Comparison {
   since: string
   before: string
   now: string
-  /** Vrai s'il y a un progrès, faux si c'est stable. */
+  /** Vrai s’il y a un progrès, faux si c’est stable. */
   better: boolean
 }
 
@@ -54,7 +54,7 @@ export const MAX_COMPARISONS = 3
 const WINDOW_DAYS = 30
 
 /**
- * « Ses progrès en un mois » : pour chaque compétence, l'étape acquise il y a un mois contre celle d'aujourd'hui,
+ * « Ses progrès en un mois » : pour chaque compétence, l’étape acquise il y a un mois contre celle d’aujourd’hui,
  * sinon le ressenti dominant des premiers moments contre celui des derniers.
  * On ne montre que ce qui progresse ou reste stable : jamais de « moins bien ».
  */
@@ -65,7 +65,7 @@ export function progressStory(moments: StoryMoment[], progress: ProgressMap, log
     const name = bossById(skill.id)?.name ?? skill.id
     const state = progress[skill.id]
     const level = state?.level ?? 0
-    // Étapes gagnées par la pratique depuis un mois (celles d'« avant l'app » comptent comme déjà là).
+    // Étapes gagnées par la pratique depuis un mois (celles d'« avant l’app » comptent comme déjà là).
     const recent = log.filter((e) => e.kind === 'palier' && e.id.startsWith(`palier-${skill.id}-`) && e.date > start && !(state?.preApp ?? []).includes(Number(e.id.split('-').pop())))
     const levelBefore = Math.max(0, level - recent.length)
     if (level > levelBefore) {

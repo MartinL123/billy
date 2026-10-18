@@ -30,7 +30,7 @@ export default function Login() {
     try {
       await signIn(email, password)
     } catch (err) {
-      // L'e-mail saisi est conservé ; seul le message apparaît sous le champ.
+      // L’e-mail saisi est conservé ; seul le message apparaît sous le champ.
       setError(authErrorMessage(err))
       setBusy(false)
     }
@@ -98,14 +98,14 @@ export default function Login() {
         )}
       </form>
 
-      {/* Pas d'inscription : Martin crée les comptes. On explique seulement comment installer l'app. */}
+      {/* Pas d’inscription : Martin crée les comptes. On explique seulement comment installer l’app. */}
       <button type="button" onClick={() => setInstalling(true)} className="btn btn-outline mt-6">
-        Comment installer l'app sur mon téléphone ?
+        Comment installer l’app sur mon téléphone ?
       </button>
 
-      <p className="mt-auto pt-8 text-center text-[13px] leading-snug text-muted">Vos données restent privées. Martin, qui gère l'app, peut techniquement y accéder.</p>
+      <p className="mt-auto pt-8 text-center text-[13px] leading-snug text-muted">Vos données restent privées. Martin, qui gère l’app, peut techniquement y accéder.</p>
 
-      <p className="mt-auto pt-8 text-center text-[13px] text-muted">Une seule connexion : l'app reste ouverte ensuite.</p>
+      <p className="mt-auto pt-8 text-center text-[13px] text-muted">Une seule connexion : l’app reste ouverte ensuite.</p>
     </main>
   )
 }

@@ -5,7 +5,7 @@ describe('questionnaire : prochaine séance avec l’éducateur', () => {
   const today = '2026-10-14'
   it('crée le rendez-vous dans Santé, avec son nom et l’heure', () => {
     expect(trainerSession([], { date: '2026-10-20', time: '10:30', name: 'Claire' }, today)).toEqual({ title: 'Séance avec Claire', type: 'educateur', date: '2026-10-20', time: '10:30', recurrence: 'none', done: false })
-    expect(trainerSession([], { date: '2026-10-20' }, today)?.title).toBe("Séance avec l'éducateur")
+    expect(trainerSession([], { date: '2026-10-20' }, today)?.title).toBe("Séance avec l’éducateur")
   })
 
   it('rien sans date, pour une date passée, ou si la séance existe déjà', () => {

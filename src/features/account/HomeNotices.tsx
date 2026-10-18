@@ -40,7 +40,7 @@ export function PasswordPrompt() {
   )
 }
 
-/** Dans le navigateur seulement : « Ajoutez Billy à votre écran d'accueil », fermable, revient au plus tous les 7 jours. */
+/** Dans le navigateur seulement : « Ajoutez Billy à votre écran d’accueil », fermable, revient au plus tous les 7 jours. */
 export function InstallBanner() {
   const [visible, setVisible] = useState(() => showInstallBanner(isStandalone(), dismissedAt(), Date.now()))
   if (!visible) return null
@@ -48,13 +48,13 @@ export function InstallBanner() {
     try {
       localStorage.setItem(BANNER_KEY, String(Date.now()))
     } catch {
-      // Stockage indisponible : le bandeau reviendra à la prochaine ouverture, ce n'est pas grave.
+      // Stockage indisponible : le bandeau reviendra à la prochaine ouverture, ce n’est pas grave.
     }
     setVisible(false)
   }
   return (
     <aside className="flex items-center gap-2 rounded-[18px] border border-solid border-divider bg-surface py-1.5 pr-1.5 pl-4">
-      <span className="flex-1 text-[15px] leading-snug">Ajoutez Billy à votre écran d'accueil</span>
+      <span className="flex-1 text-[15px] leading-snug">Ajoutez Billy à votre écran d’accueil</span>
       <Link to="/installer" className="btn btn-outline min-h-11 shrink-0 px-3.5 text-[15px]">
         Comment ?
       </Link>

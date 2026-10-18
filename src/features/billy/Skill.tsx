@@ -17,7 +17,7 @@ import { DogPhoto } from '../shop/DogPhoto'
 import { BossIcon } from '../training/BossIcon'
 import { place } from '../../lib/garden'
 
-// Le sentier, dans un repère de 390 × 760 : l'étape 1 en bas, le trophée en haut.
+// Le sentier, dans un repère de 390 × 760 : l’étape 1 en bas, le trophée en haut.
 const W = 390
 const H = 760
 const NODES = [
@@ -73,7 +73,7 @@ export default function Skill() {
 }
 
 /**
- * Le chemin d'une compétence : un sentier de jeu, le chien posé sur l'étape en cours, un trophée au bout. Aucun numéro.
+ * Le chemin d’une compétence : un sentier de jeu, le chien posé sur l’étape en cours, un trophée au bout. Aucun numéro.
  * `overlay` : ouvert par-dessus un autre écran (pastille « Pour : … ») pour voir où il en est, sans quitter la saisie.
  */
 export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack: () => void; overlay?: boolean }) {
@@ -83,7 +83,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
   const back = onBack
   const [opened, setOpened] = useState<number | null>(null)
 
-  // On arrive sur l'étape en cours, là où Billy est posé.
+  // On arrive sur l’étape en cours, là où Billy est posé.
   useEffect(() => {
     document.getElementById('etape-en-cours')?.scrollIntoView({ block: 'center' })
   }, [id])
@@ -92,7 +92,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
   if (!skill) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="text-[17px] text-muted">Cette compétence n'existe pas.</p>
+        <p className="text-[17px] text-muted">Cette compétence n’existe pas.</p>
         <button type="button" onClick={back} className="btn btn-main">
           Retour
         </button>
@@ -107,13 +107,13 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
   const current = progress.level + 1
   const left = remaining(progress)
   const minutes = sessionMinutes(dog.birthDate, today)
-  // Une étape cochée au questionnaire ou avec « sait déjà faire ça » n'a pas de date.
+  // Une étape cochée au questionnaire ou avec « sait déjà faire ça » n’a pas de date.
   const whenOf = (step: number) => {
     const date = progress.preApp?.includes(step) ? undefined : xpLog.find((e) => e.id === `palier-${skill.id}-${step}`)?.date
     return date ? formatLong(date).replace(/ \d{4}$/, '') : 'Il savait déjà le faire'
   }
 
-  // Cocher ou décocher : une correction volontaire, qui recalcule le niveau. « Annuler » remet l'état d'avant.
+  // Cocher ou décocher : une correction volontaire, qui recalcule le niveau. « Annuler » remet l’état d’avant.
   const setChecked = (step: number, checked: boolean) => {
     setOpened(null)
     const { changed, undo } = setStepChecked(skill.id, stored, step, checked)
@@ -227,10 +227,10 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
         <div className="mx-auto flex max-w-[430px] flex-col gap-2 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           <Link to={`/exercice?competence=${skill.id}`} className="btn btn-main min-h-[58px] text-[18px]">
             <TargetIcon size={22} />
-            S'entraîner · {minutes} min
+            S’entraîner · {minutes} min
           </Link>
           <Link to={`/noter?depuis=competence&competences=${skill.id}`} className="flex min-h-12 items-center justify-center rounded-full border-2 border-solid text-[17px] font-bold no-underline" style={{ borderColor: territory.color, color: territory.color }}>
-            Déjà fait aujourd'hui ? Le noter
+            Déjà fait aujourd’hui ? Le noter
           </Link>
         </div>
       </div>

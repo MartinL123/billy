@@ -10,9 +10,9 @@ export type RoutePoint = [number, number]
 export type RouteMomentType = 'peur' | 'grogne' | 'rencontre' | 'jeu' | 'marque' | 'rappel' | 'detendu' | 'note'
 
 /**
- * Les repères d'une balade (trajets.md § 3, complétés par la fonction « Balades ») : « A eu peur » devient
+ * Les repères d’une balade (trajets.md § 3, complétés par la fonction « Balades ») : « A eu peur » devient
  * « Moment de stress », « A marqué » devient « Pipi » (les anciens moments gardent leur identifiant).
- * Couleurs : blanc lisible dessus (contraste ≥ 3:1 pour l'icône).
+ * Couleurs : blanc lisible dessus (contraste ≥ 3:1 pour l’icône).
  */
 export const ROUTE_MOMENTS: { id: RouteMomentType; label: string; color: string }[] = [
   { id: 'peur', label: 'Moment de stress', color: '#C4423A' },
@@ -43,7 +43,7 @@ export interface Route {
   /** Ancien « trajet habituel » repris (avant le 17 octobre) : gardé en lecture. */
   savedRouteId?: string
   moments: RouteMoment[]
-  /** Balade importée d'un fichier GPX (Strava, montre) : ses heures de début et de fin. */
+  /** Balade importée d’un fichier GPX (Strava, montre) : ses heures de début et de fin. */
   source?: 'gpx'
   startTime?: string
   endTime?: string
@@ -74,7 +74,7 @@ export function simplify(points: RoutePoint[]): RoutePoint[] {
   return out
 }
 
-/** Distance d'un point au trajet (au segment le plus proche), en mètres, sur de petites distances. */
+/** Distance d’un point au trajet (au segment le plus proche), en mètres, sur de petites distances. */
 export function distanceToRoute(p: { lat: number; lng: number }, points: RoutePoint[]): number {
   if (points.length === 0) return Infinity
   if (points.length === 1) return distanceMeters(p, at(points[0]!))
@@ -123,7 +123,7 @@ export const hasReaction = (reactions: Reaction[] | undefined, reaction: Reactio
 /** Un spot marqué ce jour-là à moins de 60 m du trajet devient un moment « A marqué » (communaute.md § 5). */
 export const MARK_NEAR = 60
 
-/** Ajoute les « A marqué » manquants ; renvoie le même trajet s'il n'y a rien à ajouter. */
+/** Ajoute les « A marqué » manquants ; renvoie le même trajet s’il n’y a rien à ajouter. */
 export function withMarkMoments(route: Route, spots: { lat: number; lng: number; name: string }[]): Route {
   const added = spots
     .filter((s) => distanceToRoute(s, route.points) <= MARK_NEAR)
@@ -132,14 +132,14 @@ export function withMarkMoments(route: Route, spots: { lat: number; lng: number;
   return added.length ? { ...route, moments: [...route.moments, ...added] } : route
 }
 
-/** Pour la carte « Ses balades » (trajets.md § 4) : les peurs et grognes d'un côté, les réussites de l'autre. */
+/** Pour la carte « Ses balades » (trajets.md § 4) : les peurs et grognes d’un côté, les réussites de l’autre. */
 export const isHardMoment = (m: RouteMoment) => m.type === 'peur' || m.type === 'grogne'
-/** Une note libre n'est ni une peur ni une réussite. */
+/** Une note libre n’est ni une peur ni une réussite. */
 export const isGoodMoment = (m: RouteMoment) => !isHardMoment(m) && m.type !== 'note'
 export const HARD_COLOR = '#C4423A'
 export const GOOD_COLOR = '#1E5A50'
 
-/** Les trajets du mois (« 2026-10 »), les plus anciens d'abord. */
+/** Les trajets du mois (« 2026-10 »), les plus anciens d’abord. */
 export function walksOfMonth(entries: { date: ISODate; route?: StoredRoute }[], month: string): Route[] {
   return entries
     .filter((e) => e.route && e.date.startsWith(month))

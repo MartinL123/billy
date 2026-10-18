@@ -17,15 +17,15 @@ export function useQuest() {
     const skips = Math.min(MAX_SKIPS, stored?.skips ?? 0)
     const active = activeSkills(dog.activeSkills, dog.traits ?? [], bossProgress)
     const rests = xpLog.filter((e) => e.kind === 'repos').map((e) => e.date)
-    // La quête évite l'exercice du défi de la semaine : deux choses différentes à faire.
+    // La quête évite l’exercice du défi de la semaine : deux choses différentes à faire.
     const challenge = weekChallenge(weekId(today), bossProgress)
     const avoidExerciseId = currentExercise(challenge.bossId, bossProgress[challenge.bossId]?.level ?? 0)?.exercise.id
-    // Le premier jour du compte : la plus ancienne quête du jour enregistrée (faite ou « autre idée »), sinon aujourd'hui.
-    // (Les balades importées ou les étapes déjà acquises peuvent être datées d'avant le compte.)
+    // Le premier jour du compte : la plus ancienne quête du jour enregistrée (faite ou « autre idée »), sinon aujourd’hui.
+    // (Les balades importées ou les étapes déjà acquises peuvent être datées d’avant le compte.)
     const firstDay = [...dailyQuests.map((q) => q.date), today].sort()[0]
     const quest = dailyQuest({ today, active, progress: bossProgress, moments: entries, rests, avoidExerciseId, firstDay }, skips)
     const minutes = sessionMinutes(dog.birthDate, today)
-    // Une fois faite, la carte garde l'exercice réalisé, même si l'étape a avancé depuis.
+    // Une fois faite, la carte garde l’exercice réalisé, même si l’étape a avancé depuis.
     const doneName = stored?.done ? (stored.kind === 'repos' ? 'Journée de repos' : exerciseById(stored.exerciseId ?? '')?.name) : undefined
     const mission = doneName ? { title: doneName, detail: 'Bravo à vous deux.' } : questMission(quest, minutes)
     return { quest: stored?.done && stored.bossId ? { ...quest, bossId: stored.bossId } : quest, mission, note: questNote(quest, minutes), minutes, active, skips, done: Boolean(stored?.done), canSkip: skips < MAX_SKIPS }

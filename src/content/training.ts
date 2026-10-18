@@ -2,7 +2,7 @@
 // pas dans Firestore. Seuls le profil (traits) et la progression sont propres au chien.
 //
 // Les critères des paliers et les liens conseillés sont des hypothèses de conception,
-// à valider avec l'éducateur (§ 9 de la spec).
+// à valider avec l’éducateur (§ 9 de la spec).
 
 export type Stat = 'calme' | 'courage' | 'rappel' | 'focus' | 'sociabilite'
 
@@ -18,7 +18,7 @@ export type Trait = 'chiot' | 'craintif' | 'energique' | 'reactif-chiens' | 'ado
 
 export type Tier = 'fondations' | 'quotidien' | 'monde'
 
-/** Étages de l'arbre, du haut de l'écran vers le bas. */
+/** Étages de l’arbre, du haut de l’écran vers le bas. */
 export const TIERS: { id: Tier; label: string }[] = [
   { id: 'monde', label: 'Monde' },
   { id: 'quotidien', label: 'Quotidien' },
@@ -51,7 +51,7 @@ export interface Recommendation {
 export interface Boss {
   id: string
   name: string
-  /** Nom court pour l'arbre. */
+  /** Nom court pour l’arbre. */
   short: string
   goal: string
   tier: Tier
@@ -208,11 +208,11 @@ export interface Exercise {
   levels: [string, string, string, string, string]
   traits?: Trait[]
   source: { name: string; url?: string }
-  /** `false` : étapes décrites de mémoire dans la recherche, à vérifier avec l'éducateur. */
+  /** `false` : étapes décrites de mémoire dans la recherche, à vérifier avec l’éducateur. */
   verified: boolean
-  /** « Ce qu'il faut » en plus des friandises. */
+  /** « Ce qu’il faut » en plus des friandises. */
   needs?: string
-  /** Précaution affichée avec l'exercice. */
+  /** Précaution affichée avec l’exercice. */
   caution?: string
   /** Illustration (voir Illustration.tsx). */
   scene?: string
@@ -321,7 +321,7 @@ export const EXERCISES: Exercise[] = [
     source: { name: 'UC Davis', url: 'https://www.vetmed.ucdavis.edu/sites/g/files/dgvnsk491/files/inline-files/Loose_Leash_Walking.pdf' },
     caution: 'Pour un chien craintif, la source conseille l’avis d’un vétérinaire comportementaliste.',
   },
-  // Exercices ajoutés avec l'arbre de compétences (docs/specs/arbre-competences.md), à valider avec l'éducateur.
+  // Exercices ajoutés avec l’arbre de compétences (docs/specs/arbre-competences.md), à valider avec l’éducateur.
   {
     id: 'absences', name: 'Petites absences', bossIds: ['calme'], verified: false, scene: 'panier',
     needs: 'Son tapis et un os à mâcher',
@@ -367,7 +367,7 @@ export const exerciseById = (id: string) => EXERCISES.find((e) => e.id === id)
 
 export interface StepExercise {
   id: string
-  /** Réglage de l'exercice, de 1 à 5 (index dans `levels`). */
+  /** Réglage de l’exercice, de 1 à 5 (index dans `levels`). */
   level: number
 }
 
@@ -375,7 +375,7 @@ const ex = (id: string, level: number): StepExercise => ({ id, level })
 
 /**
  * Pour chaque compétence, les exercices de chacune de ses 5 étapes, avec leur réglage
- * (docs/specs/arbre-competences.md). « S'entraîner » et la quête du jour s'en servent.
+ * (docs/specs/arbre-competences.md). « S’entraîner » et la quête du jour s’en servent.
  * Pour les compétences de peur, le réglage reste toujours au calme et à distance.
  */
 export const STEP_EXERCISES: Record<string, [StepExercise[], StepExercise[], StepExercise[], StepExercise[], StepExercise[]]> = {
@@ -391,7 +391,7 @@ export const STEP_EXERCISES: Record<string, [StepExercise[], StepExercise[], Ste
   congeneres: [[ex('sons', 1)], [ex('lat', 2)], [ex('engage-disengage', 1)], [ex('engage-disengage', 3), ex('demi-tour', 4)], [ex('engage-disengage', 4), ex('demi-tour', 4)]],
 }
 
-/** Exercices de l'étape en cours (1 à 5) d'une compétence. Compétence maîtrisée : ceux de la dernière étape, en révision. */
+/** Exercices de l’étape en cours (1 à 5) d’une compétence. Compétence maîtrisée : ceux de la dernière étape, en révision. */
 export function stepExercises(bossId: string, step: number): StepExercise[] {
   return STEP_EXERCISES[bossId]?.[Math.min(MAX_LEVEL, Math.max(1, step)) - 1] ?? []
 }
@@ -401,7 +401,7 @@ export function stepExercises(bossId: string, step: number): StepExercise[] {
 export interface TraitInfo {
   id: Trait
   label: string
-  /** Boss mis en avant, dans l'ordre. */
+  /** Boss mis en avant, dans l’ordre. */
   bossIds: string[]
   /** Garde-fous affichés dans le profil et pendant les séances. */
   guards: string[]

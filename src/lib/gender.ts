@@ -1,8 +1,17 @@
 // Accord au féminin (audit R-006) : pour une chienne, les textes qui parlent du chien passent au féminin.
 // Les textes sont écrits au masculin ; on ne transforme que ceux qui parlent du chien (jamais ce que l’utilisateur a écrit).
 
+/**
+ * Accord au féminin désactivé pour le moment (décision de Martin, 18 oct. 2026) : tous les textes restent au masculin,
+ * même pour une chienne. Le code est gardé : passer à `true` pour le réactiver (tickets R-026 et R-027 dans Notion).
+ */
+export const FEMININE_TEXTS = false
+
 /** « Femelle » dans le profil. */
-export const isFemale = (sex: string | undefined) => (sex ?? '').trim().toLowerCase() === 'femelle'
+export const isFemaleSex = (sex: string | undefined) => (sex ?? '').trim().toLowerCase() === 'femelle'
+
+/** Faut-il accorder les textes au féminin ? Jamais tant que `FEMININE_TEXTS` est à `false`. */
+export const isFemale = (sex: string | undefined) => FEMININE_TEXTS && isFemaleSex(sex)
 
 // Participes et adjectifs qui s’accordent avec le chien, dans la phrase où il est le sujet.
 const ADJECTIVES: [string, string][] = [

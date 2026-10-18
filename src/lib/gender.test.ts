@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { feminize, feminizeImplicit, forSex, isFemale, ofName } from './gender'
+import { feminize, feminizeImplicit, forSex, isFemale, isFemaleSex, ofName } from './gender'
 
 describe('accord au féminin (audit R-006)', () => {
   it('passe le chien au féminin', () => {
@@ -20,10 +20,13 @@ describe('accord au féminin (audit R-006)', () => {
     expect(feminize('Ilona joue')).toBe('Ilona joue')
   })
   it('masculin par défaut', () => {
-    expect(isFemale('Femelle')).toBe(true)
-    expect(isFemale('Mâle')).toBe(false)
+    expect(isFemaleSex('Femelle')).toBe(true)
+    expect(isFemaleSex('Mâle')).toBe(false)
+    // Accord au féminin désactivé : tout reste au masculin, même pour une chienne.
+    expect(isFemale('Femelle')).toBe(false)
     expect(forSex('Est-il stérilisé ?', undefined)).toBe('Est-il stérilisé ?')
-    expect(forSex('Est-il stérilisé ?', 'Femelle')).toBe('Est-elle stérilisée ?')
+    expect(forSex('Est-il stérilisé ?', 'Femelle')).toBe('Est-il stérilisé ?')
+    expect(feminize('Est-il stérilisé ?')).toBe('Est-elle stérilisée ?')
   })
 })
 

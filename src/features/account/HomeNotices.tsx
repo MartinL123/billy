@@ -40,6 +40,9 @@ export function PasswordPrompt() {
   )
 }
 
+/** Le bandeau d’installation est-il à montrer ? (l’accueil n’affiche alors pas l’encadré du mot de passe) */
+export const installBannerVisible = () => showInstallBanner(isStandalone(), dismissedAt(), Date.now())
+
 /** Dans le navigateur seulement : « Ajoutez Billy à votre écran d’accueil », fermable, revient au plus tous les 7 jours. */
 export function InstallBanner() {
   const [visible, setVisible] = useState(() => showInstallBanner(isStandalone(), dismissedAt(), Date.now()))

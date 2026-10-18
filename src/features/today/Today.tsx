@@ -17,7 +17,7 @@ import { lateLabel } from '../../lib/events'
 import { nextVetVisit } from '../../lib/health'
 import { walkItems } from '../../lib/walkList'
 import { formatHour, walkTimes } from '../../lib/walks'
-import { InstallBanner, PasswordPrompt } from '../account/HomeNotices'
+import { InstallBanner, installBannerVisible, PasswordPrompt } from '../account/HomeNotices'
 import { DogPhoto } from '../shop/DogPhoto'
 import { Illustration } from '../training/Illustration'
 import { useQuest } from './useQuest'
@@ -178,13 +178,19 @@ export default function Today() {
   return (
     <div className="flex flex-col gap-4 px-5">
       <header className="flex items-center gap-3">
-        <Link to="/billy" aria-label={`Voir ${dog.name}`} className="shrink-0 overflow-hidden rounded-full border-[3px] border-solid border-milestone no-underline">
-          <DogPhoto size={52} />
+        {/* La photo et le nom forment un seul bouton vers l’écran du chien (audit R-009). */}
+        <Link to="/billy" className="flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-[20px] text-text no-underline">
+          <span className="shrink-0 overflow-hidden rounded-full border-[3px] border-solid border-milestone">
+            <DogPhoto size={52} />
+          </span>
+          <span className="flex min-w-0 flex-col">
+            <span className="text-[15px] font-medium text-muted">{formatDayHeading(today)}</span>
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="truncate font-display text-[24px] leading-tight font-extrabold">{dog.name}</span>
+              <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-0.5 text-[15px] font-bold text-primary-dark">Son chemin ›</span>
+            </span>
+          </span>
         </Link>
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="text-[15px] font-medium text-muted">{formatDayHeading(today)}</span>
-          <span className="font-display text-[24px] leading-tight font-extrabold">Bonjour</span>
-        </span>
         <Link to="/boutique" aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[17px] font-extrabold text-gold-dark no-underline">
           <BoneIcon size={20} />
           {balance(bones)}
@@ -208,11 +214,12 @@ export default function Today() {
             Ensuite
           </h2>
           {next.map((line, i) => (
-            <Link key={line.key} to={line.to} className={`flex min-h-14 items-center gap-3 px-4 py-2.5 text-text no-underline ${i ? 'border-t border-divider' : ''}`}>
-              <span className="w-16 shrink-0 text-[15px] font-bold text-primary">{line.when}</span>
+            // Colonne de gauche fixe : le libellé passe à la ligne au lieu de chevaucher le titre (audit R-003).
+            <Link key={line.key} to={line.to} className={`grid min-h-14 grid-cols-[84px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 text-text no-underline ${i ? 'border-t border-divider' : ''}`}>
+              <span className={`text-[15px] leading-tight font-bold break-words ${line.when === 'En retard' ? 'text-danger' : 'text-primary'}`}>{line.when}</span>
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-[17px] font-semibold">{line.title}</span>
-                <span className="text-[15px] text-muted">{line.detail}</span>
+                <span className={`text-[15px] ${line.when === 'En retard' ? 'font-semibold text-danger' : 'text-muted'}`}>{line.detail}</span>
               </span>
               <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
             </Link>
@@ -220,18 +227,21 @@ export default function Today() {
         </section>
       )}
 
-      <Link to="/noter" className="flex min-h-12 items-center justify-center gap-2 text-[17px] font-bold text-primary no-underline">
-        <PlusIcon size={20} />
-        Noter un souvenir
-      </Link>
+      {/* « Noter un souvenir » une seule fois : en bouton discret, sauf si c’est déjà le bouton de la carte (audit R-023). */}
+      {content.action?.to !== '/noter' && (
+        <Link to="/noter" className="btn btn-outline min-h-12 self-center gap-2 px-5">
+          <PlusIcon size={20} />
+          Noter un souvenir
+        </Link>
+      )}
       {!questionnaire.complete && (
-        <Link to="/questionnaire" className="text-center text-[15px] font-semibold text-muted underline">
+        <Link to="/questionnaire" className="btn btn-quiet min-h-11 self-center px-4 text-[15px] text-muted">
           Terminer le questionnaire de départ
         </Link>
       )}
 
-      <PasswordPrompt />
-      <InstallBanner />
+      {/* Un seul encadré à la fois : l’installation d’abord, le mot de passe ensuite (audit R-024). */}
+      {installBannerVisible() ? <InstallBanner /> : <PasswordPrompt />}
     </div>
   )
 }

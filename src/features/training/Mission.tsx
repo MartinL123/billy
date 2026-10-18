@@ -69,7 +69,7 @@ export default function Mission() {
       {finished ? (
         <main className="flex flex-1 flex-col gap-4 pt-10">
           <h1 className="font-display text-[30px] leading-tight font-extrabold">Ça s’est bien passé ?</h1>
-          <p className="text-[17px] text-muted">Une seule réponse, {dog.name} s’adapte.</p>
+          <p className="text-[17px] text-muted">Une seule réponse, la prochaine mission s’adapte.</p>
           <div className="grid grid-cols-3 gap-2.5">
             {FEELINGS.map(({ value, label }) => (
               <button key={value} type="button" onClick={() => finish(value)} className="flex h-[120px] flex-col items-center justify-center gap-2 rounded-[22px] border-2 border-solid border-border bg-surface text-[17px] font-bold text-text">

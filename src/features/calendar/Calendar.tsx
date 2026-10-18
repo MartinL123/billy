@@ -93,7 +93,6 @@ export default function Calendar() {
           <button type="button" onClick={() => setEventDone(next, true)} className="btn btn-main min-h-[54px]">
             C’est fait
           </button>
-          <p className="text-[15px] text-muted">{dog.name} vous le rappellera le jour même.</p>
         </section>
       ) : (
         <section className="card flex flex-col items-start gap-3 p-4">

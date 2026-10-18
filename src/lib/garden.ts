@@ -1,4 +1,4 @@
-import { feminize } from './gender'
+import { feminize, feminizeImplicit } from './gender'
 
 // Sans jardin ni cour (questionnaire : « Avez-vous un jardin ou une cour ? » → Non), les textes du dressage
 // parlent de « couloir, palier, parc vide » à la place (questionnaire-depart.md, partie 3).
@@ -34,4 +34,10 @@ export const setFemale = (value: boolean) => {
 export const place = (text: string): string => {
   const t = noGarden ? withoutGarden(text) : text
   return female ? feminize(t) : t
+}
+
+/** Pareil, pour une phrase dont le chien est le sujet sans le dire (objectifs, étapes des compétences). */
+export const placeSkill = (text: string): string => {
+  const t = noGarden ? withoutGarden(text) : text
+  return female ? feminizeImplicit(t) : t
 }

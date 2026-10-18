@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { feminize, forSex, isFemale, ofName } from './gender'
+import { feminize, feminizeImplicit, forSex, isFemale, ofName } from './gender'
 
 describe('accord au féminin (audit R-006)', () => {
   it('passe le chien au féminin', () => {
@@ -35,5 +35,11 @@ describe('élision devant un nom (audit R-007)', () => {
     expect(ofName('Billy')).toBe('de Billy')
     expect(ofName('Yoda')).toBe('de Yoda')
     expect(ofName('Yvette')).toBe('d’Yvette')
+  })
+})
+
+describe('sujet implicite', () => {
+  it('accorde les adjectifs d’un objectif', () => {
+    expect(feminizeImplicit('Se pose sur son tapis, reste serein seul quelques minutes')).toBe('Se pose sur son tapis, reste sereine seule quelques minutes')
   })
 })

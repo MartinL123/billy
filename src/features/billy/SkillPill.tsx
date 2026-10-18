@@ -5,7 +5,7 @@ import { SKILLS, territoryOf } from '../../content/phrases'
 import { BossIcon } from '../training/BossIcon'
 import { bossById } from '../../content/training'
 import { SkillPath } from './Skill'
-import { place } from '../../lib/garden'
+import { placeSkill } from '../../lib/garden'
 
 /**
  * « Revient quand on l’appelle… » : une pastille-bouton qui ouvre le chemin de la compétence par-dessus l’écran en cours.
@@ -27,7 +27,7 @@ export function SkillPill({ bossId, onDark = false }: { bossId: string; onDark?:
 
   if (!skill) return null
   // Spec V4 § 8 : une phrase plutôt qu’un nom de catégorie (« Répond à son nom… » plutôt que « Le Lien »).
-  const goal = place((bossById(bossId)?.goal ?? skill.name).replace(/\.$/, ''))
+  const goal = placeSkill((bossById(bossId)?.goal ?? skill.name).replace(/\.$/, ''))
   return (
     <>
       <button

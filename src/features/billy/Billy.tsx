@@ -11,7 +11,7 @@ import { formatAgeShort } from '../../lib/age'
 import { balance } from '../../lib/bones'
 import { reactionsFromFears } from '../../lib/questionnaire'
 import { useBack } from '../../lib/useBack'
-import { place } from '../../lib/garden'
+import { place, placeSkill } from '../../lib/garden'
 import { useToday } from '../../lib/useToday'
 import { DogPhoto } from '../shop/DogPhoto'
 
@@ -59,7 +59,7 @@ export default function Billy() {
             return (
               <Link key={id} to={`/competence/${id}`} className={`flex items-center gap-3 px-4 py-3 text-text no-underline ${i ? 'border-t border-divider' : ''}`}>
                 <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-                  <span className="text-[17px] leading-snug font-semibold">{place(goal)}</span>
+                  <span className="text-[17px] leading-snug font-semibold">{placeSkill(goal)}</span>
                   <span className="flex items-center gap-2">
                     <span className="h-2 flex-1 overflow-hidden rounded-full bg-placeholder" aria-hidden="true">
                       <span className="block h-full rounded-full bg-primary" style={{ width: `${(level / MAX_LEVEL) * 100}%` }} />

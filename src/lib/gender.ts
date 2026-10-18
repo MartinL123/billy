@@ -38,6 +38,11 @@ const ADJECTIVES: [string, string][] = [
   ['revenu', 'revenue'],
   ['parti', 'partie'],
   ['passé', 'passée'],
+  ['serein', 'sereine'],
+  ['attentif', 'attentive'],
+  ['concentré', 'concentrée'],
+  ['posé', 'posée'],
+  ['immobile', 'immobile'],
 ]
 const ADJ = new Map(ADJECTIVES)
 const WORD = /[A-Za-zÀ-ÿ]+/g
@@ -75,6 +80,14 @@ export function feminize(text: string): string {
     .replace(/\bné le\b/g, 'née le')
     .replace(/(?<![A-Za-zÀ-ÿ])(Stérilisé|Non stérilisé|Vacciné|Non vacciné|Adopté|Pucé)(?![A-Za-zÀ-ÿ])/g, (w) => `${w}e`)
     .replace(/l’avez-vous adopté(?![A-Za-zÀ-ÿ])/g, 'l’avez-vous adoptée')
+}
+
+/**
+ * Une phrase dont le chien est le sujet sans le dire (« Reste serein seul quelques minutes ») : tous les adjectifs
+ * connus s'accordent, en plus des règles de `feminize`.
+ */
+export function feminizeImplicit(text: string): string {
+  return feminize(text).replace(WORD, (w) => (ADJ.has(w.toLowerCase()) ? keepCase(w, ADJ.get(w.toLowerCase())!) : w))
 }
 
 /** Le texte accordé selon le sexe du chien (masculin par défaut, tel qu’il est écrit). */

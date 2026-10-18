@@ -1,5 +1,5 @@
 import { bossById, BOSSES, type Boss, type Tier } from './training'
-import { place } from '../lib/garden'
+import { placeSkill as place } from '../lib/garden'
 
 // Ce que voit le joueur (docs/specs/spec-v3-simplification.md) : chaque étape est une phrase concrète,
 // jamais un numéro. Les phrases commencent par un verbe : « Billy revient… », « Prochaine étape : revient… ».

@@ -42,7 +42,7 @@ interface FlairNativePlugin {
   currentWalk(): Promise<CurrentWalk>
   keepAwake(options: { on: boolean }): Promise<void>
   addListener(event: 'walkPoint', listener: (point: GpsPoint) => void): Promise<PluginListenerHandle>
-  addListener(event: 'walkStopped', listener: () => void): Promise<PluginListenerHandle>
+  addListener(event: 'walkStopped', listener: (data: { stoppedAt?: string }) => void): Promise<PluginListenerHandle>
 }
 
 export const FlairNative = registerPlugin<FlairNativePlugin>('FlairNative')

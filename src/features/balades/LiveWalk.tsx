@@ -44,7 +44,8 @@ export default function LiveWalk() {
   const [phase, setPhase] = useState<Phase>('starting')
   const [startedAt, setStartedAt] = useState<string>()
   const [points, setPoints] = useState<GpsPoint[]>([])
-  const [stopped, setStopped] = useState(false)
+  /** Arrêtée toute seule après 3 h (R-043) : le chrono se fige à cette heure-là. */
+  const [stoppedAt, setStoppedAt] = useState<string>()
   const [now, setNow] = useState(Date.now())
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [failure, setFailure] = useState<Failure>()
@@ -116,14 +117,15 @@ export default function LiveWalk() {
         setPoints(current.points)
       }
       // « Terminer » depuis l’accueil, ou une balade déjà arrêtée qui attend d’être enregistrée (R-042).
-      if (current.active && (params.get('terminer') || current.stopped)) return finish()
+      // (Une balade arrêtée seule après 3 h attend le choix : « Terminer » ou « Ne pas la garder », R-043.)
+      if (current.active && (params.get('terminer') || (current.stopped && !current.autoStopped))) return finish()
       if (!current.active && !params.get('depart')) return navigate('/', { replace: true })
       try {
         const walk = current.recording || current.autoStopped ? current : await FlairNative.startWalk()
         if (!alive) return
         setStartedAt(walk.startedAt)
         setPoints(walk.points)
-        setStopped(Boolean(walk.autoStopped))
+        setStoppedAt(walk.autoStopped ? walk.stoppedAt : undefined)
         setPhase('walking')
       } catch {
         if (alive) setPhase('denied')
@@ -139,7 +141,7 @@ export default function LiveWalk() {
   // Les points en direct, l’arrêt automatique (3 h), l’écran allumé, le chrono.
   useEffect(() => {
     if (!isNative()) return
-    const handles = [FlairNative.addListener('walkPoint', (point) => setPoints((list) => [...list, point])), FlairNative.addListener('walkStopped', () => setStopped(true))]
+    const handles = [FlairNative.addListener('walkPoint', (point) => setPoints((list) => [...list, point])), FlairNative.addListener('walkStopped', (data) => setStoppedAt(data.stoppedAt ?? new Date().toISOString()))]
     FlairNative.keepAwake({ on: true }).catch(() => undefined)
     const timer = window.setInterval(() => setNow(Date.now()), 1000)
     // De retour au premier plan : les points enregistrés écran verrouillé.
@@ -184,10 +186,10 @@ export default function LiveWalk() {
         <ExplorerMap cells={cells} tracks={tracks} me={here} center={here} focus={here} places={[]} satellite={false} three={false} dogName={dog.name} />
       </div>
       <section aria-label="Balade en cours" className="flex flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
-        <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{stopped ? 'Arrêtée après 3 h' : 'Balade en cours'}</span>
+        <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{stoppedAt ? 'Arrêtée après 3 h' : 'Balade en cours'}</span>
         <div className="flex items-end justify-between gap-3">
           <span className="font-display text-[44px] leading-none font-extrabold tabular-nums" aria-label="Durée">
-            {startedAt ? chrono(elapsedMs(startedAt, now)) : '0:00'}
+            {startedAt ? chrono(elapsedMs(startedAt, stoppedAt ? Date.parse(stoppedAt) : now)) : '0:00'}
           </span>
           <span className="text-[22px] font-extrabold text-primary" aria-label="Distance">
             {formatRouteDistance(gpsDistance(points))}
@@ -207,12 +209,12 @@ export default function LiveWalk() {
           </>
         ) : (
           <>
-            <p className="text-[15px] text-[#3F4946]">Vous pouvez verrouiller l’iPhone : le GPS continue.</p>
+            <p className="text-[15px] text-[#3F4946]">{stoppedAt ? 'L’enregistrement s’est arrêté tout seul au bout de 3 h.' : 'Vous pouvez verrouiller l’iPhone : le GPS continue.'}</p>
             <button type="button" onClick={() => void finish()} disabled={phase !== 'walking'} className="btn btn-main min-h-[60px] text-[19px]">
               {phase === 'saving' ? 'Enregistrement…' : 'Terminer'}
             </button>
             <button type="button" onClick={() => setConfirmCancel(true)} disabled={phase !== 'walking'} className="btn btn-quiet min-h-11 self-center px-4 text-[15px]">
-              Annuler
+              {stoppedAt ? 'Ne pas la garder' : 'Annuler'}
             </button>
           </>
         )}

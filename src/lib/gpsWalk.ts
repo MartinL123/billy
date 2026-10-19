@@ -15,6 +15,9 @@ export interface GpsPoint {
 export const MIN_DISTANCE_M = 100
 export const MIN_DURATION_MS = 2 * 60 * 1000
 
+/** Au-delà de 3 h, l'enregistrement s'arrête seul (même règle que `FlairNativePlugin.swift`). */
+export const MAX_WALK_MS = 3 * 3600 * 1000
+
 /** Durée écoulée depuis le départ, en millisecondes (jamais négative). */
 export const elapsedMs = (startedAt: string, now: number) => Math.max(0, now - Date.parse(startedAt))
 

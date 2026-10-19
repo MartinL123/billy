@@ -226,10 +226,21 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
 
     private func begin(_ call: CAPPluginCall) {
         guard let manager = location else { return }
-        if readState() == nil { writeState(["startedAt": FlairNativePlugin.format(Date())]) }
-        else if var state = readState() {
-            state["autoStopped"] = false
-            writeState(state)
+        if var state = readState() {
+            // Une balade déjà arrêtée (« Terminer », ou plus de 3 h) ne repart jamais (R-043) : elle attend d'être
+            // enregistrée ou effacée.
+            let started = (state["startedAt"] as? String).flatMap(FlairNativePlugin.parseDate) ?? Date()
+            if state["stoppedAt"] != nil || Date().timeIntervalSince(started) > maxDuration {
+                if state["stoppedAt"] == nil {
+                    state["autoStopped"] = true
+                    state["stoppedAt"] = FlairNativePlugin.format(started.addingTimeInterval(maxDuration))
+                    writeState(state)
+                }
+                call.resolve(walkSummary())
+                return
+            }
+        } else {
+            writeState(["startedAt": FlairNativePlugin.format(Date())])
         }
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.distanceFilter = 5
@@ -250,10 +261,13 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         }
         if Date().timeIntervalSince(started) > maxDuration {
             stopUpdates()
+            // Le chrono se fige à l'heure de l'arrêt (R-043) : départ + 3 h.
+            let stoppedAt = FlairNativePlugin.format(started.addingTimeInterval(maxDuration))
             var stopped = state
             stopped["autoStopped"] = true
+            stopped["stoppedAt"] = stoppedAt
             writeState(stopped)
-            notifyListeners("walkStopped", data: [:])
+            notifyListeners("walkStopped", data: ["stoppedAt": stoppedAt])
         }
     }
 

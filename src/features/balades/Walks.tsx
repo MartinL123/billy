@@ -81,7 +81,8 @@ export default function Walks() {
       <main className="flex flex-col gap-4 px-5 pt-1 pb-[calc(env(safe-area-inset-bottom)+120px)]">
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-[28px] leading-tight font-extrabold">Ses balades</h1>
-          <p className="text-[17px] text-muted">{walksSummary(shown)}</p>
+          {/* Sans balade, pas de « 0 balade · 0,0 km » au-dessus de l’état vide (R-036). */}
+          {!(rows.length === 0 && filter === 'toutes') && <p className="text-[17px] text-muted">{walksSummary(shown)}</p>}
         </div>
         {rows.length === 0 && filter === 'toutes' ? (
           // Rien du tout : un vrai état vide, qui propose d’importer (audit R-010).

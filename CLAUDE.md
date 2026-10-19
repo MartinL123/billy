@@ -2,7 +2,8 @@
 
 PWA mobile-first pour suivre Billy, croisé épagneul-labrador né le 13/05/2026 :
 calendrier santé, journal photos, documents, puis programme d'entraînement.
-Utilisateur unique (moi), sur **iPhone**, app installée sur l'écran d'accueil.
+Produit conçu pour des inconnus (personas Martin, Josiane, Léo, les Moreau ; voir `docs/design/contexte-flair.md`),
+sur **iPhone**, app installée sur l'écran d'accueil ; les comptes restent pour l'instant limités et créés par moi.
 
 **Suivi des tickets : le kanban Notion « My professional life », filtre Projet = Billy** (https://app.notion.com/p/Kanban-3a5fb2fe22de80148c4fc02c248000af). À lire en premier, à tenir à jour.
 Titre d'un ticket : `R-xxx · …` (remarque d'audit, garde son numéro) ou `T-xxx · …` (autre tâche). Propriétés : Status, Responsable (Martin / Claude), Priorité, Projet = Billy. Chaque ticket a une icône emoji liée à son sujet (🌫️ brouillard, 💉 vaccin, 📱 iOS…).
@@ -22,6 +23,7 @@ Ne jamais passer en Done ce qui doit être vérifié sur l'iPhone de Martin. Les
   Le service worker reste actif (hors ligne), sauf pour le paquet de secours embarqué (`capacitor://`).
 
 Lire avant toute nouvelle fonctionnalité (l'index complet est dans `docs/README.md`) :
+- **`docs/design/contexte-flair.md` : le contexte du produit (personas, règles, décisions, où vivent les choses). À lire en premier.**
 - **`docs/specs/spec-v3-simplification.md` : la spec en cours (refonte « Billy, le jeu »). Elle fait foi sur toutes les autres en cas de divergence.**
 - `docs/specs/arbre-competences.md` : les 10 compétences, leurs 5 étapes, les exercices de chaque étape et le rythme des séances
 - `docs/specs/questionnaire-depart.md` : le questionnaire de départ, question par question
@@ -40,6 +42,7 @@ Lire avant toute nouvelle fonctionnalité (l'index complet est dans `docs/README
 - **Zones tactiles ≥ 44 px**, actions principales dans la moitié basse de l'écran (pouce).
 - **Pas d'écran vide ou d'onglet « bientôt »** : un état vide propose toujours l'action pour le remplir.
 - **Français partout**, dates au format `13 mai 2026`, âges en langage naturel (« 5 mois et 3 jours »).
+- Heures au format « 19 h » ou « 19 h 30 » (jamais « 07:00 PM ») ; espace insécable avant « ? ! : ; » (et dans « 25 min »).
 - **Hors ligne d'abord** : tout se consulte sans réseau, les ajouts se synchronisent au retour du réseau.
 - **Aucune sauvegarde manuelle** : les données vivent dans Firestore, jamais uniquement dans le navigateur.
 - **Import uniquement** : l'app n'ouvre jamais l'appareil photo. Photos et documents viennent de la photothèque ou de l'app Fichiers.

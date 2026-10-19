@@ -1,10 +1,9 @@
-import { diffDays, type ISODate } from './dates'
-import { lateLabel } from './events'
+import type { ISODate } from './dates'
 import type { WalkBudget } from './walkBudget'
-import { formatHour, timeToMinutes, walkName, WALK_SLOTS, type WalkSlot, type WalkTimes } from './walks'
+import { timeToMinutes, WALK_SLOTS, type WalkSlot, type WalkTimes } from './walks'
 
-// Aujourd’hui (spec V4 § 2) : une seule carte « À faire maintenant », choisie par une règle simple, et 2 lignes
-// « Ensuite ». L’app propose, l’utilisateur confirme.
+// Aujourd’hui (spec V4 § 2) : une seule carte « À faire maintenant », choisie par une règle simple (les lignes
+// « Ensuite » ont laissé la place aux tuiles de l’accueil, T-031). L’app propose, l’utilisateur confirme.
 
 /** Soins qui se font à la maison, à heure fixe : ils passent avant tout le reste le jour où ils sont dus. */
 const HOME_CARE = ['antiparasitaire', 'vermifuge', 'medicament', 'médicament']
@@ -78,44 +77,3 @@ export function nowCard(input: NowInput): NowCard {
   const done = WALK_SLOTS.filter((s) => input.walks.done[s.id]).length
   return done === WALK_SLOTS.length ? { kind: 'fini' } : { kind: 'soir', done }
 }
-
-/** « Prochaine sortie à 19 h : d’ici là, 3 minutes de mission. » Sans l’heure qu’il est (le téléphone l’affiche déjà). Vide s’il n’y a rien à dire. */
-export function contextLine(input: NowInput, card: NowCard): string {
-  const walk = nextWalk(input)
-  const mission = !input.mission.done && input.mission.minutes > 0 && card.kind !== 'soin' && card.kind !== 'repas' ? `${input.mission.minutes} minutes de mission` : ''
-  if (walk && walk.in > 0) return `Prochaine sortie à ${formatHour(walk.time)}${mission ? ` : d’ici là, ${mission}.` : '.'}`
-  if (mission) return `Il reste ${mission} aujourd’hui.`
-  return card.kind === 'fini' ? 'Tout est fait pour aujourd’hui.' : ''
-}
-
-export interface NextLine {
-  key: string
-  /** Prévu à une date passée : la date reste affichée à gauche, en rouge (T-010). */
-  late?: boolean
-  when: string
-  title: string
-  detail: string
-  to: string
-}
-
-/** « Ensuite » : la prochaine sortie et le prochain soin, 2 lignes au plus, sans répéter la carte du moment. */
-export function nextLines(input: NowInput, card: NowCard): NextLine[] {
-  const lines: NextLine[] = []
-  const walk = nextWalk(input)
-  const doneCount = WALK_SLOTS.filter((s) => input.walks.done[s.id]).length
-  if (walk && !(card.kind === 'sortie' && card.slot === walk.slot)) {
-    const length = input.budget ? (input.budget.next ? `${input.budget.next} min · ` : 'Juste ses besoins · ') : ''
-    lines.push({ key: 'sortie', when: formatHour(walk.time), title: walkName(walk.time).replace(/^la s/, 'S'), detail: `${length}${doneCount} sur 3 faites`, to: '/' })
-  }
-  const upcoming = input.care
-    .filter((e) => !e.done && e.date && !(card.kind === 'soin' && card.event.id === e.id))
-    .sort((a, b) => a.date.localeCompare(b.date))[0]
-  if (upcoming && upcoming.date) {
-    const days = diffDays(input.today, upcoming.date)
-    lines.push({ key: upcoming.id, ...(days < 0 ? { late: true } : {}), when: days < 0 ? shortDate(upcoming.date) : days === 0 ? 'Aujourd’hui' : days === 1 ? 'Demain' : shortDate(upcoming.date), title: upcoming.title, detail: days < 0 ? lateLabel(upcoming.date, input.today) : days === 0 ? 'C’est le jour' : `Dans ${days} jour${days > 1 ? 's' : ''}`, to: `/evenement/${upcoming.id}` })
-  }
-  return lines.slice(0, 2)
-}
-
-const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.']
-const shortDate = (iso: ISODate) => `${Number(iso.slice(8, 10))} ${MONTHS[Number(iso.slice(5, 7)) - 1]}`

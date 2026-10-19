@@ -27,6 +27,11 @@ docs/
     README.md                     ← AUDITS UX : index, méthode, personas
     audit-NN-AAAA-MM-JJ.md        ← un fichier par audit (remarques R-xxx)
     prompt-audit-NN.md            ← le prompt Claude Code de chaque audit
+  design/
+    contexte-flair.md             ← CONTEXTE : produit, personas, règles non négociables, décisions (à lire en premier)
+    guide-claude-design.md        ← guide + prompt pour faire proposer de meilleurs écrans à Claude Design
+    captures/                     ← captures de l'app du 19 oct. (390 × 844), avec leur README
+    prompt-claude-code-AAAA-MM-JJ.md ← prompts Claude Code issus du travail de design
   recherche/
     audit-ux.md                   ← audit de l'app + 4 personas
     audit-ux-v3.md                ← audit UX du 17 oct. : app trop chargée, direction « une chose à la fois »

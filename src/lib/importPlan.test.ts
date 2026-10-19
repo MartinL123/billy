@@ -26,7 +26,7 @@ describe('import d’un lot de fichiers', () => {
     expect(ignoredLine(tally)).toBe('2 sorties à vélo ignorées · 1 balade déjà importée · 1 fichier illisible.')
   })
 
-  it('réimporter tout : rien de nouveau', () => {
+  it('réimporter tout : rien de nouveau', () => {
     const known = new Set<string>()
     tallyActivity(emptyTally(), walk('2026-10-12T08:00:00Z'), known)
     const again = emptyTally()

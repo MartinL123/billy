@@ -48,7 +48,7 @@ export default function EnCours() {
       <main className="flex flex-col gap-4 px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+130px)]">
         <h1 className="font-display text-[26px] leading-tight font-extrabold">Sur quoi travailler en ce moment ?</h1>
         <p className="text-[15px] leading-snug text-[#3F4946]">
-          Choisissez jusqu’à <strong>{MAX_ACTIVE} compétences</strong>. La mission du jour vous proposera leurs exercices, à tour de rôle. Les autres ne sont pas oubliées : elles reviennent de temps en temps en révision.
+          Choisissez jusqu’à <strong>{MAX_ACTIVE} compétences</strong>. La mission du jour vous proposera leurs exercices, à tour de rôle. Les autres ne sont pas oubliées : elles reviennent de temps en temps en révision.
         </p>
         <p aria-live="polite" className="self-start rounded-full bg-primary-soft px-3.5 py-1.5 text-[15px] font-bold text-primary-dark">
           {chosen.length} choisie{chosen.length > 1 ? 's' : ''} sur {MAX_ACTIVE}

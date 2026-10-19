@@ -304,6 +304,7 @@ import { modernCard } from './carnet'
 
 describe('anciennes cartes de réussite', () => {
   it('s’affichent avec les mots d’aujourd’hui, sans toucher aux autres souvenirs', () => {
+    // Une donnée déjà enregistrée (avant R-055) : espace normale avant « : ».
     const old = { text: 'Palier acquis : Le Rappel, P2 « Mobile ».\nRevient en lâchant un jouet.', tags: ['Dressage'] }
     const shown = modernCard(old)
     expect(shown.text).toBe(`C’est réussi ! ${stepPhrase('rappel', 2)}.`)
@@ -613,7 +614,7 @@ describe('une seule formulation par étape', () => {
     for (const skill of SKILLS) {
       for (const step of [1, 2, 3, 4, 5]) {
         const full = words(stepPhrase(skill.id, step))
-        for (const word of words(stepShort(skill.id, step))) expect(full, `${skill.id} ${step} : « ${word} »`).toContain(word)
+        for (const word of words(stepShort(skill.id, step))) expect(full, `${skill.id} ${step} : « ${word} »`).toContain(word)
       }
     }
   })

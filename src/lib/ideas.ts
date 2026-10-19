@@ -135,7 +135,7 @@ export function rankIdeas(
       : ctx.profile.sensitive && info.natural && far
         ? `${info.label} loin des voitures, au calme pour lui.`
         : nearWalk && ctx.lastWalk
-          ? `Juste à côté de votre balade du ${formatShort(ctx.lastWalk.date)} : quelques pas de plus.`
+          ? `Juste à côté de votre balade du ${formatShort(ctx.lastWalk.date)} : quelques pas de plus.`
           : ctx.profile.short && meters < 1000
             ? 'Tout près : une petite sortie suffit.'
             : NEAREST

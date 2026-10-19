@@ -68,7 +68,7 @@ export default function Ideas() {
       <main className="flex flex-col gap-4 px-5 pt-1 pb-[calc(env(safe-area-inset-bottom)+40px)]">
         <div className="flex flex-col gap-1">
           <h1 className="font-display text-[28px] leading-tight font-extrabold">À découvrir</h1>
-          <p className="text-[17px] text-muted">Autour de vous, choisi pour {dog.name} : d’abord les lieux calmes.</p>
+          <p className="text-[17px] text-muted">Autour de vous, choisi pour {dog.name} : d’abord les lieux calmes.</p>
         </div>
         <div role="group" aria-label="Filtrer les idées" className="scroll-row -mx-5 flex gap-2 px-5">
           {filters.map(([id, label]) => (
@@ -79,7 +79,7 @@ export default function Ideas() {
         </div>
         {shown.length ? shown.map((idea) => <IdeaCard key={idea.id} idea={idea} />) : <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[17px] leading-snug text-[#1D3F73]">{loading ? 'Recherche des lieux autour de vous…' : 'Rien à proposer ici pour l’instant. Importez une balade : les idées viennent autour d’elle.'}</p>}
         <p className="text-[13px] leading-snug text-muted">
-          Lieux : © OpenStreetMap.{beaches ? ' Sur les plages, les chiens sont souvent interdits l’été : vérifiez le panneau à l’entrée.' : ''}
+          Lieux : © OpenStreetMap.{beaches ? ' Sur les plages, les chiens sont souvent interdits l’été : vérifiez le panneau à l’entrée.' : ''}
         </p>
       </main>
     </div>

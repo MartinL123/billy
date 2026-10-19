@@ -92,7 +92,7 @@ export default function Mission() {
           ) : (
             exercise?.scene && <Illustration scene={exercise.scene} className="h-[150px] bg-surface" />
           )}
-          {needs && <span className="self-start rounded-full bg-primary-soft px-3 py-1.5 text-[15px] font-semibold text-primary-dark">Il vous faut : {needs}</span>}
+          {needs && <span className="self-start rounded-full bg-primary-soft px-3 py-1.5 text-[15px] font-semibold text-primary-dark">Il vous faut : {needs}</span>}
           {index === steps.length - 1 && exercise && (
             <button type="button" onClick={() => setMore(true)} className="btn btn-quiet min-h-11 self-start px-1 text-[15px] text-primary underline">
               En savoir plus

@@ -74,7 +74,7 @@ export function milestoneMessage(
   const totalMonths = age.years * 12 + age.months
   if (age.days === 0 && totalMonths > 0) {
     if (age.months === 0) {
-      return `Joyeux anniversaire ${name} ! ${years(age.years)} aujourd’hui.`
+      return `Joyeux anniversaire ${name} ! ${years(age.years)} aujourd’hui.`
     }
     // Les autres mois sont déjà dits dans la carte du chien (« 5 mois · 6 mois le 13 novembre ») : on ne les répète pas.
     if (totalMonths === 6) return `${name} a 6 mois aujourd’hui !`

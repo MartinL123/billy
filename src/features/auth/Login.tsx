@@ -104,7 +104,7 @@ export default function Login() {
       {/* Dans l’app iOS, elle est déjà installée. */}
       {!isNative() && (
         <button type="button" onClick={() => setInstalling(true)} className="btn btn-outline mt-6">
-          Comment installer l’app sur mon téléphone ?
+          Comment installer l’app sur mon téléphone ?
         </button>
       )}
 

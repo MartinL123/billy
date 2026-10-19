@@ -4,7 +4,7 @@ import { lifeMilestones } from './milestones'
 import { deriveTraits, isPuppy } from './questionnaire'
 import { sessionMinutes } from './training-plan'
 
-describe('nouveau compte : un espace vide', () => {
+describe('nouveau compte : un espace vide', () => {
   it('sans date de naissance, rien ne casse et on ne suppose pas un chiot', () => {
     expect(formatAgeShort('', '2026-10-13')).toBe('')
     expect(nextLifeStep('', '2026-10-13')).toBeUndefined()

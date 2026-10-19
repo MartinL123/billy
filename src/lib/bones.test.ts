@@ -40,7 +40,7 @@ describe('les os', () => {
     expect(boneId('mission', '2026-10-14')).toBe(missionBones('2026-10-14', false)[0]!.id)
   })
 
-  it('semaine régulière : +20 dès 5 jours notés sur 7, pas avant', () => {
+  it('semaine régulière : +20 dès 5 jours notés sur 7, pas avant', () => {
     const week = weekOf('2026-10-14')
     expect(regularWeekBone(week, week.slice(0, 4), '2026-10-15')).toBeUndefined()
     expect(regularWeekBone(week, week.slice(0, 5), '2026-10-16')).toMatchObject({ id: 'semaine-2026-10-12', amount: 20 })
@@ -48,7 +48,7 @@ describe('les os', () => {
     expect(regularWeekBone(week, ['2026-10-01', '2026-10-02', ...week.slice(0, 4)], '2026-10-15')).toBeUndefined()
   })
 
-  it('le solde est la somme ; seul un achat en dépense', () => {
+  it('le solde est la somme ; seul un achat en dépense', () => {
     const bones = [...missionBones('2026-10-14', false), questionnaireBone('2026-10-14'), purchaseBone('bandana-rouge', 60, '2026-10-14')]
     expect(balance(bones)).toBe(0)
     expect(earned(bones)).toBe(60)

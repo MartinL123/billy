@@ -131,7 +131,7 @@ function useCardContent(card: NowCard, onWeighLater: () => void) {
           action: callVet,
           // Le RDV demande sa date (audit R-029) ; « C’est fait » si le vaccin vient d’être fait.
           // Le titre est prérempli (R-037) : « Rendez-vous véto : Vaccin CHPPiL ».
-          other: { label: 'J’ai pris rendez-vous', to: `/evenement/nouveau?type=veto&date=&titre=${encodeURIComponent(`Rendez-vous véto : ${card.event.title}`)}` } as Action,
+          other: { label: 'J’ai pris rendez-vous', to: `/evenement/nouveau?type=veto&date=&titre=${encodeURIComponent(`Rendez-vous véto : ${card.event.title}`)}` } as Action,
           third: { label: 'C’est déjà fait', run: done } as Action,
         }
       }

@@ -137,7 +137,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
           </span>
           <span className="flex min-w-0 flex-col gap-0.5">
             <h1 className="font-display text-[30px] leading-none font-extrabold">{skill.name}</h1>
-            <span className="text-[15px] leading-snug text-white/90">Objectif : {stepPhrase(skill.id, MAX_LEVEL).replace(/^./, (c) => c.toLocaleLowerCase('fr'))}</span>
+            <span className="text-[15px] leading-snug text-white/90">Objectif : {stepPhrase(skill.id, MAX_LEVEL).replace(/^./, (c) => c.toLocaleLowerCase('fr'))}</span>
           </span>
         </div>
       </header>
@@ -187,7 +187,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
                     </span>
                   }
                 >
-                  <span className="rounded-lg bg-bg px-2 text-[15px] font-bold text-[#8A6514]">Maîtrisé : {stepPhrase(skill.id, step).replace(/^./, (c) => c.toLocaleLowerCase('fr'))}</span>
+                  <span className="rounded-lg bg-bg px-2 text-[15px] font-bold text-[#8A6514]">Maîtrisé : {stepPhrase(skill.id, step).replace(/^./, (c) => c.toLocaleLowerCase('fr'))}</span>
                   {mastered && <span className="text-[13px] text-muted">{whenOf(step)}</span>}
                 </Stop>
               )
@@ -230,7 +230,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
             S’entraîner · {minutes} min
           </Link>
           <Link to={`/noter?depuis=competence&competences=${skill.id}`} className="flex min-h-12 items-center justify-center rounded-full border-2 border-solid text-[17px] font-bold no-underline" style={{ borderColor: territory.color, color: territory.color }}>
-            Déjà fait aujourd’hui ? Le noter
+            Déjà fait aujourd’hui ? Le noter
           </Link>
         </div>
       </div>

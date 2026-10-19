@@ -20,7 +20,7 @@ describe('les trajets', () => {
     expect(formatRouteDistance(1804)).toBe('1,8 km')
   })
 
-  it('simplifie : 5 décimales, sans doublons qui se suivent', () => {
+  it('simplifie : 5 décimales, sans doublons qui se suivent', () => {
     expect(simplify([[48.856612345, 2.352298765], [48.856612349, 2.352298761], [48.8584, 2.3522]])).toEqual([[48.85661, 2.3523], [48.8584, 2.3522]])
   })
 
@@ -61,7 +61,7 @@ describe('enregistrement d’un trajet', () => {
     expect(withMarkMoments(once, [near])).toBe(once)
   })
 
-  it('« Ses balades » : les trajets du mois seulement', () => {
+  it('« Ses balades » : les trajets du mois seulement', () => {
     const route = storeRoute(buildRoute([A, B], [{ lat: A[0], lng: A[1], type: 'peur' }]))
     const entries = [
       { date: '2026-10-14', route },

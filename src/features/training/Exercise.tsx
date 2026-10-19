@@ -254,7 +254,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
         {easier && (
           <section className="flex flex-col gap-1.5">
             <h2 className={sectionTitle}>Trop difficile aujourd’hui ?</h2>
-            <p className="text-[17px] leading-snug">Revenez au réglage d’avant : « {easier} ». L’étape, elle, ne recule pas.</p>
+            <p className="text-[17px] leading-snug">Revenez au réglage d’avant : « {easier} ». L’étape, elle, ne recule pas.</p>
           </section>
         )}
 

@@ -99,8 +99,8 @@ export function questMission(quest: Quest): { title: string; detail: string } {
   const { exercise, setting } = quest.planned
   // Une seule durée sur la carte (R-048) : celle de la séance est déjà dans le bandeau (« À faire maintenant · 3 min »).
   // Une étape qui est elle-même une durée (« 2 minutes » d’absence) devient l’objectif.
-  const detail = /^\d+ (secondes?|minutes?)\b/.test(setting) ? `Objectif : ${setting}` : setting
-  return { title: quest.kind === 'revision' ? `Révision : ${exercise.name}` : exercise.name, detail }
+  const detail = /^\d+ (secondes?|minutes?)\b/.test(setting) ? `Objectif : ${setting}` : setting
+  return { title: quest.kind === 'revision' ? `Révision : ${exercise.name}` : exercise.name, detail }
 }
 
 /** Texte pré-rempli de la note quand on touche « C’est fait ! ». */

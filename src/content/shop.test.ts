@@ -22,7 +22,7 @@ describe('la boutique', () => {
     expect(new Set(SHOP.map((i) => i.id)).size).toBe(SHOP.length)
   })
 
-  it('un seul bouton selon l’état : acheter, porter, porté, ou ce qu’il manque', () => {
+  it('un seul bouton selon l’état : acheter, porter, porté, ou ce qu’il manque', () => {
     const cape = SHOP.find((i) => i.id === 'cape')!
     expect(buttonState(cape, false, false, 240)).toEqual({ kind: 'manque', missing: 60 })
     expect(buttonState(cape, false, false, 300)).toEqual({ kind: 'acheter', price: 300 })

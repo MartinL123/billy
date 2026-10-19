@@ -14,7 +14,7 @@ function healthHistory(): Record<string, BillyEvent> {
       type: 'vaccin',
       date: '',
       recurrence: 'none',
-      notes: 'Juin ou juillet 2026 : date exacte à retrouver dans le carnet de santé.',
+      notes: 'Juin ou juillet 2026 : date exacte à retrouver dans le carnet de santé.',
     }),
     'hist-vaccin-2': done({ title: 'Primo-vaccination CHPPiL, 2e injection', type: 'vaccin', date: '2026-08-01', recurrence: 'none' }),
     'hist-vaccin-3': done({ title: 'Primo-vaccination CHPPiL, 3e injection', type: 'vaccin', date: LAST_PRIMO, recurrence: 'none' }),

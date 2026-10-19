@@ -328,7 +328,7 @@ export default function Explorer() {
             </div>
           </div>
           {/* Autour de moi (T-020) : la carte, la commune et les idées suivent l’endroit où l’on est. */}
-          <button type="button" onClick={locate} aria-label="Autour de moi : les balades et les idées du coin où je suis" className={`pointer-events-auto flex size-12 items-center justify-center rounded-full border-0 shadow-[0_2px_6px_rgba(24,32,30,0.2)] ${myPos ? 'bg-[#2F7BF6] text-white' : 'bg-surface text-text'}`}>
+          <button type="button" onClick={locate} aria-label="Autour de moi : les balades et les idées du coin où je suis" className={`pointer-events-auto flex size-12 items-center justify-center rounded-full border-0 shadow-[0_2px_6px_rgba(24,32,30,0.2)] ${myPos ? 'bg-[#2F7BF6] text-white' : 'bg-surface text-text'}`}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true" className={locating ? 'animate-pulse' : ''}>
               <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
               <circle cx="12" cy="12" r="6" />

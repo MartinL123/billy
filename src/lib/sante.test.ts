@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { CARE_FILTERS, eventCategory, filterSummary, matchesFilter } from './events'
 
-describe('santé : filtrer par catégorie', () => {
-  it('range chaque événement dans sa catégorie ; anniversaires et âges sont des étapes', () => {
+describe('santé : filtrer par catégorie', () => {
+  it('range chaque événement dans sa catégorie ; anniversaires et âges sont des étapes', () => {
     expect(eventCategory({ type: 'vermifuge', title: 'Vermifuge' })).toBe('soins')
     expect(eventCategory({ type: 'antiparasitaire', title: 'Antiparasitaire puces et tiques' })).toBe('soins')
     expect(eventCategory({ type: 'vaccin', title: 'Rappel vaccin CHPPiL' })).toBe('vaccins')
@@ -29,7 +29,7 @@ describe('santé : filtrer par catégorie', () => {
 
 import { healthLine } from './events'
 
-describe('Santé : la phrase d’état', () => {
+describe('Santé : la phrase d’état', () => {
   const e = (date: string, done = false) => ({ date, done })
   it('à jour, une chose à prévoir', () => {
     expect(healthLine([e('2026-10-25'), e('2027-09-01'), e('2026-09-01', true)], '2026-10-17')).toBe('Tout est à jour. Une seule chose à prévoir.')

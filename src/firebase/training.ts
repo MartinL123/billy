@@ -226,7 +226,7 @@ export function recordMoment(entry: Entry, yes: string[], progress: Record<strin
   if (levelAfter > levelBefore) {
     add(userDoc('entries', `niveau-${levelAfter}`), {
       date: entry.date,
-      text: `Niveau ${levelAfter} ! ${dogName} devient ${levelTitle(levelAfter)}.`,
+      text: `Niveau ${levelAfter} ! ${dogName} devient ${levelTitle(levelAfter)}.`,
       tags: [],
       photos: [],
       createdAt: now(),

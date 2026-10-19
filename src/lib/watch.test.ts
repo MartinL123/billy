@@ -35,7 +35,7 @@ describe('marches de l’Apple Watch (T-001)', () => {
     expect(watchName('2026-10-18T21:30:00Z', 'walking')).toBe('Balade de nuit')
   })
 
-  it('passe par le même circuit qu’un fichier GPX : gardée, puis écartée comme doublon', () => {
+  it('passe par le même circuit qu’un fichier GPX : gardée, puis écartée comme doublon', () => {
     const tally = emptyTally()
     const known = new Set<string>()
     const first = tallyActivity(tally, watchActivity(walk('2026-10-18T06:30:00.000Z')), known)

@@ -246,7 +246,7 @@ export default function Meute() {
                     <div key={f.id} className="flex items-start gap-3 px-3 py-2.5 text-[15px] leading-snug">
                       {member && <MemberAvatar member={member} size={32} />}
                       <span className="min-w-0 flex-1">
-                        <strong>{f.dogName}</strong> · {f.date === today ? "aujourd’hui" : 'hier'} : {f.text}
+                        <strong>{f.dogName}</strong> · {f.date === today ? "aujourd’hui" : 'hier'} : {f.text}
                       </span>
                       {f.photo && <FeedPhoto photo={f.photo} size={56} />}
                     </div>
@@ -351,7 +351,7 @@ export default function Meute() {
             <path d="M12 3s-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11z" fill="#F2B544" />
           </svg>
           <h1 className="cel-text font-display text-[30px] leading-tight font-extrabold">
-            {dog.name} a marqué {marked.spot} !
+            {dog.name} a marqué {marked.spot} !
           </h1>
           {marked.first && <p className="cel-text text-[17px] text-[#F7D58A]">Nouveau spot pour {dog.name}</p>}
           <p className="cel-text text-xl">

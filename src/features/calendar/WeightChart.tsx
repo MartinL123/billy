@@ -67,7 +67,7 @@ export function WeightChart({ weights }: { weights: WithId<Weight>[] }) {
             fill="transparent"
             role="button"
             tabIndex={0}
-            aria-label={`${formatLong(p.date)} : ${formatKg(p.kg)} kilos`}
+            aria-label={`${formatLong(p.date)} : ${formatKg(p.kg)} kilos`}
             aria-pressed={p.id === active.id}
             onPointerEnter={() => setPicked(p.id)}
             onClick={() => setPicked(p.id)}

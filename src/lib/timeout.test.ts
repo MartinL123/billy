@@ -12,7 +12,7 @@ describe('attente avec délai maximum (R-042)', () => {
     const result = withTimeout(never, 10_000, 'stopWalk')
     vi.advanceTimersByTime(10_000)
     await expect(result).rejects.toBeInstanceOf(TimeoutError)
-    await expect(result).rejects.toThrow('stopWalk : pas de réponse après 10 s')
+    await expect(result).rejects.toThrow('stopWalk : pas de réponse après 10 s')
     vi.useRealTimers()
   })
 

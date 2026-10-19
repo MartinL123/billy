@@ -104,7 +104,7 @@ export default function LiveWalk() {
 
   const copyDetail = () => {
     if (!failure) return
-    const text = [`Étape : ${failure.step}`, `Erreur : ${failure.error}`, `Points : ${failure.points}`, `Départ : ${failure.startedAt ?? '?'}`, `Réseau : ${navigator.onLine ? 'oui' : 'non'}`, `Heure : ${new Date().toISOString()}`, `Navigateur : ${navigator.userAgent}`].join('\n')
+    const text = [`Étape : ${failure.step}`, `Erreur : ${failure.error}`, `Points : ${failure.points}`, `Départ : ${failure.startedAt ?? '?'}`, `Réseau : ${navigator.onLine ? 'oui' : 'non'}`, `Heure : ${new Date().toISOString()}`, `Navigateur : ${navigator.userAgent}`].join('\n')
     navigator.clipboard
       .writeText(text)
       .then(() => toast('Détail copié'))
@@ -177,7 +177,7 @@ export default function LiveWalk() {
     return (
       <main className="flex min-h-dvh flex-col justify-end gap-4 px-5 pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+24px)]">
         <h1 className="font-display text-[26px] leading-tight font-extrabold">La position n’est pas autorisée</h1>
-        <p className="text-[17px] leading-snug text-[#3F4946]">Pour enregistrer la balade : Réglages › Flair › Position › « Pendant l’utilisation de l’app ».</p>
+        <p className="text-[17px] leading-snug text-[#3F4946]">Pour enregistrer la balade : Réglages › Flair › Position › « Pendant l’utilisation de l’app ».</p>
         <button type="button" onClick={() => navigate('/', { replace: true })} className="btn btn-main min-h-[56px]">
           Retour à l’accueil
         </button>
@@ -203,7 +203,7 @@ export default function LiveWalk() {
         {phase === 'failed' ? (
           <>
             <p role="alert" className="text-[15px] leading-snug font-semibold text-danger">
-              La balade n’a pas pu être enregistrée. Elle est gardée sur l’iPhone : rien n’est perdu.
+              La balade n’a pas pu être enregistrée. Elle est gardée sur l’iPhone : rien n’est perdu.
             </p>
             <button type="button" onClick={() => void finish()} className="btn btn-main min-h-[60px] text-[19px]">
               Réessayer
@@ -214,7 +214,7 @@ export default function LiveWalk() {
           </>
         ) : (
           <>
-            <p className="text-[15px] text-[#3F4946]">{stoppedAt ? 'L’enregistrement s’est arrêté tout seul au bout de 3 h.' : 'Vous pouvez verrouiller l’iPhone : le GPS continue.'}</p>
+            <p className="text-[15px] text-[#3F4946]">{stoppedAt ? 'L’enregistrement s’est arrêté tout seul au bout de 3 h.' : 'Vous pouvez verrouiller l’iPhone : le GPS continue.'}</p>
             <button type="button" onClick={() => void finish()} disabled={phase !== 'walking'} className="btn btn-main min-h-[60px] text-[19px]">
               {phase === 'saving' ? 'Enregistrement…' : 'Terminer'}
             </button>
@@ -226,8 +226,8 @@ export default function LiveWalk() {
       </section>
       {confirmCancel && (
         <ConfirmSheet
-          title="Ne pas garder cette balade ?"
-          message="Le tracé sera effacé : pas de brouillard levé, pas d’os."
+          title="Ne pas garder cette balade ?"
+          message="Le tracé sera effacé : pas de brouillard levé, pas d’os."
           confirmLabel="Ne pas la garder"
           onCancel={() => setConfirmCancel(false)}
           onConfirm={async () => {

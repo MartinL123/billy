@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { nextTrainerSession, sterilisationReminder, trainerSession } from './events'
 
-describe('questionnaire : prochaine séance avec l’éducateur', () => {
+describe('questionnaire : prochaine séance avec l’éducateur', () => {
   const today = '2026-10-14'
   it('crée le rendez-vous dans Santé, avec son nom et l’heure', () => {
     expect(trainerSession([], { date: '2026-10-20', time: '10:30', name: 'Claire' }, today)).toEqual({ title: 'Séance avec Claire', type: 'educateur', date: '2026-10-20', time: '10:30', recurrence: 'none', done: false })
@@ -25,12 +25,12 @@ describe('questionnaire : prochaine séance avec l’éducateur', () => {
   })
 })
 
-describe('questionnaire : stérilisation « C’est prévu »', () => {
+describe('questionnaire : stérilisation « C’est prévu »', () => {
   const today = '2026-10-14'
-  it('avec une date : « Stérilisation » ce jour-là', () => {
+  it('avec une date : « Stérilisation » ce jour-là', () => {
     expect(sterilisationReminder([], '2026-11-05', '2026-05-13', today)).toEqual({ title: 'Stérilisation', type: 'veto', date: '2026-11-05', recurrence: 'none', done: false })
   })
-  it('sans date : prendre rendez-vous à ses 6 mois, ou dans un mois s’il les a déjà', () => {
+  it('sans date : prendre rendez-vous à ses 6 mois, ou dans un mois s’il les a déjà', () => {
     expect(sterilisationReminder([], '', '2026-05-13', today)).toMatchObject({ title: 'Prendre rendez-vous pour la stérilisation', date: '2026-11-13' })
     expect(sterilisationReminder([], '', '2025-01-01', today)?.date).toBe('2026-11-13')
     expect(sterilisationReminder([], '', undefined, today)?.date).toBe('2026-11-13')

@@ -37,7 +37,7 @@ describe('toutes les balades', () => {
 
 
 describe('une couleur par balade', () => {
-  it('suit l’ordre chronologique : une nouvelle balade ne change pas les couleurs des anciennes', () => {
+  it('suit l’ordre chronologique : une nouvelle balade ne change pas les couleurs des anciennes', () => {
     const before = walkItems([
       { id: 'a', date: '2026-10-01', text: 'A', route: route(1000, 10) },
       { id: 'b', date: '2026-10-05', text: 'B', route: route(1000, 10) },

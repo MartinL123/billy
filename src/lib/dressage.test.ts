@@ -206,7 +206,7 @@ describe('météo de confiance', () => {
     expect(weather([4])).toBe('averse')
   })
 
-  it('ne regarde que les 3 plus récentes : elle remonte après une mauvaise passe', () => {
+  it('ne regarde que les 3 plus récentes : elle remonte après une mauvaise passe', () => {
     expect(weather([0, 0, 0, 4, 4, 4])).toBe('soleil')
   })
 
@@ -221,7 +221,7 @@ describe('météo de confiance', () => {
   })
 })
 
-describe('traits : le chemin, pas les objectifs', () => {
+describe('traits : le chemin, pas les objectifs', () => {
   it('suggère pour Billy (chiot + craintif) Le Lien, La Nouveauté, La Ville en premier', () => {
     expect(featuredBosses(['chiot', 'craintif'])).toEqual(['lien', 'nouveaute', 'ville'])
     expect(suggestedBosses(['chiot', 'craintif'])).toHaveLength(10)

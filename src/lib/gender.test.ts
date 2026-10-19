@@ -4,9 +4,9 @@ import { feminize, feminizeImplicit, forSex, isFemale, isFemaleSex, ofName } fro
 describe('accord au féminin (audit R-006)', () => {
   it('passe le chien au féminin', () => {
     expect(feminize('Ce qu’il apprend en ce moment')).toBe('Ce qu’elle apprend en ce moment')
-    expect(feminize('Est-il stérilisé ?')).toBe('Est-elle stérilisée ?')
-    expect(feminize('Que mange-t-il ?')).toBe('Que mange-t-elle ?')
-    expect(feminize('S’il ne mange plus, il est trop stressé : arrêtez.')).toBe('Si elle ne mange plus, elle est trop stressée : arrêtez.')
+    expect(feminize('Est-il stérilisé ?')).toBe('Est-elle stérilisée ?')
+    expect(feminize('Que mange-t-il ?')).toBe('Que mange-t-elle ?')
+    expect(feminize('S’il ne mange plus, il est trop stressé : arrêtez.')).toBe('Si elle ne mange plus, elle est trop stressée : arrêtez.')
     expect(feminize('Il a peur des enfants')).toBe('Elle a peur des enfants')
     expect(feminize('Né le')).toBe('Née le')
     expect(feminize('Stérilisé')).toBe('Stérilisée')
@@ -24,9 +24,9 @@ describe('accord au féminin (audit R-006)', () => {
     expect(isFemaleSex('Mâle')).toBe(false)
     // Accord au féminin désactivé : tout reste au masculin, même pour une chienne.
     expect(isFemale('Femelle')).toBe(false)
-    expect(forSex('Est-il stérilisé ?', undefined)).toBe('Est-il stérilisé ?')
-    expect(forSex('Est-il stérilisé ?', 'Femelle')).toBe('Est-il stérilisé ?')
-    expect(feminize('Est-il stérilisé ?')).toBe('Est-elle stérilisée ?')
+    expect(forSex('Est-il stérilisé ?', undefined)).toBe('Est-il stérilisé ?')
+    expect(forSex('Est-il stérilisé ?', 'Femelle')).toBe('Est-il stérilisé ?')
+    expect(feminize('Est-il stérilisé ?')).toBe('Est-elle stérilisée ?')
   })
 })
 

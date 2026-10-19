@@ -47,7 +47,7 @@ function SlotRow({ slot, onNote }: { slot: WalkDaySlot; onNote: () => void }) {
         {slot.state === 'a-venir' && slot.minutes !== undefined && <span className="text-[13px] text-[#3F4946]">{slot.minutes ? `${slot.minutes} min conseillées` : 'Juste ses besoins'}</span>}
       </span>
       {open ? (
-        <NoteButton onClick={onNote} label={`${slot.name} : je l’ai faite`} />
+        <NoteButton onClick={onNote} label={`${slot.name} : je l’ai faite`} />
       ) : (
         <span className="flex flex-col items-end">
           <span className="flex items-center gap-1 text-[15px] font-bold text-primary">
@@ -88,7 +88,7 @@ function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void }) {
           {walk.name} · {formatHour(walk.time)}
           {walk.date !== today ? ' · hier' : ''}
         </span>
-        <h2 className="mt-1 font-display text-[24px] font-extrabold">Combien de temps ?</h2>
+        <h2 className="mt-1 font-display text-[24px] font-extrabold">Combien de temps ?</h2>
       </div>
       <div role="radiogroup" aria-label="Durée de la sortie" className="grid grid-cols-3 gap-2.5">
         {DURATION_CHOICES.map((m) => (
@@ -160,7 +160,7 @@ export function WalkDayCard({ plan, times, yesterday, perWalk }: { plan: WalkDay
                 <li key={slot} className="grid min-h-[52px] grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-2 border-0 border-b border-solid border-[#EDF0EE] py-1">
                   <span className="text-[15px] font-extrabold text-muted">{formatHour(times[slot])}</span>
                   <span className="text-[15px] leading-tight text-[#3F4946]">{name}</span>
-                  <NoteButton onClick={() => note(yesterday.date, slot, perWalk)} label={`${name} d’hier : je l’ai faite`} />
+                  <NoteButton onClick={() => note(yesterday.date, slot, perWalk)} label={`${name} d’hier : je l’ai faite`} />
                 </li>
               )
             })}

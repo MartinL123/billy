@@ -43,8 +43,8 @@ export interface Step {
 const opts = (...labels: string[]): Option[] => labels.map((label) => ({ value: label, label }))
 
 const BASE: Step[] = [
-  { id: 'nom', part: 1, kind: 'text', title: 'Son nom ?' },
-  { id: 'photo', part: 1, kind: 'photo', title: 'Une photo de {nom} ?', help: 'Elle vient de votre photothèque. Facultatif.' },
+  { id: 'nom', part: 1, kind: 'text', title: 'Son nom ?' },
+  { id: 'photo', part: 1, kind: 'photo', title: 'Une photo de {nom} ?', help: 'Elle vient de votre photothèque. Facultatif.' },
   { id: 'naissance', part: 1, kind: 'date', title: 'Sa date de naissance ?', help: 'Une date approximative convient.' },
   { id: 'sexe', part: 1, kind: 'choice', title: 'Mâle ou femelle ?', options: opts('Mâle', 'Femelle') },
   { id: 'sterilise', part: 1, kind: 'choice', title: 'Est-il stérilisé ?', options: opts('Oui', 'Non', 'C’est prévu') },

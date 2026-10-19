@@ -58,7 +58,7 @@ describe('lecture des fichiers Strava', () => {
     expect(ignoredLabel('running')).toBe('en course à pied')
   })
 
-  it('clé de doublon : départ + premier point', () => {
+  it('clé de doublon : départ + premier point', () => {
     const points = parseActivity(STRAVA).points
     expect(importKey(points)).toBe('2026-10-12T14:00:00Z_45.0000_1.0000')
     expect(importKey(points)).toBe(importKey(parseActivity(STRAVA).points))
@@ -67,7 +67,7 @@ describe('lecture des fichiers Strava', () => {
     expect(knownImportKeys([old, { importKey: 'x' }])).toEqual(new Set([importKey(points), 'x']))
   })
 
-  it('distance : un point compte s’il est à 8 m ou plus du précédent', () => {
+  it('distance : un point compte s’il est à 8 m ou plus du précédent', () => {
     const jitter = Array.from({ length: 50 }, (_, i) => ({ lat: 45 + (i % 2) * 0.00002, lng: 1 }))
     expect(walkDistance(jitter)).toBe(0)
   })

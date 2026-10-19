@@ -64,7 +64,8 @@ export function exposureAsMoment(exposure: LegacyExposure): LegacyMoment {
 export const byRecency = <T extends { date: ISODate; createdAt?: string }>(a: T, b: T) =>
   b.date.localeCompare(a.date) || (b.createdAt ?? '').localeCompare(a.createdAt ?? '')
 
-const OLD_CARD = /^Palier acquis : (.+), P([1-5]) «/
+// Espace normale ou insécable avant « : » (les textes de l’app ont l’insécable depuis R-055).
+const OLD_CARD = /^Palier acquis[ \u00a0]: (.+), P([1-5]) «/
 
 /** Anciens noms d’exercices en anglais, tels qu’ils ont pu être enregistrés dans le texte d’un moment. */
 const OLD_NAMES: [string, string][] = [

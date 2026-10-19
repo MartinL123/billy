@@ -15,7 +15,7 @@ describe('balade enregistrée par l’iPhone (T-036)', () => {
     expect(minutesSince(65 * 60_000)).toBe('1 h 05')
   })
 
-  it('moins de 100 m ou moins de 2 minutes : pas gardée', () => {
+  it('moins de 100 m ou moins de 2 minutes : pas gardée', () => {
     expect(tooShort(line(2, 50), start, Date.parse(at(10)))).toBe(true) // 50 m
     expect(tooShort(line(5), start, Date.parse(at(1)))).toBe(true) // 1 minute
     expect(tooShort(line(5), start, Date.parse(at(10)))).toBe(false)

@@ -113,7 +113,7 @@ const SCENES: Record<string, (name: string) => ReactNode> = {
       <Person x={152} />
       <rect x="92" y="10" width="52" height="22" rx="11" fill="#FFFFFF" stroke={PERSON} strokeWidth="1.5" />
       <text x="118" y="25" textAnchor="middle" fontSize="12" fontWeight="700" fill={PERSON}>
-        {name.length > 6 ? 'Viens !' : `${name} !`}
+        {name.length > 6 ? 'Viens !' : `${name} !`}
       </text>
       <Gaze from={[98, 48]} to={[144, 22]} />
     </>

@@ -2,7 +2,7 @@
 
 export class TimeoutError extends Error {
   constructor(label: string, ms: number) {
-    super(`${label} : pas de réponse après ${Math.round(ms / 1000)} s`)
+    super(`${label} : pas de réponse après ${Math.round(ms / 1000)} s`)
     this.name = 'TimeoutError'
   }
 }

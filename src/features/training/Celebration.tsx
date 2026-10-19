@@ -67,7 +67,7 @@ export function StepSuccess({ dogName, bossId, level, inCarnet = true, onClose }
         <Badge bossId={bossId} acquired={level} size={136} animateStep={level} lit="#F2B544" />
       </span>
       <div className="cel-text flex w-full flex-1 flex-col items-center">
-        <p className="mt-7 text-[15px] font-bold tracking-[1px] text-[#F7D58A] uppercase">C’est réussi ! · {boss?.name}</p>
+        <p className="mt-7 text-[15px] font-bold tracking-[1px] text-[#F7D58A] uppercase">C’est réussi ! · {boss?.name}</p>
         <h1 className="mt-3 font-display text-[30px] leading-tight font-extrabold">
           {dogName} {stepPhraseLower(bossId, level)}
         </h1>

@@ -13,12 +13,12 @@ describe('rappel de pesée mensuel (T-013)', () => {
   })
 })
 
-describe('pesée : cas limites', () => {
-  it('« Plus tard » aujourd’hui : rien avant demain', () => {
+describe('pesée : cas limites', () => {
+  it('« Plus tard » aujourd’hui : rien avant demain', () => {
     expect(weighingDue({ today: '2026-10-21', birthDate: '2026-05-13', lastWeighed: '2026-09-21', postponedOn: '2026-10-21' })).toBe(false)
     expect(weighingDue({ today: '2026-10-22', birthDate: '2026-05-13', lastWeighed: '2026-09-21', postponedOn: '2026-10-21' })).toBe(true)
   })
-  it('une date de naissance dans le futur (erreur de saisie) : pas de pesée', () => {
+  it('une date de naissance dans le futur (erreur de saisie) : pas de pesée', () => {
     expect(weighingDue({ today: '2026-10-18', birthDate: '2027-05-13' })).toBe(false)
   })
 })

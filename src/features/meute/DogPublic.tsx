@@ -51,7 +51,7 @@ export default function DogPublic() {
         </div>
         <section className="flex flex-col gap-2">
           <h2 className="text-xl font-bold">Son territoire</h2>
-          <p className="text-[17px]">{territory.length ? `${territory.length} spot${territory.length > 1 ? 's' : ''} marqué${territory.length > 1 ? 's' : ''} : ${territory.join(', ')}` : 'Aucun spot marqué pour l’instant.'}</p>
+          <p className="text-[17px]">{territory.length ? `${territory.length} spot${territory.length > 1 ? 's' : ''} marqué${territory.length > 1 ? 's' : ''} : ${territory.join(', ')}` : 'Aucun spot marqué pour l’instant.'}</p>
         </section>
         {shared.length > 0 && (
           <section className="flex flex-col gap-2">

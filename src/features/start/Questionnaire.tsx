@@ -375,7 +375,7 @@ export default function Questionnaire() {
             {step.id === 'sterilise' && draft[step.id] === STERILISATION_PLANNED && (
               <label className="mt-2 flex flex-col gap-2">
                 <span className={label}>
-                  Quand ? <span className="font-normal text-muted">(facultatif)</span>
+                  Quand ? <span className="font-normal text-muted">(facultatif)</span>
                 </span>
                 <NativePickerInput type="date" min={today} value={draft['sterilise-date'] ?? ''} onChange={(e) => set('sterilise-date', e.target.value)} className={`${input} px-3`} />
                 <span className="text-[15px] text-muted">{draft['sterilise-date'] ? 'Un rappel s’ajoutera dans Santé.' : 'Sans date, Santé vous rappellera de prendre rendez-vous.'}</span>

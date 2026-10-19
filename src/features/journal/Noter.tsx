@@ -285,7 +285,7 @@ export default function Noter() {
             const missing = Math.max(0, left.needed - done)
             return (
               <fieldset key={id} className="card m-0 flex flex-col gap-3 border-0 p-4">
-                <legend className="sr-only">{skill.name} : prochaine étape</legend>
+                <legend className="sr-only">{skill.name} : prochaine étape</legend>
                 <span className="text-[13px] font-bold tracking-[0.6px] text-milestone-dark uppercase">{skill.name} · prochaine étape</span>
                 <p className="text-[17px] leading-snug font-semibold">
                   {stepPhrase(id, left.target ?? 1)}. {date === today ? "C’est réussi aujourd’hui ?" : "C’est réussi ?"}

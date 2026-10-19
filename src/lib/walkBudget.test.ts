@@ -4,7 +4,7 @@ import { walkBudget } from './walkBudget'
 const billy = { birthDate: '2026-05-13', today: '2026-10-18' }
 
 describe('règle des 5 minutes par mois d’âge (T-019)', () => {
-  it('à 5 mois : 25 min par sortie, 75 min par jour', () => {
+  it('à 5 mois : 25 min par sortie, 75 min par jour', () => {
     expect(walkBudget({ ...billy, walks: [], walksLeft: 3 })).toEqual({ months: 5, perWalk: 25, daily: 75, walked: 0, next: 25 })
   })
   it('après une grosse balade, les sorties suivantes raccourcissent', () => {
@@ -13,7 +13,7 @@ describe('règle des 5 minutes par mois d’âge (T-019)', () => {
     expect(b.next).toBe(15) // 35 min restantes sur 2 sorties
     expect(walkBudget({ ...billy, walks: [40, 25], walksLeft: 1 })!.next).toBe(10)
   })
-  it('le temps du jour fait : plus de balade, juste ses besoins', () => {
+  it('le temps du jour fait : plus de balade, juste ses besoins', () => {
     expect(walkBudget({ ...billy, walks: [60, 20], walksLeft: 1 })!.next).toBe(0)
   })
   it('une balade normale ne change rien', () => {

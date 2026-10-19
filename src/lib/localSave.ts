@@ -9,7 +9,7 @@ export const LOCAL_CHECK_MS = 5000
 
 export class NotSavedError extends Error {
   constructor(detail: string) {
-    super(`Balade absente de la base locale : ${detail}`)
+    super(`Balade absente de la base locale : ${detail}`)
     this.name = 'NotSavedError'
   }
 }

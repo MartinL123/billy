@@ -87,7 +87,7 @@ export function EveningReminder({ dogName }: { dogName: string }) {
               <span className="text-[17px] font-semibold">Heure du rappel</span>
               <NativePickerInput type="time" value={time} onChange={(e) => changeTime(e.target.value)} className="field min-h-12 w-[130px] px-3 text-[17px]" />
             </label>
-            <p className="text-[13px] leading-snug text-muted">Elle peut arriver avec quelques minutes de retard. « Comment s’est passée la journée avec {dogName} ? »</p>
+            <p className="text-[13px] leading-snug text-muted">Elle peut arriver avec quelques minutes de retard. « Comment s’est passée la journée avec {dogName} ? »</p>
           </>
         )}
         {message && (

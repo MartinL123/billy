@@ -18,7 +18,7 @@ describe('questionnaire en deux temps (T-012)', () => {
 
 describe('fin de « Compléter son profil » (T-022)', () => {
   const essentials = Object.fromEntries(q.ESSENTIALS.map((id) => [id, 'ok']))
-  it('les os de partie : après le départ, tant que le questionnaire n’est pas terminé', () => {
+  it('les os de partie : après le départ, tant que le questionnaire n’est pas terminé', () => {
     expect(q.profilePartsEarnBones({ answers: {} })).toBe(false)
     expect(q.profilePartsEarnBones({ answers: essentials })).toBe(true)
     expect(q.profilePartsEarnBones({ answers: essentials, completedAt: '2026-10-18T10:00:00Z' })).toBe(false)

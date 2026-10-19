@@ -34,7 +34,7 @@ export function Result() {
     const { removed, undo } = uncheckSteps(skillId, current, step, xpLog)
     if (removed.length === 0) return
     answerQuestion(skillId, answerForSteps(step - 1))
-    toast(`${name} : ${plural(removed.length, 'décochée')}.`, {
+    toast(`${name} : ${plural(removed.length, 'décochée')}.`, {
       label: 'Annuler',
       run: () => {
         undo()
@@ -49,7 +49,7 @@ export function Result() {
     const gained = declarePreApp(skillId, current, step, today)
     if (gained.length === 0) return
     answerQuestion(skillId, answerForSteps(step))
-    toast(`${name} : ${plural(gained.length, 'cochée')}.`, {
+    toast(`${name} : ${plural(gained.length, 'cochée')}.`, {
       label: 'Annuler',
       run: () => {
         uncheckSteps(skillId, markPreApp(current ?? EMPTY_PROGRESS, step).progress, gained[0]!, [])

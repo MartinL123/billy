@@ -10,7 +10,7 @@ const base: NowInput = {
   walks: { times: { matin: '08:00', midi: '13:00', soir: '19:00' }, done: { matin: '08:10', midi: '13:05' } },
 }
 
-describe('Aujourd’hui : une seule chose à faire', () => {
+describe('Aujourd’hui : une seule chose à faire', () => {
   it('la mission', () => {
     expect(nowCard(base).kind).toBe('mission')
   })
@@ -29,7 +29,7 @@ describe('Aujourd’hui : une seule chose à faire', () => {
     expect(nowCard({ ...base, now: 19 * 60 + 5 })).toEqual({ kind: 'repas', time: '19:30' })
   })
 
-  it('mission faite : la sortie si elle est dans l’heure, sinon « tout est fait »', () => {
+  it('mission faite : la sortie si elle est dans l’heure, sinon « tout est fait »', () => {
     const done = { ...base, mission: { done: true, minutes: 3 } }
     expect(nowCard({ ...done, now: 18 * 60 + 20 })).toEqual({ kind: 'sortie', slot: 'soir', time: '19:00' })
     const evening = { ...done, now: 21 * 60, meals: [], walks: { ...done.walks, done: { matin: '08:10', midi: '13:05', soir: '19:10' } } }

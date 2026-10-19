@@ -38,8 +38,8 @@ export function isDue(settings: ReminderSettings, now: Date): boolean {
 export function reminderText(dogName: string, restDay: boolean): { title: string; body: string } {
   const name = dogName.trim() || 'votre chien'
   return restDay
-    ? { title: 'Journée repos', body: `Journée repos pour ${name} : un mot sur sa balade ?` }
-    : { title: 'Le carnet du soir', body: `Comment s’est passée la journée avec ${name} ? Notez-le en 30 secondes.` }
+    ? { title: 'Journée repos', body: `Journée repos pour ${name} : un mot sur sa balade ?` }
+    : { title: 'Le carnet du soir', body: `Comment s’est passée la journée avec ${name} ? Notez-le en 30 secondes.` }
 }
 
 /** Clé VAPID publique (base64 « URL ») → octets, pour créer l’abonnement push. */

@@ -148,7 +148,7 @@ export default function Shop() {
               </li>
             ))}
           </ul>
-          <p className="text-[15px] leading-snug text-muted">Les os récompensent vos efforts, pas ce que {dog.name} sait faire : ils ne se perdent jamais.</p>
+          <p className="text-[15px] leading-snug text-muted">Les os récompensent vos efforts, pas ce que {dog.name} sait faire : ils ne se perdent jamais.</p>
         </section>
       </main>
 

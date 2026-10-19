@@ -3,7 +3,7 @@ import { fogLayout } from './fogCanvas'
 import { cellBounds } from './fog'
 
 describe('brouillard en image', () => {
-  it('l’image couvre les cases et une marge ; chaque trouée est au centre de sa case', () => {
+  it('l’image couvre les cases et une marge ; chaque trouée est au centre de sa case', () => {
     const layout = fogLayout(['100_200', '100_201', '102_200'])!
     expect(layout.width).toBe((2 + 40) * 8)
     expect(layout.height).toBe((3 + 40) * 8)

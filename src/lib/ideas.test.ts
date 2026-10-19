@@ -36,7 +36,7 @@ describe('à découvrir', () => {
     expect(ideas[0]!.name).toBe('Square du Bourg')
   })
 
-  it('chien sensible : lieux naturels loin des grandes routes d’abord', () => {
+  it('chien sensible : lieux naturels loin des grandes routes d’abord', () => {
     const ideas = rankIdeas(places, { here, cells: new Set(), roads, profile: { sensitive: true, sporty: false, short: false } })
     // Le square est à 0 m de la grande route : il passe après la plage et la pointe.
     expect(ideas[0]!.name).toBe('Plage du Test')

@@ -57,7 +57,7 @@ const TEXTS: Record<string, SkillText> = {
   manieres: {
     steps: ['S’assoit et se couche à la demande', 'Reste en place et attend à la porte', 'S’assoit, se couche et reste, dehors au calme', 'Ne saute pas sur les gens qui arrivent', 'Garde ses bonnes manières partout'],
     short: ['S’assoit et se couche', 'Reste en place, attend à la porte', 'S’assoit, se couche et reste, dehors', 'Ne saute pas sur les gens', 'Garde ses bonnes manières partout'],
-    question: 'Assis, couché, pas bouger : {nom} le fait…',
+    question: 'Assis, couché, pas bouger : {nom} le fait…',
     atHome: 'Et il attend à la porte',
     outside: 'Dans un endroit calme',
   },

@@ -19,7 +19,7 @@ describe('niveau calculé sur les étapes acquises', () => {
     expect(dogLevel(progress)).toEqual({ level: 3, toNext: 1, ratio: 0.5 })
   })
 
-  it('décocher une étape fait baisser le niveau ; rien d’autre ne le fait', () => {
+  it('décocher une étape fait baisser le niveau ; rien d’autre ne le fait', () => {
     const progress = { lien: skill(4) }
     expect(dogLevel(progress).level).toBe(3)
     const corrected = { lien: uncheckStep(progress.lien, 2).progress }

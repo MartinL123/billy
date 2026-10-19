@@ -47,15 +47,15 @@ describe('upcoming', () => {
 })
 
 describe('soin validé (audit R-001)', () => {
-  it('en retard : fait aujourd’hui, la récurrence repart d’aujourd’hui', () => {
+  it('en retard : fait aujourd’hui, la récurrence repart d’aujourd’hui', () => {
     expect(nextAfterDone('2026-07-10', 'monthly', '2026-10-18')).toBe('2026-11-18')
     expect(nextAfterDone('2026-07-10', 'quarterly', '2026-10-18')).toBe('2027-01-18')
   })
-  it('à temps ou en avance : le calendrier prévu continue', () => {
+  it('à temps ou en avance : le calendrier prévu continue', () => {
     expect(nextAfterDone('2026-10-18', 'monthly', '2026-10-18')).toBe('2026-11-18')
     expect(nextAfterDone('2026-10-25', 'monthly', '2026-10-18')).toBe('2026-11-25')
   })
-  it('sans récurrence : rien', () => {
+  it('sans récurrence : rien', () => {
     expect(nextAfterDone('2026-07-10', 'none', '2026-10-18')).toBeUndefined()
   })
 })

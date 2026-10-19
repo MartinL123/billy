@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { backfillBones, balance, BONES, boneId, challengeBone, earned, missionBones, momentBones, purchaseBone, questionnaireBone, regularWeekBone } from './bones'
+import { backfillBones, balance, BONES, boneId, challengeBone, earned, missionBones, momentBones, purchaseBone, questionnaireBone, regularWeekBone, welcomeBone } from './bones'
 import { weekOf } from './rhythm'
 
 describe('les os', () => {
@@ -36,6 +36,7 @@ describe('les os', () => {
   it('défi +30, questionnaire +50, chacun une seule fois (identifiant fixe)', () => {
     expect(challengeBone('2026-10-12', '2026-10-15')).toMatchObject({ id: 'defi-2026-10-12', amount: 30 })
     expect(questionnaireBone('2026-10-14')).toMatchObject({ id: 'questionnaire-depart', amount: 50 })
+    expect(welcomeBone('2026-10-14')).toMatchObject({ id: 'questionnaire-bienvenue', amount: 10 })
     expect(boneId('mission', '2026-10-14')).toBe(missionBones('2026-10-14', false)[0]!.id)
   })
 

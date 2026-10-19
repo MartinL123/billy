@@ -21,6 +21,8 @@ export const BONES = {
   rest: 5,
   /** Questionnaire de départ terminé, une fois. */
   questionnaire: 50,
+  /** Os de bienvenue, à la fin des 9 premières questions (R-035). */
+  welcome: 10,
   /** Une partie de son profil complétée (questionnaire en deux temps, T-012), une fois par partie. */
   profilePart: 15,
   /** Marquer un spot (une fois par spot et par jour) ; un spot jamais marqué par ce chien : +10. */
@@ -79,6 +81,8 @@ export const challengeBone = (week: ISODate, date: ISODate) => bone('defi', week
 /** Sortie cochée : +2, une fois par créneau et par jour (la décocher ne retire rien). */
 export const walkBone = (date: ISODate, slot: string) => bone('sortie', `${date}-${slot}`, date, BONES.walk)
 export const questionnaireBone = (date: ISODate) => bone('questionnaire', 'depart', date, BONES.questionnaire)
+/** +10 os de bienvenue (R-035) : identifiant fixe, jamais donnés deux fois. */
+export const welcomeBone = (date: ISODate) => bone('questionnaire', 'bienvenue', date, BONES.welcome)
 export const profilePartBone = (part: number, date: ISODate) => bone('questionnaire', `partie-${part}`, date, BONES.profilePart)
 
 /** Semaine régulière : dès que 5 jours de la semaine ont un moment noté. */

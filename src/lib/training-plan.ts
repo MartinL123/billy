@@ -45,9 +45,13 @@ const NO_TREAT = /^(treats?|friandises?|des friandises|croquettes?|oui|non|aucun
 
 /** « Ce qu’il faut » : le nom des friandises seulement s’il est vraiment renseigné dans le profil. */
 export function neededTreats(treats: string | undefined): string {
-  const name = (treats ?? '').trim().replace(/\.$/, '')
-  return name && !NO_TREAT.test(name) ? `Ses friandises préférées (${name})` : 'Ses friandises préférées'
+  // Le même nom que dans le profil (mots anglais traduits) ; une réponse bidon (« test ») n’est jamais affichée (R-053).
+  const name = treatsLabel(treats)
+  return name && name !== 'Les friandises' ? `Ses friandises préférées (${name})` : 'Ses friandises préférées'
 }
+
+/** Une réponse bidon, tapée pour essayer (« test », « xxx », « ? ») : comme si rien n’était renseigné (R-053). */
+const PLACEHOLDER = /^(test|tests|essai|xx+|a+|\?+|-+|\.+)$/i
 
 // Mots anglais qui arrivent parfois dans le questionnaire (clavier ou correction automatique en anglais).
 const ENGLISH: Record<string, string> = { treat: 'friandises', treats: 'friandises', cheese: 'fromage', chicken: 'poulet', beef: 'bœuf', fish: 'poisson', ham: 'jambon', carrot: 'carotte', carrots: 'carottes', apple: 'pomme', kibble: 'croquettes', biscuit: 'biscuits', biscuits: 'biscuits' }
@@ -55,7 +59,7 @@ const ENGLISH: Record<string, string> = { treat: 'friandises', treats: 'friandis
 /** « Il adore » dans le profil : la réponse en français ; un mot générique devient « les friandises ». */
 export function treatsLabel(treats: string | undefined): string | undefined {
   const name = (treats ?? '').trim().replace(/\.$/, '')
-  if (!name) return undefined
+  if (!name || PLACEHOLDER.test(name)) return undefined
   const french = name.replace(/[A-Za-z]+/g, (word) => ENGLISH[word.toLowerCase()] ?? word)
   const text = NO_TREAT.test(name) || NO_TREAT.test(french) ? 'les friandises' : french
   return text.replace(/^./, (c) => c.toLocaleUpperCase('fr'))

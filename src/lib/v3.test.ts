@@ -641,6 +641,9 @@ describe('« Ce qu’il faut » : les friandises', () => {
     expect(neededTreats('friandises')).toBe('Ses friandises préférées')
     expect(neededTreats('Fromage, poulet séché…')).toBe('Ses friandises préférées')
     expect(neededTreats('Comté en dés')).toBe('Ses friandises préférées (Comté en dés)')
+    // Jamais de « (test) » à l’écran (R-053), et les mots anglais traduits comme dans le profil.
+    expect(neededTreats('test')).toBe('Ses friandises préférées')
+    expect(neededTreats('chicken')).toBe('Ses friandises préférées (Poulet)')
   })
 })
 

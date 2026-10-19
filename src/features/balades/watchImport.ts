@@ -8,6 +8,9 @@ import type { ISODate } from '../../lib/dates'
 import { withoutGpsDuplicates } from '../../lib/gpsWalk'
 import { newWatchWalks, shouldSync, watchActivity, watchSince } from '../../lib/watch'
 import type { WalkTimes } from '../../lib/walks'
+import { withTimeout } from '../../lib/timeout'
+import { isFirestoreCrash } from '../../lib/firestoreCrash'
+import { recoverFromFirestoreCrash } from '../../firebase/recover'
 import { FlairNative } from '../../native/flair'
 import { importActivities } from './importRun'
 
@@ -58,8 +61,9 @@ export async function syncWatch(ctx: () => WatchContext, onAdded: (count: number
     // Rien trouvé la première fois : on relit les 30 derniers jours, au cas où la lecture vient d'être autorisée.
     const since = watchSince(watchLooksBlocked() ? undefined : saved?.watchSyncedAt, new Date(now))
     // Une balade de l’iPhone en cours : on attend qu’elle soit gardée (sinon la séance Watch du même moment passerait avant).
-    if ((await FlairNative.currentWalk()).active) return
-    const read = await FlairNative.getWalks({ since })
+    if ((await withTimeout(FlairNative.currentWalk(), 10_000, 'currentWalk')).active) return
+    // Délais maximum (R-042) : une lecture bloquée n’empêche jamais les suivantes.
+    const read = await withTimeout(FlairNative.getWalks({ since }), 60_000, 'getWalks')
     if (!read.available) return
     const first = !saved?.watchSyncedAt || watchLooksBlocked()
     if (read.walks.length) setLooksBlocked(false)
@@ -67,12 +71,16 @@ export async function syncWatch(ctx: () => WatchContext, onAdded: (count: number
     const data = ctx()
     const fresh = withoutGpsDuplicates(newWatchWalks(read.walks, data.entries.map((e) => e.route ?? {})), data.entries)
     if (fresh.length) {
-      const result = await importActivities(fresh.length, async (i) => watchActivity(fresh[i]!), { knownKeys: knownImportKeys(data.entries), bones: data.bones, fog: data.fog, communes: data.communes, today: data.today, times: data.times }, () => undefined, { source: 'watch' })
+      const result = await withTimeout(importActivities(fresh.length, async (i) => watchActivity(fresh[i]!), { knownKeys: knownImportKeys(data.entries), bones: data.bones, fog: data.fog, communes: data.communes, today: data.today, times: data.times }, () => undefined, { source: 'watch' }), 15_000 + 2_000 * fresh.length, 'enregistrement')
       if (result.walks.length) onAdded(result.walks.length)
     }
+    // Seulement après un enregistrement réussi : en cas d’échec, la prochaine lecture reprend les mêmes marches
+    // (celles déjà enregistrées sont écartées par leur clé).
     send(setDoc(accountDoc(), { watchSyncedAt: startedAt }, { merge: true }))
   } catch (error) {
     console.error('Lecture des marches de la Watch impossible', error)
+    // Firestore en panne (R-042) : l’app se recharge ; les mêmes marches seront relues (rien n’est perdu).
+    if (isFirestoreCrash(error)) recoverFromFirestoreCrash()
   } finally {
     running = false
   }

@@ -7,6 +7,7 @@ import './index.css'
 import { isConfigured } from './firebase/config'
 import { Splash } from './features/auth/Splash'
 import { isNative } from './native'
+import { watchFirestoreCrash } from './firebase/recover'
 
 // Nouvelle version : l’app se recharge seule. Sur iPhone l’app reste ouverte des jours,
 // on revérifie donc à chaque retour au premier plan.
@@ -24,6 +25,9 @@ if (!(isNative() && window.location.protocol === 'capacitor:'))
       setInterval(check, 60 * 60 * 1000)
     },
   })
+
+// R-042 : Firestore en panne après un passage en arrière-plan (iOS) : l’app se recharge à son retour.
+watchFirestoreCrash()
 
 const root = createRoot(document.getElementById('root')!)
 

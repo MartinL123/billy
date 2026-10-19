@@ -92,6 +92,13 @@ appelé depuis `src/native/flair.ts`, toujours derrière `isNative()`. Le site w
   propose « Reprendre / Terminer ». Moins de 100 m ou 2 min : pas gardée. Une séance Watch qui recouvre à plus de la
   moitié une balade de l'iPhone est ignorée.
 
+Ne jamais perdre une balade (R-042) : « Terminer » arrête le GPS mais garde la balade sur l'iPhone ; elle n'est
+effacée (`clearWalk`) qu'une fois enregistrée. Chaque étape a un délai maximum ; en cas d'échec, « Réessayer » et
+« Copier le détail ». App fermée avant la fin : l'accueil propose « Balade à enregistrer · Terminer ».
+Cause trouvée au Simulateur : environ 1 min 30 après le passage en arrière-plan, iOS suspend le processus réseau de
+WebKit, qui tient aussi IndexedDB ; Firestore perd sa transaction et s'arrête pour de bon (« INTERNAL ASSERTION
+FAILED »). L'app se recharge alors toute seule à son retour au premier plan (`src/firebase/recover.ts`).
+
 Limites :
 - iOS ne dit jamais à une app que la lecture de Santé est refusée : si la première lecture ne trouve aucune séance,
   la tuile « Ses balades » propose d'autoriser Flair (Réglages › Santé › Accès aux données › Flair).
@@ -99,6 +106,19 @@ Limites :
   actif écran verrouillé. Arrêt automatique après 3 h. Le GPS consomme de la batterie pendant la balade.
 - Le code natif ne se met à jour qu'en réinstallant l'app depuis Xcode ; le reste (écrans, textes) arrive avec le
   déploiement du site.
+
+## Tester au Simulateur
+
+Avec les émulateurs et le site local (`npm run emulators`, `VITE_USE_EMULATORS=true npx vite build`,
+`npm run preview -- --port 4173`) :
+
+```bash
+CAP_DEV_URL=http://127.0.0.1:4173/billy/ npx cap sync ios
+```
+
+puis lancer l'app sur un Simulateur. Marche simulée : `xcrun simctl location booted start --speed=1.4 lat,lng lat,lng…`.
+Journal JS et pont Capacitor : `xcrun simctl launch --console-pty booted fr.lanrezac.billy`.
+**Avant l'iPhone, toujours repasser par `npm run build:ios`** (qui remet le site en ligne).
 
 ## Changer le nom
 

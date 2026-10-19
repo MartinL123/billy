@@ -15,6 +15,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         CAPPluginMethod(name: "startWalk", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "stopWalk", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "cancelWalk", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "clearWalk", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "currentWalk", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "keepAwake", returnType: CAPPluginReturnPromise)
     ]
@@ -190,7 +191,9 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
 
     private func walkSummary() -> [String: Any] {
         guard let state = readState(), let startedAt = state["startedAt"] as? String else { return ["active": false, "recording": false, "points": []] }
-        return ["active": true, "recording": recording, "startedAt": startedAt, "autoStopped": state["autoStopped"] as? Bool ?? false, "points": readPoints()]
+        var summary: [String: Any] = ["active": true, "recording": recording, "startedAt": startedAt, "autoStopped": state["autoStopped"] as? Bool ?? false, "stopped": state["stoppedAt"] != nil, "points": readPoints()]
+        if let stoppedAt = state["stoppedAt"] as? String { summary["stoppedAt"] = stoppedAt }
+        return summary
     }
 
     /// `startWalk()` : démarre une balade, ou reprend celle en cours (app tuée). Refuse si la position n'est pas autorisée.
@@ -260,13 +263,25 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         recording = false
     }
 
-    /// `stopWalk()` : arrête et renvoie la balade (`startedAt`, `points`), puis efface le fichier.
+    /// `stopWalk()` : arrête le GPS et renvoie la balade (`startedAt`, `points`). Le fichier est GARDÉ (R-042) : il n'est
+    /// effacé que par `clearWalk()`, une fois la balade enregistrée. Si l'enregistrement échoue ou si l'app est fermée,
+    /// la balade reste « à enregistrer ».
     @objc func stopWalk(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
             self.stopUpdates()
-            let summary = self.walkSummary()
+            if var state = self.readState(), state["stoppedAt"] == nil {
+                state["stoppedAt"] = FlairNativePlugin.format(Date())
+                self.writeState(state)
+            }
+            call.resolve(self.walkSummary())
+        }
+    }
+
+    /// `clearWalk()` : efface la balade, seulement après un enregistrement réussi.
+    @objc func clearWalk(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
             try? FileManager.default.removeItem(at: self.walkDir)
-            call.resolve(summary)
+            call.resolve()
         }
     }
 

@@ -24,6 +24,9 @@ export interface CurrentWalk {
   recording: boolean
   startedAt?: string
   autoStopped?: boolean
+  /** « Terminer » a été touché : le GPS est arrêté, la balade attend d’être enregistrée (R-042). */
+  stopped?: boolean
+  stoppedAt?: string
   points: GpsPoint[]
 }
 
@@ -31,8 +34,10 @@ interface FlairNativePlugin {
   getWalks(options: { since: string }): Promise<WatchWalks>
   /** Démarre, ou reprend la balade en cours. Rejet `denied` si la position n'est pas autorisée. */
   startWalk(): Promise<CurrentWalk>
-  /** Arrête et renvoie la balade ; le fichier de l'app est effacé. */
+  /** Arrête le GPS et renvoie la balade. Le fichier est gardé jusqu'à `clearWalk()` (R-042). */
   stopWalk(): Promise<CurrentWalk>
+  /** Efface la balade : seulement après un enregistrement réussi. */
+  clearWalk(): Promise<void>
   cancelWalk(): Promise<void>
   currentWalk(): Promise<CurrentWalk>
   keepAwake(options: { on: boolean }): Promise<void>

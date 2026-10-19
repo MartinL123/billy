@@ -31,14 +31,14 @@ export interface NowInput {
   /** La règle des 5 minutes par mois d’âge (T-019) : durée de la prochaine sortie. */
   budget?: WalkBudget
   /** App iOS : une balade enregistrée par l’iPhone est commencée (T-036). `recording` faux si l’app a été fermée. */
-  walking?: { startedAt: string; recording: boolean }
+  walking?: { startedAt: string; recording: boolean; /** Arrêtée (« Terminer » touché) mais pas encore enregistrée (R-042). */ stoppedAt?: string }
   /** Pesée du mois à proposer (T-013), avec la date de la dernière pesée. */
   weighing?: { due: boolean; last?: ISODate }
 }
 
 export type NowCard =
   /** Une balade de l’iPhone en cours : la reprendre ou la terminer passe avant tout (T-036). */
-  | { kind: 'balade'; startedAt: string; recording: boolean }
+  | { kind: 'balade'; startedAt: string; recording: boolean; stoppedAt?: string }
   | { kind: 'soin'; event: CareLike }
   | { kind: 'repas'; time: string; label?: string }
   | { kind: 'mission' }

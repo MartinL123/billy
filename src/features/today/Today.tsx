@@ -177,6 +177,15 @@ function useCardContent(card: NowCard, onWeighLater: () => void) {
       return { badge: '', title: '', text: '' }
     // Une balade de l’iPhone commencée (T-036) : la reprendre, ou la terminer.
     case 'balade': {
+      // Arrêtée mais pas enregistrée (app fermée pendant l’enregistrement, R-042) : la terminer, rien n’est perdu.
+      if (card.stoppedAt)
+        return {
+          badge: 'Balade à enregistrer',
+          title: `Balade à enregistrer · ${minutesSince(elapsedMs(card.startedAt, Date.parse(card.stoppedAt)))}`,
+          text: 'Elle est gardée sur l’iPhone. Terminez-la pour l’ajouter à ses balades.',
+          scene: undefined,
+          action: { label: 'Terminer', to: '/balade-en-cours?terminer=1' },
+        }
       const minutes = minutesSince(elapsedMs(card.startedAt, Date.now()))
       return {
         badge: 'Balade en cours',

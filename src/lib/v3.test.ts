@@ -422,8 +422,9 @@ describe('quête du jour', () => {
     expect(base.active).toContain(quest.bossId)
     expect(quest.planned!.exercise.bossIds).toContain(quest.bossId)
     expect(dailyQuest(base)).toEqual(quest)
-    const mission = questMission(quest, 3)
-    expect(mission.detail).toMatch(/^3 min · /)
+    const mission = questMission(quest)
+    // Une seule durée (R-048) : la séance est dans le bandeau, pas dans le détail.
+    expect(mission.detail).not.toMatch(/\d+ min/)
     expect(`${mission.title} ${mission.detail} ${questNote(quest, 3)}`).not.toMatch(BANNED)
   })
 

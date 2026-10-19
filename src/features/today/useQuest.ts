@@ -27,7 +27,7 @@ export function useQuest() {
     const minutes = sessionMinutes(dog.birthDate, today)
     // Une fois faite, la carte garde l’exercice réalisé, même si l’étape a avancé depuis.
     const doneName = stored?.done ? (stored.kind === 'repos' ? 'Journée de repos' : exerciseById(stored.exerciseId ?? '')?.name) : undefined
-    const mission = doneName ? { title: doneName, detail: 'Bravo à vous deux.' } : questMission(quest, minutes)
+    const mission = doneName ? { title: doneName, detail: 'Bravo à vous deux.' } : questMission(quest)
     return { quest: stored?.done && stored.bossId ? { ...quest, bossId: stored.bossId } : quest, mission, note: questNote(quest, minutes), minutes, active, skips, done: Boolean(stored?.done), canSkip: skips < MAX_SKIPS }
   }, [dog.activeSkills, dog.traits, dog.birthDate, entries, bossProgress, xpLog, dailyQuests, today])
 }

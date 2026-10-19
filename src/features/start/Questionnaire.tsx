@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { NativePickerInput } from '../../components/Form'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { FilePicker } from '../../components/FilePicker'
@@ -356,7 +357,7 @@ export default function Questionnaire() {
 
         {step.kind === 'date' && (
           <div className="flex flex-col gap-2.5">
-            <input aria-label={title} type="date" max={today} value={draft[step.id] ?? ''} onChange={(e) => set(step.id, e.target.value)} className={`${input} px-3`} />
+            <NativePickerInput aria-label={title} type="date" max={today} value={draft[step.id] ?? ''} onChange={(e) => set(step.id, e.target.value)} className={`${input} px-3`} />
           </div>
         )}
 
@@ -376,7 +377,7 @@ export default function Questionnaire() {
                 <span className={label}>
                   Quand ? <span className="font-normal text-muted">(facultatif)</span>
                 </span>
-                <input type="date" min={today} value={draft['sterilise-date'] ?? ''} onChange={(e) => set('sterilise-date', e.target.value)} className={`${input} px-3`} />
+                <NativePickerInput type="date" min={today} value={draft['sterilise-date'] ?? ''} onChange={(e) => set('sterilise-date', e.target.value)} className={`${input} px-3`} />
                 <span className="text-[15px] text-muted">{draft['sterilise-date'] ? 'Un rappel s’ajoutera dans Santé.' : 'Sans date, Santé vous rappellera de prendre rendez-vous.'}</span>
               </label>
             )}
@@ -433,8 +434,8 @@ export default function Questionnaire() {
                   Prochaine séance <span className="font-normal text-muted">(facultatif)</span>
                 </legend>
                 <div className="grid grid-cols-[1fr_auto] gap-2">
-                  <input aria-label="Date de la prochaine séance" type="date" min={today} value={draft['educateur-date'] ?? ''} onChange={(e) => set('educateur-date', e.target.value)} className={`${input} min-w-0 px-3`} />
-                  <input aria-label="Heure de la prochaine séance" type="time" value={draft['educateur-heure'] ?? ''} onChange={(e) => set('educateur-heure', e.target.value)} className={`${input} w-[120px] px-3`} />
+                  <NativePickerInput aria-label="Date de la prochaine séance" type="date" min={today} value={draft['educateur-date'] ?? ''} onChange={(e) => set('educateur-date', e.target.value)} className={`${input} min-w-0 px-3`} />
+                  <NativePickerInput aria-label="Heure de la prochaine séance" type="time" value={draft['educateur-heure'] ?? ''} onChange={(e) => set('educateur-heure', e.target.value)} className={`${input} w-[120px] px-3`} />
                 </div>
                 <p className="text-[15px] text-muted">Elle s’ajoutera dans Santé.</p>
               </fieldset>
@@ -452,7 +453,7 @@ export default function Questionnaire() {
               <span className={label}>Ses repas</span>
               {meals.map((meal, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <input aria-label={`Heure du repas ${i + 1}`} type="time" value={meal.time} onChange={(e) => setMeals(meals.map((m, j) => (j === i ? { time: e.target.value, label: mealLabel(e.target.value) } : m)))} className={`${input} min-w-0 flex-1 px-3`} />
+                  <NativePickerInput aria-label={`Heure du repas ${i + 1}`} type="time" value={meal.time} onChange={(e) => setMeals(meals.map((m, j) => (j === i ? { time: e.target.value, label: mealLabel(e.target.value) } : m)))} className={`${input} min-w-0 flex-1 px-3`} />
                   <button type="button" aria-label={`Retirer le repas ${i + 1}`} onClick={() => setMeals(meals.filter((_, j) => j !== i))} className="btn btn-quiet min-h-14 shrink-0 px-4">
                     <TrashIcon size={20} />
                     Retirer

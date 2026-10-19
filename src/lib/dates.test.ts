@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addDays, addMonths, diffDays, formatDayHeading, formatLong, formatMonthYear, formatRelative, formatShort, formatTime, formatWeekdayShort, isValidISO, todayISO } from './dates'
+import { addDays, addMonths, diffDays, formatDayHeading, formatLong, formatMonthYear, formatRelative, formatShort, formatTime, formatWeekdayShort, isValidISO, pickerText, todayISO } from './dates'
 
 describe('dates', () => {
   it('formate en français', () => {
@@ -37,5 +37,18 @@ describe('dates', () => {
     expect(isValidISO('2026-02-28')).toBe(true)
     expect(isValidISO('2026-02-30')).toBe(false)
     expect(isValidISO('')).toBe(false)
+  })
+})
+
+describe('dates et heures des champs, à la française (R-050, R-051)', () => {
+  it('une heure : « 19 h », « 7 h 30 », jamais « 07:00 PM »', () => {
+    expect(pickerText('time', '19:00', '')).toBe('19 h')
+    expect(pickerText('time', '07:30', '')).toBe('7 h 30')
+  })
+  it('une date : « 19 octobre 2026 », jamais « 10/19/2026 »', () => {
+    expect(pickerText('date', '2026-10-19', '')).toBe('19 octobre 2026')
+  })
+  it('sans valeur : l’invitation', () => {
+    expect(pickerText('time', '', 'Choisir une heure')).toBe('Choisir une heure')
   })
 })

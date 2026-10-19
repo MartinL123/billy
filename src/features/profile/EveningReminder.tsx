@@ -1,4 +1,5 @@
 import { setDoc } from 'firebase/firestore'
+import { NativePickerInput } from '../../components/Form'
 import { useEffect, useState } from 'react'
 import { canPush, deviceRef, disablePush, enablePush, isInstalled, readPush } from '../../firebase/push'
 import { DEFAULT_REMINDER_TIME } from '../../lib/reminder'
@@ -84,7 +85,7 @@ export function EveningReminder({ dogName }: { dogName: string }) {
             </label>
             <label className="flex items-center justify-between gap-3 border-t border-divider pt-3">
               <span className="text-[17px] font-semibold">Heure du rappel</span>
-              <input type="time" value={time} onChange={(e) => changeTime(e.target.value)} className="field min-h-12 w-[130px] px-3 text-[17px]" />
+              <NativePickerInput type="time" value={time} onChange={(e) => changeTime(e.target.value)} className="field min-h-12 w-[130px] px-3 text-[17px]" />
             </label>
             <p className="text-[13px] leading-snug text-muted">Elle peut arriver avec quelques minutes de retard. « Comment s’est passée la journée avec {dogName} ? »</p>
           </>

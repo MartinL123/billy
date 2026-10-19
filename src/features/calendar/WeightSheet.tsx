@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { NativePickerInput } from '../../components/Form'
 import { Sheet } from '../../components/Sheet'
 import { deleteWeight, newId, saveWeight } from '../../firebase/db'
 import type { Weight, WithId } from '../../firebase/types'
@@ -78,7 +79,7 @@ export function WeightSheet({ today, weights, editing, onClose }: WeightSheetPro
             <label htmlFor="kg-date" className="text-[15px] font-semibold">
               Date
             </label>
-            <input id="kg-date" type="date" max={today} value={date} onChange={(e) => setDate(e.target.value)} className="field h-16 px-3" />
+            <NativePickerInput id="kg-date" type="date" max={today} value={date} onChange={(e) => setDate(e.target.value)} className="field h-16 px-3" />
           </div>
         </div>
 

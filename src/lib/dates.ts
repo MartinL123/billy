@@ -119,3 +119,16 @@ export function formatTime(time: string): string {
 export function monthKey(iso: ISODate): string {
   return iso.slice(0, 7)
 }
+
+/**
+ * Le texte d'un champ date ou heure (R-050, R-051) : « 19 h 30 », « 19 octobre 2026 », jamais « 07:30 PM » ni
+ * « 10/19/2026 », quelle que soit la langue de l'appareil. Vide : l'invitation donnée.
+ */
+export function pickerText(type: 'date' | 'time', value: string, empty: string): string {
+  if (!value) return empty
+  if (type === 'time') {
+    const m = /^(\d{2}):(\d{2})/.exec(value)
+    return m ? (m[2] === '00' ? `${Number(m[1])} h` : `${Number(m[1])} h ${m[2]}`) : value
+  }
+  return isValidISO(value) ? formatLong(value) : value
+}

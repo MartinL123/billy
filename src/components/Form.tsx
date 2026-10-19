@@ -1,4 +1,5 @@
 import { useId, type FormEvent, type InputHTMLAttributes, type ReactNode } from 'react'
+import { pickerText } from '../lib/dates'
 
 interface FormScreenProps {
   title: string
@@ -52,13 +53,17 @@ export function TextField({ label, error, className = '', ...input }: TextFieldP
       <label htmlFor={id} className="text-[15px] font-semibold">
         {label}
       </label>
-      <input
-        id={id}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? `${id}-err` : undefined}
-        className={`field ${error ? 'border-danger' : ''} ${className}`}
-        {...input}
-      />
+      {input.type === 'date' || input.type === 'time' ? (
+        <NativePickerInput id={id} aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-err` : undefined} className={`field ${error ? 'border-danger' : ''} ${className}`} {...input} type={input.type as 'date' | 'time'} value={String(input.value ?? '')} />
+      ) : (
+        <input
+          id={id}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-err` : undefined}
+          className={`field ${error ? 'border-danger' : ''} ${className}`}
+          {...input}
+        />
+      )}
       {error && (
         <div id={`${id}-err`} className="text-sm font-medium text-danger">
           {error}
@@ -105,3 +110,26 @@ export function Segmented<T extends string>({ legend, options, value, onChange, 
 /** Bouton secondaire à contour, pleine largeur. */
 export const outlineButton =
   'btn btn-outline w-full'
+
+interface NativePickerInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'value'> {
+  type: 'date' | 'time'
+  value: string
+  /** Texte affiché sans valeur. */
+  placeholder?: string
+}
+
+/**
+ * Un champ date ou heure (R-050, R-051) : le sélecteur natif (la roue de l'iPhone) reste, mais invisible, posé sur un
+ * affichage à la française (« 19 h 30 », « 19 octobre 2026 »), quelle que soit la langue de l'appareil.
+ */
+export function NativePickerInput({ type, value, placeholder, className = '', ...input }: NativePickerInputProps) {
+  const shown = pickerText(type, value, placeholder ?? (type === 'time' ? 'Choisir une heure' : 'Choisir une date'))
+  return (
+    <span className={`relative flex items-center overflow-hidden focus-within:ring-2 focus-within:ring-primary ${className}`}>
+      <span aria-hidden="true" className={`pointer-events-none truncate ${value ? '' : 'text-muted'}`}>
+        {shown}
+      </span>
+      <input {...input} type={type} value={value} className="absolute inset-0 h-full w-full cursor-pointer appearance-none opacity-0" />
+    </span>
+  )
+}

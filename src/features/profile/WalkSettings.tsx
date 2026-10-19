@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { NativePickerInput } from '../../components/Form'
 import { updateDog } from '../../firebase/db'
 import { canPush, disablePush, enablePush, isInstalled, readPush } from '../../firebase/push'
 import { useData } from '../../firebase/store'
@@ -57,7 +58,7 @@ export function WalkSettings() {
         {WALK_SLOTS.map((slot) => (
           <label key={slot.id} className="flex items-center justify-between gap-3 border-t border-divider pt-3">
             <span className="text-[17px] font-semibold">{slot.label}</span>
-            <input type="time" value={times[slot.id]} onChange={(e) => changeTime(slot.id, e.target.value)} className="field min-h-12 w-[130px] px-3 text-[17px]" />
+            <NativePickerInput type="time" value={times[slot.id]} onChange={(e) => changeTime(slot.id, e.target.value)} className="field min-h-12 w-[130px] px-3 text-[17px]" />
           </label>
         ))}
         {canPush() && isInstalled() && (

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { FilePicker } from '../../components/FilePicker'
-import { FormScreen } from '../../components/Form'
+import { FormScreen, NativePickerInput } from '../../components/Form'
 import { PlusIcon } from '../../components/Icons'
 import { ConfirmSheet } from '../../components/Sheet'
 import { deleteEntry, newId, saveEntry } from '../../firebase/db'
@@ -249,7 +249,7 @@ export default function EntryForm() {
           <label htmlFor="dt" className="text-[17px] font-semibold">
             Date
           </label>
-          <input
+          <NativePickerInput
             id="dt"
             type="date"
             max={today}

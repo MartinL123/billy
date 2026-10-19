@@ -56,7 +56,8 @@ const SNAP = 'transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1)'
 
 /**
  * Le panneau glissant : il suit le doigt (glissé vertical seulement, le défilement des filtres reste horizontal),
- * puis se cale ouvert ou réduit selon la vitesse du geste ou la position la plus proche.
+ * puis se cale ouvert ou réduit selon la vitesse du geste ou la position la plus proche. Ouvert, il monte au plus à
+ * la moitié de l’écran ; la suite se lit en faisant défiler son contenu (le panneau se glisse alors par sa poignée).
  */
 function useSheet() {
   const ref = useRef<HTMLElement>(null)
@@ -65,6 +66,8 @@ function useSheet() {
   const [collapsed, setCollapsed] = useState(small)
   const peek = small ? SMALL_PEEK : PEEK_MARGIN
   const [travel, setTravel] = useState(0)
+  /** Le contenu dépasse la moitié de l’écran : il défile. */
+  const [scrollable, setScrollable] = useState(false)
   const drag = useRef<{ y: number; t: number; from: number; moving: boolean; id: number } | null>(null)
   const moved = useRef(false)
 
@@ -74,12 +77,27 @@ function useSheet() {
     const body = bodyRef.current
     if (!el || !body) return
     // Le contenu commence 12 px (gap-3) sous la poignée.
-    const measure = () => setTravel(Math.max(0, el.offsetHeight - (body.offsetTop - 12 + peek)))
+    const measure = () => {
+      setTravel(Math.max(0, el.offsetHeight - (body.offsetTop - 12 + peek)))
+      setScrollable(body.scrollHeight > body.clientHeight + 1)
+    }
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(el)
+    observer.observe(body)
     return () => observer.disconnect()
   }, [peek])
+
+  // Le contenu change (filtres, liste) : relu à chaque affichage, sans boucle (même valeur, pas de nouveau rendu).
+  useLayoutEffect(() => {
+    const body = bodyRef.current
+    if (body) setScrollable(body.scrollHeight > body.clientHeight + 1)
+  })
+
+  // Réduit (glissé ou poignée), le panneau montre toujours le haut de son contenu.
+  useEffect(() => {
+    if (collapsed && bodyRef.current) bodyRef.current.scrollTop = 0
+  }, [collapsed])
 
   const offset = collapsed ? travel : 0
   const place = (y: number, animate: boolean) => {
@@ -96,6 +114,8 @@ function useSheet() {
 
   const handlers = {
     onPointerDown: (e: PointerEvent) => {
+      // Panneau ouvert dont le contenu défile : le doigt sur le contenu le fait défiler, la poignée glisse le panneau.
+      if (scrollable && !collapsed && bodyRef.current?.contains(e.target as Node)) return
       drag.current = { y: e.clientY, t: e.timeStamp, from: offset, moving: false, id: e.pointerId }
       moved.current = false
     },
@@ -146,6 +166,7 @@ function useSheet() {
     handlers,
     style: { transform: `translateY(${offset}px)`, transition: SNAP },
     small,
+    scrollable,
     bodyStyle: { opacity: collapsed && !small ? 0 : 1, transition: 'opacity 0.32s' },
   }
 }
@@ -339,12 +360,12 @@ export default function Explorer() {
         aria-label={`Le territoire ${ofName(dog.name)}`}
         {...sheet.handlers}
         style={sheet.style}
-        className={`absolute inset-x-0 bottom-0 z-10 mx-auto flex max-w-[430px] touch-pan-x ${selected || walk ? 'invisible' : ''} flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 pb-9 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]`}
+        className={`absolute inset-x-0 bottom-0 z-10 mx-auto flex max-h-[calc(100%-50dvh)] max-w-[430px] ${sheet.scrollable && !sheet.collapsed ? '' : 'touch-pan-x'} ${selected || walk ? 'invisible' : ''} flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 pb-9 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]`}
       >
-        <button type="button" onClick={() => sheet.setCollapsed(!sheet.collapsed)} aria-expanded={!sheet.collapsed} aria-label={sheet.collapsed ? 'Afficher le panneau' : 'Réduire le panneau'} className="mx-auto -mb-2 flex min-h-11 w-24 items-center justify-center border-0 bg-transparent">
+        <button type="button" onClick={() => sheet.setCollapsed(!sheet.collapsed)} aria-expanded={!sheet.collapsed} aria-label={sheet.collapsed ? 'Afficher le panneau' : 'Réduire le panneau'} className="mx-auto -mb-2 flex min-h-11 w-24 shrink-0 touch-none items-center justify-center border-0 bg-transparent">
           <span className="h-1.5 w-11 rounded-full bg-[#C9CFCC]" />
         </button>
-        <div ref={sheet.bodyRef} style={sheet.bodyStyle} className="flex flex-col gap-3" aria-hidden={(sheet.collapsed && !sheet.small) || undefined} inert={(sheet.collapsed && !sheet.small) || undefined}>
+        <div ref={sheet.bodyRef} style={sheet.bodyStyle} className="-mx-5 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-5 [&>*]:shrink-0" aria-hidden={(sheet.collapsed && !sheet.small) || undefined} inert={(sheet.collapsed && !sheet.small) || undefined}>
           {walks.length > 0 && (
             // Les filtres font partie du panneau : réduit, il ne reste que la carte (et la poignée).
             <div role="group" aria-label="Quelles balades afficher" className="scroll-row -mx-5 flex gap-1.5 px-5">

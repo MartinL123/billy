@@ -191,7 +191,9 @@ export default function Profile() {
         <Pending show={dog.pending} />
         <div className="card px-4 py-1">
           <InfoRow first label={place('Né le')} value={isValidISO(dog.birthDate) ? `${formatLong(dog.birthDate)} · ${formatAgeShort(dog.birthDate, today)}` : 'Pas encore renseigné'} />
-          {(dog.sex || dog.neutered) && <InfoRow label={dog.sex || place('Stérilisé')} value={dog.neutered === 'Oui' ? place('Stérilisé') : dog.neutered === 'Non' ? place('Non stérilisé') : dog.neutered ? 'Stérilisation prévue' : '—'} />}
+          {/* Une ligne par information : « Sexe : Femelle », puis la stérilisation (R-052). */}
+          {dog.sex && <InfoRow label="Sexe" value={dog.sex} />}
+          {dog.neutered && <InfoRow label="Stérilisation" value={dog.neutered === 'Oui' ? place('Stérilisé') : dog.neutered === 'Non' ? place('Non stérilisé') : 'Prévue'} />}
           <InfoRow label="Race" value={dog.breed || 'Pas encore renseignée'} />
           <InfoRow label={place('Adopté le')} value={isValidISO(dog.adoptionDate) ? `${formatLong(dog.adoptionDate)}${dog.origin ? ` · ${dog.origin.toLocaleLowerCase('fr')}` : ''}` : 'Pas encore renseigné'} />
           <InfoRow label="Puce" value={dog.chip || 'Pas encore renseignée'} />

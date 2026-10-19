@@ -25,6 +25,7 @@ import { weighingDue } from '../../lib/weighing'
 import { dayBudget, minutesOfDay, walkDayPlan, walksOfDay } from '../../lib/walkDay'
 import { WalkDayCard } from './WalkDayCard'
 import { LifeTiles } from './LifeTiles'
+import { memoriesTile } from '../../lib/dashboard'
 import { useCurrentWalk } from '../balades/useCurrentWalk'
 import { elapsedMs, minutesSince } from '../../lib/gpsWalk'
 import { isNative } from '../../native'
@@ -286,6 +287,7 @@ export default function Today() {
     return () => window.clearTimeout(timer)
   }, [today])
   const questionnaire = questionnaireStatus(dog.questionnaire)
+  const hasMemories = memoriesTile(entries, today).count > 0
   const profilePart = nextPart(dog.questionnaire)
 
   return (
@@ -327,7 +329,8 @@ export default function Today() {
       <LifeTiles arrival={arrival} />
 
       {/* « Noter un souvenir » une seule fois : en bouton contour, sauf si c’est déjà le bouton de la carte (audit R-023). */}
-      {content.action?.to !== '/noter' && (
+      {/* … et pas tant que la tuile Ses souvenirs propose déjà « Noter le premier » (R-040). */}
+      {content.action?.to !== '/noter' && hasMemories && (
         <Link to="/noter" className="tap btn btn-outline min-h-12 self-center gap-2 px-5">
           <PlusIcon size={20} />
           Noter un souvenir

@@ -23,7 +23,8 @@ export function progressTile(active: string[], levels: Record<string, number | u
 /** Ses balades : combien, combien de km, et la part découverte de la commune quand on la connaît. */
 export function walksTile(walks: { distanceM: number }[], share?: string): Tile & { km: number } {
   const km = walks.reduce((sum, w) => sum + w.distanceM, 0) / 1000
-  if (!walks.length) return { text: 'Pas encore de balade', detail: 'Importer mes balades', km: 0 }
+  // Le bouton est dans « Ses sorties du jour » ; la tuile, déjà un lien, garde seulement le texte (R-040).
+  if (!walks.length) return { text: 'Pas encore de balade', detail: '', km: 0 }
   return { text: `${plural(walks.length, 'balade')} · ${km.toFixed(1).replace('.', ',')} km`, detail: share ?? '', km }
 }
 

@@ -88,7 +88,7 @@ export function walksOfDay(entries: { date: string; route?: { durationMin?: numb
 /** Les durées proposées pour noter une sortie (R-044) ; « Autre » pour le reste. */
 export const DURATION_CHOICES = [10, 15, 25, 40, 60]
 
-/** La durée présélectionnée : la plus proche de la durée conseillée. */
+/** La durée présélectionnée : la plus proche de la durée d'une sortie à son âge (R-046 : 15 min à 3 mois), 25 min sans règle. */
 export function preselectedDuration(advised: number | undefined): number {
   const target = advised && advised > 0 ? advised : 25
   return DURATION_CHOICES.reduce((best, m) => (Math.abs(m - target) < Math.abs(best - target) ? m : best))

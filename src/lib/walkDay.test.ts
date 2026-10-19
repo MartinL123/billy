@@ -75,6 +75,8 @@ describe('ses sorties du jour (T-035)', () => {
 
   it('la durée présélectionnée et les sorties d’hier (R-044)', () => {
     expect(preselectedDuration(25)).toBe(25)
+    expect(preselectedDuration(15)).toBe(15) // chiot de 3 mois (R-046)
+    expect(preselectedDuration(40)).toBe(40)
     expect(preselectedDuration(20)).toBe(15)
     expect(preselectedDuration(0)).toBe(25)
     expect(yesterdayOpenSlots({ matin: '08:00' }, at(9))).toEqual(['midi', 'soir'])

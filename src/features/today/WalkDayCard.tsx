@@ -119,7 +119,7 @@ function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void }) {
  * de marche du jour, un conseil, et l’aperçu de ses tracés qui ouvre la carte. Une sortie faite sans balade se note en
  * 2 touchers : « + Je l’ai faite », puis la durée (R-044). Le matin, les sorties d’hier restent notables.
  */
-export function WalkDayCard({ plan, times, yesterday }: { plan: WalkDayPlan; times: WalkTimes; /** Le matin : les sorties d’hier pas faites. */ yesterday?: { date: ISODate; slots: WalkSlot[] } }) {
+export function WalkDayCard({ plan, times, yesterday, perWalk }: { plan: WalkDayPlan; times: WalkTimes; /** Le matin : les sorties d’hier pas faites. */ yesterday?: { date: ISODate; slots: WalkSlot[] }; /** La durée d’une sortie à son âge (5 min par mois) : présélectionnée pour noter une sortie (R-046). */ perWalk?: number }) {
   const { entries } = useData()
   const today = useToday()
   const walks = useMemo(() => walkItems(entries), [entries])
@@ -160,7 +160,7 @@ export function WalkDayCard({ plan, times, yesterday }: { plan: WalkDayPlan; tim
                 <li key={slot} className="grid min-h-[52px] grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-2 border-0 border-b border-solid border-[#EDF0EE] py-1">
                   <span className="text-[15px] font-extrabold text-muted">{formatHour(times[slot])}</span>
                   <span className="text-[15px] leading-tight text-[#3F4946]">{name}</span>
-                  <NoteButton onClick={() => note(yesterday.date, slot)} label={`${name} d’hier : je l’ai faite`} />
+                  <NoteButton onClick={() => note(yesterday.date, slot, perWalk)} label={`${name} d’hier : je l’ai faite`} />
                 </li>
               )
             })}
@@ -170,7 +170,7 @@ export function WalkDayCard({ plan, times, yesterday }: { plan: WalkDayPlan; tim
       )}
       <ul className="m-0 flex list-none flex-col p-0">
         {plan.slots.map((slot) => (
-          <SlotRow key={slot.slot} slot={slot} onNote={() => note(today, slot.slot, slot.state === 'a-venir' ? slot.minutes : undefined)} />
+          <SlotRow key={slot.slot} slot={slot} onNote={() => note(today, slot.slot, perWalk)} />
         ))}
       </ul>
       <p className="text-[14px] leading-snug text-[#3F4946]">{plan.tip}</p>

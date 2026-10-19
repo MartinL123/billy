@@ -332,7 +332,7 @@ export default function Today() {
       )}
 
       {/* Ses sorties du jour (T-035) : chaque sortie avec sa durée, ce qui reste, un conseil, l’aperçu de la carte. */}
-      <WalkDayCard plan={walkPlan} times={times} yesterday={{ date: yesterday, slots: yesterdayOpen }} />
+      <WalkDayCard plan={walkPlan} times={times} yesterday={{ date: yesterday, slots: yesterdayOpen }} {...(input.budget ? { perWalk: input.budget.perWalk } : {})} />
 
       <LifeTiles arrival={arrival} />
 

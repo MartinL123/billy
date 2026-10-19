@@ -1,4 +1,4 @@
-import { writeBatch } from 'firebase/firestore'
+import { getDocFromCache, writeBatch } from 'firebase/firestore'
 import type { ImportedActivity } from '../lib/activity'
 import { momentBones, walkBone, type Bone, type BoneWithId } from '../lib/bones'
 import type { ISODate } from '../lib/dates'
@@ -8,6 +8,7 @@ import { parisMinutes } from '../lib/activity'
 import { slotForStart, type WalkSlot, type WalkTimes } from '../lib/walks'
 import { db } from './app'
 import { newId, send, userDoc } from './paths'
+import { isFirestoreCrash } from '../lib/firestoreCrash'
 import type { Entry } from './types'
 
 /**
@@ -69,4 +70,17 @@ export function noteWalk(walk: { date: ISODate; slot: WalkSlot; minutes: number;
   for (const g of gains) batch.set(userDoc('bones', g.id), { date: g.date, amount: g.amount, reason: g.reason, refId: g.refId })
   send(batch.commit())
   return gains
+}
+
+/**
+ * La balade est-elle dans la base locale (R-045) ? Lecture sans réseau. Absente : faux. Firestore en panne : l'erreur
+ * remonte (l'app se rechargera).
+ */
+export async function entryInLocalCache(id: string): Promise<boolean> {
+  try {
+    return (await getDocFromCache(userDoc('entries', id))).exists()
+  } catch (error) {
+    if (isFirestoreCrash(error)) throw error
+    return false
+  }
 }

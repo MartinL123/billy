@@ -9,6 +9,8 @@ import { chrono, elapsedMs, gpsActivity, gpsDistance, tooShort, type GpsPoint } 
 import { formatRouteDistance } from '../../lib/route'
 import { errorText, withTimeout } from '../../lib/timeout'
 import { isFirestoreCrash } from '../../lib/firestoreCrash'
+import { ensureSavedLocally, NotSavedError } from '../../lib/localSave'
+import { entryInLocalCache } from '../../firebase/imports'
 import { recoverFromFirestoreCrash } from '../../firebase/recover'
 import { useToday } from '../../lib/useToday'
 import { walkTimes } from '../../lib/walks'
@@ -83,7 +85,10 @@ export default function LiveWalk() {
         SAVE_MS,
         'enregistrement',
       )
-      // Enregistrée (dans le cache Firestore, qui l’envoie dès qu’il y a du réseau) : on peut effacer la copie de l’iPhone.
+      // Enregistrée ? On relit la base locale (R-045) : si Firestore est en panne, l’écriture a pu ne jamais arriver.
+      step = 'vérification (base locale)'
+      await ensureSavedLocally(result.walks.map((w) => w.entryId), entryInLocalCache)
+      // Dans la base locale (qui l’envoie dès qu’il y a du réseau) : on peut effacer la copie de l’iPhone.
       step = 'effacement (clearWalk)'
       await withTimeout(FlairNative.clearWalk(), STOP_MS, 'clearWalk')
       navigate(result.walks.length ? '/importer/resultat' : '/', { replace: true })
@@ -93,7 +98,7 @@ export default function LiveWalk() {
       setPhase('failed')
       finishing.current = false
       // Firestore en panne (R-042) : l’app se recharge et rouvre cet écran, qui enregistre la balade gardée sur l’iPhone.
-      if (isFirestoreCrash(error)) recoverFromFirestoreCrash()
+      if (isFirestoreCrash(error) || error instanceof NotSavedError) recoverFromFirestoreCrash()
     }
   }
 

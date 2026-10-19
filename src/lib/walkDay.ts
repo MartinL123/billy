@@ -1,4 +1,4 @@
-import { minutesLabel, type WalkBudget } from './walkBudget'
+import { minutesLabel, walkBudget, type WalkBudget } from './walkBudget'
 import { formatHour, timeToMinutes, walkName, WALK_SLOTS, type WalkSlot, type WalkTimes } from './walks'
 
 // « Ses sorties du jour » (T-035) : les 3 sorties avec leur durée (faite ou conseillée), le temps de marche du jour et
@@ -67,3 +67,19 @@ export function walkDayPlan({ times, done, walks, budget, now }: { times: WalkTi
 
   return { slots, walked, ...(budget ? { daily: budget.daily } : {}), summary, tip }
 }
+
+/** Les balades du jour (importées, de la Watch, de l'iPhone) : leur créneau et leur durée. */
+export function walksOfDay(entries: { date: string; route?: { durationMin?: number }; walkSlot?: { date: string; creneau: string } }[], today: string): { slot?: string; minutes: number }[] {
+  return entries.filter((e) => e.date === today && e.route?.durationMin).map((e) => ({ minutes: e.route!.durationMin!, ...(e.walkSlot?.date === today ? { slot: e.walkSlot.creneau } : {}) }))
+}
+
+/**
+ * Le budget de marche du jour, le même partout (accueil, carte du moment, résultat d'import : audit R-038) : ce qui
+ * reste se répartit sur les sorties encore à venir, jamais sur celles manquées.
+ */
+export function dayBudget({ birthDate, today, times, done, walks, now }: { birthDate?: string; today: string; times: WalkTimes; done: Partial<Record<WalkSlot, string>>; walks: { minutes: number }[]; now: number }): WalkBudget | undefined {
+  return walkBudget({ birthDate, today, walks: walks.map((w) => w.minutes), walksLeft: upcomingSlots(times, done, now).length })
+}
+
+/** Minutes depuis minuit, à l'heure du téléphone. */
+export const minutesOfDay = (date: Date) => date.getHours() * 60 + date.getMinutes()

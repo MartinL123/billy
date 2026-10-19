@@ -8,8 +8,9 @@ import { useData } from '../../firebase/store'
 import { ofName } from '../../lib/gender'
 import { APP_NAME } from '../../appName'
 import { useToday } from '../../lib/useToday'
-import { minutesLabel, walkBudget } from '../../lib/walkBudget'
-import { WALK_SLOTS } from '../../lib/walks'
+import { minutesLabel } from '../../lib/walkBudget'
+import { dayBudget, minutesOfDay, walksOfDay } from '../../lib/walkDay'
+import { walkTimes } from '../../lib/walks'
 
 const percent = (share: number) => (share > 0 && share < 0.01 ? 'moins de 1' : String(Math.round(share * 100)))
 
@@ -19,12 +20,8 @@ export default function ImportResult() {
   const today = useToday()
   const result = takeImportResult()
   // Règle des 5 minutes par mois d’âge (T-019) : après une grosse balade aujourd’hui, la suite reste courte.
-  const budget = walkBudget({
-    birthDate: dog.birthDate,
-    today,
-    walks: entries.filter((e) => e.date === today && e.route?.durationMin).map((e) => e.route!.durationMin!),
-    walksLeft: WALK_SLOTS.filter((s) => !(walks.find((w) => w.date === today)?.done ?? {})[s.id]).length,
-  })
+  // Le même calcul que l’accueil (R-038) : ce qui reste se répartit sur les sorties encore à venir.
+  const budget = dayBudget({ birthDate: dog.birthDate, today, times: walkTimes(dog.walkTimes), done: walks.find((w) => w.date === today)?.done ?? {}, walks: walksOfDay(entries, today), now: minutesOfDay(new Date()) })
   const tooLong = budget?.longWalk && result?.walks.some((w) => w.date === today && (w.durationMin ?? 0) > budget.perWalk)
   if (!result) return <Navigate to="/territoire" replace />
   const nothing = result.walks.length === 0

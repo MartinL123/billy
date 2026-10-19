@@ -22,8 +22,7 @@ import { DogPhoto } from '../shop/DogPhoto'
 import { Illustration } from '../training/Illustration'
 import { useQuest } from './useQuest'
 import { weighingDue } from '../../lib/weighing'
-import { walkBudget } from '../../lib/walkBudget'
-import { upcomingSlots, walkDayPlan } from '../../lib/walkDay'
+import { dayBudget, minutesOfDay, walkDayPlan, walksOfDay } from '../../lib/walkDay'
 import { WalkDayCard } from './WalkDayCard'
 import { LifeTiles } from './LifeTiles'
 import { useCurrentWalk } from '../balades/useCurrentWalk'
@@ -54,10 +53,7 @@ function firstVisitToday(today: string): boolean {
   }
 }
 
-const nowMinutes = () => {
-  const d = new Date()
-  return d.getHours() * 60 + d.getMinutes()
-}
+const nowMinutes = () => minutesOfDay(new Date())
 
 /** Un bouton de la carte : un écran de l’app, un lien (téléphone) ou une action. */
 type Action = { label: string; to?: string; href?: string; run?: () => void }
@@ -254,7 +250,7 @@ export default function Today() {
   const times = walkTimes(dog.walkTimes)
   const walksDone = walks.find((w) => w.date === today)?.done ?? {}
   // Les balades du jour (importées de Strava) : leur créneau et leur durée.
-  const todayWalks = entries.filter((e) => e.date === today && e.route?.durationMin).map((e) => ({ minutes: e.route!.durationMin!, ...(e.walkSlot?.date === today ? { slot: e.walkSlot.creneau } : {}) }))
+  const todayWalks = walksOfDay(entries, today)
   const input: NowInput = {
     today,
     now,
@@ -263,13 +259,8 @@ export default function Today() {
     // Journée de repos : pas de « minutes de mission » à annoncer.
     mission: { done: missionDone, minutes: quest.kind === 'repos' ? 0 : minutes },
     walks: { times, done: walksDone },
-    budget: walkBudget({
-      birthDate: dog.birthDate,
-      today,
-      walks: todayWalks.map((w) => w.minutes),
-      // Ce qui reste du jour se répartit sur les sorties encore à venir (pas sur celles manquées).
-      walksLeft: upcomingSlots(times, walksDone, now).length,
-    }),
+    // Le même budget que le résultat d’import (R-038) : réparti sur les sorties encore à venir.
+    budget: dayBudget({ birthDate: dog.birthDate, today, times, done: walksDone, walks: todayWalks, now }),
     ...(currentWalk ? { walking: currentWalk } : {}),
     weighing: { due: weighingDue({ today, birthDate: dog.birthDate, lastWeighed: weights[0]?.date, postponedOn: weighLater }), ...(weights[0] ? { last: weights[0].date } : {}) },
   }

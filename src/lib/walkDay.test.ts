@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { walkBudget } from './walkBudget'
-import { upcomingSlots, walkDayPlan } from './walkDay'
+import { dayBudget, upcomingSlots, walkDayPlan } from './walkDay'
 import { DEFAULT_WALK_TIMES } from './walks'
 
 const times = DEFAULT_WALK_TIMES // 8 h, 13 h, 19 h
@@ -49,5 +49,16 @@ describe('ses sorties du jour (T-035)', () => {
   it('toutes faites', () => {
     const plan = walkDayPlan({ times, done: { matin: '08:00', midi: '13:00', soir: '19:00' }, walks: [], now: at(21) })
     expect(plan.tip).toBe('Ses 3 sorties sont faites, bravo !')
+  })
+
+  it('accueil et résultat d’import donnent la même durée (R-038)', () => {
+    // Chiot de 3 mois (15 min par sortie), 30 min le matin, à 19 h 30 : midi manquée, reste le soir.
+    const puppy = { birthDate: '2026-07-18', today: '2026-10-18' }
+    const done = { matin: '08:10' }
+    const walks = [{ slot: 'matin', minutes: 30 }]
+    const budget = dayBudget({ ...puppy, times, done, walks, now: at(19.5) })!
+    expect(budget.next).toBe(15)
+    const plan = walkDayPlan({ times, done, walks, budget, now: at(19.5) })
+    expect(plan.slots.find((s) => s.state === 'a-venir')?.minutes).toBe(budget.next)
   })
 })

@@ -9,6 +9,7 @@ import { slotForStart, type WalkSlot, type WalkTimes } from '../lib/walks'
 import { db } from './app'
 import { newId, send, userDoc } from './paths'
 import { isFirestoreCrash } from '../lib/firestoreCrash'
+import { slotWalkName } from '../lib/watch'
 import type { Entry } from './types'
 
 /**
@@ -19,12 +20,16 @@ import type { Entry } from './types'
  * La balade coche la sortie de son créneau (spec V4 § 1 : plus de coche à la main) et en donne les os une fois,
  * seulement si elle date des 7 derniers jours.
  */
-export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: ISODate, times?: WalkTimes, source: 'strava' | 'watch' | 'gps' = 'strava'): { entryId: string; bones: Bone[] } {
+export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: ISODate, times?: WalkTimes, source: 'strava' | 'watch' | 'gps' = 'strava'): { entryId: string; name: string; bones: Bone[] } {
   const entryId = newId('entries')
   const date = walk.date && walk.date <= today ? walk.date : today
+  const minutes = walk.startTime ? parisMinutes(walk.startTime) : undefined
+  const slot = times && minutes !== undefined ? slotForStart(times, minutes) : undefined
+  // Watch ou iPhone : la balade prend le nom de la sortie qu’elle coche (R-047). Un nom Strava reste tel quel.
+  const name = slot && times && source !== 'strava' ? slotWalkName(times[slot], walk.name) : walk.name
   const entry: Entry = {
     date,
-    text: walk.name,
+    text: name,
     tags: [],
     photos: [],
     createdAt: new Date().toISOString(),
@@ -40,8 +45,6 @@ export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: I
       ...(walk.endTime ? { endTime: walk.endTime } : {}),
     }),
   }
-  const minutes = walk.startTime ? parisMinutes(walk.startTime) : undefined
-  const slot = times && minutes !== undefined ? slotForStart(times, minutes) : undefined
   if (slot) entry.walkSlot = { date, creneau: slot }
   const batch = writeBatch(db)
   batch.set(userDoc('entries', entryId), entry)
@@ -54,7 +57,7 @@ export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: I
   }
   for (const gain of gains) batch.set(userDoc('bones', gain.id), { date: gain.date, amount: gain.amount, reason: gain.reason, refId: gain.refId })
   send(batch.commit())
-  return { entryId, bones: gains }
+  return { entryId, name, bones: gains }
 }
 
 /**

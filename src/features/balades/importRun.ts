@@ -65,7 +65,7 @@ export async function importActivities(
     const saved = saveImportedWalk(walk, bones, ctx.today, ctx.times, source)
     bones = [...bones, ...saved.bones]
     tracks.push(walk.full)
-    walks.push({ entryId: saved.entryId, name: walk.name, date: walk.date ?? ctx.today, distanceM: walk.distanceM, ...(walk.durationMin ? { durationMin: walk.durationMin } : {}), points: walk.points })
+    walks.push({ entryId: saved.entryId, name: saved.name, date: walk.date ?? ctx.today, distanceM: walk.distanceM, ...(walk.durationMin ? { durationMin: walk.durationMin } : {}), points: walk.points })
     // Laisser respirer l’écran entre deux fichiers (barre de progression, gestes).
     await new Promise((resolve) => setTimeout(resolve, 0))
   }

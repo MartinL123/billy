@@ -1,4 +1,5 @@
 import { parisMinutes, type Activity } from './activity'
+import { walkName } from './walks'
 
 // Les marches de l'Apple Watch (app iOS, T-001) : lues dans Santé à chaque ouverture, elles passent par le même
 // circuit que l'import d'un fichier GPX (brouillard, os, coche de la sortie). Ce fichier ne dépend ni de Capacitor ni
@@ -69,3 +70,12 @@ export function newWatchWalks(walks: WatchWalk[], known: { startTime?: string }[
 
 /** « 2 balades de la Watch ajoutées » */
 export const watchAddedLine = (count: number) => `${count} balade${count > 1 ? 's' : ''} de la Watch ajoutée${count > 1 ? 's' : ''}`
+
+/**
+ * Une balade de la Watch ou de l'iPhone rattachée à une sortie prend le nom de cette sortie (R-047) : partie à 14 h et
+ * cochée comme sortie de l'après-midi (réglée à 14 h 30), c'est « Balade de l'après-midi », pas « Balade de midi ».
+ */
+export function slotWalkName(slotTime: string, name: string): string {
+  const moment = walkName(slotTime).replace(/^la sortie /, '')
+  return `${/^Randonnée/.test(name) ? 'Randonnée' : 'Balade'} ${moment}`
+}

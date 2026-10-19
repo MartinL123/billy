@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { emptyTally, tallyActivity } from './importPlan'
-import { newWatchWalks, shouldSync, watchActivity, watchAddedLine, watchName, watchSince, type WatchWalk } from './watch'
+import { newWatchWalks, shouldSync, slotWalkName, watchActivity, watchAddedLine, watchName, watchSince, type WatchWalk } from './watch'
 
 const walk = (start: string, type: WatchWalk['type'] = 'walking'): WatchWalk => ({
   uuid: start,
@@ -53,5 +53,11 @@ describe('marches de l’Apple Watch (T-001)', () => {
   it('le bandeau', () => {
     expect(watchAddedLine(1)).toBe('1 balade de la Watch ajoutée')
     expect(watchAddedLine(2)).toBe('2 balades de la Watch ajoutées')
+  })
+
+  it('rattachée à une sortie, la balade prend le nom de cette sortie (R-047)', () => {
+    expect(slotWalkName('14:30', 'Balade de midi')).toBe('Balade de l’après-midi')
+    expect(slotWalkName('08:00', 'Randonnée de nuit')).toBe('Randonnée du matin')
+    expect(slotWalkName('19:00', 'Balade du soir')).toBe('Balade du soir')
   })
 })

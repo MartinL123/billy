@@ -39,7 +39,8 @@ export default function EventForm() {
   // Depuis un filtre vide de Santé, le formulaire arrive pré-réglé sur la catégorie.
   const asked = params.get('type') as EventType | null
   const [type, setType] = useState<EventType>(existing?.type ?? (asked && asked in EVENT_TYPES ? asked : 'veto'))
-  const [title, setTitle] = useState(existing?.title ?? EVENT_TYPES[type].title)
+  // Un titre peut arriver tout prêt (« J’ai pris rendez-vous » sur l’accueil, R-037).
+  const [title, setTitle] = useState(existing?.title ?? (params.get('titre') || EVENT_TYPES[type].title))
   const [date, setDate] = useState(existing?.date ?? params.get('date') ?? today)
   const [time, setTime] = useState(existing?.time ?? '')
   const [recurrence, setRecurrence] = useState<Recurrence>(existing?.recurrence ?? EVENT_TYPES[type].recurrence)

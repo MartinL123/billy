@@ -1,3 +1,5 @@
+> Remplacé par `prompt-audit-04.md`, qui reprend ces 5 points.
+
 # Prompt Claude Code — corrections de l'audit n°3 (18 octobre, 15 h)
 
 Lis `CLAUDE.md`, puis `docs/audits/audit-03-2026-10-18.md`. Tickets dans le Kanban Notion (Projet = Billy), un par remarque.

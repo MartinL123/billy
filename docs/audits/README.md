@@ -9,7 +9,10 @@ Ce dossier garde le détail complet de chaque audit et les prompts Claude Code.
 
 | Date | Audit | Prompt Claude Code | Verdict |
 | --- | --- | --- | --- |
-| 18 oct. 2026, 15 h | `audit-03-2026-10-18.md` (ciblé + recette) | `prompt-audit-03.md`, puis `../archives/prompt-v4-2-accueil-animations.md` | Phase 2 réussie, 28/32 OK. R-033 à R-037. |
+| 19 oct. 2026, 18 h | `audit-05-2026-10-19.md` (ciblé + recette) | `prompt-audit-05.md` | Balade iPhone réparée (vérifiée en prod), 11 corrections OK. R-045 à R-049. |
+| 18 oct. 2026, 20 h 40 | Correctif urgent (balade GPS perdue) | `prompt-hotfix-r042.md` (avant le 04) | R-042 confirmé par la balade de Martin : bloquant. |
+| 18 oct. 2026, 20 h | `audit-04-2026-10-18.md` (ciblé + recette + revue iOS) | `prompt-audit-04.md` (remplace le 03) | Tableau de bord et ouverture OK ; balade GPS à sécuriser. R-038 à R-043. |
+| 18 oct. 2026, 15 h | `audit-03-2026-10-18.md` (ciblé + recette) | `prompt-audit-03.md` (repris dans le 04) | Phase 2 réussie, 28/32 OK. R-033 à R-037. |
 | 18 oct. 2026, 11 h | `audit-02-2026-10-18.md` (ciblé + recette) | `prompt-audit-02.md` | 13/18 OK. R-026 à R-032. |
 | 18 oct. 2026 | `audit-01-2026-10-18.md` (complet, référence) | `prompt-audit-01.md` | Solide pour Martin, pas encore prêt pour un ami. R-001 à R-025. |
 | 17 oct. 2026 | `../recherche/audit-ux-v3.md` | `../archives/prompt-v4-1-simplification.md` | Avant ce dossier. |

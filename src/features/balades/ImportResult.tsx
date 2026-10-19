@@ -8,8 +8,7 @@ import { useData } from '../../firebase/store'
 import { ofName } from '../../lib/gender'
 import { APP_NAME } from '../../appName'
 import { useToday } from '../../lib/useToday'
-import { minutesLabel } from '../../lib/walkBudget'
-import { dayBudget, minutesOfDay, walksOfDay } from '../../lib/walkDay'
+import { bigWalkNotice, dayBudget, minutesOfDay, walksOfDay } from '../../lib/walkDay'
 import { walkTimes } from '../../lib/walks'
 
 const percent = (share: number) => (share > 0 && share < 0.01 ? 'moins de 1' : String(Math.round(share * 100)))
@@ -22,7 +21,8 @@ export default function ImportResult() {
   // Règle des 5 minutes par mois d’âge (T-019) : après une grosse balade aujourd’hui, la suite reste courte.
   // Le même calcul que l’accueil (R-038) : ce qui reste se répartit sur les sorties encore à venir.
   const budget = dayBudget({ birthDate: dog.birthDate, today, times: walkTimes(dog.walkTimes), done: walks.find((w) => w.date === today)?.done ?? {}, walks: walksOfDay(entries, today, walks.find((w) => w.date === today)?.noted), now: minutesOfDay(new Date()) })
-  const tooLong = budget?.longWalk && result?.walks.some((w) => w.date === today && (w.durationMin ?? 0) > budget.perWalk)
+  // Seulement si la prochaine sortie est vraiment raccourcie (R-049).
+  const notice = bigWalkNotice(budget, Boolean(budget && result?.walks.some((w) => w.date === today && (w.durationMin ?? 0) > budget.perWalk)))
   if (!result) return <Navigate to="/territoire" replace />
   const nothing = result.walks.length === 0
   const gained = result.share ? Math.round((result.share.after - result.share.before) * 100) : 0
@@ -50,12 +50,7 @@ export default function ImportResult() {
                 </div>
               ))}
             </div>
-            {tooLong && budget && (
-              <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[17px] leading-snug text-[#1D3F73]">
-                Grosse balade aujourd’hui ({minutesLabel(budget.longWalk!)}, au lieu de {budget.perWalk} à {budget.months} mois).{' '}
-                {budget.next ? `La prochaine sortie : ${budget.next} min suffisent.` : 'Pour le reste du jour, juste des sorties de 5 min pour ses besoins.'}
-              </p>
-            )}
+            {notice && <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[17px] leading-snug text-[#1D3F73]">{notice}</p>}
             <ul className="card m-0 flex list-none flex-col p-0">
               {result.walks.slice(0, 30).map((w, i) => (
                 <li key={w.entryId} className={i ? 'border-t border-divider' : ''}>

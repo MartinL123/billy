@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { walkBudget } from './walkBudget'
-import { dayBudget, preselectedDuration, upcomingSlots, walkDayPlan, walksOfDay, yesterdayOpenSlots } from './walkDay'
+import { bigWalkNotice, dayBudget, preselectedDuration, upcomingSlots, walkDayPlan, walksOfDay, yesterdayOpenSlots } from './walkDay'
 import { DEFAULT_WALK_TIMES } from './walks'
 
 const times = DEFAULT_WALK_TIMES // 8 h, 13 h, 19 h
@@ -81,5 +81,17 @@ describe('ses sorties du jour (T-035)', () => {
     expect(preselectedDuration(0)).toBe(25)
     expect(yesterdayOpenSlots({ matin: '08:00' }, at(9))).toEqual(['midi', 'soir'])
     expect(yesterdayOpenSlots({}, at(12))).toEqual([])
+  })
+
+  it('« Grosse balade » seulement si la prochaine sortie est vraiment raccourcie (R-049)', () => {
+    const puppy = { birthDate: '2026-07-18', today: '2026-10-18' } // 3 mois : 15 min par sortie, 45 par jour
+    // 30 min le matin, il reste 15 min pour la sortie du soir : la durée normale, pas de message.
+    const normal = walkBudget({ ...puppy, walks: [30], walksLeft: 1 })!
+    expect(normal.next).toBe(15)
+    expect(bigWalkNotice(normal, true)).toBeUndefined()
+    // 40 min, il reste 5 min sur 1 sortie : raccourcie.
+    const short = walkBudget({ ...puppy, walks: [40], walksLeft: 1 })!
+    expect(bigWalkNotice(short, true)).toMatch(/^Grosse balade aujourd’hui \(40 min, au lieu de 15 à 3 mois\)\. La prochaine sortie : 5 min suffisent\.$/)
+    expect(bigWalkNotice(short, false)).toBeUndefined()
   })
 })

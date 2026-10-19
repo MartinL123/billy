@@ -109,3 +109,13 @@ export function dayBudget({ birthDate, today, times, done, walks, now }: { birth
 
 /** Minutes depuis minuit, à l'heure du téléphone. */
 export const minutesOfDay = (date: Date) => date.getHours() * 60 + date.getMinutes()
+
+/**
+ * « Grosse balade aujourd'hui… » après un import (R-049) : seulement si une balade du jour dépasse la durée d'une
+ * sortie ET que la prochaine sortie est vraiment raccourcie. Sinon, rien (15 min, c'est la durée normale à 3 mois).
+ */
+export function bigWalkNotice(budget: WalkBudget | undefined, longWalkToday: boolean): string | undefined {
+  if (!budget?.longWalk || !longWalkToday || budget.next >= budget.perWalk) return undefined
+  const rest = budget.next ? `La prochaine sortie : ${budget.next} min suffisent.` : 'Pour le reste du jour, juste des sorties de 5 min pour ses besoins.'
+  return `Grosse balade aujourd’hui (${minutesLabel(budget.longWalk)}, au lieu de ${budget.perWalk} à ${budget.months} mois). ${rest}`
+}

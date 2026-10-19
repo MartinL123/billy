@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { walkBudget } from './walkBudget'
-import { dayBudget, upcomingSlots, walkDayPlan } from './walkDay'
+import { dayBudget, preselectedDuration, upcomingSlots, walkDayPlan, walksOfDay, yesterdayOpenSlots } from './walkDay'
 import { DEFAULT_WALK_TIMES } from './walks'
 
 const times = DEFAULT_WALK_TIMES // 8 h, 13 h, 19 h
@@ -60,5 +60,24 @@ describe('ses sorties du jour (T-035)', () => {
     expect(budget.next).toBe(15)
     const plan = walkDayPlan({ times, done, walks, budget, now: at(19.5) })
     expect(plan.slots.find((s) => s.state === 'a-venir')?.minutes).toBe(budget.next)
+  })
+
+  it('une sortie notée à la main compte dans le temps du jour ; une balade au même créneau la remplace (R-044)', () => {
+    const noted = { matin: 25, soir: 15 }
+    const entries = [{ date: '2026-10-18', route: { durationMin: 34 }, walkSlot: { date: '2026-10-18', creneau: 'soir' } }]
+    const walks = walksOfDay(entries, '2026-10-18', noted)
+    expect(walks).toEqual([{ minutes: 34, slot: 'soir' }, { slot: 'matin', minutes: 25, noted: true }])
+    const plan = walkDayPlan({ times, done: { matin: '08:00', soir: '19:00' }, walks, now: at(20) })
+    expect(plan.slots[0]).toMatchObject({ state: 'faite', minutes: 25, noted: true })
+    expect(plan.slots[2]).toMatchObject({ state: 'faite', minutes: 34 })
+    expect(plan.slots[2]!.noted).toBeUndefined()
+  })
+
+  it('la durée présélectionnée et les sorties d’hier (R-044)', () => {
+    expect(preselectedDuration(25)).toBe(25)
+    expect(preselectedDuration(20)).toBe(15)
+    expect(preselectedDuration(0)).toBe(25)
+    expect(yesterdayOpenSlots({ matin: '08:00' }, at(9))).toEqual(['midi', 'soir'])
+    expect(yesterdayOpenSlots({}, at(12))).toEqual([])
   })
 })

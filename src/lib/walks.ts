@@ -20,6 +20,8 @@ export const WALK_TOLERANCE_MINUTES = 90
 export interface WalkDay {
   date: string
   done: Partial<Record<WalkSlot, string>>
+  /** Sorties notées à la main, sans tracé (R-044) : leur durée en minutes. Une balade du même créneau la remplace. */
+  noted?: Partial<Record<WalkSlot, number>>
 }
 
 const isTime = (value: unknown): value is string => typeof value === 'string' && /^\d{2}:\d{2}$/.test(value)

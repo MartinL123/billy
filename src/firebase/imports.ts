@@ -1,11 +1,11 @@
 import { writeBatch } from 'firebase/firestore'
 import type { ImportedActivity } from '../lib/activity'
-import { momentBones, walkBone, type Bone } from '../lib/bones'
+import { momentBones, walkBone, type Bone, type BoneWithId } from '../lib/bones'
 import type { ISODate } from '../lib/dates'
 import { earnsBones } from '../lib/importPlan'
 import { storeRoute } from '../lib/route'
 import { parisMinutes } from '../lib/activity'
-import { slotForStart, type WalkTimes } from '../lib/walks'
+import { slotForStart, type WalkSlot, type WalkTimes } from '../lib/walks'
 import { db } from './app'
 import { newId, send, userDoc } from './paths'
 import type { Entry } from './types'
@@ -54,4 +54,19 @@ export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: I
   for (const gain of gains) batch.set(userDoc('bones', gain.id), { date: gain.date, amount: gain.amount, reason: gain.reason, refId: gain.refId })
   send(batch.commit())
   return { entryId, bones: gains }
+}
+
+/**
+ * « Je l'ai faite » (R-044) : une sortie notée à la main, sans tracé. Elle coche la sortie, compte sa durée dans le
+ * temps du jour et donne ses os une fois (même identifiant que pour une balade importée au même créneau : jamais en
+ * double). Le brouillard ne bouge pas. Renvoie les os gagnés.
+ */
+export function noteWalk(walk: { date: ISODate; slot: WalkSlot; minutes: number; time: string }, bones: { id: string }[], today: ISODate): BoneWithId[] {
+  const batch = writeBatch(db)
+  batch.set(userDoc('walks', walk.date), { date: walk.date, done: { [walk.slot]: walk.time }, noted: { [walk.slot]: walk.minutes } }, { merge: true })
+  const gain = walkBone(walk.date, walk.slot)
+  const gains = earnsBones(walk.date, today) && !bones.some((b) => b.id === gain.id) ? [gain] : []
+  for (const g of gains) batch.set(userDoc('bones', g.id), { date: g.date, amount: g.amount, reason: g.reason, refId: g.refId })
+  send(batch.commit())
+  return gains
 }

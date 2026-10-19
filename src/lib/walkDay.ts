@@ -16,8 +16,10 @@ export interface WalkDaySlot {
   /** « Sortie du matin ». */
   name: string
   state: WalkDayState
-  /** Faite : sa durée (si la balade est importée). À venir : la durée conseillée (0 : juste ses besoins). */
+  /** Faite : sa durée (balade importée, ou notée). À venir : la durée conseillée (0 : juste ses besoins). */
   minutes?: number
+  /** Faite et notée à la main, sans tracé (R-044). */
+  noted?: boolean
 }
 
 export interface WalkDayPlan {
@@ -37,13 +39,14 @@ export function upcomingSlots(times: WalkTimes, done: Partial<Record<WalkSlot, s
   return WALK_SLOTS.map((s) => s.id).filter((slot) => !done[slot] && timeToMinutes(times[slot]) - now > -MISSED_AFTER)
 }
 
-export function walkDayPlan({ times, done, walks, budget, now }: { times: WalkTimes; done: Partial<Record<WalkSlot, string>>; /** Les balades du jour : leur créneau (si connu) et leur durée. */ walks: { slot?: string; minutes?: number }[]; budget?: WalkBudget; now: number }): WalkDayPlan {
+export function walkDayPlan({ times, done, walks, budget, now }: { times: WalkTimes; done: Partial<Record<WalkSlot, string>>; /** Les balades du jour : leur créneau (si connu) et leur durée. */ walks: { slot?: string; minutes?: number; noted?: boolean }[]; budget?: WalkBudget; now: number }): WalkDayPlan {
   const upcoming = upcomingSlots(times, done, now)
   const slots = WALK_SLOTS.map(({ id }): WalkDaySlot => {
     const base = { slot: id, hour: formatHour(times[id]), name: walkName(times[id]).replace(/^la s/, 'S') }
     if (done[id]) {
-      const minutes = walks.filter((w) => w.slot === id && w.minutes).reduce((sum, w) => sum + w.minutes!, 0)
-      return { ...base, state: 'faite', ...(minutes ? { minutes: Math.round(minutes) } : {}) }
+      const own = walks.filter((w) => w.slot === id && w.minutes)
+      const minutes = own.reduce((sum, w) => sum + w.minutes!, 0)
+      return { ...base, state: 'faite', ...(minutes ? { minutes: Math.round(minutes) } : {}), ...(own.length && own.every((w) => w.noted) ? { noted: true } : {}) }
     }
     if (upcoming.includes(id)) return { ...base, state: 'a-venir', ...(budget ? { minutes: budget.next } : {}) }
     return { ...base, state: 'manquee' }
@@ -68,9 +71,32 @@ export function walkDayPlan({ times, done, walks, budget, now }: { times: WalkTi
   return { slots, walked, ...(budget ? { daily: budget.daily } : {}), summary, tip }
 }
 
-/** Les balades du jour (importées, de la Watch, de l'iPhone) : leur créneau et leur durée. */
-export function walksOfDay(entries: { date: string; route?: { durationMin?: number }; walkSlot?: { date: string; creneau: string } }[], today: string): { slot?: string; minutes: number }[] {
-  return entries.filter((e) => e.date === today && e.route?.durationMin).map((e) => ({ minutes: e.route!.durationMin!, ...(e.walkSlot?.date === today ? { slot: e.walkSlot.creneau } : {}) }))
+/**
+ * Les balades du jour (importées, de la Watch, de l'iPhone) : leur créneau et leur durée ; puis les sorties notées à
+ * la main (R-044), seulement si aucune balade n'occupe déjà leur créneau (la balade remplace la sortie notée).
+ */
+export function walksOfDay(entries: { date: string; route?: { durationMin?: number }; walkSlot?: { date: string; creneau: string } }[], today: string, noted: Partial<Record<WalkSlot, number>> = {}): { slot?: string; minutes: number; noted?: boolean }[] {
+  const walks: { slot?: string; minutes: number; noted?: boolean }[] = entries.filter((e) => e.date === today && e.route?.durationMin).map((e) => ({ minutes: e.route!.durationMin!, ...(e.walkSlot?.date === today ? { slot: e.walkSlot.creneau } : {}) }))
+  const withWalk = new Set(entries.filter((e) => e.date === today && e.walkSlot?.date === today).map((e) => e.walkSlot!.creneau))
+  for (const { id } of WALK_SLOTS) {
+    const minutes = noted[id]
+    if (minutes && !withWalk.has(id)) walks.push({ slot: id, minutes, noted: true })
+  }
+  return walks
+}
+
+/** Les durées proposées pour noter une sortie (R-044) ; « Autre » pour le reste. */
+export const DURATION_CHOICES = [10, 15, 25, 40, 60]
+
+/** La durée présélectionnée : la plus proche de la durée conseillée. */
+export function preselectedDuration(advised: number | undefined): number {
+  const target = advised && advised > 0 ? advised : 25
+  return DURATION_CHOICES.reduce((best, m) => (Math.abs(m - target) < Math.abs(best - target) ? m : best))
+}
+
+/** Le matin (avant midi), les sorties non faites d'hier restent notables (R-044). */
+export function yesterdayOpenSlots(done: Partial<Record<WalkSlot, string>>, now: number): WalkSlot[] {
+  return now < 12 * 60 ? WALK_SLOTS.map((s) => s.id).filter((slot) => !done[slot]) : []
 }
 
 /**

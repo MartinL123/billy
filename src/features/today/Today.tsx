@@ -22,7 +22,8 @@ import { DogPhoto } from '../shop/DogPhoto'
 import { Illustration } from '../training/Illustration'
 import { useQuest } from './useQuest'
 import { weighingDue } from '../../lib/weighing'
-import { dayBudget, minutesOfDay, walkDayPlan, walksOfDay } from '../../lib/walkDay'
+import { dayBudget, minutesOfDay, walkDayPlan, walksOfDay, yesterdayOpenSlots } from '../../lib/walkDay'
+import { addDays } from '../../lib/dates'
 import { WalkDayCard } from './WalkDayCard'
 import { LifeTiles } from './LifeTiles'
 import { memoriesTile } from '../../lib/dashboard'
@@ -250,9 +251,16 @@ export default function Today() {
 
   const currentWalk = useCurrentWalk()
   const times = walkTimes(dog.walkTimes)
-  const walksDone = walks.find((w) => w.date === today)?.done ?? {}
+  const todayWalkDay = walks.find((w) => w.date === today)
+  const walksDone = todayWalkDay?.done ?? {}
   // Les balades du jour (importées de Strava) : leur créneau et leur durée.
-  const todayWalks = walksOfDay(entries, today)
+  // Avec les sorties notées à la main, sans tracé (R-044).
+  const todayWalks = walksOfDay(entries, today, todayWalkDay?.noted)
+  // Le matin, les sorties d’hier pas faites restent notables (R-044).
+  const yesterday = addDays(today, -1)
+  // (Pas pour un compte tout neuf : rien n’existait hier.)
+  const usedBefore = walks.some((w) => w.date < today) || entries.some((e) => e.date < today)
+  const yesterdayOpen = usedBefore ? yesterdayOpenSlots(walks.find((w) => w.date === yesterday)?.done ?? {}, now) : []
   const input: NowInput = {
     today,
     now,
@@ -324,7 +332,7 @@ export default function Today() {
       )}
 
       {/* Ses sorties du jour (T-035) : chaque sortie avec sa durée, ce qui reste, un conseil, l’aperçu de la carte. */}
-      <WalkDayCard plan={walkPlan} />
+      <WalkDayCard plan={walkPlan} times={times} yesterday={{ date: yesterday, slots: yesterdayOpen }} />
 
       <LifeTiles arrival={arrival} />
 

@@ -21,7 +21,7 @@ export default function ImportResult() {
   const result = takeImportResult()
   // Règle des 5 minutes par mois d’âge (T-019) : après une grosse balade aujourd’hui, la suite reste courte.
   // Le même calcul que l’accueil (R-038) : ce qui reste se répartit sur les sorties encore à venir.
-  const budget = dayBudget({ birthDate: dog.birthDate, today, times: walkTimes(dog.walkTimes), done: walks.find((w) => w.date === today)?.done ?? {}, walks: walksOfDay(entries, today), now: minutesOfDay(new Date()) })
+  const budget = dayBudget({ birthDate: dog.birthDate, today, times: walkTimes(dog.walkTimes), done: walks.find((w) => w.date === today)?.done ?? {}, walks: walksOfDay(entries, today, walks.find((w) => w.date === today)?.noted), now: minutesOfDay(new Date()) })
   const tooLong = budget?.longWalk && result?.walks.some((w) => w.date === today && (w.durationMin ?? 0) > budget.perWalk)
   if (!result) return <Navigate to="/territoire" replace />
   const nothing = result.walks.length === 0

@@ -45,6 +45,13 @@ const chip = (on: boolean) => `min-h-11 shrink-0 rounded-full border-0 px-3.5 te
 
 /** Réduit, le panneau ne garde que sa poignée, plus cette marge : la carte prend presque tout l’écran. */
 const PEEK_MARGIN = 24
+/**
+ * Petit écran (iPhone SE, R-033) : sous 700 px de haut, le panneau s’ouvre réduit, en laissant voir ses premières
+ * lignes (les filtres et la part découverte), pour que la carte et ses boutons restent visibles.
+ */
+const SMALL_SCREEN = 700
+const SMALL_PEEK = 104
+const isSmallScreen = () => typeof window !== 'undefined' && window.innerHeight < SMALL_SCREEN
 const SNAP = 'transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1)'
 
 /**
@@ -54,7 +61,9 @@ const SNAP = 'transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1)'
 function useSheet() {
   const ref = useRef<HTMLElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
-  const [collapsed, setCollapsed] = useState(false)
+  const [small] = useState(isSmallScreen)
+  const [collapsed, setCollapsed] = useState(small)
+  const peek = small ? SMALL_PEEK : PEEK_MARGIN
   const [travel, setTravel] = useState(0)
   const drag = useRef<{ y: number; t: number; from: number; moving: boolean; id: number } | null>(null)
   const moved = useRef(false)
@@ -65,12 +74,12 @@ function useSheet() {
     const body = bodyRef.current
     if (!el || !body) return
     // Le contenu commence 12 px (gap-3) sous la poignée.
-    const measure = () => setTravel(Math.max(0, el.offsetHeight - (body.offsetTop - 12 + PEEK_MARGIN)))
+    const measure = () => setTravel(Math.max(0, el.offsetHeight - (body.offsetTop - 12 + peek)))
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(el)
     return () => observer.disconnect()
-  }, [])
+  }, [peek])
 
   const offset = collapsed ? travel : 0
   const place = (y: number, animate: boolean) => {
@@ -80,7 +89,8 @@ function useSheet() {
     // Le contenu s’efface à mesure qu’il passe sous la barre d’onglets.
     if (bodyRef.current) {
       bodyRef.current.style.transition = animate ? 'opacity 0.32s' : 'none'
-      bodyRef.current.style.opacity = String(travel ? Math.min(1, Math.max(0, 1 - y / travel)) : 1)
+      // Sur petit écran, les premières lignes restent lisibles, panneau réduit.
+      bodyRef.current.style.opacity = String(small || !travel ? 1 : Math.min(1, Math.max(0, 1 - y / travel)))
     }
   }
 
@@ -135,7 +145,8 @@ function useSheet() {
     setCollapsed,
     handlers,
     style: { transform: `translateY(${offset}px)`, transition: SNAP },
-    bodyStyle: { opacity: collapsed ? 0 : 1, transition: 'opacity 0.32s' },
+    small,
+    bodyStyle: { opacity: collapsed && !small ? 0 : 1, transition: 'opacity 0.32s' },
   }
 }
 
@@ -273,7 +284,8 @@ export default function Explorer() {
       </Suspense>
 
       {/* En haut : les réglages de la carte (les lieux à découvrir sont listés dans le panneau, T-029). */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col gap-2 px-3 pt-[calc(env(safe-area-inset-top)+8px)]">
+      {/* Toujours au-dessus du panneau du bas (R-033), même ouvert sur un petit écran. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-col gap-2 px-3 pt-[calc(env(safe-area-inset-top)+8px)]">
         <div className="flex flex-col items-end gap-2">
           {/* Fond et vue sur une seule ligne : la colonne de boutons reste au-dessus du panneau. */}
           <div className="flex gap-2">
@@ -332,7 +344,7 @@ export default function Explorer() {
         <button type="button" onClick={() => sheet.setCollapsed(!sheet.collapsed)} aria-expanded={!sheet.collapsed} aria-label={sheet.collapsed ? 'Afficher le panneau' : 'Réduire le panneau'} className="mx-auto -mb-2 flex min-h-11 w-24 items-center justify-center border-0 bg-transparent">
           <span className="h-1.5 w-11 rounded-full bg-[#C9CFCC]" />
         </button>
-        <div ref={sheet.bodyRef} style={sheet.bodyStyle} className="flex flex-col gap-3" aria-hidden={sheet.collapsed || undefined} inert={sheet.collapsed || undefined}>
+        <div ref={sheet.bodyRef} style={sheet.bodyStyle} className="flex flex-col gap-3" aria-hidden={(sheet.collapsed && !sheet.small) || undefined} inert={(sheet.collapsed && !sheet.small) || undefined}>
           {walks.length > 0 && (
             // Les filtres font partie du panneau : réduit, il ne reste que la carte (et la poignée).
             <div role="group" aria-label="Quelles balades afficher" className="scroll-row -mx-5 flex gap-1.5 px-5">

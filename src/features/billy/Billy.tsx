@@ -19,6 +19,7 @@ import { useBack } from '../../lib/useBack'
 import { place, placeSkill } from '../../lib/garden'
 import { useToday } from '../../lib/useToday'
 import { DogPhoto } from '../shop/DogPhoto'
+import { useReadOnly } from '../../firebase/viewer'
 
 const capital = (text: string) => text.replace(/^./, (c) => c.toLocaleUpperCase('fr'))
 
@@ -47,6 +48,7 @@ function Paw({ state, trophy }: { state: PawState; trophy: boolean }) {
  * (jamais « 3 sur 5 ») ; une carte ouverte à la fois ; 4 tuiles ; « S’entraîner » fixé en bas.
  */
 export default function Billy() {
+  const readOnly = useReadOnly()
   const { dog, bossProgress, bones } = useData()
   const today = useToday()
   const back = useBack('/')
@@ -132,13 +134,15 @@ export default function Billy() {
         ))}
       </nav>
 
-      {/* L’action principale, fixée en bas au-dessus de la barre d’onglets. */}
+      {/* L’action principale, fixée en bas au-dessus de la barre d’onglets (pas chez un visiteur). */}
+      {!readOnly && (
       <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+108px)] z-10 mx-auto max-w-[430px] bg-gradient-to-b from-transparent to-bg to-40% px-4 pt-6 pb-3">
         <Link to={train} className="tap btn btn-main min-h-14 gap-2">
           <TargetIcon size={22} />
           S’entraîner · {minutes} min
         </Link>
       </div>
+      )}
     </div>
   )
 }

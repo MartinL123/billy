@@ -27,6 +27,8 @@ import { gamesLabel, treatsLabel } from '../../lib/training-plan'
 import { place } from '../../lib/garden'
 import { ofName } from '../../lib/gender'
 import { isNative } from '../../native'
+import { useReadOnly } from '../../firebase/viewer'
+import { FamilySection, VisitorAccount } from '../visitor/Family'
 
 
 function InfoRow({ label, value, first }: { label: string; value: string; first?: boolean }) {
@@ -61,9 +63,9 @@ function ContactRow({ role, callLabel, contact, first }: { role: string; callLab
           Appeler
         </a>
       ) : (
-        <Link to="/profil/modifier" aria-label={`Ajouter : ${role.toLocaleLowerCase('fr')}`} className="btn btn-outline min-h-12 shrink-0 px-4">
+        <EditLink to="/profil/modifier" aria-label={`Ajouter : ${role.toLocaleLowerCase('fr')}`} className="btn btn-outline min-h-12 shrink-0 px-4">
           Ajouter
-        </Link>
+        </EditLink>
       )}
     </div>
   )
@@ -141,9 +143,11 @@ export default function Profile() {
   const [deleting, setDeleting] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
   const [used, setUsed] = useState<number>()
+  // Visiteur (T-048) : il regarde le profil, sans rien régler.
+  const readOnly = useReadOnly()
 
   useEffect(() => {
-    if (!online) return
+    if (!online || readOnly) return
     let alive = true
     storageUsed()
       .then((bytes) => {
@@ -182,9 +186,11 @@ export default function Profile() {
         <p className="text-base text-muted">
           {[formatAgeShort(dog.birthDate, today)].filter(Boolean).join(' · ')}
         </p>
-        <Link to="/profil/modifier" className="btn btn-outline mt-1">
-          {dog.photoThumbFileId ? 'Changer la photo' : 'Ajouter une photo'}
-        </Link>
+        {!readOnly && (
+          <EditLink to="/profil/modifier" className="btn btn-outline mt-1">
+            {dog.photoThumbFileId ? 'Changer la photo' : 'Ajouter une photo'}
+          </EditLink>
+        )}
       </div>
 
       <section className="flex flex-col gap-2.5">
@@ -200,9 +206,9 @@ export default function Profile() {
           <InfoRow label="Puce" value={dog.chip || 'Pas encore renseignée'} />
           {lastWeight && <InfoRow label="Poids" value={`${String(lastWeight.kg).replace('.', ',')} kg · ${formatShort(lastWeight.date)}`} />}
         </div>
-        <Link to="/profil/modifier" className="btn btn-outline">
+        <EditLink to="/profil/modifier" className="btn btn-outline">
           Modifier son identité
-        </Link>
+        </EditLink>
       </section>
 
       {dog.feeding && (
@@ -231,9 +237,9 @@ export default function Profile() {
             <p className="text-[17px] leading-snug text-muted">Pas encore renseigné.</p>
           )}
           {dog.homeMood && <p className="text-[17px] leading-snug">{place(`À la maison, il est plutôt ${dog.homeMood.toLocaleLowerCase('fr')}.`)}</p>}
-          <Link to="/questionnaire?etape=reactions" className="btn btn-outline">
+          <EditLink to="/questionnaire?etape=reactions" className="btn btn-outline">
             Modifier ses réactions
-          </Link>
+          </EditLink>
         </div>
       </section>
 
@@ -245,6 +251,10 @@ export default function Profile() {
         </div>
       </section>
 
+      {readOnly ? (
+        <VisitorAccount />
+      ) : (
+        <>
       <WalkSettings />
 
       {/* App iOS : les notifications locales (T-042) ; le web garde le rappel du soir. */}
@@ -259,6 +269,8 @@ export default function Profile() {
         </span>
         <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
       </Link>
+
+      <FamilySection />
 
       <section className="flex flex-col gap-2.5">
         <h2 className="text-xl font-bold">Compte</h2>
@@ -312,6 +324,9 @@ export default function Profile() {
         <p className="text-[13px] leading-snug text-muted">Vos données restent privées. Martin, qui gère l’app, peut techniquement y accéder.</p>
       </section>
 
+        </>
+      )}
+
       <p className="text-center text-[13px] text-muted">
         Version du {new Date(__BUILD_TIME__).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
       </p>
@@ -334,6 +349,11 @@ export default function Profile() {
       )}
     </div>
   )
+}
+
+/** Un lien vers « Modifier le profil », masqué chez un visiteur (T-048). */
+function EditLink(props: React.ComponentProps<typeof Link>) {
+  return useReadOnly() ? null : <Link {...props} />
 }
 
 /** Modifier le profil : plein écran. */

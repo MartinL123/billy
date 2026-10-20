@@ -48,6 +48,10 @@ import Exercise from './features/training/Exercise'
 import { watchUser, type User } from './firebase/auth'
 import { setClosingAccount } from './firebase/erase'
 import { DataProvider } from './firebase/store'
+import { setViewedOwner } from './firebase/paths'
+import { ReadOnlyContext, useReadOnly, viewedOwnerOf } from './firebase/viewer'
+import { isWriteRoute } from './lib/visitor'
+import Invitation from './features/visitor/Invitation'
 import { SkeletonList, SkeletonScreen } from './components/Skeleton'
 
 function ScrollToTop() {
@@ -79,6 +83,14 @@ function OpenOnLogo() {
     // Une seule fois, au lancement.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  return null
+}
+
+/** Visiteur (T-048) : les écrans d’ajout et de modification renvoient à l’accueil. */
+function VisitorGuard() {
+  const readOnly = useReadOnly()
+  const { pathname } = useLocation()
+  if (readOnly && isWriteRoute(pathname)) return <Navigate to="/" replace />
   return null
 }
 
@@ -127,12 +139,32 @@ export default function App() {
     [],
   )
 
-  if (user === undefined) return <Splash />
+  // Le compte regardé : le sien, ou celui qui a invité ce compte en visiteur (T-048). undefined = on le cherche.
+  const [owner, setOwner] = useState<string | null>()
+  useEffect(() => {
+    if (!user) return
+    let alive = true
+    setOwner(undefined)
+    viewedOwnerOf(user.uid)
+      .catch(() => undefined)
+      .then((found) => {
+        if (!alive) return
+        setViewedOwner(found ?? null)
+        setOwner(found ?? null)
+      })
+    return () => {
+      alive = false
+    }
+  }, [user])
+
+  if (user === undefined || (user && owner === undefined)) return <Splash />
   if (!user) return <Login />
+  const visitor = Boolean(owner)
 
   return (
+    <ReadOnlyContext.Provider value={visitor}>
     <DataProvider
-      key={user.uid}
+      key={`${user.uid}:${owner ?? ''}`}
       fallback={(offline) =>
         offline ? (
           <Splash title="Pas de réseau">Le tout premier lancement a besoin d’Internet pour préparer votre espace.</Splash>
@@ -143,15 +175,25 @@ export default function App() {
       }
     >
       <ToastProvider>
-        <DressageAwards />
         <AppTheme />
-        <CommunitySync />
-        <BonesBackfill />
-        <FogBackfill />
+        {/* Un visiteur ne fait rien partir : ni récompenses, ni meute, ni rattrapages, ni Watch, ni rappels. */}
+        {!visitor && (
+          <>
+            <DressageAwards />
+            <CommunitySync />
+            <BonesBackfill />
+            <FogBackfill />
+          </>
+        )}
         <HashRouter>
           <OpenOnLogo />
-          <WatchSync />
-          <NotificationScheduler />
+          <VisitorGuard />
+          {!visitor && (
+            <>
+              <WatchSync />
+              <NotificationScheduler />
+            </>
+          )}
           <ScrollToTop />
           <Screen>
           <Routes>
@@ -173,6 +215,7 @@ export default function App() {
               <Route path="carnet" element={<Navigate to="/balades" replace />} />
             </Route>
             <Route path="ouverture" element={<Opening />} />
+            <Route path="invitation/:code" element={<Invitation />} />
             <Route path="questionnaire" element={<Questionnaire />} />
             <Route path="bienvenue" element={<Welcome />} />
             <Route path="noter" element={<Noter />} />
@@ -216,5 +259,6 @@ export default function App() {
         </HashRouter>
       </ToastProvider>
     </DataProvider>
+    </ReadOnlyContext.Provider>
   )
 }

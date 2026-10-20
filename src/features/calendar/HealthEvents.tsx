@@ -6,6 +6,7 @@ import { CARE_FILTERS, filterInfo, filterSummary, matchesFilter, upcoming, type 
 import { useToday } from '../../lib/useToday'
 import { CalendarEventRow } from './EventRows'
 import { SubScreen } from './SubScreen'
+import { useReadOnly } from '../../firebase/viewer'
 
 const DONE_PREVIEW = 3
 
@@ -21,6 +22,7 @@ function storedFilter(): CareFilter {
 
 /** « Voir tous les événements » : à compléter, à venir (filtres par catégorie), faits. */
 export default function HealthEvents() {
+  const readOnly = useReadOnly()
   const { events } = useData()
   const today = useToday()
   const navigate = useNavigate()
@@ -116,7 +118,7 @@ export default function HealthEvents() {
         </section>
       )}
 
-      <Fab label="Ajouter un rendez-vous ou un soin" onClick={() => navigate('/evenement/nouveau')} />
+      {!readOnly && <Fab label="Ajouter un rendez-vous ou un soin" onClick={() => navigate('/evenement/nouveau')} />}
     </SubScreen>
   )
 }

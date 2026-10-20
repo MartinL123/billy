@@ -38,5 +38,7 @@ export const newId = (name: string) => doc(userCol(name)).id
  * qu’au retour du réseau. Le cache local est à jour tout de suite.
  */
 export function send(write: Promise<unknown>): void {
+  // Visiteur : les écrans d’écriture lui sont fermés ; si une écriture passe quand même, firestore.rules la refuse.
+  if (viewedOwner) return void write.catch(() => undefined)
   write.catch((error) => console.error('Écriture Firestore refusée', error))
 }

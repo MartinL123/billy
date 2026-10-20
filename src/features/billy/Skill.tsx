@@ -16,6 +16,7 @@ import { useToday } from '../../lib/useToday'
 import { DogPhoto } from '../shop/DogPhoto'
 import { BossIcon } from '../training/BossIcon'
 import { place } from '../../lib/garden'
+import { useReadOnly } from '../../firebase/viewer'
 
 // Le sentier, dans un repère de 390 × 760 : l’étape 1 en bas, le trophée en haut.
 const W = 390
@@ -77,6 +78,8 @@ export default function Skill() {
  * `overlay` : ouvert par-dessus un autre écran (pastille « Pour : … ») pour voir où il en est, sans quitter la saisie.
  */
 export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack: () => void; overlay?: boolean }) {
+  // Visiteur (T-048) : il suit le chemin, sans lancer de séance.
+  const readOnly = useReadOnly()
   const { dog, bossProgress, xpLog } = useData()
   const today = useToday()
   const toast = useToast()
@@ -222,7 +225,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
         {mastered && <p className="mx-5 rounded-[20px] bg-gold-soft px-4 py-3 text-[17px] leading-snug font-semibold text-[#5C4410]">À entretenir : elle revient de temps en temps dans la mission du jour.</p>}
       </main>
 
-      {!overlay && (
+      {!overlay && !readOnly && (
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto flex max-w-[430px] flex-col gap-2 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           <Link to={`/exercice?competence=${skill.id}`} className="btn btn-main min-h-[58px] text-[18px]">

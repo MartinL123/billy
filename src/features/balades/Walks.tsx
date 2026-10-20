@@ -14,11 +14,13 @@ import { ofName } from '../../lib/gender'
 import { useToday } from '../../lib/useToday'
 import { communesOf, filterWalks, walkColors, walkItems, walksSummary, walkTags, type WalkFilter } from '../../lib/walkList'
 import { RouteThumb } from '../trajets/RouteThumb'
+import { useReadOnly } from '../../firebase/viewer'
 
 const PAGE = 12
 
 /** « Ses balades » (maquette V3-Balades) : toutes les balades, filtres, groupées par mois. */
 export default function Walks() {
+  const readOnly = useReadOnly()
   const { entries, dog } = useData()
   const today = useToday()
   const navigate = useNavigate()
@@ -85,10 +87,12 @@ export default function Walks() {
           {!(rows.length === 0 && filter === 'toutes') && <p className="text-[17px] text-muted">{walksSummary(shown)}</p>}
         </div>
         {/* « Noter un souvenir » vit ici depuis la V5 (il a quitté l’accueil). */}
-        <Link to="/noter" className="tap btn btn-outline min-h-12 gap-2">
-          <PlusIcon size={20} />
-          Noter un souvenir
-        </Link>
+        {!readOnly && (
+          <Link to="/noter" className="tap btn btn-outline min-h-12 gap-2">
+            <PlusIcon size={20} />
+            Noter un souvenir
+          </Link>
+        )}
         {rows.length === 0 && filter === 'toutes' ? (
           // Rien du tout : un vrai état vide, qui propose d’importer (audit R-010).
           <section className="card flex flex-col items-center gap-3 px-5 py-6 text-center">
@@ -99,9 +103,11 @@ export default function Walks() {
             </svg>
             <h2 className="font-display text-[22px] font-extrabold">Pas encore de balade</h2>
             <p className="text-[17px] leading-snug text-[#3F4946]">{isNative() ? 'Vos marches de l’Apple Watch arrivent ici toutes seules' : 'Importez vos balades Strava : elles arrivent ici'}, et le brouillard se lève sur la carte {ofName(dog.name)}.</p>
-            <Link to="/importer" className={`btn ${isNative() ? 'btn-outline min-h-12' : 'btn-main min-h-[56px]'} self-stretch`}>
-              {isNative() ? 'Importer un fichier GPX' : 'Importer mes balades'}
-            </Link>
+            {!readOnly && (
+              <Link to="/importer" className={`btn ${isNative() ? 'btn-outline min-h-12' : 'btn-main min-h-[56px]'} self-stretch`}>
+                {isNative() ? 'Importer un fichier GPX' : 'Importer mes balades'}
+              </Link>
+            )}
           </section>
         ) : (
           <>

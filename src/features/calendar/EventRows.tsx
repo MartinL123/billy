@@ -9,6 +9,7 @@ import { formatShort, formatTime, monthAbbr, parseISO, todayISO, weekdayAbbr, ty
 import { isOverdue, typeInfo } from '../../lib/events'
 import { doneDate } from '../../lib/health'
 import { nextAfterDone, RECURRENCE_LABEL } from '../../lib/recurrence'
+import { useReadOnly } from '../../firebase/viewer'
 
 type Event = WithId<BillyEvent>
 
@@ -59,6 +60,7 @@ function DocumentLink({ event }: { event: Event }) {
 /** Ligne du calendrier : bloc date, détail, trombone, coche. */
 export function CalendarEventRow({ event, today, first }: { event: Event; today: ISODate; first: boolean }) {
   const toggle = useToggleDone()
+  const readOnly = useReadOnly()
   const overdue = isOverdue(event, today)
   const info = typeInfo(event.type)
   // Un rendez-vous avec une heure l’affiche en premier, sous son titre : « 10 h 30 · … ».
@@ -73,7 +75,8 @@ export function CalendarEventRow({ event, today, first }: { event: Event; today:
   const shown = event.done ? doneDate(event) : event.date
   const otherMonth = shown && shown.slice(0, 7) !== today.slice(0, 7)
   // V5 : on ne coche pas un soin de janvier en octobre ; la coche apparaît le jour J (ou en retard).
-  const markable = Boolean(event.date) && (event.done || canMarkDone(event.date, today))
+  // Visiteur (T-048) : il voit les soins, sans les cocher.
+  const markable = !readOnly && Boolean(event.date) && (event.done || canMarkDone(event.date, today))
 
   return (
     <div className={`flex flex-col gap-2.5 px-4 py-3.5 ${overdue ? 'bg-danger-soft' : ''} ${first ? '' : 'border-t border-divider'}`}>

@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { onSnapshot } from 'firebase/firestore'
 import { ensureProfile, watchAll, watchCollection, watchDog } from './db'
 import { setKnownUsage } from './files'
-import { accountDoc } from './paths'
+import { accountDoc, viewedOwnerUid } from './paths'
 import { isClosingAccount } from './erase'
 import type { Bone } from '../lib/bones'
 import type { WalkDay } from '../lib/walks'
@@ -99,7 +99,8 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
       watchCollection<BillyEvent>('events', 'asc', setEvents),
       watchCollection<Weight>('weights', 'desc', setWeights),
       watchCollection<Entry>('entries', 'desc', (items) => setEntries([...items].sort(byCreation))),
-      watchCollection<BillyDocument>('documents', 'desc', (items) => setDocuments([...items].sort(byCreation))),
+      // Visiteur (T-048) : les documents (papiers, ordonnances) restent privés.
+      viewedOwnerUid() ? (setDocuments([]), () => undefined) : watchCollection<BillyDocument>('documents', 'desc', (items) => setDocuments([...items].sort(byCreation))),
       // Les documents d’avant la spec V2 du dressage n’ont pas la bonne forme : ils sont ignorés, pas supprimés.
       watchCollection<TrainingSession>('sessions', 'desc', (items) => setSessions(items.filter(isTrainingSession).sort(byCreation))),
       watchCollection<Exposure>('exposures', 'desc', (items) => setExposures(items.filter(isExposure).sort(byCreation))),
@@ -125,7 +126,7 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   // Premier lancement : un espace vide, dès que le serveur est joignable. Le nom, les dates et la santé
   // viennent du questionnaire de départ. Aucune donnée de départ n’est plus jamais appliquée d’office.
   useEffect(() => {
-    if (dog === null && online && !isClosingAccount()) ensureProfile().catch((error) => console.error('Création du profil impossible', error))
+    if (dog === null && online && !isClosingAccount() && !viewedOwnerUid()) ensureProfile().catch((error) => console.error('Création du profil impossible', error))
   }, [dog, online])
 
   const data = useMemo<Data | null>(() => {

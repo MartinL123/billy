@@ -6,6 +6,7 @@ import { Sheet } from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
 import { noteWalk } from '../../firebase/imports'
 import { useData } from '../../firebase/store'
+import { useReadOnly } from '../../firebase/viewer'
 import type { ISODate } from '../../lib/dates'
 import { DURATION_CHOICES, preselectedDuration, type WalkDayPlan } from '../../lib/walkDay'
 import { walkItems } from '../../lib/walkList'
@@ -97,12 +98,14 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
   const { entries } = useData()
   const today = useToday()
   const noWalkYet = useMemo(() => walkItems(entries).length === 0, [entries])
+  // Visiteur (T-048) : il voit les sorties, sans les noter.
+  const readOnly = useReadOnly()
   const label = (slot: WalkSlot) => WALK_SLOTS.find((s) => s.id === slot)!.label
 
   return (
     <section aria-label="Ses sorties du jour" className="card flex flex-col gap-3 rounded-[24px] p-4">
       <h2 className="font-display text-[20px] leading-tight font-extrabold">Ses sorties du jour</h2>
-      {yesterday && yesterday.slots.length > 0 && (
+      {!readOnly && yesterday && yesterday.slots.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[13px] font-extrabold tracking-[0.6px] text-[#3F4946] uppercase">Hier</span>
           {yesterday.slots.map((slot) => (
@@ -122,6 +125,11 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
                 <span className="text-[14px] font-semibold">{slot.minutes ? minutesText(slot.minutes) : 'Faite'}</span>
                 {pending && <span className="text-[12px] text-[#3F4946]">en attente</span>}
               </span>
+            ) : readOnly ? (
+              <span className="flex h-[84px] flex-col items-center justify-center gap-0.5 rounded-[16px] border-2 border-dashed border-[#9FB5AE] text-text">
+                <span className="text-[14px] font-semibold text-[#3F4946]">{formatHour(times[slot.slot])}</span>
+                <span className="text-[16px] font-extrabold">{label(slot.slot)}</span>
+              </span>
             ) : (
               <button type="button" onClick={() => onNote(today, slot.slot)} aria-label={`Noter la sortie ${label(slot.slot).toLowerCase()}, ${slot.hour}`} className="tap flex h-[84px] w-full flex-col items-center justify-center gap-0.5 rounded-[16px] border-2 border-dashed border-[#9FB5AE] bg-surface p-0 text-text">
                 <span className="text-[14px] font-semibold text-[#3F4946]">{formatHour(times[slot.slot])}</span>
@@ -134,7 +142,7 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
       </ul>
       <p className="text-[15px] leading-snug text-[#3F4946]">{sentence}</p>
       {/* App iOS (T-036) : partir d’ici, sauf si la carte du moment le propose déjà. */}
-      {isNative() && showStart && plan.slots.some((s) => s.state !== 'faite') && (
+      {!readOnly && isNative() && showStart && plan.slots.some((s) => s.state !== 'faite') && (
         <Link to="/balade-en-cours?depart=1" className="tap btn btn-outline min-h-[50px] gap-2">
           <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M8 5.5v13l10.5-6.5z" fill="currentColor" />
@@ -143,7 +151,7 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
         </Link>
       )}
       {/* Un compte sans aucune balade : l’import reste proposé ici (sinon, il est dans le panneau de Balades). */}
-      {noWalkYet && (
+      {!readOnly && noWalkYet && (
         <Link to="/importer" className="tap btn btn-quiet min-h-11 self-center px-4 text-[15px] text-primary">
           {isNative() ? 'Importer un fichier GPX' : 'Importer mes balades'}
         </Link>

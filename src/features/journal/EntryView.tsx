@@ -14,9 +14,11 @@ import { MomentChips } from './EntryCard'
 import { PhotoViewer } from './PhotoViewer'
 import { readRoute } from '../../lib/route'
 import { RouteDetail } from '../trajets/RouteDetail'
+import { useReadOnly } from '../../firebase/viewer'
 
 /** Le détail d’un souvenir (balade, photo ou note). C’est ici que se trouve « Modifier ». */
 export default function EntryView() {
+  const readOnly = useReadOnly()
   const { id } = useParams()
   const { entries, dog } = useData()
   const back = useBack('/balades')
@@ -59,10 +61,15 @@ export default function EntryView() {
             ))}
           </div>
         )}
-        <SharedWithPack entry={entry} dogName={dog.name} />
-        <Link to={`/souvenir/${entry.id}/modifier`} className="btn btn-outline mt-2">
-          Modifier
-        </Link>
+        {/* Visiteur (T-048) : il regarde le souvenir, sans le partager ni le modifier. */}
+        {!readOnly && (
+          <>
+            <SharedWithPack entry={entry} dogName={dog.name} />
+            <Link to={`/souvenir/${entry.id}/modifier`} className="btn btn-outline mt-2">
+              Modifier
+            </Link>
+          </>
+        )}
       </main>
       {viewer !== null && <PhotoViewer photos={entry.photos} start={viewer} onClose={() => setViewer(null)} />}
     </div>

@@ -13,6 +13,7 @@ import { useToday } from '../../lib/useToday'
 import { CalendarEventRow } from './EventRows'
 import { MonthGrid } from './MonthGrid'
 import { formatKg } from './WeightSheet'
+import { useReadOnly } from '../../firebase/viewer'
 
 const MONTH_NAMES = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
 
@@ -33,6 +34,7 @@ export default function Calendar() {
   const [adding, setAdding] = useState(false)
   const [added, setAdded] = useState<string>()
   const toast = useToast()
+  const readOnly = useReadOnly()
 
   const late = lateCare(events, today)[0]
   const next = nextThing(events, today)
@@ -59,6 +61,9 @@ export default function Calendar() {
     { to: '/sante/repas', title: 'Repas', detail: dog.feeding && meals ? `${meals} repas · ${dog.feeding.gramsPerDay}\u00a0g par jour` : 'À renseigner' },
     { to: '/sante/documents', title: 'Documents', detail: documents.length ? documents.slice(0, 2).map((d) => d.title).join(', ') : 'Carnet de santé, ordonnances' },
   ]
+    // Visiteur (T-048) : rien à prévoir, et les documents restent privés.
+    .filter((line) => !readOnly || line.to !== '/sante/documents')
+    .map((line) => (readOnly && line.action ? { ...line, action: undefined, to: '/sante/evenements?filtre=soins' } : line))
 
   return (
     <div className="flex flex-col gap-4 px-5 pb-[88px]">
@@ -75,12 +80,16 @@ export default function Calendar() {
             {late.title}
           </Link>
           <p className="text-[16px] text-[#3F4946]">Prévu le {formatLong(late.date)}</p>
-          <button type="button" onClick={() => setEventDone(late, true)} className="btn btn-main min-h-[54px]">
-            C’est fait
-          </button>
-          <Link to={`/evenement/${late.id}`} className="btn btn-outline min-h-12">
-            Le décaler
-          </Link>
+          {!readOnly && (
+            <>
+              <button type="button" onClick={() => setEventDone(late, true)} className="btn btn-main min-h-[54px]">
+                C’est fait
+              </button>
+              <Link to={`/evenement/${late.id}`} className="btn btn-outline min-h-12">
+                Le décaler
+              </Link>
+            </>
+          )}
         </section>
       )}
 
@@ -114,7 +123,7 @@ export default function Calendar() {
           </Link>
           <p className="text-[16px] text-[#3F4946]">{whenLine(next.date, today)}</p>
           {/* « C’est fait » seulement le jour J (ou en retard, voir plus haut). */}
-          {canMarkDone(next.date, today) && (
+          {!readOnly && canMarkDone(next.date, today) && (
             <button type="button" onClick={() => setEventDone(next, true)} className="btn btn-outline min-h-12">
               C’est fait
             </button>
@@ -151,13 +160,15 @@ export default function Calendar() {
         ))}
       </nav>
 
-      {/* L’action principale, fixée en bas au-dessus de la barre d’onglets. */}
+      {/* L’action principale, fixée en bas au-dessus de la barre d’onglets (pas chez un visiteur). */}
+      {!readOnly && (
       <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+108px)] z-10 mx-auto max-w-[430px] bg-gradient-to-b from-transparent to-bg to-40% px-4 pt-6 pb-3">
         <button type="button" onClick={() => setAdding(true)} className="tap btn btn-main min-h-14 w-full gap-2">
           <PlusIcon size={22} />
           Ajouter un soin ou un RDV
         </button>
       </div>
+      )}
       {adding && (
         <AddCareSheet
           onClose={() => setAdding(false)}

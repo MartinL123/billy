@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { BoneIcon } from '../../components/BoneIcon'
 import { setEventDone } from '../../firebase/db'
 import { useData } from '../../firebase/store'
+import { useReadOnly } from '../../firebase/viewer'
 import { completeQuest, skipQuest } from '../../firebase/training'
 import { QUEST_XP } from '../../lib/quest'
 import { balance } from '../../lib/bones'
@@ -241,6 +242,8 @@ function useCardContent(card: NowCard, onWeighLater: () => void, onNote: (slot: 
  */
 export default function Today() {
   const { dog, events, bones, walks, weights, entries, online } = useData()
+  // Visiteur (T-048) : pas de carte du moment, rien à faire, tout à regarder.
+  const readOnly = useReadOnly()
   const today = useToday()
   const location = useLocation()
   // « Combien de temps ? » (R-044) : ouvert depuis une pastille de sortie ou depuis la carte du moment.
@@ -333,6 +336,7 @@ export default function Today() {
       </header>
 
       {/* Une nouvelle carte du moment (soin fait, mission faite…) monte à la place de l’ancienne (T-033). */}
+      {!readOnly && (
       <section key={cardKey(card)} aria-label="À faire maintenant" className={`card flex flex-col gap-3 rounded-[26px] p-4 ${cardKey(card) !== firstCard ? 'anim-in' : ''}`}>
         <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{content.badge}</span>
         {/* Texte agrandi (V5) : l’illustration disparaît d’abord, puis la ligne d’aide ; le bouton reste visible. */}
@@ -343,6 +347,7 @@ export default function Today() {
         {content.other && <CardButton action={content.other} />}
         {content.third && <CardButton action={content.third} />}
       </section>
+      )}
 
       {/* Ses sorties du jour (V5) : 3 pastilles, puis une phrase. */}
       <WalkDayCard
@@ -356,7 +361,7 @@ export default function Today() {
       />
 
       {/* Faisons connaissance (V5) : tant que le questionnaire n’est pas fini, une partie à la fois, contre des os. */}
-      {!questionnaire.complete && <KnowCard />}
+      {!readOnly && !questionnaire.complete && <KnowCard />}
 
       <LifeTiles arrival={arrival} />
 

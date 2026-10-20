@@ -9,7 +9,7 @@ import { useSheet } from './useSheet'
  * Le panneau d’une balade ouverte sur la carte : ce qu’elle est, la revoir, y placer des repères. Il se glisse vers le
  * bas comme le panneau des balades (même geste) : réduit, il garde le nom de la balade et la carte prend l’écran.
  */
-export function WalkPanel({ entryId, name, date, route, color, replaying, onReplay, onClose }: { entryId: string; name: string; date: string; route: Route; color?: string; replaying: boolean; onReplay: () => void; onClose: () => void }) {
+export function WalkPanel({ entryId, name, date, route, color, replaying, onReplay, onClose, readOnly = false }: { readOnly?: boolean; entryId: string; name: string; date: string; route: Route; color?: string; replaying: boolean; onReplay: () => void; onClose: () => void }) {
   const sheet = useSheet({ startCollapsed: false })
   const stats = [formatLong(date), formatRouteDistance(route.distanceM), route.durationMin ? (route.source ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} repère${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
   return (
@@ -39,7 +39,7 @@ export function WalkPanel({ entryId, name, date, route, color, replaying, onRepl
       {/* Réduit, le panneau ne garde que ce qui précède (le nom) : la suite glisse sous la barre. */}
       <div ref={sheet.bodyRef} style={sheet.bodyStyle} className="-mx-5 flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto overscroll-contain px-5 [&>*]:shrink-0" aria-hidden={sheet.collapsed || undefined} inert={sheet.collapsed || undefined}>
         <p className="text-[15px] text-muted">{stats}</p>
-        <p className="text-[15px] text-[#3F4946]">Touchez le tracé pour ajouter un repère, une autre balade pour l’ouvrir.</p>
+        <p className="text-[15px] text-[#3F4946]">{readOnly ? 'Touchez une autre balade pour l’ouvrir.' : 'Touchez le tracé pour ajouter un repère, une autre balade pour l’ouvrir.'}</p>
         {route.points.length > 1 && (
           <button type="button" onClick={onReplay} className="btn btn-main min-h-[52px] gap-2">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

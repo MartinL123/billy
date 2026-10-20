@@ -23,6 +23,7 @@ import { formatRelative } from '../../lib/dates'
 import { formatRouteDistance } from '../../lib/route'
 import { sharePercent, territoryHint } from '../../lib/territory'
 import { ofName } from '../../lib/gender'
+import { useReadOnly } from '../../firebase/viewer'
 
 const ExplorerMap = lazy(() => import('./ExplorerMap').then((m) => ({ default: m.ExplorerMap })))
 
@@ -62,6 +63,7 @@ const toggle = (on: boolean) => `min-h-11 rounded-full border-0 px-3.5 text-[15p
 export default function Explorer() {
   const { dog, entries, fog, communes } = useData()
   const today = useToday()
+  const readOnly = useReadOnly()
   const [prefs, setPrefs] = useState(readPrefs)
   // « Voir ces balades sur la carte » garde le filtre choisi dans la liste.
   const [params] = useSearchParams()
@@ -163,7 +165,8 @@ export default function Explorer() {
           photos: walkPhotos,
           replaying,
           onReplayEnd: () => setReplaying(false),
-          onTapRoute: (at: { lat: number; lng: number }) => setPlacing(at),
+          // Visiteur (T-048) : pas de repère à placer.
+          onTapRoute: (at: { lat: number; lng: number }) => !readOnly && setPlacing(at),
           // Une petite fenêtre de lieu ouverte : le toucher la referme seulement.
           onLeave: () => !selectedId && closeWalk(),
           onPhoto: () => navigate(`/souvenir/${walkEntry.id}`),
@@ -362,6 +365,7 @@ export default function Explorer() {
             </div>
           )}
           {/* L’action principale : partir (iOS) ; sur le web, ajouter ses balades (import). Collée au bas du panneau : jamais à faire défiler. */}
+          {!readOnly && (
           <div className="sticky bottom-0 -mx-5 flex flex-col gap-2 bg-surface px-5 pt-2 pb-1">
             {isNative() ? (
               <>
@@ -381,9 +385,10 @@ export default function Explorer() {
               </Link>
             )}
           </div>
+          )}
         </div>
       </section>
-      {walk && walkEntry && !selected && <WalkPanel entryId={walkEntry.id} name={walks.find((w) => w.id === walkEntry.id)?.name ?? 'La balade'} date={walkEntry.date} route={walk.route} color={walk.color} replaying={replaying} onReplay={() => setReplaying(!replaying)} onClose={closeWalk} />}
+      {walk && walkEntry && !selected && <WalkPanel readOnly={readOnly} entryId={walkEntry.id} name={walks.find((w) => w.id === walkEntry.id)?.name ?? 'La balade'} date={walkEntry.date} route={walk.route} color={walk.color} replaying={replaying} onReplay={() => setReplaying(!replaying)} onClose={closeWalk} />}
       {placing && walkRoute && (
         <PlaceMoment
           at={placing}

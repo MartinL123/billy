@@ -347,10 +347,11 @@ export default function Today() {
       {!readOnly && (
       <section key={cardKey(card)} aria-label="À faire maintenant" className={`card flex flex-col gap-3 rounded-[26px] p-4 ${cardKey(card) !== firstCard ? 'anim-in' : ''}`}>
         <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{content.badge}</span>
-        {/* Texte agrandi (V5, R-056) ou écran bas : l’illustration disparaît d’abord, puis la ligne d’aide ; le bouton reste visible. */}
+        {/* Texte agrandi (V5, R-056) ou écran bas : l’illustration disparaît d’abord, puis la ligne d’aide ; le bouton reste visible.
+            Le texte n’est jamais coupé (R-076) : il s’affiche en entier ou pas du tout. */}
         {content.scene && <Illustration scene={content.scene} className="h-[130px] bg-bg [@media(max-height:34em)]:hidden [.texte-grand_&]:hidden" />}
         <h1 className="font-display text-[1.5294rem] leading-tight font-extrabold">{content.title}</h1>
-        <p className="line-clamp-2 text-[1rem] leading-snug text-[#3F4946] [@media(max-height:30em)]:hidden [.texte-tres-grand_&]:hidden">{content.text}</p>
+        <p className="text-[1rem] leading-snug text-[#3F4946] [@media(max-height:30em)]:hidden [.texte-tres-grand_&]:hidden">{content.text}</p>
         {content.action && <CardButton action={content.action} main />}
         {content.other && <CardButton action={content.other} />}
         {content.third && <CardButton action={content.third} />}

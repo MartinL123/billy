@@ -15,6 +15,30 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Mode visiteur (T-048, docs/specs/famille.md) : un proche invité lit le compte qui l'a invité, sans jamais écrire.
+    function isViewerOf(uid) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/viewers/$(request.auth.uid))
+        && get(/databases/$(database)/documents/viewers/$(request.auth.uid)).data.owner == uid;
+    }
+
+    // Une invitation : créée par le propriétaire, lue seulement par qui a son code (jamais listée).
+    match /invites/{code} {
+      allow get: if signedIn();
+      allow create: if signedIn() && request.resource.data.owner == request.auth.uid && code.size() >= 12;
+      allow delete: if signedIn() && resource.data.owner == request.auth.uid;
+    }
+
+    // Un spectateur : il se déclare lui-même avec un code d'invitation valable ; le propriétaire le voit et le retire.
+    match /viewers/{viewerId} {
+      allow read: if isOwner(viewerId) || (signedIn() && resource.data.owner == request.auth.uid);
+      allow create: if isOwner(viewerId)
+        && request.resource.data.owner != request.auth.uid
+        && exists(/databases/$(database)/documents/invites/$(request.resource.data.code))
+        && get(/databases/$(database)/documents/invites/$(request.resource.data.code)).data.owner == request.resource.data.owner;
+      allow delete: if isOwner(viewerId) || (signedIn() && resource.data.owner == request.auth.uid);
+    }
+
     // La meute (docs/specs/communaute.md) : lisible par tout compte connecté de l'app, jamais par un visiteur.
     // Chacun ne crée ou ne modifie que ce qui porte son uid. Les données privées restent sous users/{uid}.
     match /community/meute/members/{memberId} {
@@ -43,6 +67,17 @@ service cloud.firestore {
     match /community/meute/challenges/{week}/rows/{memberId} {
       allow read: if signedIn();
       allow write: if isOwner(memberId);
+    }
+
+    // Le compte lui-même (users/{uid}) : son propriétaire, et ses spectateurs en lecture.
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isViewerOf(uid);
+    }
+
+    // Un spectateur lit tout le compte, sauf les documents (papiers, ordonnances), qui restent privés.
+    // (Une seule règle qui autorise suffit : l'exception est donc écrite ici, pas dans une règle à part.)
+    match /users/{uid}/{collection}/{rest=**} {
+      allow read: if collection != 'documents' && isViewerOf(uid);
     }
 
     match /users/{uid}/{document=**} {

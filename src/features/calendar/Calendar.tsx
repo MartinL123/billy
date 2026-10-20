@@ -163,7 +163,8 @@ export default function Calendar() {
       {/* L’action principale, fixée en bas au-dessus de la barre d’onglets (pas chez un visiteur). */}
       {!readOnly && (
       <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+108px)] z-10 mx-auto max-w-[430px] bg-gradient-to-b from-transparent to-bg to-40% px-4 pt-6 pb-3">
-        <button type="button" onClick={() => setAdding(true)} className="tap btn btn-main min-h-14 w-full gap-2">
+        {/* R-071 : une seule action pleine par écran ; un soin en retard (« C’est fait » plein) passe devant. */}
+        <button type="button" onClick={() => setAdding(true)} className={`tap btn min-h-14 w-full gap-2 ${late ? 'btn-outline' : 'btn-main'}`}>
           <PlusIcon size={22} />
           Ajouter un soin ou un RDV
         </button>

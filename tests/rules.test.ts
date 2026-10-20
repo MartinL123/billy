@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { assertFails, assertSucceeds, initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/rules-unit-testing'
-import { deleteDoc, doc, getDoc, getDocs, collection, setDoc } from 'firebase/firestore'
+import { deleteDoc, doc, getDoc, getDocs, collection, query, setDoc, where } from 'firebase/firestore'
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest'
 
 // Règles de sécurité : chaque compte ne lit et n'écrit que users/{son uid}/…
@@ -113,12 +113,13 @@ describe('firestore.rules : mode visiteur (T-048)', () => {
     await invite()
     await env.withSecurityRulesDisabled(async (admin) => {
       await setDoc(doc(admin.firestore(), 'users/alice/documents/d1'), { title: 'Passeport' })
-      await setDoc(doc(admin.firestore(), 'users/alice/files/f1'), { data: 'x' })
+      await setDoc(doc(admin.firestore(), 'users/alice/files/f1'), { data: 'x', kind: 'photo' })
     })
     const parent = env.authenticatedContext('parent').firestore()
     await assertSucceeds(setDoc(doc(parent, 'viewers/parent'), { owner: 'alice', code: 'abcdefghjkmn', email: 'p@x.fr' }))
     await assertSucceeds(getDoc(doc(parent, 'users/alice/dog/billy')))
     await assertSucceeds(getDocs(collection(parent, 'users/alice/entries')))
+    // Une photo de souvenir se voit.
     await assertSucceeds(getDoc(doc(parent, 'users/alice/files/f1')))
     await assertSucceeds(getDoc(doc(parent, 'users/alice')))
     await assertFails(getDoc(doc(parent, 'users/alice/documents/d1')))
@@ -127,6 +128,36 @@ describe('firestore.rules : mode visiteur (T-048)', () => {
     await assertFails(setDoc(doc(parent, 'users/alice/entries/e9'), { date: '2026-10-20', text: 'Coucou' }))
     await assertFails(deleteDoc(doc(parent, 'users/alice/entries/e1')))
     await assertFails(getDoc(doc(parent, 'users/bob/dog/billy')))
+  })
+
+  it('R-069 : jamais les fichiers d’un document (ni leurs morceaux), jamais push', async () => {
+    await invite()
+    await env.withSecurityRulesDisabled(async (admin) => {
+      const a = admin.firestore()
+      await setDoc(doc(a, 'users/alice/files/page1'), { data: 'x', kind: 'document' })
+      await setDoc(doc(a, 'users/alice/files/pdf1'), { chunkCount: 1, kind: 'document' })
+      await setDoc(doc(a, 'users/alice/files/pdf1/chunks/0'), { data: 'x' })
+      await setDoc(doc(a, 'users/alice/files/ancien'), { data: 'x' })
+      await setDoc(doc(a, 'users/alice/files/photo1'), { data: 'x', kind: 'photo' })
+      await setDoc(doc(a, 'users/alice/push/abonnement'), { endpoint: 'https://x' })
+    })
+    const parent = env.authenticatedContext('parent').firestore()
+    await assertSucceeds(setDoc(doc(parent, 'viewers/parent'), { owner: 'alice', code: 'abcdefghjkmn' }))
+    await assertFails(getDoc(doc(parent, 'users/alice/files/page1')))
+    await assertFails(getDoc(doc(parent, 'users/alice/files/pdf1')))
+    await assertFails(getDoc(doc(parent, 'users/alice/files/pdf1/chunks/0')))
+    await assertFails(getDocs(collection(parent, 'users/alice/files/pdf1/chunks')))
+    // Un fichier d'avant, sans genre : refusé jusqu'au rattrapage.
+    await assertFails(getDoc(doc(parent, 'users/alice/files/ancien')))
+    await assertFails(getDocs(collection(parent, 'users/alice/files')))
+    await assertSucceeds(getDocs(query(collection(parent, 'users/alice/files'), where('kind', '==', 'photo'))))
+    await assertSucceeds(getDoc(doc(parent, 'users/alice/files/photo1')))
+    await assertFails(getDoc(doc(parent, 'users/alice/push/abonnement')))
+    await assertFails(getDocs(collection(parent, 'users/alice/push')))
+    // Le propriétaire, lui, lit tout.
+    const alice = env.authenticatedContext('alice').firestore()
+    await assertSucceeds(getDoc(doc(alice, 'users/alice/files/page1')))
+    await assertSucceeds(getDoc(doc(alice, 'users/alice/files/pdf1/chunks/0')))
   })
 
   it('sans code valable, personne ne devient spectateur', async () => {

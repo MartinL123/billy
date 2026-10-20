@@ -96,7 +96,7 @@ export default function DocumentForm() {
     if (!isValidISO(date)) return setError('Choisissez la date du document.')
     setSaving(true)
     try {
-      const fileIds = picked.kind === 'pdf' ? [savePdf(picked.bytes)] : await Promise.all(picked.pages.map(saveImage))
+      const fileIds = picked.kind === 'pdf' ? [savePdf(picked.bytes)] : await Promise.all(picked.pages.map((page) => saveImage(page, 'document')))
       saveDocument(newId('documents'), {
         title: title.trim(),
         category,
@@ -104,7 +104,7 @@ export default function DocumentForm() {
         eventId: linkedEvent ? eventId : undefined,
         kind: picked.kind,
         fileIds,
-        thumbFileId: await saveImage(picked.thumb),
+        thumbFileId: await saveImage(picked.thumb, 'document'),
         pageCount: picked.kind === 'pdf' ? picked.pageCount : picked.pages.length,
         size: picked.kind === 'pdf' ? picked.bytes.length : picked.size,
         createdAt: new Date().toISOString(),

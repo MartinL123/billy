@@ -74,10 +74,21 @@ service cloud.firestore {
       allow read: if isOwner(uid) || isViewerOf(uid);
     }
 
-    // Un spectateur lit tout le compte, sauf les documents (papiers, ordonnances), qui restent privés.
+    // Un spectateur lit tout le compte, sauf les documents (papiers, ordonnances) et les abonnements aux rappels (push),
+    // qui restent privés. Les fichiers ont leur propre règle juste dessous.
     // (Une seule règle qui autorise suffit : l'exception est donc écrite ici, pas dans une règle à part.)
     match /users/{uid}/{collection}/{rest=**} {
-      allow read: if collection != 'documents' && isViewerOf(uid);
+      allow read: if !(collection in ['documents', 'push', 'files']) && isViewerOf(uid);
+    }
+
+    // R-069 : un fichier dit s'il est une photo ou une page de document ; le spectateur ne lit que les photos
+    // (une requête de liste doit donc filtrer sur kind == 'photo'). Les morceaux d'un PDF suivent leur fichier.
+    match /users/{uid}/files/{fileId} {
+      allow read: if isViewerOf(uid) && resource.data.get('kind', '') == 'photo';
+      match /chunks/{n} {
+        allow read: if isViewerOf(uid)
+          && get(/databases/$(database)/documents/users/$(uid)/files/$(fileId)).data.get('kind', '') == 'photo';
+      }
     }
 
     match /users/{uid}/{document=**} {

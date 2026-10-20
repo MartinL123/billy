@@ -15,7 +15,7 @@ import {
 } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { accountDoc, newId, send, userCol, userDoc } from './paths'
-import type { StoredFile } from './types'
+import type { FileKind, StoredFile } from './types'
 import { joinBytes, MAX_PDF_SIZE, splitBytes } from '../lib/chunks'
 import { MAX_IMAGE_BYTES } from '../lib/image'
 import { fits, FULL_MESSAGE } from '../lib/usage'
@@ -43,26 +43,26 @@ export const QUOTA_BYTES = 1024 * 1024 * 1024
 
 const chunksCol = (fileId: string) => collection(userDoc('files', fileId), 'chunks')
 
-/** Enregistre une image déjà compressée (< 900 Ko) dans son propre document. */
-export async function saveImage(blob: Blob): Promise<string> {
+/** Enregistre une image déjà compressée (< 900 Ko) dans son propre document : une photo, ou une page de document. */
+export async function saveImage(blob: Blob, kind: FileKind = 'photo'): Promise<string> {
   if (blob.size > MAX_IMAGE_BYTES) throw new Error('Image trop lourde')
   if (!fits(knownUsage, blob.size)) throw new Error(FULL_MESSAGE)
   const id = newId('files')
   const data = Bytes.fromUint8Array(new Uint8Array(await blob.arrayBuffer()))
-  const file: StoredFile = { mimeType: blob.type || 'image/jpeg', size: blob.size, data }
+  const file: StoredFile = { mimeType: blob.type || 'image/jpeg', size: blob.size, data, kind }
   send(setDoc(userDoc('files', id), file))
   track(blob.size)
   return id
 }
 
-/** Enregistre un PDF découpé en morceaux de 750 Ko. */
+/** Enregistre un PDF (toujours un document) découpé en morceaux de 750 Ko. */
 export function savePdf(bytes: Uint8Array): string {
   if (bytes.length > MAX_PDF_SIZE) throw new Error('PDF trop lourd')
   if (!fits(knownUsage, bytes.length)) throw new Error(FULL_MESSAGE)
   const id = newId('files')
   const parts = splitBytes(bytes)
   parts.forEach((part, n) => send(setDoc(doc(chunksCol(id), String(n)), { data: Bytes.fromUint8Array(part) })))
-  const file: StoredFile = { mimeType: 'application/pdf', size: bytes.length, chunkCount: parts.length }
+  const file: StoredFile = { mimeType: 'application/pdf', size: bytes.length, chunkCount: parts.length, kind: 'document' }
   send(setDoc(userDoc('files', id), file))
   track(bytes.length)
   return id

@@ -25,6 +25,8 @@ export interface Dog {
   adoptionDate: ISODate
   photoFileId?: string
   photoThumbFileId?: string
+  /** R-069 : les fichiers existants ont reçu leur `kind` (photo ou document), ce jour-là. */
+  filesKindBackfilled?: ISODate
   chip?: string
   vet?: Contact
   trainer?: Contact
@@ -160,12 +162,17 @@ export interface BillyDocument {
   createdAt?: string
 }
 
+/** Ce qu’un fichier contient : une photo (souvenir, profil) ou une page de document (privée, R-069). */
+export type FileKind = 'photo' | 'document'
+
 /** users/{uid}/files/{id} — image : `data` ; PDF : `chunkCount` morceaux dans files/{id}/chunks/{n}. */
 export interface StoredFile {
   mimeType: string
   size: number
   data?: Bytes
   chunkCount?: number
+  /** R-069 : un visiteur ne lit que les photos. Absent sur les fichiers d’avant (rattrapé une fois, FilesKindBackfill). */
+  kind?: FileKind
 }
 
 // ——— Dressage (docs/specs/spec-v2-dressage.md) ———

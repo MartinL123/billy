@@ -2,8 +2,8 @@ import type { ISODate } from './dates'
 import type { WalkBudget } from './walkBudget'
 import { timeToMinutes, WALK_SLOTS, type WalkSlot, type WalkTimes } from './walks'
 
-// Aujourd’hui (spec V4 § 2) : une seule carte « À faire maintenant », choisie par une règle simple (les lignes
-// « Ensuite » ont laissé la place aux tuiles de l’accueil, T-031). L’app propose, l’utilisateur confirme.
+// La carte du moment (V5, T-050) : une seule carte en haut de l’accueil, qui suit le moment de la journée, choisie
+// par une règle simple (la première qui s’applique). L’app propose, l’utilisateur confirme.
 
 /** Soins qui se font à la maison, à heure fixe : ils passent avant tout le reste le jour où ils sont dus. */
 const HOME_CARE = ['antiparasitaire', 'vermifuge', 'medicament', 'médicament']
@@ -33,6 +33,8 @@ export interface NowInput {
   walking?: { startedAt: string; recording: boolean; /** Arrêtée (« Terminer » touché) mais pas encore enregistrée (R-042). */ stoppedAt?: string }
   /** Pesée du mois à proposer (T-013), avec la date de la dernière pesée. */
   weighing?: { due: boolean; last?: ISODate }
+  /** Un souvenir est déjà noté aujourd’hui (le soir, la carte propose sinon d’en noter un). */
+  notedToday?: boolean
 }
 
 export type NowCard =
@@ -44,21 +46,31 @@ export type NowCard =
   /** La pesée du mois, tant que le chien grandit (T-013). */
   | { kind: 'pesee'; last?: ISODate }
   | { kind: 'sortie'; slot: WalkSlot; time: string }
+  /** Après 21 h, rien de noté aujourd’hui : « Racontez sa journée ». */
+  | { kind: 'soiree' }
+  /** Tout est fait : la dernière balade en souvenir (jamais de carte vide). */
   | { kind: 'fini' }
-  /** La mission est faite, plus de sortie à venir, mais toutes n’ont pas été faites. */
-  | { kind: 'soir'; done: number }
 
 const dueCare = (care: CareLike[], today: ISODate) =>
   care.filter((e) => !e.done && e.date && e.date <= today && (HOME_CARE.includes(e.type.toLowerCase()) || needsVet(e.type))).sort((a, b) => a.date.localeCompare(b.date))
 
-/** Prochaine sortie pas encore faite, dont l’heure n’est pas passée depuis plus d’une heure. */
-function nextWalk(input: NowInput): { slot: WalkSlot; time: string; in: number } | undefined {
-  return WALK_SLOTS.map((s) => ({ slot: s.id, time: input.walks.times[s.id], in: timeToMinutes(input.walks.times[s.id]) - input.now }))
-    .filter((w) => !input.walks.done[w.slot] && w.in > -60)
-    .sort((a, b) => a.in - b.in)[0]
+/** Une sortie s’annonce 30 min avant son heure et reste proposée jusqu’à 1 h après, tant qu’elle n’est pas notée. */
+export const WALK_BEFORE_MIN = 30
+export const WALK_AFTER_MIN = 60
+/** À partir de 21 h, la carte propose de raconter la journée. */
+export const EVENING_MIN = 21 * 60
+
+/** La sortie du moment : pas encore notée, entre 30 min avant et 1 h après son heure. */
+function walkNow(input: NowInput): { slot: WalkSlot; time: string } | undefined {
+  return WALK_SLOTS.map((s) => ({ slot: s.id, time: input.walks.times[s.id], delta: input.now - timeToMinutes(input.walks.times[s.id]) }))
+    .filter((w) => !input.walks.done[w.slot] && w.delta >= -WALK_BEFORE_MIN && w.delta <= WALK_AFTER_MIN)
+    .sort((a, b) => Math.abs(a.delta) - Math.abs(b.delta))[0]
 }
 
-/** La carte, dans l’ordre de la spec : soin dû, repas dans 30 min, mission, sortie dans l’heure, sinon « tout est fait ». */
+/**
+ * La carte, dans l’ordre (V5) : balade de l’iPhone en cours ; soin dû ou en retard ; repas dans les 30 min ; sortie du
+ * moment ; mission du jour ; pesée du mois ; après 21 h sans souvenir, « Racontez sa journée » ; sinon « tout est fait ».
+ */
 export function nowCard(input: NowInput): NowCard {
   if (input.walking) return { kind: 'balade', ...input.walking }
   const care = dueCare(input.care, input.today)[0]
@@ -68,12 +80,10 @@ export function nowCard(input: NowInput): NowCard {
     return delta >= 0 && delta <= 30
   })
   if (meal) return { kind: 'repas', time: meal.time, ...(meal.label ? { label: meal.label } : {}) }
-  if (!input.mission.done) return { kind: 'mission' }
-  // La mission faite : la pesée du mois passe avant la prochaine sortie (T-013).
-  if (input.weighing?.due) return { kind: 'pesee', ...(input.weighing.last ? { last: input.weighing.last } : {}) }
-  // « Tout est fait » seulement si la mission et les sorties du jour sont faites (audit R-012).
-  const walk = nextWalk(input)
+  const walk = walkNow(input)
   if (walk) return { kind: 'sortie', slot: walk.slot, time: walk.time }
-  const done = WALK_SLOTS.filter((s) => input.walks.done[s.id]).length
-  return done === WALK_SLOTS.length ? { kind: 'fini' } : { kind: 'soir', done }
+  if (!input.mission.done) return { kind: 'mission' }
+  if (input.weighing?.due) return { kind: 'pesee', ...(input.weighing.last ? { last: input.weighing.last } : {}) }
+  if (input.now >= EVENING_MIN && !input.notedToday) return { kind: 'soiree' }
+  return { kind: 'fini' }
 }

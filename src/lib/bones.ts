@@ -72,6 +72,15 @@ export function momentBones(entryId: string, date: ISODate, validated: { bossId:
   return out
 }
 
+/**
+ * Une sortie notée à la main (V5) ou une balade terminée : +3 os, comme noter un moment, dans la limite de 3 notes
+ * par jour ; jamais deux fois pour la même chose (`refId` fixe).
+ */
+export function noteBone(refId: string, date: ISODate, existing: (Bone & { id?: string })[]): BoneWithId | undefined {
+  const gain = momentBones(refId, date, [], [], existing)[0]
+  return gain && gain.reason === 'note' && !existing.some((b) => b.id === gain.id) ? gain : undefined
+}
+
 /** Mission du jour faite : +10 ; une journée de repos respectée rapporte en plus +5. */
 export function missionBones(date: ISODate, rest: boolean): BoneWithId[] {
   return [bone('mission', date, date, BONES.mission), ...(rest ? [bone('repos', date, date, BONES.rest)] : [])]

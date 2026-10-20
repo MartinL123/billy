@@ -1,14 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { CountUp } from '../../components/CountUp'
-import { PawIcon } from '../../components/Icons'
-import { auth } from '../../firebase/app'
-import { watchMembers } from '../../firebase/community'
+import { ChevronRightIcon } from '../../components/Icons'
 import { useData } from '../../firebase/store'
 import { activeSkills } from '../../lib/active'
-import { balance } from '../../lib/bones'
 import { communeAt } from '../../lib/commune'
-import { healthTile, memoriesTile, progressTile, walksTile } from '../../lib/dashboard'
+import { healthTile, memoriesLine, memoriesTile, progressLine, walksLine } from '../../lib/dashboard'
 import { discoveredShare, inPolygon, knownFog, shareLabel } from '../../lib/fog'
 import { useToday } from '../../lib/useToday'
 import { walkItems } from '../../lib/walkList'
@@ -62,83 +58,52 @@ const ICONS = {
   ),
 }
 
-function Tile({ to, icon, tint, title, text, detail, alert = false, children }: { to: string; icon: React.ReactNode; tint: string; title: string; text: React.ReactNode; detail?: React.ReactNode; /** La ligne principale en rouge (un soin en retard). */ alert?: boolean; children?: React.ReactNode }) {
+/** Une ligne de « Sa vie avec vous » : icône dans un carré de couleur, titre, détail, chevron. */
+function Row({ to, icon, tint, title, detail, alert = false, last = false }: { to: string; icon: React.ReactNode; tint: string; title: string; detail: string; /** Le détail en rouge (un soin en retard). */ alert?: boolean; last?: boolean }) {
   return (
-    <Link to={to} className="card tap flex min-h-[150px] flex-col gap-1.5 rounded-[22px] p-4 text-text no-underline">
-      <span className="flex size-11 items-center justify-center rounded-[14px]" style={{ background: tint }}>
+    <Link to={to} className={`tap flex min-h-16 items-center gap-3 px-4 py-2.5 text-text no-underline ${last ? '' : 'border-b border-divider'}`}>
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-[12px]" style={{ background: tint }}>
         {icon}
       </span>
-      <span className="mt-1 text-[17px] font-extrabold">{title}</span>
-      <span className={`text-[15px] leading-snug ${alert ? 'font-bold text-danger' : 'text-[#3F4946]'}`}>{text}</span>
-      {children}
-      {/* Le détail reste en gris foncé, jamais en couleur d’alerte (R-039) : seul un soin en retard est en rouge. */}
-      {detail && <span className="mt-auto text-[14px] leading-snug text-[#3F4946]">{detail}</span>}
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-[16px] font-extrabold">{title}</span>
+        {/* Seul un soin en retard est en rouge (R-039). */}
+        <span className={`text-[14px] leading-snug ${alert ? 'font-bold text-danger' : 'text-[#3F4946]'}`}>{detail}</span>
+      </span>
+      <ChevronRightIcon size={20} className="shrink-0 text-[#5A6662]" />
     </Link>
   )
 }
 
-/** « Sa vie avec vous » (T-031) : 4 tuiles vivantes, puis la boutique et la meute. Chaque tuile ouvre son écran. */
-export function LifeTiles({ arrival = false }: { /** Première ouverture du jour : cascade, compteurs et pattes animés (T-033). */ arrival?: boolean }) {
-  const { dog, bossProgress, entries, events, bones, fog, communes } = useData()
+/**
+ * « Sa vie avec vous » (V5, T-050) : 4 lignes dans une seule carte. La boutique et la meute sont passées dans l’écran
+ * de Billy (et la pastille d’os de l’en-tête) ; « Noter un souvenir » est dans l’écran des souvenirs.
+ */
+export function LifeTiles({ arrival = false }: { /** Première ouverture du jour : la carte monte avec la cascade (T-033). */ arrival?: boolean }) {
+  const { dog, bossProgress, entries, events, fog, communes } = useData()
   const today = useToday()
-  const [friends, setFriends] = useState(0)
-  useEffect(() => watchMembers((members) => setFriends(members.filter((m) => m.id !== auth.currentUser?.uid).length)), [])
-
   const walks = useMemo(() => walkItems(entries), [entries])
   // La part découverte de la commune de la dernière balade, si son contour est déjà connu (la carte le demande).
   const share = useMemo(() => {
     const start = walks[0]?.route.points[0]
     const commune = start ? communeAt(communes, { lat: start[0], lng: start[1] }, inPolygon) : undefined
-    return commune ? { value: discoveredShare(knownFog(fog), commune), name: commune.name } : undefined
+    return commune ? shareLabel(discoveredShare(knownFog(fog), commune), commune.name) : undefined
   }, [walks, communes, fog])
-
   const active = activeSkills(dog.activeSkills, dog.traits ?? [], bossProgress)
-  const progress = progressTile(active, Object.fromEntries(active.map((id) => [id, bossProgress[id]?.level])))
-  const balades = walksTile(walks.map((w) => w.route), share && shareLabel(share.value, share.name))
   // App iOS : aucune séance trouvée dans Santé, la lecture n’est sans doute pas autorisée (T-001). Une ligne, pas de popup.
   const watchHint = isNative() && watchLooksBlocked() ? `Autoriser ${APP_NAME} à lire vos marches (Réglages › Santé)` : undefined
-  // Les km et le % défilent jusqu’à leur valeur quand ils changent (et à l’arrivée du jour).
-  const km = (n: number) => n.toFixed(1).replace('.', ',')
   const sante = healthTile(events, today)
-  const souvenirs = memoriesTile(entries, today)
+  const memories = memoriesTile(entries, today)
 
   return (
     <>
       <h2 className="mt-1 font-display text-[20px] font-extrabold">Sa vie avec vous</h2>
-      <div className={`grid grid-cols-2 gap-3 ${arrival ? 'anim-stagger' : ''}`}>
-        <Tile to="/billy" icon={ICONS.progres} tint="#DCEBE6" title="Ses progrès" text={progress.text} detail={progress.detail}>
-          {progress.paws > 0 && (
-            <span role="img" aria-label={`Déjà ${progress.paws} étape${progress.paws > 1 ? 's' : ''} franchie${progress.paws > 1 ? 's' : ''}`} className="mt-auto flex gap-1">
-              {Array.from({ length: 5 }, (_, k) => (
-                <span key={k} className={arrival && k < progress.paws ? 'anim-pop' : ''} style={arrival ? { animationDelay: `${600 + k * 90}ms` } : undefined}>
-                  <PawIcon size={18} color={k < progress.paws ? '#1E5A50' : '#D3D9D6'} />
-                </span>
-              ))}
-            </span>
-          )}
-        </Tile>
-        <Tile to={walks.length ? '/territoire' : '/importer'} icon={ICONS.balades} tint="#E3EAF8" title="Ses balades" text={walks.length ? <>{walks.length} balade{walks.length > 1 ? 's' : ''} · <CountUp value={balades.km} format={km} fromZero={arrival} /> km</> : balades.text} detail={watchHint ?? (share ? <CountUp value={share.value} format={(n) => shareLabel(n, share.name)} fromZero={arrival} /> : balades.detail)} />
-        <Tile to="/sante" icon={ICONS.sante} tint="#FBE6D4" title="Sa santé" text={sante.text} detail={sante.detail} alert={sante.late} />
-        <Tile to={souvenirs.count ? '/balades' : '/noter'} icon={ICONS.souvenirs} tint="#FCEFD3" title="Ses souvenirs" text={souvenirs.text} detail={souvenirs.detail} />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Link to="/boutique" className="card tap flex min-h-[60px] items-center gap-2.5 rounded-[18px] px-3.5 py-3 text-text no-underline">
-          {ICONS.boutique}
-          <span className="flex min-w-0 flex-col">
-            <span className="text-[15px] font-extrabold">La boutique</span>
-            <span className="text-[13px] text-[#3F4946]">
-              <CountUp value={balance(bones)} fromZero={arrival} /> os à dépenser
-            </span>
-          </span>
-        </Link>
-        <Link to="/meute" className="card tap flex min-h-[60px] items-center gap-2.5 rounded-[18px] px-3.5 py-3 text-text no-underline">
-          {ICONS.meute}
-          <span className="flex min-w-0 flex-col">
-            <span className="text-[15px] font-extrabold">La meute</span>
-            <span className="text-[13px] text-[#3F4946]">{friends ? `${friends} ami${friends > 1 ? 's' : ''} · les spots` : 'Les spots et les amis'}</span>
-          </span>
-        </Link>
-      </div>
+      <nav aria-label="Sa vie avec vous" className={`card flex flex-col p-0 ${arrival ? 'anim-in' : ''}`}>
+        <Row to="/billy" icon={ICONS.progres} tint="#DCEBE6" title="Ses progrès" detail={progressLine(active)} />
+        <Row to={walks.length ? '/territoire' : '/importer'} icon={ICONS.balades} tint="#E3EAF8" title="Ses balades" detail={watchHint ?? walksLine(walks.map((w) => w.route), share)} />
+        <Row to="/sante" icon={ICONS.sante} tint="#FBE6D4" title="Sa santé" detail={sante.text} alert={sante.late} />
+        <Row to={memories.count ? '/balades' : '/noter'} icon={ICONS.souvenirs} tint="#FCEFD3" title="Ses souvenirs" detail={memories.count ? memoriesLine(entries) : 'Noter le premier'} last />
+      </nav>
     </>
   )
 }

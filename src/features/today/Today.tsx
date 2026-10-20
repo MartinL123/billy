@@ -1,32 +1,31 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { BoneIcon } from '../../components/BoneIcon'
-import { PlusIcon } from '../../components/Icons'
 import { setEventDone } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { completeQuest, skipQuest } from '../../firebase/training'
 import { QUEST_XP } from '../../lib/quest'
-import { balance, BONES } from '../../lib/bones'
+import { balance } from '../../lib/bones'
 import { formatDayHeading, formatLong } from '../../lib/dates'
 import { portion, sortMeals } from '../../lib/feeding'
 import { nowCard, type NowCard, type NowInput, needsVet } from '../../lib/nowCard'
-import { essentialsDone, nextPart, PARTS, profilePartsEarnBones, questionnaireStatus } from '../../lib/questionnaire'
+import { questionnaireStatus } from '../../lib/questionnaire'
 import { formatRouteDistance } from '../../lib/route'
 import { useToday } from '../../lib/useToday'
 import { lateLabel } from '../../lib/events'
 import { nextVetVisit } from '../../lib/health'
 import { walkItems } from '../../lib/walkList'
-import { formatHour, walkTimes } from '../../lib/walks'
+import { formatHour, walkName, walkTimes, type WalkSlot } from '../../lib/walks'
 import { InstallBanner, installBannerVisible, PasswordPrompt } from '../account/HomeNotices'
 import { DogPhoto } from '../shop/DogPhoto'
 import { Illustration } from '../training/Illustration'
 import { useQuest } from './useQuest'
 import { weighingDue } from '../../lib/weighing'
-import { dayBudget, minutesOfDay, walkDayPlan, walksOfDay, yesterdayOpenSlots } from '../../lib/walkDay'
+import { dayBudget, minutesOfDay, walkDayPlan, walksOfDay, walksSentence, yesterdayOpenSlots } from '../../lib/walkDay'
 import { addDays } from '../../lib/dates'
-import { WalkDayCard } from './WalkDayCard'
+import { KnowCard } from './KnowCard'
+import { NoteSheet, WalkDayCard, type ToNote } from './WalkDayCard'
 import { LifeTiles } from './LifeTiles'
-import { memoriesTile } from '../../lib/dashboard'
 import { useCurrentWalk } from '../balades/useCurrentWalk'
 import { elapsedMs, minutesSince } from '../../lib/gpsWalk'
 import { isNative } from '../../native'
@@ -101,7 +100,7 @@ function RunButton({ action, className }: { action: Action; className: string })
 }
 
 /** Ce que montre la carte « À faire maintenant » : une phrase, deux lignes, un seul bouton. */
-function useCardContent(card: NowCard, onWeighLater: () => void) {
+function useCardContent(card: NowCard, onWeighLater: () => void, onNote: (slot: WalkSlot) => void, advised?: number) {
   const { dog, events, entries } = useData()
   const { quest, mission, minutes, canSkip, skips } = useQuest()
   const today = useToday()
@@ -171,9 +170,27 @@ function useCardContent(card: NowCard, onWeighLater: () => void) {
         action: { label: 'Commencer', to: '/mission' },
         other: canSkip ? { label: 'Une autre idée', run: () => skipQuest(today, skips + 1) } : undefined,
       }
-    // La sortie n’a plus de carte à elle : « Ses sorties du jour » la montre déjà (retour de Martin, 18 oct.).
-    case 'sortie':
-      return { badge: '', title: '', text: '' }
+    // La sortie du moment (V5) : partir en balade (app iOS) ou la noter (web) ; « Déjà faite » la note sans tracé.
+    case 'sortie': {
+      const name = walkName(card.time).replace(/^la s/, 'S')
+      return {
+        badge: `${name} · ${formatHour(card.time)}`,
+        title: `C’est l’heure de sortir ${dog.name}`,
+        text: `${advised ? `${advised}\u00a0min conseillées. ` : ''}${isNative() ? 'Le tracé lève le brouillard sur la carte.' : 'Une fois rentrés, notez-la en un toucher.'}`,
+        scene: 'laisse',
+        action: isNative() ? ({ label: 'Partir en balade', to: '/balade-en-cours?depart=1' } as Action) : ({ label: 'Je l’ai faite', run: () => onNote(card.slot) } as Action),
+        other: isNative() ? ({ label: 'Déjà faite', run: () => onNote(card.slot) } as Action) : undefined,
+      }
+    }
+    // Après 21 h, rien de noté aujourd’hui (V5).
+    case 'soiree':
+      return {
+        badge: 'Avant de dormir · 30\u00a0s',
+        title: 'Racontez sa journée',
+        text: 'Une photo, un mot\u00a0: ce moment reste dans ses souvenirs.',
+        scene: undefined,
+        action: { label: 'Noter un souvenir', to: '/noter' },
+      }
     // Une balade de l’iPhone commencée (T-036) : la reprendre, ou la terminer.
     case 'balade': {
       // Arrêtée mais pas enregistrée (app fermée pendant l’enregistrement, R-042) : la terminer, rien n’est perdu.
@@ -204,14 +221,6 @@ function useCardContent(card: NowCard, onWeighLater: () => void) {
         action: { label: 'Noter son poids', to: '/sante/poids?ajouter=1' },
         other: { label: 'Plus tard', run: onWeighLater },
       }
-    case 'soir':
-      return {
-        badge: 'Aujourd’hui',
-        title: 'La mission est faite',
-        text: `${card.done ? `${card.done} sortie${card.done > 1 ? 's' : ''} sur 3 aujourd’hui.` : 'Pas encore de sortie cochée aujourd’hui.'} Elles se cochent toutes seules avec vos balades ${isNative() ? 'de l’Apple Watch' : 'Strava'}.`,
-        scene: undefined,
-        action: { label: 'Noter un souvenir', to: '/noter' },
-      }
     default: {
       const last = walkItems(entries)[0]
       return {
@@ -226,13 +235,16 @@ function useCardContent(card: NowCard, onWeighLater: () => void) {
 }
 
 /**
- * L’accueil (spec V4 § 2, en tableau de bord depuis T-031) : la chose à faire maintenant (le seul bouton plein),
- * la prochaine sortie, puis « Sa vie avec vous » en 4 tuiles qui ouvrent chacune leur écran.
+ * L’accueil (V5, T-050, maquettes V5-Accueil et V5-AccueilMoment) : l’en-tête, la carte du moment (la seule action
+ * orange, elle suit la journée), « Ses sorties du jour » en 3 pastilles, « Faisons connaissance » tant que le
+ * questionnaire n’est pas fini, puis « Sa vie avec vous » en 4 lignes.
  */
 export default function Today() {
-  const { dog, events, bones, walks, weights, entries } = useData()
+  const { dog, events, bones, walks, weights, entries, online } = useData()
   const today = useToday()
   const location = useLocation()
+  // « Combien de temps ? » (R-044) : ouvert depuis une pastille de sortie ou depuis la carte du moment.
+  const [noting, setNoting] = useState<ToNote>()
   const [weighLater, setWeighLater] = useState(readWeighLater)
   const postponeWeighing = () => {
     try {
@@ -272,10 +284,13 @@ export default function Today() {
     // Le même budget que le résultat d’import (R-038) : réparti sur les sorties encore à venir.
     budget: dayBudget({ birthDate: dog.birthDate, today, times, done: walksDone, walks: todayWalks, now }),
     ...(currentWalk ? { walking: currentWalk } : {}),
+    // Un souvenir déjà noté aujourd’hui : le soir, la carte ne propose pas d’en noter un (V5).
+    notedToday: entries.some((e) => e.date === today && !e.id.startsWith('repos-')),
     weighing: { due: weighingDue({ today, birthDate: dog.birthDate, lastWeighed: weights[0]?.date, postponedOn: weighLater }), ...(weights[0] ? { last: weights[0].date } : {}) },
   }
   const card = nowCard(input)
-  const content = useCardContent(card, postponeWeighing)
+  const note = (date: string, slot: WalkSlot) => setNoting({ date, slot, time: times[slot], name: walkName(times[slot]).replace(/^la s/, 'S'), ...(input.budget ? { advised: input.budget.perWalk } : {}) })
+  const content = useCardContent(card, postponeWeighing, (slot) => note(today, slot), input.budget?.next)
   const walkPlan = walkDayPlan({ times, done: walksDone, walks: todayWalks, budget: input.budget, now })
   const fromOpening = Boolean((location.state as { fromOpening?: boolean } | null)?.fromOpening)
   // Arrivée en cascade (T-033) : à la première ouverture de la journée seulement ; les autres fois, affichage direct.
@@ -295,8 +310,6 @@ export default function Today() {
     return () => window.clearTimeout(timer)
   }, [today])
   const questionnaire = questionnaireStatus(dog.questionnaire)
-  const hasMemories = memoriesTile(entries, today).count > 0
-  const profilePart = nextPart(dog.questionnaire)
 
   return (
     // Depuis l’écran d’ouverture (T-032) : l’accueil monte à sa place.
@@ -309,7 +322,8 @@ export default function Today() {
           </span>
           <span className="flex min-w-0 flex-col">
             <span className="text-[15px] font-medium text-muted">{formatDayHeading(today)}</span>
-            <span className="truncate font-display text-[26px] leading-tight font-extrabold">Bonjour, {dog.name}</span>
+            {/* Jamais coupé (V5) : plus petit sur un écran étroit, puis à la ligne. */}
+            <span className="font-display text-[clamp(21px,7vw,26px)] leading-tight font-extrabold break-words">Bonjour, {dog.name}</span>
           </span>
         </Link>
         <Link to="/boutique" data-bones-counter aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[17px] font-extrabold text-gold-dark no-underline">
@@ -319,55 +333,37 @@ export default function Today() {
       </header>
 
       {/* Une nouvelle carte du moment (soin fait, mission faite…) monte à la place de l’ancienne (T-033). */}
-      {card.kind !== 'sortie' && (
       <section key={cardKey(card)} aria-label="À faire maintenant" className={`card flex flex-col gap-3 rounded-[26px] p-4 ${cardKey(card) !== firstCard ? 'anim-in' : ''}`}>
         <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{content.badge}</span>
-        {content.scene && <Illustration scene={content.scene} className="h-[130px] bg-bg" />}
+        {/* Texte agrandi (V5) : l’illustration disparaît d’abord, puis la ligne d’aide ; le bouton reste visible. */}
+        {content.scene && <Illustration scene={content.scene} className="h-[130px] bg-bg [@media(max-height:34em)]:hidden" />}
         <h1 className="font-display text-[26px] leading-tight font-extrabold">{content.title}</h1>
-        <p className="line-clamp-2 text-[17px] leading-snug text-[#3F4946]">{content.text}</p>
+        <p className="line-clamp-2 text-[17px] leading-snug text-[#3F4946] [@media(max-height:30em)]:hidden">{content.text}</p>
         {content.action && <CardButton action={content.action} main />}
         {content.other && <CardButton action={content.other} />}
         {content.third && <CardButton action={content.third} />}
       </section>
-      )}
 
-      {/* Ses sorties du jour (T-035) : chaque sortie avec sa durée, ce qui reste, un conseil, l’aperçu de la carte. */}
-      <WalkDayCard plan={walkPlan} times={times} yesterday={{ date: yesterday, slots: yesterdayOpen }} {...(input.budget ? { perWalk: input.budget.perWalk } : {})} />
+      {/* Ses sorties du jour (V5) : 3 pastilles, puis une phrase. */}
+      <WalkDayCard
+        plan={walkPlan}
+        times={times}
+        yesterday={{ date: yesterday, slots: yesterdayOpen }}
+        sentence={walksSentence(walkPlan.slots, input.budget?.next, dog.name)}
+        onNote={note}
+        showStart={card.kind !== 'sortie'}
+        pending={!online}
+      />
+
+      {/* Faisons connaissance (V5) : tant que le questionnaire n’est pas fini, une partie à la fois, contre des os. */}
+      {!questionnaire.complete && <KnowCard />}
 
       <LifeTiles arrival={arrival} />
 
-      {/* « Noter un souvenir » une seule fois : en bouton contour, sauf si c’est déjà le bouton de la carte (audit R-023). */}
-      {/* … et pas tant que la tuile Ses souvenirs propose déjà « Noter le premier » (R-040). */}
-      {content.action?.to !== '/noter' && hasMemories && (
-        <Link to="/noter" className="tap btn btn-outline min-h-12 self-center gap-2 px-5">
-          <PlusIcon size={20} />
-          Noter un souvenir
-        </Link>
-      )}
-      {/* Questionnaire en deux temps (T-012) : après les questions du départ, une partie à la fois, contre des os. */}
-      {!questionnaire.complete &&
-        (essentialsDone(dog.questionnaire) && profilePart ? (
-          <Link to={`/questionnaire?partie=${profilePart.part}`} className="card flex min-h-14 items-center gap-3 rounded-[20px] px-4 py-3 text-text no-underline">
-            <span className="flex min-w-0 flex-1 flex-col">
-              <span className="text-[17px] font-bold">Compléter son profil</span>
-              <span className="text-[15px] text-muted">
-                {PARTS[profilePart.part - 1]} · {profilePart.remaining} question{profilePart.remaining > 1 ? 's' : ''}
-              </span>
-            </span>
-            {profilePartsEarnBones(dog.questionnaire) && (
-              <span className="flex shrink-0 items-center gap-1 rounded-full bg-gold-soft px-3 py-1 text-[15px] font-extrabold text-gold-dark">
-                <BoneIcon size={18} />+{BONES.profilePart}
-              </span>
-            )}
-          </Link>
-        ) : (
-          <Link to="/questionnaire" className="btn btn-quiet min-h-11 self-center px-4 text-[15px] text-muted">
-            Terminer le questionnaire de départ
-          </Link>
-        ))}
-
       {/* Un seul encadré à la fois : l’installation d’abord, le mot de passe ensuite (audit R-024). */}
       {installBannerVisible() ? <InstallBanner /> : <PasswordPrompt />}
+
+      {noting && <NoteSheet walk={noting} onClose={() => setNoting(undefined)} />}
     </div>
   )
 }

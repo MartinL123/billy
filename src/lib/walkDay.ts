@@ -119,3 +119,20 @@ export function bigWalkNotice(budget: WalkBudget | undefined, longWalkToday: boo
   const rest = budget.next ? `La prochaine sortie : ${budget.next} min suffisent.` : 'Pour le reste du jour, juste des sorties de 5 min pour ses besoins.'
   return `Grosse balade aujourd’hui (${minutesLabel(budget.longWalk)}, au lieu de ${budget.perWalk} à ${budget.months} mois). ${rest}`
 }
+
+/**
+ * La phrase sous les 3 pastilles (V5, T-050) : ce qui reste, et la durée conseillée. Plus de barre ni de total.
+ * « Encore la sortie du soir : 15 min conseillées. » / « Encore 2 sorties, 15 min conseillées chacune. » /
+ * « Toutes ses sorties sont faites. Belle journée pour Oslo ! »
+ */
+export function walksSentence(slots: WalkDaySlot[], advised: number | undefined, dogName: string): string {
+  const left = slots.filter((s) => s.state !== 'faite')
+  if (!left.length) return `Toutes ses sorties sont faites. Belle journée pour ${dogName} !`
+  const length = advised === undefined ? '' : advised ? `${advised} min conseillées` : 'juste ses besoins'
+  if (left.length === 1) {
+    const name = left[0]!.name.charAt(0).toLocaleLowerCase('fr') + left[0]!.name.slice(1)
+    return length ? `Encore la ${name} : ${length}.` : `Encore la ${name}.`
+  }
+  if (!length) return `Encore ${left.length} sorties.`
+  return advised ? `Encore ${left.length} sorties, ${length} chacune.` : `Encore ${left.length} sorties : ${length}.`
+}

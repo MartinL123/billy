@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { backfillBones, balance, BONES, boneId, challengeBone, earned, missionBones, momentBones, purchaseBone, questionnaireBone, regularWeekBone, welcomeBone } from './bones'
+import { backfillBones, balance, BONES, boneId, challengeBone, earned, missionBones, momentBones, noteBone, purchaseBone, questionnaireBone, regularWeekBone, welcomeBone } from './bones'
 import { weekOf } from './rhythm'
 
 describe('les os', () => {
@@ -86,3 +86,13 @@ describe('os rétroactifs', () => {
   })
 })
 
+
+describe('une sortie notée ou une balade terminée : +3 os (V5)', () => {
+  it('comme noter un moment, dans la limite de 3 par jour, jamais deux fois', () => {
+    expect(noteBone('sortie-2026-10-20-soir', '2026-10-20', [])).toMatchObject({ amount: 3, reason: 'note' })
+    const three = [1, 2, 3].map((i) => ({ id: `note-x${i}`, date: '2026-10-20', amount: 3, reason: 'note' as const, refId: `x${i}` }))
+    expect(noteBone('sortie-2026-10-20-soir', '2026-10-20', three)).toBeUndefined()
+    const already = [{ id: 'note-sortie-2026-10-20-soir', date: '2026-10-20', amount: 3, reason: 'note' as const, refId: 'sortie-2026-10-20-soir' }]
+    expect(noteBone('sortie-2026-10-20-soir', '2026-10-20', already)).toBeUndefined()
+  })
+})

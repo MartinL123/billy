@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { isNative } from '../../native'
 import { FileImage } from '../../components/FileImage'
-import { ChevronLeftIcon, NoteIcon } from '../../components/Icons'
+import { ChevronLeftIcon, NoteIcon, PlusIcon } from '../../components/Icons'
 import { setEntryCommune } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { formatDuration } from '../../lib/balade'
@@ -84,6 +84,11 @@ export default function Walks() {
           {/* Sans balade, pas de « 0 balade · 0,0 km » au-dessus de l’état vide (R-036). */}
           {!(rows.length === 0 && filter === 'toutes') && <p className="text-[17px] text-muted">{walksSummary(shown)}</p>}
         </div>
+        {/* « Noter un souvenir » vit ici depuis la V5 (il a quitté l’accueil). */}
+        <Link to="/noter" className="tap btn btn-outline min-h-12 gap-2">
+          <PlusIcon size={20} />
+          Noter un souvenir
+        </Link>
         {rows.length === 0 && filter === 'toutes' ? (
           // Rien du tout : un vrai état vide, qui propose d’importer (audit R-010).
           <section className="card flex flex-col items-center gap-3 px-5 py-6 text-center">

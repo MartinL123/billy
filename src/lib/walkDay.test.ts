@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { walkBudget } from './walkBudget'
-import { bigWalkNotice, dayBudget, preselectedDuration, upcomingSlots, walkDayPlan, walksOfDay, yesterdayOpenSlots } from './walkDay'
+import { bigWalkNotice, dayBudget, preselectedDuration, walksSentence, upcomingSlots, walkDayPlan, walksOfDay, yesterdayOpenSlots } from './walkDay'
 import { DEFAULT_WALK_TIMES } from './walks'
 
 const times = DEFAULT_WALK_TIMES // 8 h, 13 h, 19 h
@@ -93,5 +93,15 @@ describe('ses sorties du jour (T-035)', () => {
     const short = walkBudget({ ...puppy, walks: [40], walksLeft: 1 })!
     expect(bigWalkNotice(short, true)).toMatch(/^Grosse balade aujourd’hui \(40 min, au lieu de 15 à 3 mois\)\. La prochaine sortie\u00a0: 5 min suffisent\.$/)
     expect(bigWalkNotice(short, false)).toBeUndefined()
+  })
+
+  it('la phrase sous les pastilles (V5, T-050)', () => {
+    const slot = (name: string, state: 'faite' | 'a-venir' | 'manquee') => ({ slot: 'soir' as const, hour: '19 h', name, state })
+    const nb = (t: string) => t.replace(/\u00a0/g, ' ')
+    expect(nb(walksSentence([slot('Sortie du matin', 'faite'), slot('Sortie de midi', 'faite'), slot('Sortie du soir', 'a-venir')], 15, 'Oslo'))).toBe('Encore la sortie du soir : 15 min conseillées.')
+    expect(nb(walksSentence([slot('Sortie du matin', 'faite'), slot('Sortie de midi', 'manquee'), slot('Sortie du soir', 'a-venir')], 15, 'Oslo'))).toBe('Encore 2 sorties, 15 min conseillées chacune.')
+    expect(nb(walksSentence([slot('Sortie du matin', 'faite'), slot('Sortie de midi', 'faite'), slot('Sortie du soir', 'faite')], 15, 'Oslo'))).toBe('Toutes ses sorties sont faites. Belle journée pour Oslo !')
+    expect(nb(walksSentence([slot('Sortie du soir', 'a-venir')], undefined, 'Oslo'))).toBe('Encore la sortie du soir.')
+    expect(nb(walksSentence([slot('Sortie du soir', 'a-venir'), slot('Sortie de midi', 'a-venir')], 0, 'Oslo'))).toBe('Encore 2 sorties : juste ses besoins.')
   })
 })

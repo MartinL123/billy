@@ -1,4 +1,4 @@
-import { formatShort, type ISODate } from './dates'
+import { formatLong, formatShort, type ISODate } from './dates'
 import { isOverdue } from './events'
 
 // L’accueil en tableau de bord (T-031) : ce que disent les 4 tuiles « Sa vie avec vous ». Phrases courtes, pas de
@@ -55,4 +55,27 @@ export function memoriesTile(entries: { id: string; date: ISODate }[], today: IS
   if (!own.length) return { text: 'Pas encore de souvenir', detail: 'Noter le premier', count: 0 }
   const last = own.reduce((a, b) => (b.date > a.date ? b : a))
   return { text: plural(own.length, 'souvenir'), detail: `Le dernier : ${formatShort(last.date, Number(today.slice(0, 4)))}`, count: own.length }
+}
+
+// « Sa vie avec vous » en 4 lignes (V5, T-050) : une phrase par ligne, sans chiffre à battre.
+
+/** « 3 compétences en route ». */
+export function progressLine(active: string[]): string {
+  if (!active.length) return 'Choisir ce qu’il apprend'
+  return active.length === 1 ? 'Une compétence en route' : `${active.length} compétences en route`
+}
+
+/** « 4,7 km ensemble · 4 % de Saint-Ouen découvert ». */
+export function walksLine(walks: { distanceM: number }[], share?: string): string {
+  if (!walks.length) return 'Pas encore de balade'
+  const km = (walks.reduce((sum, w) => sum + w.distanceM, 0) / 1000).toFixed(1).replace('.', ',')
+  return share ? `${km}\u00a0km ensemble · ${share}` : `${km}\u00a0km ensemble`
+}
+
+/** « Le dernier : 19 octobre 2026 » (sans les jours de repos). */
+export function memoriesLine(entries: { id: string; date: ISODate }[]): string {
+  const own = entries.filter((e) => !e.id.startsWith('repos-'))
+  if (!own.length) return 'Pas encore de souvenir'
+  const last = own.reduce((a, b) => (b.date > a.date ? b : a))
+  return `Le dernier\u00a0: ${formatLong(last.date)}`
 }

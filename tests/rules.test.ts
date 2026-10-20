@@ -102,3 +102,54 @@ describe('firestore.rules : deux comptes', () => {
     await assertFails(getDocs(collection(visitor, 'community/meute/spots')))
   })
 })
+
+describe('firestore.rules : mode visiteur (T-048)', () => {
+  const invite = async () => {
+    const alice = env.authenticatedContext('alice').firestore()
+    await assertSucceeds(setDoc(doc(alice, 'invites/abcdefghjkmn'), { owner: 'alice', createdAt: '2026-10-20' }))
+  }
+
+  it('avec un code valable, un proche devient spectateur et lit tout, sauf les documents', async () => {
+    await invite()
+    await env.withSecurityRulesDisabled(async (admin) => {
+      await setDoc(doc(admin.firestore(), 'users/alice/documents/d1'), { title: 'Passeport' })
+      await setDoc(doc(admin.firestore(), 'users/alice/files/f1'), { data: 'x' })
+    })
+    const parent = env.authenticatedContext('parent').firestore()
+    await assertSucceeds(setDoc(doc(parent, 'viewers/parent'), { owner: 'alice', code: 'abcdefghjkmn', email: 'p@x.fr' }))
+    await assertSucceeds(getDoc(doc(parent, 'users/alice/dog/billy')))
+    await assertSucceeds(getDocs(collection(parent, 'users/alice/entries')))
+    await assertSucceeds(getDoc(doc(parent, 'users/alice/files/f1')))
+    await assertSucceeds(getDoc(doc(parent, 'users/alice')))
+    await assertFails(getDoc(doc(parent, 'users/alice/documents/d1')))
+    await assertFails(getDocs(collection(parent, 'users/alice/documents')))
+    // Jamais d'écriture, jamais un autre compte.
+    await assertFails(setDoc(doc(parent, 'users/alice/entries/e9'), { date: '2026-10-20', text: 'Coucou' }))
+    await assertFails(deleteDoc(doc(parent, 'users/alice/entries/e1')))
+    await assertFails(getDoc(doc(parent, 'users/bob/dog/billy')))
+  })
+
+  it('sans code valable, personne ne devient spectateur', async () => {
+    await invite()
+    const intrus = env.authenticatedContext('intrus').firestore()
+    await assertFails(setDoc(doc(intrus, 'viewers/intrus'), { owner: 'alice', code: 'mauvaiscode1' }))
+    await assertFails(setDoc(doc(intrus, 'viewers/intrus'), { owner: 'bob', code: 'abcdefghjkmn' }))
+    // On ne se déclare jamais à la place d'un autre, et les invitations ne se listent pas.
+    await assertFails(setDoc(doc(intrus, 'viewers/parent'), { owner: 'alice', code: 'abcdefghjkmn' }))
+    await assertFails(getDocs(collection(intrus, 'invites')))
+    await assertFails(getDoc(doc(intrus, 'users/alice/dog/billy')))
+  })
+
+  it('le propriétaire voit et retire ses spectateurs ; une invitation ne se crée qu’à son nom', async () => {
+    await invite()
+    const parent = env.authenticatedContext('parent').firestore()
+    await assertSucceeds(setDoc(doc(parent, 'viewers/parent'), { owner: 'alice', code: 'abcdefghjkmn' }))
+    const alice = env.authenticatedContext('alice').firestore()
+    await assertSucceeds(getDoc(doc(alice, 'viewers/parent')))
+    await assertSucceeds(deleteDoc(doc(alice, 'viewers/parent')))
+    await assertFails(getDoc(doc(parent, 'users/alice/dog/billy')))
+    const bob = env.authenticatedContext('bob').firestore()
+    await assertFails(setDoc(doc(bob, 'invites/zzzzzzzzzzzz'), { owner: 'alice' }))
+    await assertFails(setDoc(doc(bob, 'invites/court'), { owner: 'bob' }))
+  })
+})

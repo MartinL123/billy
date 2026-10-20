@@ -1,7 +1,26 @@
 import { collection, doc } from 'firebase/firestore'
 import { auth, db } from './app'
 
+/**
+ * Mode visiteur (T-048) : un proche invité regarde les données d’un autre compte, en lecture seule. Toutes les
+ * lectures vont alors sous users/{propriétaire}/… ; les écritures y sont refusées par firestore.rules.
+ */
+let viewedOwner: string | null = null
+export const setViewedOwner = (owner: string | null) => {
+  viewedOwner = owner
+}
+export const viewedOwnerUid = () => viewedOwner
+
+/** Le compte dont on affiche les données : le sien, ou celui qu’on regarde en visiteur. */
 export function uid(): string {
+  if (viewedOwner) return viewedOwner
+  const user = auth.currentUser
+  if (!user) throw new Error('Non connecté')
+  return user.uid
+}
+
+/** Le compte connecté lui-même (jamais celui qu’on regarde). */
+export function selfUid(): string {
   const user = auth.currentUser
   if (!user) throw new Error('Non connecté')
   return user.uid

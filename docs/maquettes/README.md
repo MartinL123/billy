@@ -20,6 +20,26 @@ Ils ne s'ouvrent pas tels quels dans un navigateur.
 | `Profil.dc.html` | Profil, contacts, documents, compte |
 | `Document.dc.html` | Import d'un document (PDF ou photos de pages) |
 
+## Refonte V5 (20 octobre, fait foi pour ces écrans)
+
+Décisions de Martin du 20 octobre : Santé B (semaine repliée), Balades A (un seul bouton « Affichage », plan par défaut,
+brouillard sombre), compétences en pattes + prochaine étape (jamais « 3 sur 5 »), carte du moment qui suit la journée,
++3 os par balade finie, ouverture qui entre seule après 1 s. Prompt : `docs/design/prompt-claude-code-2026-10-20.md`.
+
+| Fichier | Écran | Code |
+| --- | --- | --- |
+| `V5-Accueil.dc.html` | Accueil : en-tête, carte du moment, « Ses sorties du jour » en 3 pastilles, « Sa vie avec vous » en 4 lignes | T-050 |
+| `V5-AccueilMoment.dc.html` | Les variantes de la carte du moment (soin, repas, sortie, mission, soirée, tout est fait) | T-050 |
+| `V5-Etat-PremierJour.dc.html` | Accueil du premier jour : « Faisons connaissance · 2 min » | T-050 |
+| `V5-BaladeEnCours.dc.html` | Balade en cours : durée, distance, « Ne pas garder », fin « Belle balade ! » (+3 os) | T-051 |
+| `V5-Etat-GPS.dc.html` | GPS faible : « Le GPS cherche le ciel », distance « ≈ », portion en pointillés | T-051 |
+| `V5-Billy.dc.html` | Billy : photo, âge et prochaine étape de vie, une carte par compétence en pattes, 4 tuiles, « S’entraîner » | T-052 |
+| `V5-Sante.dc.html` | Santé : phrase d’état, semaine dépliable en mois, prochaine chose, à venir, lignes de suivi, « + Ajouter » | T-053 |
+| `V5-Etat-SoinEnRetard.dc.html` | Santé avec un soin en retard en tête (seul rouge de l’écran) et pastille sur l’onglet | T-053 |
+| `V5-Balades.dc.html` | Balades : pilules « Affichage » et « Me situer », « 4 % découvert », balades en cartes horizontales | T-054 |
+| `V5-Etat-320.dc.html` | Petit écran et texte agrandi : l’illustration disparaît d’abord, puis la ligne d’aide | T-050 |
+| `V5-Etat-HorsLigne.dc.html` | Hors ligne : bandeau calme, mentions « en attente » | — |
+
 ## Refonte V3 (à jour, fait foi)
 
 | Fichier | Écran |

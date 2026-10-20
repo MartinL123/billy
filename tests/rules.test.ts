@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { assertFails, assertSucceeds, initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/rules-unit-testing'
-import { deleteDoc, doc, getDoc, getDocs, collection, query, setDoc, where } from 'firebase/firestore'
+import { deleteDoc, doc, getDoc, getDocs, collection, query, setDoc, Timestamp, where } from 'firebase/firestore'
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest'
 
 // Règles de sécurité : chaque compte ne lit et n'écrit que users/{son uid}/…
@@ -104,9 +104,10 @@ describe('firestore.rules : deux comptes', () => {
 })
 
 describe('firestore.rules : mode visiteur (T-048)', () => {
-  const invite = async () => {
+  const inDays = (days: number) => Timestamp.fromMillis(Date.now() + days * 24 * 60 * 60 * 1000)
+  const invite = async (code = 'abcdefghjkmn') => {
     const alice = env.authenticatedContext('alice').firestore()
-    await assertSucceeds(setDoc(doc(alice, 'invites/abcdefghjkmn'), { owner: 'alice', createdAt: '2026-10-20' }))
+    await assertSucceeds(setDoc(doc(alice, `invites/${code}`), { owner: 'alice', createdAt: '2026-10-20', expiresAt: inDays(7) }))
   }
 
   it('avec un code valable, un proche devient spectateur et lit tout, sauf les documents', async () => {
@@ -180,7 +181,39 @@ describe('firestore.rules : mode visiteur (T-048)', () => {
     await assertSucceeds(deleteDoc(doc(alice, 'viewers/parent')))
     await assertFails(getDoc(doc(parent, 'users/alice/dog/billy')))
     const bob = env.authenticatedContext('bob').firestore()
-    await assertFails(setDoc(doc(bob, 'invites/zzzzzzzzzzzz'), { owner: 'alice' }))
-    await assertFails(setDoc(doc(bob, 'invites/court'), { owner: 'bob' }))
+    await assertFails(setDoc(doc(bob, 'invites/zzzzzzzzzzzz'), { owner: 'alice', expiresAt: inDays(7) }))
+    await assertFails(setDoc(doc(bob, 'invites/court'), { owner: 'bob', expiresAt: inDays(7) }))
+  })
+
+  it('R-070 : une invitation vaut 7 jours au plus et ne sert qu’une fois', async () => {
+    const alice = env.authenticatedContext('alice').firestore()
+    // Sans date de fin, ou plus de 7 jours : refusée.
+    await assertFails(setDoc(doc(alice, 'invites/sansdatefin1'), { owner: 'alice' }))
+    await assertFails(setDoc(doc(alice, 'invites/troplongue12'), { owner: 'alice', expiresAt: inDays(8) }))
+    // Expirée : plus personne ne devient spectateur avec.
+    await env.withSecurityRulesDisabled(async (admin) => {
+      await setDoc(doc(admin.firestore(), 'invites/expireeeeeee'), { owner: 'alice', expiresAt: inDays(-1) })
+    })
+    const parent = env.authenticatedContext('parent').firestore()
+    await assertFails(setDoc(doc(parent, 'viewers/parent'), { owner: 'alice', code: 'expireeeeeee' }))
+    // Valable : acceptée une fois, le proche la supprime ; un second compte ne peut plus s'en servir.
+    await invite()
+    await assertSucceeds(setDoc(doc(parent, 'viewers/parent'), { owner: 'alice', code: 'abcdefghjkmn' }))
+    await assertSucceeds(deleteDoc(doc(parent, 'invites/abcdefghjkmn')))
+    const cousin = env.authenticatedContext('cousin').firestore()
+    await assertFails(setDoc(doc(cousin, 'viewers/cousin'), { owner: 'alice', code: 'abcdefghjkmn' }))
+    // Un inconnu ne supprime pas l'invitation d'un autre.
+    await invite('autrecode123')
+    await assertFails(deleteDoc(doc(cousin, 'invites/autrecode123')))
+  })
+
+  it('R-070 : « Retirer » : le propriétaire liste et supprime ses invitations en cours, personne d’autre', async () => {
+    await invite()
+    await invite('deuxiemecode')
+    const alice = env.authenticatedContext('alice').firestore()
+    const mine = await assertSucceeds(getDocs(query(collection(alice, 'invites'), where('owner', '==', 'alice'))))
+    for (const d of mine.docs) await assertSucceeds(deleteDoc(d.ref))
+    const bob = env.authenticatedContext('bob').firestore()
+    await assertFails(getDocs(query(collection(bob, 'invites'), where('owner', '==', 'alice'))))
   })
 })

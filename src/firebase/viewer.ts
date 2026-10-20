@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, getDoc, onSnapshot, query, setDoc, where } from 'firebase/firestore'
+import { collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, setDoc, Timestamp, where } from 'firebase/firestore'
 import { createContext, useContext } from 'react'
 import { auth, db } from './app'
 import { selfUid } from './paths'
@@ -31,10 +31,14 @@ export function inviteCode(random: (n: number) => number = (n) => crypto.getRand
   return Array.from({ length: 12 }, () => alphabet[random(alphabet.length)]).join('')
 }
 
+/** R-070 : une invitation vaut 7 jours et ne sert qu’une fois. */
+export const INVITE_DAYS = 7
+
 /** Crée une invitation pour un proche ; renvoie son code. */
-export async function createInvite(): Promise<string> {
+export async function createInvite(now: Date = new Date()): Promise<string> {
   const code = inviteCode()
-  await setDoc(doc(db, 'invites', code), { owner: selfUid(), createdAt: new Date().toISOString() })
+  const expiresAt = Timestamp.fromMillis(now.getTime() + INVITE_DAYS * 24 * 60 * 60 * 1000)
+  await setDoc(doc(db, 'invites', code), { owner: selfUid(), createdAt: now.toISOString(), expiresAt })
   return code
 }
 
@@ -45,6 +49,8 @@ export async function claimInvite(code: string): Promise<string> {
   if (typeof owner !== 'string') throw new Error('Invitation introuvable')
   if (owner === selfUid()) throw new Error('C’est votre propre invitation')
   await setDoc(doc(db, 'viewers', selfUid()), { owner, code, email: auth.currentUser?.email ?? '', since: new Date().toISOString() })
+  // R-070 : acceptée, l’invitation disparaît (usage unique).
+  await deleteDoc(doc(db, 'invites', code)).catch(() => undefined)
   return owner
 }
 
@@ -57,5 +63,12 @@ export function watchViewers(onChange: (viewers: Viewer[]) => void): () => void 
   )
 }
 
-/** Retire un spectateur (le propriétaire) ou arrête de regarder (le spectateur lui-même). */
-export const removeViewer = (viewerUid: string) => deleteDoc(doc(db, 'viewers', viewerUid))
+/** Arrêter de regarder (le spectateur lui-même). */
+export const stopViewing = () => deleteDoc(doc(db, 'viewers', selfUid()))
+
+/** Retire un spectateur (le propriétaire) ; ses invitations encore valables tombent aussi (R-070). */
+export async function removeViewer(viewerUid: string): Promise<void> {
+  await deleteDoc(doc(db, 'viewers', viewerUid))
+  const pending = await getDocs(query(collection(db, 'invites'), where('owner', '==', selfUid())))
+  await Promise.all(pending.docs.map((d) => deleteDoc(d.ref)))
+}

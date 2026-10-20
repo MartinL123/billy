@@ -4,8 +4,7 @@ import { useToast } from '../../components/Toast'
 import { logOut } from '../../firebase/auth'
 import { auth } from '../../firebase/app'
 import { useData } from '../../firebase/store'
-import { createInvite, removeViewer, watchViewers, type Viewer } from '../../firebase/viewer'
-import { selfUid } from '../../firebase/paths'
+import { createInvite, removeViewer, stopViewing, watchViewers, type Viewer } from '../../firebase/viewer'
 import { formatLong } from '../../lib/dates'
 import { inviteLink } from '../../lib/visitor'
 import { restartApp } from './Invitation'
@@ -67,7 +66,7 @@ export function FamilySection() {
       )}
       {link && (
         <button type="button" onClick={() => copy(link)} className="card flex flex-col items-start gap-1 border-0 px-4 py-3 text-left">
-          <span className="text-[0.7647rem] font-bold text-muted">Lien à envoyer (touchez pour copier)</span>
+          <span className="text-[0.7647rem] font-bold text-muted">Lien à envoyer, valable 7 jours et une seule fois (touchez pour le copier)</span>
           <span className="text-[0.8824rem] break-all text-text">{link}</span>
         </button>
       )}
@@ -116,7 +115,7 @@ export function VisitorAccount() {
           confirmLabel="Ne plus regarder"
           onCancel={() => setStopping(false)}
           onConfirm={async () => {
-            await removeViewer(selfUid()).catch(() => undefined)
+            await stopViewing().catch(() => undefined)
             restartApp()
           }}
         />

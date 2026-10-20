@@ -22,11 +22,18 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/viewers/$(request.auth.uid)).data.owner == uid;
     }
 
-    // Une invitation : créée par le propriétaire, lue seulement par qui a son code (jamais listée).
+    // Une invitation : créée par le propriétaire, lue seulement par qui a son code. R-070 : elle vaut 7 jours au plus
+    // (expiresAt), ne sert qu'une fois (le proche qui l'a acceptée la supprime) ; le propriétaire liste et supprime
+    // les siennes (« Retirer »).
     match /invites/{code} {
       allow get: if signedIn();
-      allow create: if signedIn() && request.resource.data.owner == request.auth.uid && code.size() >= 12;
-      allow delete: if signedIn() && resource.data.owner == request.auth.uid;
+      allow list: if signedIn() && resource.data.owner == request.auth.uid;
+      allow create: if signedIn() && request.resource.data.owner == request.auth.uid && code.size() >= 12
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt <= request.time + duration.value(7, 'd');
+      allow delete: if signedIn() && (resource.data.owner == request.auth.uid
+        || (exists(/databases/$(database)/documents/viewers/$(request.auth.uid))
+          && get(/databases/$(database)/documents/viewers/$(request.auth.uid)).data.code == code));
     }
 
     // Un spectateur : il se déclare lui-même avec un code d'invitation valable ; le propriétaire le voit et le retire.
@@ -35,7 +42,8 @@ service cloud.firestore {
       allow create: if isOwner(viewerId)
         && request.resource.data.owner != request.auth.uid
         && exists(/databases/$(database)/documents/invites/$(request.resource.data.code))
-        && get(/databases/$(database)/documents/invites/$(request.resource.data.code)).data.owner == request.resource.data.owner;
+        && get(/databases/$(database)/documents/invites/$(request.resource.data.code)).data.owner == request.resource.data.owner
+        && get(/databases/$(database)/documents/invites/$(request.resource.data.code)).data.expiresAt > request.time;
       allow delete: if isOwner(viewerId) || (signedIn() && resource.data.owner == request.auth.uid);
     }
 

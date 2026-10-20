@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ageAt, formatAge, formatAgeShort, milestoneMessage } from './age'
+import { ageAt, formatAge, formatAgeShort, milestoneMessage, nextLifeStep } from './age'
 
 describe('ageAt', () => {
   it('compte mois et jours pour Billy', () => {
@@ -75,5 +75,13 @@ describe('milestoneMessage', () => {
     expect(msg('2026-10-14')).toBeUndefined()
     expect(msg('2027-06-13')).toBeUndefined()
     expect(msg('2026-09-19')).toBeUndefined()
+  })
+})
+
+describe('la prochaine étape de vie', () => {
+  it('chaque mois jusqu’à 1 an, puis chaque anniversaire', () => {
+    expect(nextLifeStep('2026-07-10', '2026-10-20')).toEqual({ label: '4 mois', date: '2026-11-10' })
+    expect(nextLifeStep('2020-05-13', '2026-10-20')).toEqual({ label: '7 ans', date: '2027-05-13' })
+    expect(nextLifeStep('', '2026-10-20')).toBeUndefined()
   })
 })

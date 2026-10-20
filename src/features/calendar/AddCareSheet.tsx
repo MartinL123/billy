@@ -48,7 +48,7 @@ export function AddCareSheet({ onClose, onSaved }: { onClose: () => void; onSave
     onClose()
   }
 
-  const option = (on: boolean) => `tap min-h-[52px] rounded-[16px] border-2 border-solid text-[16px] font-extrabold ${on ? 'border-primary bg-primary-soft text-primary-dark' : 'border-[#D5DBD8] bg-surface text-text'}`
+  const option = (on: boolean) => `tap min-h-[52px] rounded-[16px] border-2 border-solid text-[16px] font-extrabold ${on ? 'border-primary bg-primary-soft text-primary-dark' : 'border-line-strong bg-surface text-text'}`
   return (
     <Sheet label={type ? 'Quand\u00a0?' : 'Qu’ajoutez-vous\u00a0?'} onClose={onClose}>
       {!type ? (

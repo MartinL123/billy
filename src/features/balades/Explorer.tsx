@@ -263,7 +263,7 @@ export default function Explorer() {
         className={`absolute inset-x-0 bottom-0 z-10 mx-auto flex max-h-[calc(100%-50dvh)] max-w-[430px] ${sheet.scrollable && !sheet.collapsed ? '' : 'touch-pan-x'} ${selected || walk ? 'invisible' : ''} flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 pb-3 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]`}
       >
         <button type="button" onClick={() => sheet.setCollapsed(!sheet.collapsed)} aria-expanded={!sheet.collapsed} aria-label={sheet.collapsed ? 'Afficher le panneau' : 'Réduire le panneau'} className="mx-auto -mb-2 flex min-h-11 w-24 shrink-0 touch-none items-center justify-center border-0 bg-transparent">
-          <span className="h-1.5 w-11 rounded-full bg-[#C9CFCC]" />
+          <span className="h-1.5 w-11 rounded-full bg-line-strong" />
         </button>
         <div ref={sheet.bodyRef} style={sheet.bodyStyle} className="-mx-5 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-5 [&>*]:shrink-0" aria-hidden={(sheet.collapsed && !sheet.small) || undefined} inert={(sheet.collapsed && !sheet.small) || undefined}>
           {/* V5 : le quartier, le pourcentage découvert en grand et sa barre dorée. */}

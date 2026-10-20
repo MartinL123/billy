@@ -56,7 +56,7 @@ const mealLabel = (time: string) => MEAL_LABELS[time < '11:00' ? 0 : time < '13:
 
 function Tick({ on }: { on: boolean }) {
   return (
-    <span className={`flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-solid ${on ? 'border-white bg-white text-primary' : 'border-[#9AA39F]'}`}>
+    <span className={`flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-solid ${on ? 'border-white bg-white text-primary' : 'border-line-strong'}`}>
       {on && <CheckIcon size={16} />}
     </span>
   )
@@ -483,7 +483,7 @@ export default function Questionnaire() {
                 ))}
               </ul>
             )}
-            <fieldset className="m-0 flex flex-col gap-3 rounded-[20px] border-2 border-dashed border-[#9AA39F] p-4">
+            <fieldset className="m-0 flex flex-col gap-3 rounded-[20px] border-2 border-dashed border-line-strong p-4">
               <legend className="px-1 text-[17px] font-bold">Ajouter une phrase</legend>
               <label className="flex flex-col gap-2">
                 <span className={label}>Quand…</span>

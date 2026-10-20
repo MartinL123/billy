@@ -94,7 +94,7 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
                       ? 'bg-primary-soft font-bold text-primary-dark'
                       : inMonth || collapsed
                         ? 'text-text'
-                        : 'text-[#87918D]'
+                        : 'font-normal text-muted'
                 }`}
               >
                 {parseISO(day).d}

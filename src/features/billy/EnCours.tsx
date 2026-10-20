@@ -95,7 +95,7 @@ export default function EnCours() {
                   style={{ borderColor: on ? territory.color : '#D3D9D6', background: on ? territory.soft : '#FFFFFF' }}
                 >
                   {body}
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-lg border-2 border-solid text-white" style={{ borderColor: on ? territory.color : '#9AA39F', background: on ? territory.color : '#FFFFFF' }}>
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-lg border-2 border-solid text-white" style={{ borderColor: on ? territory.color : '#7D8783', background: on ? territory.color : '#FFFFFF' }}>
                     {on && <CheckIcon size={18} strokeWidth={3} />}
                   </span>
                 </button>

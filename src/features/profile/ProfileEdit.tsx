@@ -160,7 +160,7 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
           <button
             type="button"
             onClick={() => setMeals([...meals, { label: 'Repas', time: '12:00' }])}
-            className="h-12 rounded-full border-[1.5px] border-dashed border-[#9AA39F] bg-transparent text-[15px] font-semibold text-primary"
+            className="h-12 rounded-full border-[1.5px] border-dashed border-line-strong bg-transparent text-[15px] font-semibold text-primary"
           >
             Ajouter un repas
           </button>

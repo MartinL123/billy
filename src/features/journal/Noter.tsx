@@ -214,7 +214,7 @@ export default function Noter() {
             </div>
           )}
           {photos.length < MAX_PHOTOS && (
-            <FilePicker accept="image/*" onFiles={(files) => void addPhotos(files)} className={photos.length ? 'btn btn-outline' : 'flex h-[200px] flex-col items-center justify-center gap-2 rounded-[22px] border-2 border-dashed border-[#9AA39F] bg-surface text-[17px] font-bold text-primary'}>
+            <FilePicker accept="image/*" onFiles={(files) => void addPhotos(files)} className={photos.length ? 'btn btn-outline' : 'flex h-[200px] flex-col items-center justify-center gap-2 rounded-[22px] border-2 border-dashed border-line-strong bg-surface text-[17px] font-bold text-primary'}>
               <PhotoIcon size={photos.length ? 22 : 36} />
               Ajouter une photo
             </FilePicker>

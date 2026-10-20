@@ -40,7 +40,7 @@ function DayPill({ state, today }: { state: DayState; today: boolean }) {
       </span>
     )
   }
-  return <span className={`size-[34px] rounded-full ${today ? 'border-[3px] border-solid border-milestone bg-surface' : 'border-2 border-dashed border-[#B9C2BE]'}`} />
+  return <span className={`size-[34px] rounded-full ${today ? 'border-[3px] border-solid border-milestone bg-surface' : 'border-2 border-dashed border-line-strong'}`} />
 }
 
 function Floor({ territory, active }: { territory: Territory; active: string[] }) {

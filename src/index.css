@@ -8,6 +8,8 @@
   --color-bg: #f3f5f2;
   --color-surface: #ffffff;
   --color-border: #d3d9d6;
+  /* R-057 : contours de contrôles (champs, pointillés, cases vides) : 3,7:1 sur blanc, au-dessus du minimum de 3:1. */
+  --color-line-strong: #7d8783;
   --color-text: #18201e;
   --color-muted: #5a6662;
   --color-divider: #e6eae7;
@@ -77,7 +79,7 @@
   width: 100%;
   min-height: 52px;
   border-radius: var(--radius-field);
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-line-strong);
   background: var(--color-surface);
   padding: 0 16px;
   font-size: 16px;

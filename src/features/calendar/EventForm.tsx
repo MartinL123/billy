@@ -208,7 +208,7 @@ export default function EventForm() {
         <button
           type="button"
           onClick={attach}
-          className="flex h-[52px] items-center justify-center gap-2 rounded-field border-2 border-dashed border-[#9AA39F] bg-transparent text-[17px] font-semibold text-primary"
+          className="flex h-[52px] items-center justify-center gap-2 rounded-field border-2 border-dashed border-line-strong bg-transparent text-[17px] font-semibold text-primary"
         >
           <PaperclipIcon size={20} />
           Joindre un document

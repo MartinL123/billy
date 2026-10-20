@@ -183,7 +183,7 @@ export default function EntryForm() {
               <FilePicker
                 accept="image/*"
                 onFiles={(files) => void addFiles(files)}
-                className="flex aspect-square flex-col items-center justify-center gap-1 rounded-field border-2 border-dashed border-[#9AA39F] bg-surface text-[13px] font-semibold text-primary"
+                className="flex aspect-square flex-col items-center justify-center gap-1 rounded-field border-2 border-dashed border-line-strong bg-surface text-[13px] font-semibold text-primary"
               >
                 <PlusIcon size={24} />
                 Ajouter
@@ -219,7 +219,7 @@ export default function EntryForm() {
               <button
                 type="button"
                 onClick={() => setNewTag('')}
-                className="min-h-12 rounded-full border-2 border-dashed border-[#9AA39F] bg-transparent px-3.5 text-[17px] font-semibold text-primary"
+                className="min-h-12 rounded-full border-2 border-dashed border-line-strong bg-transparent px-3.5 text-[17px] font-semibold text-primary"
               >
                 + Nouveau
               </button>

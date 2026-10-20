@@ -44,7 +44,7 @@ export function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void
     onClose()
   }
 
-  const choice = (on: boolean) => `tap min-h-[52px] rounded-[16px] border-2 border-solid text-[17px] font-extrabold ${on ? 'border-primary bg-primary-soft text-primary' : 'border-[#D5DBD8] bg-surface text-[#3F4946]'}`
+  const choice = (on: boolean) => `tap min-h-[52px] rounded-[16px] border-2 border-solid text-[17px] font-extrabold ${on ? 'border-primary bg-primary-soft text-primary' : 'border-line-strong bg-surface text-[#3F4946]'}`
   return (
     <Sheet label={`Noter ${walk.name.toLowerCase()}`} onClose={onClose}>
       <div>
@@ -67,7 +67,7 @@ export function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void
       {pick === 'autre' && (
         <label className="flex flex-col gap-1.5 text-[15px] font-bold">
           Durée en minutes
-          <input type="number" inputMode="numeric" min={1} max={300} value={other} onChange={(e) => setOther(e.target.value)} autoFocus className="min-h-12 rounded-[14px] border-2 border-solid border-[#D5DBD8] px-3.5 text-[16px] font-normal" />
+          <input type="number" inputMode="numeric" min={1} max={300} value={other} onChange={(e) => setOther(e.target.value)} autoFocus className="min-h-12 rounded-[14px] border-2 border-solid border-line-strong px-3.5 text-[16px] font-normal" />
         </label>
       )}
       <p className="text-[14px] leading-snug text-[#3F4946]">Sans tracé, le brouillard ne bouge pas. Pour le lever, lancez la marche sur la Watch ou importez-la.</p>
@@ -109,7 +109,7 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[13px] font-extrabold tracking-[0.6px] text-[#3F4946] uppercase">Hier</span>
           {yesterday.slots.map((slot) => (
-            <button key={slot} type="button" onClick={() => onNote(yesterday.date, slot)} aria-label={`Noter la sortie ${label(slot).toLowerCase()} d’hier`} className="tap min-h-11 rounded-full border-2 border-dashed border-[#9FB5AE] bg-surface px-3.5 text-[15px] font-bold text-primary">
+            <button key={slot} type="button" onClick={() => onNote(yesterday.date, slot)} aria-label={`Noter la sortie ${label(slot).toLowerCase()} d’hier`} className="tap min-h-11 rounded-full border-2 border-dashed border-[#6E8C83] bg-surface px-3.5 text-[15px] font-bold text-primary">
               + {label(slot)}
             </button>
           ))}
@@ -126,12 +126,12 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
                 {pending && <span className="text-[12px] text-[#3F4946]">en attente</span>}
               </span>
             ) : readOnly ? (
-              <span className="flex h-[84px] flex-col items-center justify-center gap-0.5 rounded-[16px] border-2 border-dashed border-[#9FB5AE] text-text">
+              <span className="flex h-[84px] flex-col items-center justify-center gap-0.5 rounded-[16px] border-2 border-dashed border-[#6E8C83] text-text">
                 <span className="text-[14px] font-semibold text-[#3F4946]">{formatHour(times[slot.slot])}</span>
                 <span className="text-[16px] font-extrabold">{label(slot.slot)}</span>
               </span>
             ) : (
-              <button type="button" onClick={() => onNote(today, slot.slot)} aria-label={`Noter la sortie ${label(slot.slot).toLowerCase()}, ${slot.hour}`} className="tap flex h-[84px] w-full flex-col items-center justify-center gap-0.5 rounded-[16px] border-2 border-dashed border-[#9FB5AE] bg-surface p-0 text-text">
+              <button type="button" onClick={() => onNote(today, slot.slot)} aria-label={`Noter la sortie ${label(slot.slot).toLowerCase()}, ${slot.hour}`} className="tap flex h-[84px] w-full flex-col items-center justify-center gap-0.5 rounded-[16px] border-2 border-dashed border-[#6E8C83] bg-surface p-0 text-text">
                 <span className="text-[14px] font-semibold text-[#3F4946]">{formatHour(times[slot.slot])}</span>
                 <span className="text-[16px] font-extrabold">{label(slot.slot)}</span>
                 <span className="text-[14px] font-bold text-primary">+ Noter</span>

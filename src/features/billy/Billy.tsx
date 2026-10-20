@@ -25,7 +25,7 @@ const capital = (text: string) => text.replace(/^./, (c) => c.toLocaleUpperCase(
 
 /** Une patte (ou le trophée, pour la dernière étape) : dorée = acquise, pointillés qui respirent = en cours, grise = à venir. */
 function Paw({ state, trophy }: { state: PawState; trophy: boolean }) {
-  const color = state === 'acquise' ? { fill: '#F2B544', stroke: '#8A6514' } : state === 'en-cours' ? { fill: '#FCEFD3', stroke: '#8A6514' } : { fill: 'none', stroke: '#C4CCC8' }
+  const color = state === 'acquise' ? { fill: '#F2B544', stroke: '#8A6514' } : state === 'en-cours' ? { fill: '#FCEFD3', stroke: '#8A6514' } : { fill: 'none', stroke: '#7D8783' }
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" className={state === 'en-cours' ? 'paw-breathe' : ''}>
       {trophy ? (

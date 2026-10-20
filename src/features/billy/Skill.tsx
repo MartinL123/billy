@@ -185,7 +185,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
                   label={`${stepPhrase(skill.id, step)}. ${mastered ? 'Cochée' : 'Pas encore cochée'}`}
                   onOpen={() => setOpened(step)}
                   circle={
-                    <span className={`flex size-[92px] items-center justify-center rounded-full border-4 text-[#8A6514] ${mastered ? 'border-solid border-gold bg-gold shadow-[0_6px_18px_rgba(242,181,68,0.6)]' : 'border-dashed border-[#E0B45A] bg-gold-soft'}`}>
+                    <span className={`flex size-[92px] items-center justify-center rounded-full border-4 text-[#8A6514] ${mastered ? 'border-solid border-gold bg-gold shadow-[0_6px_18px_rgba(242,181,68,0.6)]' : 'border-dashed border-[#8A6514] bg-gold-soft'}`}>
                       <Trophy />
                     </span>
                   }
@@ -215,7 +215,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
               )
             }
             return (
-              <Stop key={step} index={step - 1} radius={40} label={`${stepPhrase(skill.id, step)}. Pas encore cochée`} onOpen={() => setOpened(step)} circle={<span className="size-20 rounded-full border-4 border-dashed bg-surface" style={{ borderColor: territory.soft === '#DCEBE6' ? '#9CC5BA' : territory.soft === '#E3EAF8' ? '#9DB3DE' : '#E6B08A' }} />}>
+              <Stop key={step} index={step - 1} radius={40} label={`${stepPhrase(skill.id, step)}. Pas encore cochée`} onOpen={() => setOpened(step)} circle={<span className="size-20 rounded-full border-4 border-dashed bg-surface" style={{ borderColor: territory.soft === '#DCEBE6' ? '#5B9384' : territory.soft === '#E3EAF8' ? '#6A8CC8' : '#C27F4F' }} />}>
                 <span className="text-[15px] leading-snug font-semibold text-[#3F4946]">{stepPhrase(skill.id, step)}</span>
               </Stop>
             )

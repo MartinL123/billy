@@ -3,6 +3,7 @@ import { useData } from '../firebase/store'
 import { lateCare } from '../lib/healthScreen'
 import { useToday } from '../lib/useToday'
 import { HeartIcon, HomeIcon, MapIcon, PlusIcon } from './Icons'
+import { OfflineBanner } from './OfflineBanner'
 
 /** Hauteur de la barre (hors zone sûre) et dépassement du rond de l’accueil au-dessus d’elle. */
 const BAR = 88
@@ -65,6 +66,7 @@ export function TabLayout() {
   return (
     <>
       <main className="mx-auto max-w-[430px] pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+200px)]">
+        <OfflineBanner />
         <Outlet />
       </main>
       <TabBar />

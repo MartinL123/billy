@@ -115,7 +115,7 @@ export default function Billy() {
                 <div className="anim-in flex flex-col gap-0.5 border-0 border-t border-solid border-[#E6EAE7] pt-2.5">
                   <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{next ? 'Prochaine étape' : 'Tout est acquis'}</span>
                   {next && <span className="text-[16px] text-[#3F4946]">{next}</span>}
-                  <Link to={`/competence/${id}`} className="mt-1 text-[15px] font-bold text-primary no-underline">
+                  <Link to={`/competence/${id}`} className="inline-flex min-h-11 items-center self-start text-[15px] font-bold text-primary no-underline">
                     Voir tout son chemin ›
                   </Link>
                 </div>

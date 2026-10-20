@@ -20,6 +20,7 @@ import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { DogPhoto } from '../shop/DogPhoto'
 import { EveningReminder } from './EveningReminder'
+import { NotificationSettings } from '../notifications/NotificationSettings'
 import { WalkSettings } from './WalkSettings'
 import { ProfileEdit } from './ProfileEdit'
 import { gamesLabel, treatsLabel } from '../../lib/training-plan'
@@ -246,7 +247,8 @@ export default function Profile() {
 
       <WalkSettings />
 
-      <EveningReminder dogName={dog.name} />
+      {/* App iOS : les notifications locales (T-042) ; le web garde le rappel du soir. */}
+      {isNative() ? <NotificationSettings /> : <EveningReminder dogName={dog.name} />}
 
       {/* Une fois terminé, on arrive sur le résultat : c’est là qu’on corrige ce qu’il savait déjà faire. */}
       <Link to={status.complete ? '/questionnaire?etape=fin' : '/questionnaire'} className="card-link min-h-16">

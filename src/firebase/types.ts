@@ -30,6 +30,8 @@ export interface Dog {
   trainer?: Contact
   /** Ration quotidienne et heures des repas. */
   feeding?: Feeding
+  /** App iOS : les notifications locales voulues (T-042). Absent : soins et récap oui, sorties non. */
+  notifications?: { soin?: boolean; sortie?: boolean; recap?: boolean }
   /** Heures des 3 sorties du jour (Profil › Sorties). Absent : 8 h, 13 h, 19 h. */
   walkTimes?: Partial<WalkTimes>
   /** Traits du chien : ils adaptent le chemin du dressage, jamais les objectifs. */

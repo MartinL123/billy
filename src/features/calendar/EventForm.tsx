@@ -13,6 +13,8 @@ import type { Recurrence } from '../../lib/recurrence'
 import { safeFileName, shareFiles } from '../../lib/share'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
+import { isNative } from '../../native'
+import { askNotificationPermission } from '../notifications/localNotifications'
 
 const RECURRENCES: { value: Recurrence; label: string }[] = [
   { value: 'none', label: 'Jamais' },
@@ -87,6 +89,8 @@ export default function EventForm() {
     const event = build()
     if (!event) return
     saveEvent(existing?.id ?? newId('events'), event)
+    // App iOS (T-042) : le premier soin ajouté est le bon moment pour demander les notifications (jamais au lancement).
+    if (!existing && isNative()) askNotificationPermission().catch(() => undefined)
     back()
   }
 

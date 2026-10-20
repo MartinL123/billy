@@ -26,6 +26,7 @@ import { CommunitySync } from './features/meute/CommunitySync'
 import { BonesBackfill } from './features/shop/BonesBackfill'
 import { FogBackfill } from './features/balades/FogBackfill'
 import { FilesKindBackfill } from './features/profile/FilesKindBackfill'
+import { MilestonesFix } from './features/calendar/MilestonesFix'
 import { WatchSync } from './features/balades/WatchSync'
 import { NotificationScheduler } from './features/notifications/NotificationScheduler'
 import DogPublic from './features/meute/DogPublic'
@@ -185,6 +186,7 @@ export default function App() {
             <BonesBackfill />
             <FogBackfill />
             <FilesKindBackfill />
+            <MilestonesFix />
           </>
         )}
         <HashRouter>

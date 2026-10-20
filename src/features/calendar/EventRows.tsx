@@ -88,7 +88,8 @@ export function CalendarEventRow({ event, today, first }: { event: Event; today:
             {otherMonth && (
               <span className="text-xs text-muted">
                 {monthAbbr(shown)}
-                {parseISO(shown).y !== parseISO(today).y ? ` ${String(parseISO(shown).y).slice(2)}` : ''}
+                {/* R-074 : l’année en entier, sur sa ligne, quand ce n’est pas l’année en cours. */}
+                {parseISO(shown).y !== parseISO(today).y && <span className="block">{parseISO(shown).y}</span>}
               </span>
             )}
           </span>

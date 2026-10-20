@@ -249,15 +249,15 @@ export default function LiveWalk() {
   if (phase === 'denied')
     return (
       <main className="flex min-h-dvh flex-col justify-end gap-4 px-5 pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+24px)]">
-        <h1 className="font-display text-[26px] leading-tight font-extrabold">La position n’est pas autorisée</h1>
-        <p className="text-[17px] leading-snug text-[#3F4946]">Pour enregistrer la balade : Réglages › Flair › Position › « Pendant l’utilisation de l’app ».</p>
+        <h1 className="font-display text-[1.5294rem] leading-tight font-extrabold">La position n’est pas autorisée</h1>
+        <p className="text-[1rem] leading-snug text-[#3F4946]">Pour enregistrer la balade : Réglages › Flair › Position › « Pendant l’utilisation de l’app ».</p>
         <button type="button" onClick={() => navigate('/', { replace: true })} className="btn btn-main min-h-[56px]">
           Retour à l’accueil
         </button>
       </main>
     )
 
-  const pill = 'flex min-h-11 items-center gap-1.5 rounded-full border-0 bg-surface px-4 text-[15px] font-bold text-[#3F4946] shadow-[0_2px_8px_rgba(24,32,30,0.16)]'
+  const pill = 'flex min-h-11 items-center gap-1.5 rounded-full border-0 bg-surface px-4 text-[0.8824rem] font-bold text-[#3F4946] shadow-[0_2px_8px_rgba(24,32,30,0.16)]'
   return (
     <main className="fixed inset-0 flex flex-col bg-bg">
       <div className="relative min-h-0 flex-1">
@@ -272,12 +272,12 @@ export default function LiveWalk() {
             </button>
           )}
           {weak && !ended && (
-            <p role="status" className="pointer-events-auto self-stretch rounded-[16px] bg-surface px-4 py-3 text-[15px] leading-snug shadow-[0_4px_12px_rgba(24,32,30,0.18)]">
+            <p role="status" className="pointer-events-auto self-stretch rounded-[16px] bg-surface px-4 py-3 text-[0.8824rem] leading-snug shadow-[0_4px_12px_rgba(24,32,30,0.18)]">
               <strong>Le GPS cherche le ciel.</strong> La balade continue, le tracé se recolle tout seul.
             </p>
           )}
           {found && !ended && (
-            <p role="status" className="anim-pop flex items-center gap-2 self-center rounded-full bg-gold-soft px-4 py-2.5 text-[15px] font-bold text-[#3D2A00] shadow-[0_4px_12px_rgba(24,32,30,0.18)]">
+            <p role="status" className="anim-pop flex items-center gap-2 self-center rounded-full bg-gold-soft px-4 py-2.5 text-[0.8824rem] font-bold text-[#3D2A00] shadow-[0_4px_12px_rgba(24,32,30,0.18)]">
               <PawIcon size={18} color="#8A6514" />
               Nouveau bout de territoire !
             </p>
@@ -291,14 +291,14 @@ export default function LiveWalk() {
           <span className="anim-pop flex size-16 items-center justify-center rounded-full bg-primary text-white" style={{ animationDelay: '150ms' }}>
             <CheckIcon size={34} />
           </span>
-          <h1 className="font-display text-[28px] leading-tight font-extrabold">Belle balade !</h1>
-          <p className="text-[16px] text-[#3F4946]">
+          <h1 className="font-display text-[1.6471rem] leading-tight font-extrabold">Belle balade !</h1>
+          <p className="text-[0.9412rem] text-[#3F4946]">
             {durationParts(ended.ms).min} min {durationParts(ended.ms).sec} s · {formatRouteDistance(ended.distanceM)} avec {dog.name}
           </p>
           {ended.pills.length > 0 && (
             <div className="flex flex-wrap justify-center gap-2">
               {ended.pills.map((text, i) => (
-                <span key={text} className={`anim-pop rounded-full px-3 py-2 text-[15px] font-bold ${i === 0 && text.startsWith('+') ? 'bg-gold-soft font-extrabold text-[#3D2A00]' : text.endsWith('notée') ? 'bg-primary-soft text-primary-dark' : 'bg-info-soft text-[#1D4685]'}`} style={{ animationDelay: `${300 + i * 80}ms` }}>
+                <span key={text} className={`anim-pop rounded-full px-3 py-2 text-[0.8824rem] font-bold ${i === 0 && text.startsWith('+') ? 'bg-gold-soft font-extrabold text-[#3D2A00]' : text.endsWith('notée') ? 'bg-primary-soft text-primary-dark' : 'bg-info-soft text-[#1D4685]'}`} style={{ animationDelay: `${300 + i * 80}ms` }}>
                   {text}
                 </span>
               ))}
@@ -313,55 +313,55 @@ export default function LiveWalk() {
         </section>
       ) : gone ? (
         <section aria-label="Balade pas gardée" className="animate-sheet flex flex-col gap-3.5 rounded-t-[26px] bg-surface px-4 pt-6 pb-[calc(env(safe-area-inset-bottom)+24px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
-          <h1 className="font-display text-[24px] font-extrabold">La balade n’a pas été gardée</h1>
-          <p className="text-[16px] text-[#3F4946]">Vous pourrez noter la sortie à la main depuis l’accueil.</p>
+          <h1 className="font-display text-[1.4118rem] font-extrabold">La balade n’a pas été gardée</h1>
+          <p className="text-[0.9412rem] text-[#3F4946]">Vous pourrez noter la sortie à la main depuis l’accueil.</p>
           <button type="button" onClick={() => navigate('/', { replace: true })} className="btn btn-main min-h-14">
             Retour à l’accueil
           </button>
         </section>
       ) : (
         <section aria-label="Balade en cours" className="flex flex-col gap-3.5 rounded-t-[26px] bg-surface px-4 pt-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
-          <span className="flex items-center gap-2 text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">
+          <span className="flex items-center gap-2 text-[0.7647rem] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">
             {!stoppedAt && <span aria-hidden="true" className="live-dot size-2.5 rounded-full bg-[#BF5519]" />}
             {stoppedAt ? 'Arrêtée après 3 h' : `Balade en cours avec ${dog.name}`}
           </span>
           <div className="flex items-end justify-between gap-3">
             <span className="flex flex-col">
-              <span className="text-[14px] font-semibold text-[#5A6662]">Durée</span>
-              <span className="font-display text-[48px] leading-[52px] font-extrabold tabular-nums" aria-label={`${min} minutes ${sec} secondes`}>
+              <span className="text-[0.8235rem] font-semibold text-[#5A6662]">Durée</span>
+              <span className="font-display text-[2.8235rem] leading-[52px] font-extrabold tabular-nums" aria-label={`${min} minutes ${sec} secondes`}>
                 {min}
-                <span className="text-[24px]"> min </span>
-                <span className="text-[30px] text-[#3F4946]">{sec}</span>
-                <span className="text-[20px] text-[#3F4946]"> s</span>
+                <span className="text-[1.4118rem]"> min </span>
+                <span className="text-[1.7647rem] text-[#3F4946]">{sec}</span>
+                <span className="text-[1.1765rem] text-[#3F4946]"> s</span>
               </span>
             </span>
             <span className="flex flex-col items-end">
-              <span className="text-[14px] font-semibold text-[#5A6662]">Distance</span>
-              <span className="font-display text-[30px] leading-10 font-extrabold text-primary">{weak ? `≈ ${distance}` : distance}</span>
+              <span className="text-[0.8235rem] font-semibold text-[#5A6662]">Distance</span>
+              <span className="font-display text-[1.7647rem] leading-10 font-extrabold text-primary">{weak ? `≈ ${distance}` : distance}</span>
             </span>
           </div>
           {slotLabel && advised && elapsed >= advised * 60_000 && (
-            <span className="anim-pop flex items-center gap-1.5 self-start rounded-full bg-primary-soft px-3 py-1.5 text-[14px] font-bold text-primary-dark">
+            <span className="anim-pop flex items-center gap-1.5 self-start rounded-full bg-primary-soft px-3 py-1.5 text-[0.8235rem] font-bold text-primary-dark">
               <CheckIcon size={16} />
               Ses {advised} min {slotLabel.replace(/^Sortie /, '')} sont faites
             </span>
           )}
           {phase === 'failed' ? (
             <>
-              <p role="alert" className="text-[15px] leading-snug font-semibold text-danger">
+              <p role="alert" className="text-[0.8824rem] leading-snug font-semibold text-danger">
                 La balade n’a pas pu être enregistrée. Elle est gardée sur l’iPhone : rien n’est perdu.
               </p>
-              <button type="button" onClick={() => void finish()} className="btn btn-main min-h-[58px] text-[19px]">
+              <button type="button" onClick={() => void finish()} className="btn btn-main min-h-[58px] text-[1.1176rem]">
                 Réessayer
               </button>
-              <button type="button" onClick={copyDetail} className="btn btn-quiet min-h-11 self-center px-4 text-[15px]">
+              <button type="button" onClick={copyDetail} className="btn btn-quiet min-h-11 self-center px-4 text-[0.8824rem]">
                 Copier le détail
               </button>
             </>
           ) : (
             <>
-              <p className="text-[15px] text-[#3F4946]">{stoppedAt ? 'L’enregistrement s’est arrêté tout seul au bout de 3 h.' : 'Vous pouvez verrouiller l’iPhone : le GPS continue.'}</p>
-              <button type="button" onClick={() => void finish()} disabled={phase !== 'walking'} className="btn btn-main min-h-[58px] text-[19px]">
+              <p className="text-[0.8824rem] text-[#3F4946]">{stoppedAt ? 'L’enregistrement s’est arrêté tout seul au bout de 3 h.' : 'Vous pouvez verrouiller l’iPhone : le GPS continue.'}</p>
+              <button type="button" onClick={() => void finish()} disabled={phase !== 'walking'} className="btn btn-main min-h-[58px] text-[1.1176rem]">
                 {phase === 'saving' ? 'Enregistrement…' : 'Terminer'}
               </button>
             </>
@@ -372,8 +372,8 @@ export default function LiveWalk() {
       {confirmCancel && (
         // « Continuer la balade » en orange, « Ne pas la garder » en contour rouge : plus de « Annuler » ambigu (V5).
         <Sheet label="Ne pas garder cette balade ?" onClose={() => setConfirmCancel(false)}>
-          <h2 className="mt-1 font-display text-[26px] leading-tight font-extrabold">Ne pas garder cette balade ?</h2>
-          <p className="text-[16px] leading-snug text-[#3F4946]">Le tracé sera effacé : pas de brouillard levé, pas d’os.</p>
+          <h2 className="mt-1 font-display text-[1.5294rem] leading-tight font-extrabold">Ne pas garder cette balade ?</h2>
+          <p className="text-[0.9412rem] leading-snug text-[#3F4946]">Le tracé sera effacé : pas de brouillard levé, pas d’os.</p>
           <button type="button" onClick={() => setConfirmCancel(false)} className="btn btn-main min-h-14">
             Continuer la balade
           </button>

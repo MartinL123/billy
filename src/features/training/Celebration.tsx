@@ -52,7 +52,7 @@ function FullScreen({ label, children }: { label: string; children: ReactNode })
   )
 }
 
-const continueButton = 'mt-auto flex min-h-[60px] w-full shrink-0 items-center justify-center rounded-full border-0 bg-gold text-[19px] font-extrabold text-gold-dark'
+const continueButton = 'mt-auto flex min-h-[60px] w-full shrink-0 items-center justify-center rounded-full border-0 bg-gold text-[1.1176rem] font-extrabold text-gold-dark'
 const pill = 'rounded-2xl bg-white/15 px-3.5 py-2 text-base font-bold'
 
 /** Nouvelle étape : « C’est réussi ! », la phrase de l’étape en grand, la suivante. Ni étoile ni compteur. */
@@ -67,14 +67,14 @@ export function StepSuccess({ dogName, bossId, level, inCarnet = true, onClose }
         <Badge bossId={bossId} acquired={level} size={136} animateStep={level} lit="#F2B544" />
       </span>
       <div className="cel-text flex w-full flex-1 flex-col items-center">
-        <p className="mt-7 text-[15px] font-bold tracking-[1px] text-[#F7D58A] uppercase">C’est réussi ! · {boss?.name}</p>
-        <h1 className="mt-3 font-display text-[30px] leading-tight font-extrabold">
+        <p className="mt-7 text-[0.8824rem] font-bold tracking-[1px] text-[#F7D58A] uppercase">C’est réussi ! · {boss?.name}</p>
+        <h1 className="mt-3 font-display text-[1.7647rem] leading-tight font-extrabold">
           {dogName} {stepPhraseLower(bossId, level)}
         </h1>
         {level < MAX_LEVEL && (
           <div className="mt-6 flex w-full flex-col gap-1 rounded-[18px] bg-white/10 px-4 py-3.5 text-left">
-            <span className="text-[13px] font-bold tracking-[0.6px] text-[#F7D58A] uppercase">Prochaine étape</span>
-            <span className="text-[17px] leading-snug">{stepPhraseLower(bossId, level + 1).replace(/^./, (c) => c.toLocaleUpperCase('fr'))}</span>
+            <span className="text-[0.7647rem] font-bold tracking-[0.6px] text-[#F7D58A] uppercase">Prochaine étape</span>
+            <span className="text-[1rem] leading-snug">{stepPhraseLower(bossId, level + 1).replace(/^./, (c) => c.toLocaleUpperCase('fr'))}</span>
           </div>
         )}
         <div className="mt-4 mb-6 flex flex-wrap justify-center gap-2.5">

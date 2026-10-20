@@ -49,7 +49,7 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
             <ChevronLeftIcon />
           </button>
         )}
-        <div className={`text-[17px] font-bold ${collapsed ? 'pl-1.5' : ''}`} aria-live="polite">
+        <div className={`text-[1rem] font-bold ${collapsed ? 'pl-1.5' : ''}`} aria-live="polite">
           {formatMonthYear(collapsed ? (selected ?? today) : month).replace(/^./, (c) => c.toLocaleUpperCase('fr'))}
         </div>
         {!collapsed && (
@@ -58,7 +58,7 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
           </button>
         )}
         {onToggle && (
-          <button type="button" onClick={onToggle} aria-expanded={!collapsed} className="tap min-h-11 rounded-full border-0 bg-primary-soft px-3.5 text-[15px] font-bold text-primary-dark">
+          <button type="button" onClick={onToggle} aria-expanded={!collapsed} className="tap min-h-11 rounded-full border-0 bg-primary-soft px-3.5 text-[0.8824rem] font-bold text-primary-dark">
             {collapsed ? 'Voir le mois' : 'Voir la semaine'}
           </button>
         )}
@@ -83,7 +83,7 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
               aria-pressed={isSelected}
               aria-label={`${formatLong(day)}${count ? `, ${count} événement${count > 1 ? 's' : ''}` : ''}`}
               onClick={() => onSelect(day)}
-              className="flex h-12 flex-col items-center gap-px border-0 bg-transparent p-0 text-[15px]"
+              className="flex h-12 flex-col items-center gap-px border-0 bg-transparent p-0 text-[0.8824rem]"
             >
               <span
                 className={`flex size-[34px] items-center justify-center rounded-full ${

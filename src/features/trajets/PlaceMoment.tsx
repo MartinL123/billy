@@ -21,14 +21,14 @@ export function PlaceMoment({ at, onPlace, onCancel }: { at: { lat: number; lng:
   return (
     <Sheet label="Qu’est-ce qui s’est passé ici ?" onClose={onCancel}>
       <div className="mt-1 flex flex-col gap-0.5">
-        <h2 className="font-display text-[22px] font-extrabold">Qu’est-ce qui s’est passé ici ?</h2>
-        {street && <p className="text-[15px] font-semibold text-muted">{street}</p>}
+        <h2 className="font-display text-[1.2941rem] font-extrabold">Qu’est-ce qui s’est passé ici ?</h2>
+        {street && <p className="text-[0.8824rem] font-semibold text-muted">{street}</p>}
       </div>
       <div className="grid grid-cols-2 gap-2">
         {ROUTE_MOMENTS.map((m) => {
           const on = type === m.id
           return (
-            <button key={m.id} type="button" aria-pressed={on} onClick={() => setType(m.id)} className="flex min-h-14 items-center gap-2.5 rounded-[16px] border-[3px] border-solid px-2.5 text-left text-[16px] leading-tight font-extrabold" style={on ? { background: m.color, borderColor: m.color, color: '#FFFFFF' } : { background: '#FFFFFF', borderColor: m.color, color: m.color }}>
+            <button key={m.id} type="button" aria-pressed={on} onClick={() => setType(m.id)} className="flex min-h-14 items-center gap-2.5 rounded-[16px] border-[3px] border-solid px-2.5 text-left text-[0.9412rem] leading-tight font-extrabold" style={on ? { background: m.color, borderColor: m.color, color: '#FFFFFF' } : { background: '#FFFFFF', borderColor: m.color, color: m.color }}>
               <MomentIcon type={m.id} size={30} />
               {m.label}
             </button>
@@ -36,7 +36,7 @@ export function PlaceMoment({ at, onPlace, onCancel }: { at: { lat: number; lng:
         })}
       </div>
       <label className="flex flex-col gap-1.5">
-        <span className="text-[15px] font-semibold">
+        <span className="text-[0.8824rem] font-semibold">
           Un mot {type === 'note' ? '' : <span className="font-normal text-muted">(facultatif)</span>}
         </span>
         <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={type === 'rencontre' ? 'Oslo, au bord de l’eau' : 'Un vélo est passé très près'} autoComplete="off" className="field" />

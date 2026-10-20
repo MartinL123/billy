@@ -102,7 +102,7 @@ function useTimer(minutes: number) {
   return { running: endsAt !== null, left, finished, start, stop, dismiss: () => setFinished(false) }
 }
 
-const sectionTitle = 'text-[13px] font-extrabold tracking-[0.6px] text-muted uppercase'
+const sectionTitle = 'text-[0.7647rem] font-extrabold tracking-[0.6px] text-muted uppercase'
 
 /** Journée de repos : une page simple, sans minuteur. Elle compte comme une vraie action. */
 function RestDay() {
@@ -119,34 +119,34 @@ function RestDay() {
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
       <header className="flex flex-col gap-3 rounded-b-[28px] bg-primary px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white">
-        <button type="button" onClick={back} className="flex min-h-12 items-center gap-1.5 self-start rounded-full border-2 border-solid border-white/60 bg-transparent px-4 text-[17px] font-semibold text-white">
+        <button type="button" onClick={back} className="flex min-h-12 items-center gap-1.5 self-start rounded-full border-2 border-solid border-white/60 bg-transparent px-4 text-[1rem] font-semibold text-white">
           <ChevronLeftIcon size={20} />
           Accueil
         </button>
-        <p className="text-[13px] font-extrabold tracking-[0.8px] uppercase">Mission du jour</p>
-        <h1 className="font-display text-[30px] leading-none font-extrabold">Aujourd’hui, repos</h1>
-        <p className="text-[15px] leading-snug text-white/90">{quest.afterHardDay ? 'Hier était difficile : aujourd’hui, on souffle.' : 'Un jour sans exercice l’aide à retenir ce qu’il apprend.'}</p>
+        <p className="text-[0.7647rem] font-extrabold tracking-[0.8px] uppercase">Mission du jour</p>
+        <h1 className="font-display text-[1.7647rem] leading-none font-extrabold">Aujourd’hui, repos</h1>
+        <p className="text-[0.8824rem] leading-snug text-white/90">{quest.afterHardDay ? 'Hier était difficile : aujourd’hui, on souffle.' : 'Un jour sans exercice l’aide à retenir ce qu’il apprend.'}</p>
       </header>
       <main className="flex flex-col gap-4 px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+120px)]">
         <h2 className={sectionTitle}>Des idées pour {dog.name}</h2>
         <ul className="card m-0 flex list-none flex-col p-0">
           {REST_IDEAS.map((idea, i) => (
-            <li key={idea} className={`px-4 py-3.5 text-[17px] leading-snug ${i ? 'border-t border-divider' : ''}`}>
+            <li key={idea} className={`px-4 py-3.5 text-[1rem] leading-snug ${i ? 'border-t border-divider' : ''}`}>
               {idea}
             </li>
           ))}
         </ul>
-        <p className="text-[15px] leading-snug text-muted">Aucun exercice aujourd’hui. Le repos compte comme une vraie action.</p>
+        <p className="text-[0.8824rem] leading-snug text-muted">Aucun exercice aujourd’hui. Le repos compte comme une vraie action.</p>
       </main>
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto max-w-[430px] px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           {done ? (
-            <p className="flex min-h-[58px] items-center justify-center gap-2 rounded-full bg-gold-soft text-[17px] font-bold text-[#5C4410]">
+            <p className="flex min-h-[58px] items-center justify-center gap-2 rounded-full bg-gold-soft text-[1rem] font-bold text-[#5C4410]">
               <CheckIcon size={22} strokeWidth={3} />
               Journée de repos notée
             </p>
           ) : (
-            <button type="button" onClick={finish} className="btn btn-main min-h-[58px] w-full text-[18px]">
+            <button type="button" onClick={finish} className="btn btn-main min-h-[58px] w-full text-[1.0588rem]">
               C’est fait !
             </button>
           )}
@@ -193,19 +193,19 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
   const skill = exercise.bossIds.includes(skillId) ? skillId : exercise.bossIds[0]!
   const territory = territoryOf(skill)
   const step = Math.min(MAX_LEVEL, (bossProgress[skill]?.level ?? 0) + 1)
-  const pill = 'flex min-h-9 items-center rounded-full bg-white/16 px-3 text-[15px] font-bold'
+  const pill = 'flex min-h-9 items-center rounded-full bg-white/16 px-3 text-[0.8824rem] font-bold'
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
       <header className="flex flex-col gap-3 rounded-b-[28px] px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white" style={{ background: inkOn(territory) }}>
-        <button type="button" onClick={back} className="flex min-h-12 items-center gap-1.5 self-start rounded-full border-2 border-solid border-white/60 bg-transparent px-4 text-[17px] font-semibold text-white">
+        <button type="button" onClick={back} className="flex min-h-12 items-center gap-1.5 self-start rounded-full border-2 border-solid border-white/60 bg-transparent px-4 text-[1rem] font-semibold text-white">
           <ChevronLeftIcon size={20} />
           {fromQuest ? 'Accueil' : 'Retour'}
         </button>
-        {fromQuest && <p className="text-[13px] font-extrabold tracking-[0.8px] uppercase">Mission du jour</p>}
-        <h1 className="font-display text-[30px] leading-none font-extrabold">{exercise.name}</h1>
+        {fromQuest && <p className="text-[0.7647rem] font-extrabold tracking-[0.8px] uppercase">Mission du jour</p>}
+        <h1 className="font-display text-[1.7647rem] leading-none font-extrabold">{exercise.name}</h1>
         <SkillPill bossId={skill} onDark />
-        <p className="text-[15px] leading-snug text-white/90">Étape « {stepPhrase(skill, step)} »</p>
+        <p className="text-[0.8824rem] leading-snug text-white/90">Étape « {stepPhrase(skill, step)} »</p>
         <div className="flex flex-wrap gap-2">
           <span className={pill} style={{ background: 'rgba(255,255,255,0.16)' }}>
             {minutes} min
@@ -221,7 +221,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
 
         <section className="card flex flex-col gap-2 p-4">
           <h2 className={sectionTitle}>Ce qu’il faut</h2>
-          <p className="text-[17px] leading-snug">
+          <p className="text-[1rem] leading-snug">
             {neededTreats(dog.treats)}
             {exercise.needs ? `. ${exercise.needs}` : ''}.
           </p>
@@ -235,30 +235,30 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
             {exercise.steps.map((text, i) => (
               <li key={text} className="flex items-start gap-3">
                 {/* Rond de 28 px, centré sur la première ligne : le texte a un interligne de 28 px. */}
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-full text-[15px] leading-none font-extrabold text-white" style={{ background: inkOn(territory) }}>
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full text-[0.8824rem] leading-none font-extrabold text-white" style={{ background: inkOn(territory) }}>
                   {i + 1}
                 </span>
-                <span className="text-[17px] leading-7">{place(text)}</span>
+                <span className="text-[1rem] leading-7">{place(text)}</span>
               </li>
             ))}
           </ol>
         </section>
 
         <section className="flex flex-col gap-2 rounded-[20px] bg-[#FFF8E6] p-4">
-          <h2 className="text-[13px] font-extrabold tracking-[0.6px] text-gold-dark uppercase">Bon à savoir</h2>
-          {exercise.caution && <p className="text-[17px] leading-snug font-semibold text-gold-dark">{exercise.caution}</p>}
-          <p className="text-[17px] leading-snug text-gold-dark">{place(GENERIC_TIP)}</p>
-          {!exercise.verified && <p className="text-[15px] text-gold-dark">Exercice à vérifier avec votre éducateur.</p>}
+          <h2 className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-gold-dark uppercase">Bon à savoir</h2>
+          {exercise.caution && <p className="text-[1rem] leading-snug font-semibold text-gold-dark">{exercise.caution}</p>}
+          <p className="text-[1rem] leading-snug text-gold-dark">{place(GENERIC_TIP)}</p>
+          {!exercise.verified && <p className="text-[0.8824rem] text-gold-dark">Exercice à vérifier avec votre éducateur.</p>}
         </section>
 
         {easier && (
           <section className="flex flex-col gap-1.5">
             <h2 className={sectionTitle}>Trop difficile aujourd’hui ?</h2>
-            <p className="text-[17px] leading-snug">Revenez au réglage d’avant : « {easier} ». L’étape, elle, ne recule pas.</p>
+            <p className="text-[1rem] leading-snug">Revenez au réglage d’avant : « {easier} ». L’étape, elle, ne recule pas.</p>
           </section>
         )}
 
-        <p className="flex min-h-11 flex-wrap items-center gap-x-1 px-1 text-[13px] text-muted">
+        <p className="flex min-h-11 flex-wrap items-center gap-x-1 px-1 text-[0.7647rem] text-muted">
           Source :{' '}
           {exercise.source.url ? (
             <a href={exercise.source.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 font-semibold underline" style={{ color: inkOn(territory) }}>
@@ -276,7 +276,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
         {!fromQuest && (
           <>
             <button type="button" onClick={() => setPicking(true)} className="card-link w-full">
-              <span className="flex-1 text-[17px] font-semibold">Choisir un autre exercice</span>
+              <span className="flex-1 text-[1rem] font-semibold">Choisir un autre exercice</span>
               <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
             </button>
           </>
@@ -287,13 +287,13 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
         <div className="mx-auto flex max-w-[430px] flex-col gap-2 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           {timer.running ? (
             <div role="timer" aria-live="off" className="flex min-h-[58px] items-center justify-between gap-3 rounded-full bg-primary pr-1.5 pl-6 text-white">
-              <span className="font-display text-[30px] leading-none font-extrabold tabular-nums">{formatCountdown(timer.left)}</span>
-              <button type="button" onClick={timer.stop} className="min-h-12 rounded-full border-2 border-solid border-white/70 bg-transparent px-5 text-[17px] font-bold text-white">
+              <span className="font-display text-[1.7647rem] leading-none font-extrabold tabular-nums">{formatCountdown(timer.left)}</span>
+              <button type="button" onClick={timer.stop} className="min-h-12 rounded-full border-2 border-solid border-white/70 bg-transparent px-5 text-[1rem] font-bold text-white">
                 Arrêter
               </button>
             </div>
           ) : (
-            <button type="button" onClick={timer.start} className="btn btn-main min-h-[58px] text-[18px]">
+            <button type="button" onClick={timer.start} className="btn btn-main min-h-[58px] text-[1.0588rem]">
               <TargetIcon size={22} />
               Lancer le minuteur · {minutes} min
             </button>
@@ -301,7 +301,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
           <button
             type="button"
             onClick={() => navigate(fromQuest ? '/noter?depuis=quete' : `/noter?depuis=exercice&competences=${skill}`)}
-            className="min-h-12 rounded-full border-2 border-solid bg-transparent text-[17px] font-bold"
+            className="min-h-12 rounded-full border-2 border-solid bg-transparent text-[1rem] font-bold"
             style={{ borderColor: territory.color, color: inkOn(territory) }}
           >
             C’est fait !
@@ -311,9 +311,9 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
 
       {timer.finished && (
         <Sheet label="Temps écoulé" onClose={timer.dismiss}>
-          <h2 className="mt-1 font-display text-[26px] leading-tight font-extrabold">C’est fini, bravo !</h2>
-          <p className="text-[17px] leading-snug">Les {minutes} minutes sont passées. On s’arrête sur une réussite.</p>
-          <button type="button" onClick={() => navigate(fromQuest ? '/noter?depuis=quete' : `/noter?depuis=exercice&competences=${skill}`)} className="btn btn-main min-h-[58px] text-[18px]">
+          <h2 className="mt-1 font-display text-[1.5294rem] leading-tight font-extrabold">C’est fini, bravo !</h2>
+          <p className="text-[1rem] leading-snug">Les {minutes} minutes sont passées. On s’arrête sur une réussite.</p>
+          <button type="button" onClick={() => navigate(fromQuest ? '/noter?depuis=quete' : `/noter?depuis=exercice&competences=${skill}`)} className="btn btn-main min-h-[58px] text-[1.0588rem]">
             C’est fait, je le note
           </button>
           <button type="button" onClick={timer.dismiss} className="btn btn-outline">
@@ -338,8 +338,8 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
                 className={`flex min-h-16 items-center gap-3 rounded-[18px] border-2 border-solid px-4 py-2 text-left ${item.id === exercise.id ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}
               >
                 <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-[17px] font-bold">{item.name}</span>
-                  <span className={`text-[15px] ${item.id === exercise.id ? 'text-white/85' : 'text-muted'}`}>{item.bossIds.map((id) => bossById(id)?.short).join(' · ')}</span>
+                  <span className="text-[1rem] font-bold">{item.name}</span>
+                  <span className={`text-[0.8824rem] ${item.id === exercise.id ? 'text-white/85' : 'text-muted'}`}>{item.bossIds.map((id) => bossById(id)?.short).join(' · ')}</span>
                 </span>
               </button>
             ))}

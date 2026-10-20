@@ -64,11 +64,11 @@ export function EveningReminder({ dogName }: { dogName: string }) {
       <h2 className="text-xl font-bold">Rappel du soir</h2>
       <div className="card flex flex-col gap-3 p-4">
         {!canPush() ? (
-          <p className="text-[17px] leading-snug text-muted">Le rappel du soir n’est pas disponible sur cet appareil.</p>
+          <p className="text-[1rem] leading-snug text-muted">Le rappel du soir n’est pas disponible sur cet appareil.</p>
         ) : !isInstalled() ? (
           <>
-            <p className="text-[17px] leading-snug">Pour recevoir un rappel chaque soir, installez d’abord l’app sur l’écran d’accueil :</p>
-            <ol className="m-0 flex list-decimal flex-col gap-1 pl-5 text-[17px] leading-snug">
+            <p className="text-[1rem] leading-snug">Pour recevoir un rappel chaque soir, installez d’abord l’app sur l’écran d’accueil :</p>
+            <ol className="m-0 flex list-decimal flex-col gap-1 pl-5 text-[1rem] leading-snug">
               <li>Ouvrez cette page dans Safari.</li>
               <li>Touchez le bouton Partager.</li>
               <li>Choisissez « Sur l’écran d’accueil ».</li>
@@ -79,19 +79,19 @@ export function EveningReminder({ dogName }: { dogName: string }) {
             <label className="flex min-h-12 items-center gap-3.5">
               <input type="checkbox" role="switch" checked={enabled} disabled={busy} onChange={() => void toggle()} className="size-7 shrink-0 accent-primary" />
               <span className="flex flex-col gap-0.5">
-                <span className="text-[17px] font-bold">Me rappeler de noter la journée</span>
-                <span className="text-[15px] text-muted">Une notification le soir, jamais si c’est déjà noté</span>
+                <span className="text-[1rem] font-bold">Me rappeler de noter la journée</span>
+                <span className="text-[0.8824rem] text-muted">Une notification le soir, jamais si c’est déjà noté</span>
               </span>
             </label>
             <label className="flex items-center justify-between gap-3 border-t border-divider pt-3">
-              <span className="text-[17px] font-semibold">Heure du rappel</span>
-              <NativePickerInput type="time" value={time} onChange={(e) => changeTime(e.target.value)} className="field min-h-12 w-[130px] px-3 text-[17px]" />
+              <span className="text-[1rem] font-semibold">Heure du rappel</span>
+              <NativePickerInput type="time" value={time} onChange={(e) => changeTime(e.target.value)} className="field min-h-12 w-[130px] px-3 text-[1rem]" />
             </label>
-            <p className="text-[13px] leading-snug text-muted">Elle peut arriver avec quelques minutes de retard. « Comment s’est passée la journée avec {dogName} ? »</p>
+            <p className="text-[0.7647rem] leading-snug text-muted">Elle peut arriver avec quelques minutes de retard. « Comment s’est passée la journée avec {dogName} ? »</p>
           </>
         )}
         {message && (
-          <p role="status" className="text-[15px] leading-snug text-primary-dark">
+          <p role="status" className="text-[0.8824rem] leading-snug text-primary-dark">
             {message}
           </p>
         )}

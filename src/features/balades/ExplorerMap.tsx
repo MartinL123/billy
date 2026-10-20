@@ -436,7 +436,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
       {!ready && <span aria-hidden="true" className="skeleton pointer-events-none absolute inset-0 z-[5] rounded-none" />}
       {!ready && (
         <div role="status" className="pointer-events-none absolute inset-x-0 top-[40%] z-10 flex justify-center">
-          <span className="flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-[15px] font-semibold text-text shadow-[0_2px_8px_rgba(24,32,30,0.2)]">
+          <span className="flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-[0.8824rem] font-semibold text-text shadow-[0_2px_8px_rgba(24,32,30,0.2)]">
             <span className="size-4 animate-spin rounded-full border-2 border-solid border-primary border-t-transparent" aria-hidden="true" />
             Chargement de la carte…
           </span>

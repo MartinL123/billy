@@ -14,7 +14,7 @@ export function DocumentsSection() {
   return (
     <section className="flex flex-col gap-2.5">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-[19px] font-bold">Documents</h2>
+        <h2 className="text-[1.1176rem] font-bold">Documents</h2>
         {documents.length > 0 && (
           <span className="text-sm text-muted">
             {documents.length} document{documents.length > 1 ? 's' : ''}
@@ -35,10 +35,10 @@ export function DocumentsSection() {
                 to={`/document/${document.id}`}
                 className={`flex items-center gap-3 py-3 text-text no-underline ${i ? 'border-t border-divider' : ''}`}
               >
-                <span className={`flex h-[54px] w-11 shrink-0 items-center justify-center rounded-lg border text-[10px] font-bold ${badge.className}`}>{badge.label}</span>
+                <span className={`flex h-[54px] w-11 shrink-0 items-center justify-center rounded-lg border text-[0.5882rem] font-bold ${badge.className}`}>{badge.label}</span>
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="truncate text-base font-semibold">{document.title}</span>
-                  <span className="truncate text-[13px] text-muted">
+                  <span className="truncate text-[0.7647rem] text-muted">
                     {categoryLabel(document.category)} · {detail}
                   </span>
                   <Pending show={document.pending} />
@@ -49,7 +49,7 @@ export function DocumentsSection() {
           })}
         </div>
       ) : (
-        <p className="text-[15px] leading-snug text-muted">Carnet de santé, comptes rendus, ordonnances : gardez tous ses papiers ici, même hors ligne.</p>
+        <p className="text-[0.8824rem] leading-snug text-muted">Carnet de santé, comptes rendus, ordonnances : gardez tous ses papiers ici, même hors ligne.</p>
       )}
       <Link to="/document/nouveau" className={outlineButton}>
         <ImportIcon size={20} />

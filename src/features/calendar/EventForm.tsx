@@ -117,7 +117,7 @@ export default function EventForm() {
     <>
       <FormScreen title={existing ? "Modifier l’événement" : 'Nouvel événement'} submitLabel="Enregistrer" onCancel={back} onSubmit={save}>
         <fieldset className="m-0 border-0 p-0">
-          <legend className="mb-2.5 p-0 text-[17px] font-semibold">Type</legend>
+          <legend className="mb-2.5 p-0 text-[1rem] font-semibold">Type</legend>
           <div className="flex flex-wrap gap-2">
             {EVENT_TYPE_ORDER.map((value) => {
               const active = value === type
@@ -127,7 +127,7 @@ export default function EventForm() {
                   type="button"
                   aria-pressed={active}
                   onClick={() => chooseType(value)}
-                  className={`flex min-h-12 items-center gap-1.5 rounded-full border-2 px-3.5 text-[17px] ${
+                  className={`flex min-h-12 items-center gap-1.5 rounded-full border-2 px-3.5 text-[1rem] ${
                     active ? 'border-primary bg-primary font-bold text-white' : 'border-border bg-surface font-medium text-text'
                   }`}
                 >
@@ -173,7 +173,7 @@ export default function EventForm() {
         />
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="note" className="text-[17px] font-semibold">
+          <label htmlFor="note" className="text-[1rem] font-semibold">
             Note
             <Optional />
           </label>
@@ -189,7 +189,7 @@ export default function EventForm() {
 
         {linked.length > 0 && (
           <div className="flex flex-col gap-2">
-            <span className="text-[17px] font-semibold">Documents joints</span>
+            <span className="text-[1rem] font-semibold">Documents joints</span>
             <div className="card px-4 py-1">
               {linked.map((document, i) => (
                 <Link
@@ -208,7 +208,7 @@ export default function EventForm() {
         <button
           type="button"
           onClick={attach}
-          className="flex h-[52px] items-center justify-center gap-2 rounded-field border-2 border-dashed border-line-strong bg-transparent text-[17px] font-semibold text-primary"
+          className="flex h-[52px] items-center justify-center gap-2 rounded-field border-2 border-dashed border-line-strong bg-transparent text-[1rem] font-semibold text-primary"
         >
           <PaperclipIcon size={20} />
           Joindre un document

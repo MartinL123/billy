@@ -44,7 +44,7 @@ function writePrefs(prefs: { satellite: boolean; three: boolean }) {
   }
 }
 
-const chip = (on: boolean) => `min-h-11 shrink-0 rounded-full border-0 px-3 text-[14px] font-bold ${on ? 'bg-primary text-white' : 'bg-bg text-text'}`
+const chip = (on: boolean) => `min-h-11 shrink-0 rounded-full border-0 px-3 text-[0.8235rem] font-bold ${on ? 'bg-primary text-white' : 'bg-bg text-text'}`
 
 /** Balades en cartes dans le panneau ; les autres sont dans « Ses balades ». */
 const LIST_MAX = 8
@@ -55,9 +55,9 @@ const PANEL_FILTERS: { id: WalkFilter; label: string }[] = [
   { id: 'mois', label: 'Ce mois' },
 ]
 
-const pill = 'pointer-events-auto flex min-h-11 items-center gap-1.5 rounded-full border-0 bg-surface px-4 text-[15px] font-bold text-text shadow-[0_2px_8px_rgba(24,32,30,0.25)]'
+const pill = 'pointer-events-auto flex min-h-11 items-center gap-1.5 rounded-full border-0 bg-surface px-4 text-[0.8824rem] font-bold text-text shadow-[0_2px_8px_rgba(24,32,30,0.25)]'
 
-const toggle = (on: boolean) => `min-h-11 rounded-full border-0 px-3.5 text-[15px] font-bold ${on ? 'bg-text text-white' : 'bg-transparent text-text'}`
+const toggle = (on: boolean) => `min-h-11 rounded-full border-0 px-3.5 text-[0.8824rem] font-bold ${on ? 'bg-text text-white' : 'bg-transparent text-text'}`
 
 /** La carte qui se découvre (maquettes V3-Explorer, V4-Balades) : le territoire de Billy. */
 export default function Explorer() {
@@ -269,13 +269,13 @@ export default function Explorer() {
           {/* V5 : le quartier, le pourcentage découvert en grand et sa barre dorée. */}
           <div className="flex items-end justify-between gap-3">
             <div className="flex min-w-0 flex-col">
-              <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">Le quartier</span>
-              <h1 className="font-display text-[22px] leading-tight font-extrabold">Le territoire {ofName(dog.name)}</h1>
+              <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">Le quartier</span>
+              <h1 className="font-display text-[1.2941rem] leading-tight font-extrabold">Le territoire {ofName(dog.name)}</h1>
             </div>
             {share !== undefined && commune && (
               <p className="flex shrink-0 flex-col items-end leading-none" aria-label={shareLabel(share, commune.name)}>
-                <span className="font-display text-[34px] font-extrabold text-milestone-dark">{sharePercent(share)}</span>
-                <span className="text-[13px] font-bold text-[#3F4946]">découvert</span>
+                <span className="font-display text-[2rem] font-extrabold text-milestone-dark">{sharePercent(share)}</span>
+                <span className="text-[0.7647rem] font-bold text-[#3F4946]">découvert</span>
               </p>
             )}
           </div>
@@ -286,10 +286,10 @@ export default function Explorer() {
           )}
           {walks.length === 0 ? (
             // App iOS (T-001) : les marches de la Watch arrivent seules ; le fichier GPX reste en secours.
-            <p className="text-[16px] leading-snug text-[#3F4946]">{isNative() ? 'Partez en balade : le tracé lève le brouillard. Vos marches de l’Apple Watch arrivent seules.' : 'Importez vos balades Strava pour lever le brouillard.'}</p>
+            <p className="text-[0.9412rem] leading-snug text-[#3F4946]">{isNative() ? 'Partez en balade : le tracé lève le brouillard. Vos marches de l’Apple Watch arrivent seules.' : 'Importez vos balades Strava pour lever le brouillard.'}</p>
           ) : (
             <>
-              <p className="text-[15px] leading-snug text-[#3F4946]" aria-live="polite">
+              <p className="text-[0.8824rem] leading-snug text-[#3F4946]" aria-live="polite">
                 {highlighted ? <strong className="text-text">{highlighted.name}. </strong> : null}
                 {territoryHint(highlighted, today)}
               </p>
@@ -307,7 +307,7 @@ export default function Explorer() {
               </div>
               {/* Les balades en cartes, à l’horizontale : un toucher la met en avant sur la carte, un autre la relâche. */}
               {shown.length === 0 ? (
-                <p className="text-[15px] text-muted">Aucune balade pour ce choix.</p>
+                <p className="text-[0.8824rem] text-muted">Aucune balade pour ce choix.</p>
               ) : (
                 <ul className="scroll-row m-0 -mx-5 flex list-none gap-2 px-5 py-0.5">
                   {local.slice(0, LIST_MAX).map((w) => {
@@ -316,8 +316,8 @@ export default function Explorer() {
                       <li key={w.id} className="shrink-0">
                         <button type="button" aria-pressed={on} onClick={() => setHighlight(on ? undefined : w.id)} className={`tap flex h-full w-[148px] flex-col items-start gap-1 rounded-[16px] border-2 border-solid bg-surface px-3 py-2.5 text-left text-text ${on ? 'border-primary' : 'border-[#E6EAE7]'}`}>
                           <span className="h-1.5 w-7 rounded-full" style={{ background: colors.get(w.id) }} aria-hidden="true" />
-                          <span className="line-clamp-2 text-[15px] leading-tight font-bold">{w.name}</span>
-                          <span className="text-[13px] text-[#3F4946]">
+                          <span className="line-clamp-2 text-[0.8824rem] leading-tight font-bold">{w.name}</span>
+                          <span className="text-[0.7647rem] text-[#3F4946]">
                             {formatRelative(w.date, today).replace(/^./, (c) => c.toLocaleUpperCase('fr'))} · {formatRouteDistance(w.route.distanceM)}
                           </span>
                         </button>
@@ -325,7 +325,7 @@ export default function Explorer() {
                     )
                   })}
                   <li className="shrink-0">
-                    <Link to={`/balades${filter !== 'toutes' ? `?filtre=${encodeURIComponent(filter)}` : ''}`} className="tap flex h-full min-h-[88px] w-[96px] flex-col items-center justify-center gap-1 rounded-[16px] bg-bg text-[14px] font-bold text-primary no-underline">
+                    <Link to={`/balades${filter !== 'toutes' ? `?filtre=${encodeURIComponent(filter)}` : ''}`} className="tap flex h-full min-h-[88px] w-[96px] flex-col items-center justify-center gap-1 rounded-[16px] bg-bg text-[0.8235rem] font-bold text-primary no-underline">
                       Toutes
                       <ChevronRightIcon size={18} />
                     </Link>
@@ -333,7 +333,7 @@ export default function Explorer() {
                 </ul>
               )}
               {highlighted && (
-                <button type="button" onClick={() => openWalk(highlighted.id)} className="btn btn-quiet min-h-11 self-start px-0 text-[15px] text-primary">
+                <button type="button" onClick={() => openWalk(highlighted.id)} className="btn btn-quiet min-h-11 self-start px-0 text-[0.8824rem] text-primary">
                   La revoir et y placer des repères
                   <ChevronRightIcon size={18} />
                 </button>
@@ -343,17 +343,17 @@ export default function Explorer() {
           {/* À découvrir (T-029) : les lieux du coin, listés ici ; un toucher centre la carte dessus. */}
           {here && discover.length > 0 && (
             <div className="flex flex-col gap-1">
-              <h2 className="text-[13px] font-extrabold tracking-[0.6px] text-muted uppercase">À découvrir</h2>
+              <h2 className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-muted uppercase">À découvrir</h2>
               <ul className="m-0 flex list-none flex-col p-0">
                 {discover.map((idea, i) => (
                   <li key={idea.id} className={i ? 'border-t border-divider' : ''}>
                     <button type="button" onClick={() => setSelectedId(idea.id)} className="flex min-h-12 w-full items-center gap-3 border-0 bg-transparent px-0 py-1.5 text-left text-text">
-                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-bg text-[18px] font-extrabold" aria-hidden="true">
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-bg text-[1.0588rem] font-extrabold" aria-hidden="true">
                         {idea.explored ? KIND[idea.kind].icon : '?'}
                       </span>
                       <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="truncate text-[17px] font-bold">{idea.explored ? idea.name : KIND[idea.kind].label}</span>
-                        <span className="truncate text-[15px] text-muted">
+                        <span className="truncate text-[1rem] font-bold">{idea.explored ? idea.name : KIND[idea.kind].label}</span>
+                        <span className="truncate text-[0.8824rem] text-muted">
                           {metersLabel(idea.meters)} {arrowTo(here, idea)}
                         </span>
                       </span>

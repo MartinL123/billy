@@ -135,14 +135,14 @@ export default function DocumentForm() {
           <div className="card flex items-center gap-3.5 p-3.5">
             <div className={`relative flex h-[84px] w-16 shrink-0 items-end justify-center overflow-hidden rounded-lg border ${badge.className}`}>
               <img src={picked.previewUrl} alt="" className="absolute inset-0 size-full object-cover" />
-              <span className={`relative w-full py-0.5 text-center text-[11px] font-bold ${badge.className}`}>{badge.label}</span>
+              <span className={`relative w-full py-0.5 text-center text-[0.6471rem] font-bold ${badge.className}`}>{badge.label}</span>
             </div>
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <div className="truncate text-base font-semibold">{picked.name}</div>
               <div className="text-sm text-muted">
                 {pageCount} page{pageCount > 1 ? 's' : ''} · {formatBytes(picked.kind === 'pdf' ? picked.bytes.length : picked.size)}
               </div>
-              <FilePicker accept="application/pdf,image/*" onFiles={(files) => void choose(files)} className="flex h-11 items-center self-start text-[15px] font-semibold text-primary">
+              <FilePicker accept="application/pdf,image/*" onFiles={(files) => void choose(files)} className="flex h-11 items-center self-start text-[0.8824rem] font-semibold text-primary">
                 Changer de fichier
               </FilePicker>
             </div>
@@ -154,7 +154,7 @@ export default function DocumentForm() {
             className="flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-[20px] border-[1.5px] border-dashed border-line-strong bg-surface p-4 text-center text-primary"
           >
             <ImportIcon size={28} />
-            <span className="text-[17px] font-bold">Choisir un fichier</span>
+            <span className="text-[1rem] font-bold">Choisir un fichier</span>
             <span className="text-sm text-muted">Un PDF depuis Fichiers, ou une ou plusieurs photos de pages</span>
           </FilePicker>
         )}
@@ -177,7 +177,7 @@ export default function DocumentForm() {
         <TextField label="Date du document" type="date" max={today} value={date} onChange={(e) => setDate(e.target.value)} className="px-3" />
 
         <div className="flex flex-col gap-1.5">
-          <span id="lien-label" className="text-[15px] font-semibold">
+          <span id="lien-label" className="text-[0.8824rem] font-semibold">
             Lier à un événement
             <Optional />
           </span>
@@ -192,7 +192,7 @@ export default function DocumentForm() {
                 <span className="size-2.5 shrink-0 rounded-full" style={{ background: typeInfo(linkedEvent.type).color }} />
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate text-base font-semibold text-text">{linkedEvent.title}</span>
-                  <span className="text-[13px] text-muted">{formatLong(linkedEvent.date)}</span>
+                  <span className="text-[0.7647rem] text-muted">{formatLong(linkedEvent.date)}</span>
                 </span>
               </>
             ) : (
@@ -229,7 +229,7 @@ export default function DocumentForm() {
                   <span className="size-2.5 shrink-0 rounded-full" style={{ background: event ? typeInfo(event.type).color : 'transparent' }} />
                   <span className="flex min-w-0 flex-1 flex-col">
                     <span className="truncate text-base font-semibold text-text">{event?.title ?? 'Aucun événement'}</span>
-                    {event && <span className="text-[13px] text-muted">{formatLong(event.date)}</span>}
+                    {event && <span className="text-[0.7647rem] text-muted">{formatLong(event.date)}</span>}
                   </span>
                 </button>
               )

@@ -14,7 +14,7 @@ export function SubScreen({ title, children, titleInContent = false }: { title: 
         </button>
       </header>
       <main className="flex flex-col gap-5 px-5 pt-1 pb-[calc(env(safe-area-inset-bottom)+120px)]">
-        <h1 className={titleInContent ? 'sr-only' : 'font-display text-[28px] leading-tight font-extrabold'}>{title}</h1>
+        <h1 className={titleInContent ? 'sr-only' : 'font-display text-[1.6471rem] leading-tight font-extrabold'}>{title}</h1>
         {children}
       </main>
     </div>

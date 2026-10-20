@@ -13,8 +13,8 @@ export function PageHeader({ title, className = '', after }: { title: string; cl
   return (
     <header className={`flex items-start justify-between gap-3 ${className}`}>
       <div className="flex min-w-0 flex-col gap-0.5">
-        <div className="text-[15px] font-medium text-muted">{formatDayHeading(today)}</div>
-        <h1 className="flex items-center gap-2 font-display text-[32px] font-bold tracking-[-0.5px]">
+        <div className="text-[0.8824rem] font-medium text-muted">{formatDayHeading(today)}</div>
+        <h1 className="flex items-center gap-2 font-display text-[1.8824rem] font-bold tracking-[-0.5px]">
           {title}
           {after}
         </h1>

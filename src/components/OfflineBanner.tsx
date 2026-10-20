@@ -19,7 +19,7 @@ export function OfflineBanner() {
         <path d="M7 18h10a4 4 0 0 0 .5-8 6 6 0 0 0-11.3-1.6A4.5 4.5 0 0 0 7 18z" />
         <path d="M4 4l16 16" />
       </svg>
-      <span className="text-[15px] font-semibold">
+      <span className="text-[0.8824rem] font-semibold">
         <b>Pas de réseau.</b> Tout ce que vous notez est gardé et partira tout seul.
       </span>
     </div>

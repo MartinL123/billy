@@ -128,7 +128,7 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
       />
 
       <fieldset className="m-0 flex flex-col gap-3 border-0 p-0">
-        <legend className="mb-2.5 p-0 text-[19px] font-bold">Alimentation</legend>
+        <legend className="mb-2.5 p-0 text-[1.1176rem] font-bold">Alimentation</legend>
         <TextField label="Ration par jour (grammes)" inputMode="numeric" autoComplete="off" value={grams} onChange={(e) => setGrams(e.target.value.replace(/[^\d]/g, ''))} />
         {meals.map((meal, i) => (
           <div key={i} className="grid grid-cols-[minmax(0,1fr)_130px] items-end gap-2">
@@ -160,22 +160,22 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
           <button
             type="button"
             onClick={() => setMeals([...meals, { label: 'Repas', time: '12:00' }])}
-            className="h-12 rounded-full border-[1.5px] border-dashed border-line-strong bg-transparent text-[15px] font-semibold text-primary"
+            className="h-12 rounded-full border-[1.5px] border-dashed border-line-strong bg-transparent text-[0.8824rem] font-semibold text-primary"
           >
             Ajouter un repas
           </button>
         )}
-        <p className="text-[13px] leading-snug text-muted">Après un changement d’heure, retouche « Recevoir les rappels sur l’iPhone » sur l’accueil pour mettre les rappels à jour.</p>
+        <p className="text-[0.7647rem] leading-snug text-muted">Après un changement d’heure, retouche « Recevoir les rappels sur l’iPhone » sur l’accueil pour mettre les rappels à jour.</p>
       </fieldset>
 
       <fieldset className="m-0 flex flex-col gap-3 border-0 p-0">
-        <legend className="mb-2.5 p-0 text-[19px] font-bold">Vétérinaire</legend>
+        <legend className="mb-2.5 p-0 text-[1.1176rem] font-bold">Vétérinaire</legend>
         <TextField label="Nom" value={vetName} onChange={(e) => setVetName(e.target.value)} autoComplete="off" placeholder="Dr…, clinique…" />
         <TextField label="Téléphone" type="tel" inputMode="tel" autoComplete="off" value={vetPhone} onChange={(e) => setVetPhone(e.target.value)} />
       </fieldset>
 
       <fieldset className="m-0 flex flex-col gap-3 border-0 p-0">
-        <legend className="mb-2.5 p-0 text-[19px] font-bold">Éducateur</legend>
+        <legend className="mb-2.5 p-0 text-[1.1176rem] font-bold">Éducateur</legend>
         <TextField label="Nom" value={trainerName} onChange={(e) => setTrainerName(e.target.value)} autoComplete="off" />
         <TextField label="Téléphone" type="tel" inputMode="tel" autoComplete="off" value={trainerPhone} onChange={(e) => setTrainerPhone(e.target.value)} />
       </fieldset>

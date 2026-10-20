@@ -27,16 +27,16 @@ export default function ImportStrava() {
       </header>
       <main className="flex flex-col gap-4 px-5 pt-1 pb-[calc(env(safe-area-inset-bottom)+130px)]">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-[28px] leading-tight font-extrabold">Importer vos balades Strava</h1>
-          <p className="text-[17px] text-muted">Une fois par mois suffit. Les balades déjà importées sont sautées.</p>
+          <h1 className="font-display text-[1.6471rem] leading-tight font-extrabold">Importer vos balades Strava</h1>
+          <p className="text-[1rem] text-muted">Une fois par mois suffit. Les balades déjà importées sont sautées.</p>
         </div>
         <ol className="m-0 flex list-none flex-col gap-3 p-0">
           {STEPS.map((step, i) => (
             <li key={step.title} className="card flex items-start gap-3 p-4">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-[17px] font-extrabold text-white">{i + 1}</span>
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-[1rem] font-extrabold text-white">{i + 1}</span>
               <span className="flex min-w-0 flex-col gap-1">
-                <span className="text-[17px] font-bold">{step.title}</span>
-                <span className="text-[15px] leading-snug text-[#3F4946]">{step.text}</span>
+                <span className="text-[1rem] font-bold">{step.title}</span>
+                <span className="text-[0.8824rem] leading-snug text-[#3F4946]">{step.text}</span>
                 {step.link && (
                   <a href={step.link.href} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex min-h-11 items-center gap-1 self-start font-bold text-primary underline">
                     {step.link.label}
@@ -47,7 +47,7 @@ export default function ImportStrava() {
             </li>
           ))}
         </ol>
-        <p className="rounded-[18px] bg-primary-soft px-4 py-3 text-[15px] leading-snug text-primary-dark">{APP_NAME} garde le trajet et la durée. Le rythme cardiaque n’est jamais enregistré. Votre carte reste privée.</p>
+        <p className="rounded-[18px] bg-primary-soft px-4 py-3 text-[0.8824rem] leading-snug text-primary-dark">{APP_NAME} garde le trajet et la durée. Le rythme cardiaque n’est jamais enregistré. Votre carte reste privée.</p>
       </main>
       <ImportFooter label="Choisir les fichiers" />
     </div>

@@ -56,7 +56,7 @@ export function PhotoViewer({ photos, start, onClose }: PhotoViewerProps) {
         ))}
       </div>
       <div className="absolute inset-x-0 top-0 flex items-center justify-between px-3 pt-[calc(env(safe-area-inset-top)+8px)]">
-        <button type="button" onClick={onClose} className="flex min-h-12 items-center gap-2 rounded-full border-2 border-solid border-white/70 bg-black/40 px-4 text-[17px] font-bold text-white">
+        <button type="button" onClick={onClose} className="flex min-h-12 items-center gap-2 rounded-full border-2 border-solid border-white/70 bg-black/40 px-4 text-[1rem] font-bold text-white">
           <CloseIcon size={20} />
           Fermer
         </button>

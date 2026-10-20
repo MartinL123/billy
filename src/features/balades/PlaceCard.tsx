@@ -26,26 +26,26 @@ export function PlaceCard({ selected, here, me, onClose, onRemove }: Props) {
   return (
     <section aria-label={at.name} className="absolute inset-x-0 bottom-0 z-20 mx-auto flex max-w-[430px] animate-sheet flex-col gap-2.5 rounded-t-[26px] bg-surface px-5 pt-4 pb-9 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
       <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-bg text-[22px]" aria-hidden="true">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-bg text-[1.2941rem]" aria-hidden="true">
           {selected.kind === 'idea' ? (selected.idea.explored ? KIND[selected.idea.kind].icon : '?') : selected.mine.length ? '💧' : '🐾'}
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">
+          <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">
             {selected.kind === 'idea' ? KIND[selected.idea.kind].label : categoryInfo(selected.spot.category).label}
             {distance && ` · ${distance}`}
           </span>
-          <h2 className="font-display text-[22px] leading-tight font-extrabold">{at.name}</h2>
+          <h2 className="font-display text-[1.2941rem] leading-tight font-extrabold">{at.name}</h2>
         </span>
-        <button type="button" onClick={onClose} aria-label="Fermer" className="-mt-1 -mr-2 flex size-11 shrink-0 items-center justify-center rounded-full border-0 bg-transparent text-[22px] text-muted">
+        <button type="button" onClick={onClose} aria-label="Fermer" className="-mt-1 -mr-2 flex size-11 shrink-0 items-center justify-center rounded-full border-0 bg-transparent text-[1.2941rem] text-muted">
           ×
         </button>
       </div>
 
       {selected.kind === 'idea' ? (
         <>
-          <p className="text-[17px] leading-snug text-[#3F4946]">{selected.idea.explored ? `Déjà dans son territoire${selected.idea.discoveredOn ? ` depuis le ${formatLong(selected.idea.discoveredOn)}` : ''}.` : `Encore dans le brouillard. ${selected.idea.reason}`}</p>
-          {selected.idea.dogsBanned && <p className="rounded-[14px] bg-[#FDECEA] px-3 py-2 text-[15px] font-semibold text-[#8E2B23]">Chiens interdits d’après OpenStreetMap.</p>}
-          <a href={osmUrl(selected.idea.id)} target="_blank" rel="noopener noreferrer" className={`${external} text-[15px]`}>
+          <p className="text-[1rem] leading-snug text-[#3F4946]">{selected.idea.explored ? `Déjà dans son territoire${selected.idea.discoveredOn ? ` depuis le ${formatLong(selected.idea.discoveredOn)}` : ''}.` : `Encore dans le brouillard. ${selected.idea.reason}`}</p>
+          {selected.idea.dogsBanned && <p className="rounded-[14px] bg-[#FDECEA] px-3 py-2 text-[0.8824rem] font-semibold text-[#8E2B23]">Chiens interdits d’après OpenStreetMap.</p>}
+          <a href={osmUrl(selected.idea.id)} target="_blank" rel="noopener noreferrer" className={`${external} text-[0.8824rem]`}>
             Répertorié sur OpenStreetMap : voir la fiche
           </a>
           <div className="flex gap-2">
@@ -56,20 +56,20 @@ export function PlaceCard({ selected, here, me, onClose, onRemove }: Props) {
               Préparer sur Strava
             </a>
           </div>
-          <Link to="/territoire/idees" className="flex min-h-11 items-center justify-center text-[15px] font-bold text-primary">
+          <Link to="/territoire/idees" className="flex min-h-11 items-center justify-center text-[0.8824rem] font-bold text-primary">
             Autres idées de balade
           </Link>
         </>
       ) : (
         <>
-          <p className="text-[17px] leading-snug text-[#3F4946]">
+          <p className="text-[1rem] leading-snug text-[#3F4946]">
             {selected.mine.length ? `Marqué par vous le ${formatLong(selected.mine[0]!.date)}.` : 'Un spot partagé par la meute.'}
             {selected.spot.info.length > 0 && ` ${selected.spot.info.slice(0, 2).join(' · ')}`}
           </p>
           {selected.mine.length > 0 ? (
             confirm ? (
               <div className="flex flex-col gap-2 rounded-[18px] bg-bg p-3">
-                <p className="text-[15px] leading-snug">{selected.spot.createdBy === me ? 'Le spot disparaît de la carte, pour toute la meute.' : 'Votre marque disparaît ; le spot reste pour la meute.'} Les os gagnés restent.</p>
+                <p className="text-[0.8824rem] leading-snug">{selected.spot.createdBy === me ? 'Le spot disparaît de la carte, pour toute la meute.' : 'Votre marque disparaît ; le spot reste pour la meute.'} Les os gagnés restent.</p>
                 <div className="flex gap-2">
                   <button type="button" onClick={() => setConfirm(false)} className="btn btn-outline min-h-12 flex-1">
                     Annuler

@@ -26,7 +26,7 @@ export default function DogPublic() {
   if (!member) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="text-[17px] text-muted">Ce chien n’est pas (ou plus) dans la meute.</p>
+        <p className="text-[1rem] text-muted">Ce chien n’est pas (ou plus) dans la meute.</p>
         <button type="button" onClick={back} className="btn btn-main">
           Retour à la meute
         </button>
@@ -46,12 +46,12 @@ export default function DogPublic() {
       <main className="flex flex-col gap-5 px-5 pt-1 pb-[calc(env(safe-area-inset-bottom)+40px)]">
         <div className="flex flex-col items-center gap-2 text-center">
           <MemberAvatar member={member} size={112} />
-          <h1 className="font-display text-[30px] font-extrabold">{member.dogName}</h1>
-          <p className="text-[15px] text-muted">{[member.birthDate ? formatAgeShort(member.birthDate, today) : '', member.breed].filter(Boolean).join(' · ')}</p>
+          <h1 className="font-display text-[1.7647rem] font-extrabold">{member.dogName}</h1>
+          <p className="text-[0.8824rem] text-muted">{[member.birthDate ? formatAgeShort(member.birthDate, today) : '', member.breed].filter(Boolean).join(' · ')}</p>
         </div>
         <section className="flex flex-col gap-2">
           <h2 className="text-xl font-bold">Son territoire</h2>
-          <p className="text-[17px]">{territory.length ? `${territory.length} spot${territory.length > 1 ? 's' : ''} marqué${territory.length > 1 ? 's' : ''} : ${territory.join(', ')}` : 'Aucun spot marqué pour l’instant.'}</p>
+          <p className="text-[1rem]">{territory.length ? `${territory.length} spot${territory.length > 1 ? 's' : ''} marqué${territory.length > 1 ? 's' : ''} : ${territory.join(', ')}` : 'Aucun spot marqué pour l’instant.'}</p>
         </section>
         {shared.length > 0 && (
           <section className="flex flex-col gap-2">
@@ -59,7 +59,7 @@ export default function DogPublic() {
             {shared.map((f) => (
               <div key={f.id} className="card flex flex-col gap-2 p-4">
                 <span className="text-sm font-semibold text-muted">{formatShort(f.date)}</span>
-                <span className="text-[17px] leading-snug">{f.text}</span>
+                <span className="text-[1rem] leading-snug">{f.text}</span>
                 {f.photo && <FeedPhoto photo={f.photo} size={160} />}
               </div>
             ))}

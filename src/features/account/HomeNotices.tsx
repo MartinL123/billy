@@ -27,7 +27,7 @@ export function PasswordPrompt() {
   if (dog.passwordPromptDone || !questionnaireStatus(dog.questionnaire).complete) return null
   return (
     <section className="flex flex-col gap-3 rounded-[22px] bg-info-soft p-4">
-      <p className="text-[17px] leading-snug font-semibold text-[#1D3F73]">Votre mot de passe vous a été donné : choisissez-en un à vous.</p>
+      <p className="text-[1rem] leading-snug font-semibold text-[#1D3F73]">Votre mot de passe vous a été donné : choisissez-en un à vous.</p>
       <div className="grid grid-cols-[1fr_auto] gap-2">
         <button type="button" onClick={() => setOpen(true)} className="btn btn-outline bg-surface whitespace-nowrap">
           Le changer
@@ -58,8 +58,8 @@ export function InstallBanner() {
   }
   return (
     <aside className="flex items-center gap-2 rounded-[18px] border border-solid border-divider bg-surface py-1.5 pr-1.5 pl-4">
-      <span className="flex-1 text-[15px] leading-snug">Ajoutez {APP_NAME} à votre écran d’accueil</span>
-      <Link to="/installer" className="btn btn-outline min-h-11 shrink-0 px-3.5 text-[15px]">
+      <span className="flex-1 text-[0.8824rem] leading-snug">Ajoutez {APP_NAME} à votre écran d’accueil</span>
+      <Link to="/installer" className="btn btn-outline min-h-11 shrink-0 px-3.5 text-[0.8824rem]">
         Comment ?
       </Link>
       <button type="button" aria-label="Fermer" onClick={close} className="flex size-11 shrink-0 items-center justify-center rounded-full border-0 bg-transparent text-muted">

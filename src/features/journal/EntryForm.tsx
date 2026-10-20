@@ -141,7 +141,7 @@ export default function EntryForm() {
 
   const choices = allTags([...entries.flatMap((e) => e.tags), ...tags])
   const chipClass = (active: boolean) =>
-    `min-h-12 rounded-full border-2 px-3.5 text-[17px] ${
+    `min-h-12 rounded-full border-2 px-3.5 text-[1rem] ${
       active ? 'border-primary bg-primary font-bold text-white' : 'border-border bg-surface font-medium text-text'
     }`
 
@@ -156,8 +156,8 @@ export default function EntryForm() {
       >
         <div className="flex flex-col gap-2.5">
           <div className="flex items-baseline justify-between">
-            <span className="text-[17px] font-semibold">Photos</span>
-            <span className="text-[13px] text-muted">
+            <span className="text-[1rem] font-semibold">Photos</span>
+            <span className="text-[0.7647rem] text-muted">
               {items.length} sur {MAX_PHOTOS}
             </span>
           </div>
@@ -173,7 +173,7 @@ export default function EntryForm() {
                   type="button"
                   aria-label={`Retirer la photo ${i + 1}`}
                   onClick={() => remove(item)}
-                  className="absolute inset-x-0 bottom-0 flex min-h-12 items-center justify-center border-0 bg-[rgba(24,32,30,0.72)] text-[17px] font-bold text-white"
+                  className="absolute inset-x-0 bottom-0 flex min-h-12 items-center justify-center border-0 bg-[rgba(24,32,30,0.72)] text-[1rem] font-bold text-white"
                 >
                   Retirer
                 </button>
@@ -183,7 +183,7 @@ export default function EntryForm() {
               <FilePicker
                 accept="image/*"
                 onFiles={(files) => void addFiles(files)}
-                className="flex aspect-square flex-col items-center justify-center gap-1 rounded-field border-2 border-dashed border-line-strong bg-surface text-[13px] font-semibold text-primary"
+                className="flex aspect-square flex-col items-center justify-center gap-1 rounded-field border-2 border-dashed border-line-strong bg-surface text-[0.7647rem] font-semibold text-primary"
               >
                 <PlusIcon size={24} />
                 Ajouter
@@ -198,14 +198,14 @@ export default function EntryForm() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="texte" className="text-[17px] font-semibold">
+          <label htmlFor="texte" className="text-[1rem] font-semibold">
             Ce qui s’est passé
           </label>
           <textarea id="texte" rows={4} value={text} onChange={(e) => setText(e.target.value)} className="field resize-none py-3.5 leading-[1.45]" />
         </div>
 
         <fieldset className="m-0 border-0 p-0">
-          <legend className="mb-2.5 p-0 text-[17px] font-semibold">Tags</legend>
+          <legend className="mb-2.5 p-0 text-[1rem] font-semibold">Tags</legend>
           <div className="flex flex-wrap gap-2">
             {choices.map((tag) => {
               const active = tags.some((t) => sameTag(t, tag))
@@ -219,7 +219,7 @@ export default function EntryForm() {
               <button
                 type="button"
                 onClick={() => setNewTag('')}
-                className="min-h-12 rounded-full border-2 border-dashed border-line-strong bg-transparent px-3.5 text-[17px] font-semibold text-primary"
+                className="min-h-12 rounded-full border-2 border-dashed border-line-strong bg-transparent px-3.5 text-[1rem] font-semibold text-primary"
               >
                 + Nouveau
               </button>
@@ -246,7 +246,7 @@ export default function EntryForm() {
         </fieldset>
 
         <div className="flex min-h-[52px] items-center justify-between gap-3 rounded-field border-2 border-border bg-surface px-4">
-          <label htmlFor="dt" className="text-[17px] font-semibold">
+          <label htmlFor="dt" className="text-[1rem] font-semibold">
             Date
           </label>
           <NativePickerInput

@@ -15,7 +15,7 @@ export default function HealthMeals() {
       ) : (
         // Rien de renseigné : le titre de l'écran s'affiche (sinon c'est la carte des repas qui le porte).
         <div className="card flex flex-col items-start gap-3 p-4">
-          <p className="text-[17px] font-semibold">Ses repas ne sont pas encore renseignés.</p>
+          <p className="text-[1rem] font-semibold">Ses repas ne sont pas encore renseignés.</p>
           <Link to="/questionnaire?etape=repas" className="btn btn-outline">
             Indiquer ses repas
           </Link>

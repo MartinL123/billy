@@ -13,7 +13,7 @@ export function VisitorBanner() {
         <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
         <circle cx="12" cy="12" r="3" />
       </svg>
-      <span className="text-[15px] font-semibold">
+      <span className="text-[0.8824rem] font-semibold">
         Vous regardez {dog.name} · lecture seule
       </span>
     </Link>

@@ -58,13 +58,13 @@ export default function Login() {
     <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col px-6 pt-[calc(env(safe-area-inset-top)+72px)] pb-[calc(env(safe-area-inset-bottom)+32px)]">
       <div className="flex flex-col items-center gap-4 text-center">
         <Logo />
-        <h1 className="font-display text-[34px] font-bold tracking-[-0.5px]">{APP_NAME}</h1>
+        <h1 className="font-display text-[2rem] font-bold tracking-[-0.5px]">{APP_NAME}</h1>
         <p className="text-base text-muted">{APP_TAGLINE}</p>
       </div>
 
       <form onSubmit={submit} noValidate className="mt-12 flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="email" className="text-[15px] font-semibold">
+          <label htmlFor="email" className="text-[0.8824rem] font-semibold">
             E-mail
           </label>
           <input
@@ -108,9 +108,9 @@ export default function Login() {
         </button>
       )}
 
-      <p className="mt-auto pt-8 text-center text-[13px] leading-snug text-muted">Vos données restent privées. Martin, qui gère l’app, peut techniquement y accéder.</p>
+      <p className="mt-auto pt-8 text-center text-[0.7647rem] leading-snug text-muted">Vos données restent privées. Martin, qui gère l’app, peut techniquement y accéder.</p>
 
-      <p className="mt-auto pt-8 text-center text-[13px] text-muted">Une seule connexion : l’app reste ouverte ensuite.</p>
+      <p className="mt-auto pt-8 text-center text-[0.7647rem] text-muted">Une seule connexion : l’app reste ouverte ensuite.</p>
     </main>
   )
 }

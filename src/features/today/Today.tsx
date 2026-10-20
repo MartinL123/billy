@@ -62,7 +62,7 @@ type Action = { label: string; to?: string; href?: string; run?: () => void }
 
 /** Le bouton plein (principal) ou discret de la carte. */
 function CardButton({ action, main }: { action: Action; main?: boolean }) {
-  const cls = main ? 'btn btn-main min-h-[56px]' : 'btn btn-quiet min-h-11 self-center px-4 text-[15px] text-primary'
+  const cls = main ? 'btn btn-main min-h-[56px]' : 'btn btn-quiet min-h-11 self-center px-4 text-[0.8824rem] text-primary'
   if (action.to)
     return (
       <Link to={action.to} className={cls}>
@@ -324,12 +324,12 @@ export default function Today() {
             <DogPhoto size={52} />
           </span>
           <span className="flex min-w-0 flex-col">
-            <span className="text-[15px] font-medium text-muted">{formatDayHeading(today)}</span>
+            <span className="text-[0.8824rem] font-medium text-muted">{formatDayHeading(today)}</span>
             {/* Jamais coupé (V5) : plus petit sur un écran étroit, puis à la ligne. */}
             <span className="font-display text-[clamp(21px,7vw,26px)] leading-tight font-extrabold break-words">Bonjour, {dog.name}</span>
           </span>
         </Link>
-        <Link to="/boutique" data-bones-counter aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[17px] font-extrabold text-gold-dark no-underline">
+        <Link to="/boutique" data-bones-counter aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[1rem] font-extrabold text-gold-dark no-underline">
           <BoneIcon size={20} />
           <CountUp value={balance(bones)} fromZero={arrival} />
         </Link>
@@ -338,11 +338,11 @@ export default function Today() {
       {/* Une nouvelle carte du moment (soin fait, mission faite…) monte à la place de l’ancienne (T-033). */}
       {!readOnly && (
       <section key={cardKey(card)} aria-label="À faire maintenant" className={`card flex flex-col gap-3 rounded-[26px] p-4 ${cardKey(card) !== firstCard ? 'anim-in' : ''}`}>
-        <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{content.badge}</span>
-        {/* Texte agrandi (V5) : l’illustration disparaît d’abord, puis la ligne d’aide ; le bouton reste visible. */}
-        {content.scene && <Illustration scene={content.scene} className="h-[130px] bg-bg [@media(max-height:34em)]:hidden" />}
-        <h1 className="font-display text-[26px] leading-tight font-extrabold">{content.title}</h1>
-        <p className="line-clamp-2 text-[17px] leading-snug text-[#3F4946] [@media(max-height:30em)]:hidden">{content.text}</p>
+        <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{content.badge}</span>
+        {/* Texte agrandi (V5, R-056) ou écran bas : l’illustration disparaît d’abord, puis la ligne d’aide ; le bouton reste visible. */}
+        {content.scene && <Illustration scene={content.scene} className="h-[130px] bg-bg [@media(max-height:34em)]:hidden [.texte-grand_&]:hidden" />}
+        <h1 className="font-display text-[1.5294rem] leading-tight font-extrabold">{content.title}</h1>
+        <p className="line-clamp-2 text-[1rem] leading-snug text-[#3F4946] [@media(max-height:30em)]:hidden [.texte-tres-grand_&]:hidden">{content.text}</p>
         {content.action && <CardButton action={content.action} main />}
         {content.other && <CardButton action={content.other} />}
         {content.third && <CardButton action={content.third} />}

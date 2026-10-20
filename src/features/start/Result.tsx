@@ -63,16 +63,16 @@ export function Result() {
 
   return (
     <>
-      <h1 className="font-display text-[28px] leading-tight font-extrabold" aria-live="polite">
+      <h1 className="font-display text-[1.6471rem] leading-tight font-extrabold" aria-live="polite">
         {dog.name} commence avec {steps} étape{steps > 1 ? 's' : ''} déjà acquise{steps > 1 ? 's' : ''}
       </h1>
-      <p className="rounded-2xl bg-[#FFF8E6] px-3.5 py-3 text-[15px] leading-[1.45] text-gold-dark">
+      <p className="rounded-2xl bg-[#FFF8E6] px-3.5 py-3 text-[0.8824rem] leading-[1.45] text-gold-dark">
         <strong>Vérifiez avant de commencer.</strong> Touchez une étape pour la décocher si on s’est trompé, ou pour cocher la suivante. Décocher une étape décoche aussi les plus difficiles de la même compétence.
       </p>
 
       {TERRITORIES.map((territory) => (
         <section key={territory.tier} className="flex flex-col gap-3">
-          <h2 className="mx-1 mt-2 text-[13px] font-extrabold tracking-[0.6px] uppercase" style={{ color: territory.color }}>
+          <h2 className="mx-1 mt-2 text-[0.7647rem] font-extrabold tracking-[0.6px] uppercase" style={{ color: territory.color }}>
             {territory.name}
           </h2>
           {SKILLS.filter((s) => s.tier === territory.tier).map((skill) => {
@@ -104,8 +104,8 @@ export function Result() {
                         {acquired && <CheckIcon size={18} strokeWidth={3} />}
                       </span>
                       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                        <span className={`text-[15px] leading-snug ${acquired ? 'font-semibold' : 'text-muted'}`}>{stepPhrase(skill.id, step)}</span>
-                        {locked && <span className="text-[13px] text-muted">Validée dans l’app</span>}
+                        <span className={`text-[0.8824rem] leading-snug ${acquired ? 'font-semibold' : 'text-muted'}`}>{stepPhrase(skill.id, step)}</span>
+                        {locked && <span className="text-[0.7647rem] text-muted">Validée dans l’app</span>}
                       </span>
                     </button>
                   )
@@ -122,13 +122,13 @@ export function Result() {
             <CheckIcon size={20} strokeWidth={3} />
           </span>
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="text-[15px] font-bold text-primary-dark">Souvenir noté dans le Carnet</span>
-            <span className="truncate text-[13px] text-primary">
+            <span className="text-[0.8824rem] font-bold text-primary-dark">Souvenir noté dans le Carnet</span>
+            <span className="truncate text-[0.7647rem] text-primary">
               {souvenir.text ? `« ${souvenir.text.split('\n')[0]!.slice(0, 40)} »` : 'Sans texte'}
               {souvenir.photos.length > 0 ? ` · ${souvenir.photos.length} photo${souvenir.photos.length > 1 ? 's' : ''}` : ''}
             </span>
           </span>
-          <button type="button" onClick={noteSouvenir} className="btn btn-outline min-h-12 shrink-0 bg-surface px-3.5 text-[15px]">
+          <button type="button" onClick={noteSouvenir} className="btn btn-outline min-h-12 shrink-0 bg-surface px-3.5 text-[0.8824rem]">
             Un autre
           </button>
         </div>

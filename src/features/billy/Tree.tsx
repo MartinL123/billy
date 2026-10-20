@@ -55,10 +55,10 @@ function Floor({ territory, active }: { territory: Territory; active: string[] }
           </svg>
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="text-[13px] font-bold tracking-[0.6px] uppercase" style={{ color: inkOn(territory) }}>
+          <span className="text-[0.7647rem] font-bold tracking-[0.6px] uppercase" style={{ color: inkOn(territory) }}>
             {territory.floor}
           </span>
-          <h2 className="font-display text-[22px] leading-tight font-extrabold">{territory.name}</h2>
+          <h2 className="font-display text-[1.2941rem] leading-tight font-extrabold">{territory.name}</h2>
           <span className="text-sm text-[#3F4946]">{territory.subtitle}</span>
         </span>
       </div>
@@ -83,12 +83,12 @@ function Floor({ territory, active }: { territory: Territory; active: string[] }
               <Badge bossId={skill.id} acquired={acquired} />
               <span className="font-display text-base leading-tight font-extrabold">{skill.name}</span>
               {mastered ? (
-                <span className="rounded-lg bg-gold-soft px-2 py-0.5 text-[13px] font-bold text-[#5C4410]">Maîtrisé · à entretenir</span>
+                <span className="rounded-lg bg-gold-soft px-2 py-0.5 text-[0.7647rem] font-bold text-[#5C4410]">Maîtrisé · à entretenir</span>
               ) : (
                 <span className={`text-sm leading-snug ${acquired ? 'text-[#3F4946]' : 'text-muted'}`}>{acquired || current ? stepShort(skill.id, acquired + 1) : 'À découvrir'}</span>
               )}
               {exercise && (
-                <span className="mt-0.5 flex max-w-full items-center gap-1 rounded-[14px] px-2.5 py-1 text-left text-[13px] leading-tight font-bold" style={{ background: territory.soft, color: inkOn(territory) }}>
+                <span className="mt-0.5 flex max-w-full items-center gap-1 rounded-[14px] px-2.5 py-1 text-left text-[0.7647rem] leading-tight font-bold" style={{ background: territory.soft, color: inkOn(territory) }}>
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true" className="shrink-0">
                     <path d="M2 1l7 4-7 4z" />
                   </svg>
@@ -110,7 +110,7 @@ function Floor({ territory, active }: { territory: Territory; active: string[] }
           <ChevronRightIcon size={20} />
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-px">
-          <span className="text-[15px] font-extrabold" style={{ color: inkOn(target) }}>
+          <span className="text-[0.8824rem] font-extrabold" style={{ color: inkOn(target) }}>
             {territory.link.label}
           </span>
           <span className="text-sm leading-snug font-semibold">{territory.link.text}</span>
@@ -145,7 +145,7 @@ export default function Tree() {
           <span className="absolute -right-2 -bottom-2 rounded-full border-[3px] border-solid border-bg bg-primary px-2 py-0.5 text-xs font-bold text-white">profil</span>
         </Link>
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <h1 className="font-display text-[28px] leading-none font-extrabold">L’arbre {ofName(dog.name)}</h1>
+          <h1 className="font-display text-[1.6471rem] leading-none font-extrabold">L’arbre {ofName(dog.name)}</h1>
         </div>
       </header>
 
@@ -155,17 +155,17 @@ export default function Tree() {
           <BoneIcon size={30} />
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="font-display text-[24px] leading-tight font-extrabold">{balance(bones)} os</span>
+          <span className="font-display text-[1.4118rem] leading-tight font-extrabold">{balance(bones)} os</span>
           <span className="truncate text-sm font-semibold text-gold-dark">Pour vos efforts</span>
         </span>
-        <span className="flex min-h-11 shrink-0 items-center gap-0.5 rounded-full border-2 border-solid border-gold-dark px-3.5 text-[15px] font-bold text-gold-dark">
+        <span className="flex min-h-11 shrink-0 items-center gap-0.5 rounded-full border-2 border-solid border-gold-dark px-3.5 text-[0.8824rem] font-bold text-gold-dark">
           Boutique
           <ChevronRightIcon size={18} />
         </span>
       </Link>
 
       <div className="flex flex-col gap-2.5">
-        <p className="px-1 text-[15px] leading-snug text-[#3F4946]">Ses compétences poussent en 3 étages, de la maison au grand monde. Touchez-en une pour voir son chemin et vous entraîner.</p>
+        <p className="px-1 text-[0.8824rem] leading-snug text-[#3F4946]">Ses compétences poussent en 3 étages, de la maison au grand monde. Touchez-en une pour voir son chemin et vous entraîner.</p>
         <section aria-label="Son programme" className="flex flex-col gap-3 rounded-[22px] bg-surface px-4 py-3.5 shadow-[0_2px_8px_rgba(24,32,30,0.08)]">
           <div className="flex flex-col gap-0.5">
             <h2 className="font-display text-lg font-extrabold">Son programme</h2>
@@ -182,7 +182,7 @@ export default function Tree() {
               </span>
             ))}
           </div>
-          <p className="text-[13px] leading-snug text-muted">Un jour de repos par semaine, et toujours le lendemain d’un moment difficile.</p>
+          <p className="text-[0.7647rem] leading-snug text-muted">Un jour de repos par semaine, et toujours le lendemain d’un moment difficile.</p>
           <Link to="/en-cours" className="btn btn-outline">
             Choisir ses compétences en cours
           </Link>

@@ -34,7 +34,7 @@ export function PasswordSheet({ onClose }: { onClose: () => void }) {
 
   return (
     <Sheet label="Changer mon mot de passe" onClose={busy ? () => undefined : onClose}>
-      <h2 className="mt-1 font-display text-[24px] font-extrabold">Changer mon mot de passe</h2>
+      <h2 className="mt-1 font-display text-[1.4118rem] font-extrabold">Changer mon mot de passe</h2>
       <PasswordField label="Mot de passe actuel" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} error={error?.field === 'current' ? error.text : undefined} />
       <PasswordField label="Nouveau mot de passe (8 caractères au moins)" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} error={error?.field === 'next' ? error.text : undefined} />
       <button type="button" onClick={() => void save()} disabled={busy} className="btn btn-main mt-1 disabled:opacity-60">

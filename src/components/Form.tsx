@@ -22,7 +22,7 @@ export function FormScreen({ title, submitLabel, onCancel, onSubmit, busy, child
         <button type="button" onClick={onCancel} className="btn btn-quiet my-1.5 min-h-12 px-4">
           Annuler
         </button>
-        <h1 className="text-[17px] font-bold">{title}</h1>
+        <h1 className="text-[1rem] font-bold">{title}</h1>
         <div className="w-[92px]" />
       </header>
       <div className="flex flex-col gap-5 px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+120px)]">{children}</div>
@@ -50,7 +50,7 @@ export function TextField({ label, error, className = '', ...input }: TextFieldP
   const id = useId()
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
-      <label htmlFor={id} className="text-[15px] font-semibold">
+      <label htmlFor={id} className="text-[0.8824rem] font-semibold">
         {label}
       </label>
       {input.type === 'date' || input.type === 'time' ? (
@@ -85,7 +85,7 @@ interface SegmentedProps<T extends string> {
 export function Segmented<T extends string>({ legend, options, value, onChange, hint }: SegmentedProps<T>) {
   return (
     <fieldset className="m-0 min-w-0 border-0 p-0">
-      <legend className="mb-2.5 p-0 text-[15px] font-semibold">{legend}</legend>
+      <legend className="mb-2.5 p-0 text-[0.8824rem] font-semibold">{legend}</legend>
       <div className="grid gap-1 rounded-field bg-placeholder p-1" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
         {options.map((option) => {
           const active = option.value === value
@@ -95,14 +95,14 @@ export function Segmented<T extends string>({ legend, options, value, onChange, 
               type="button"
               aria-pressed={active}
               onClick={() => onChange(option.value)}
-              className={`min-h-12 rounded-[10px] border-0 px-1 text-[17px] ${active ? 'bg-primary font-bold text-white' : 'bg-transparent font-semibold text-[#3F4946]'}`}
+              className={`min-h-12 rounded-[10px] border-0 px-1 text-[1rem] ${active ? 'bg-primary font-bold text-white' : 'bg-transparent font-semibold text-[#3F4946]'}`}
             >
               {option.label}
             </button>
           )
         })}
       </div>
-      {hint && <div className="mt-2 text-[13px] text-muted">{hint}</div>}
+      {hint && <div className="mt-2 text-[0.7647rem] text-muted">{hint}</div>}
     </fieldset>
   )
 }

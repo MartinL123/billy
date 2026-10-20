@@ -27,7 +27,7 @@ export function ImportFooter({ label, multiple = true }: { label: string; multip
       <div className="mx-auto flex max-w-[430px] flex-col gap-2 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
         {progress ? (
           <div role="status" className="flex flex-col gap-2">
-            <span className="text-[17px] font-bold">
+            <span className="text-[1rem] font-bold">
               Import en cours… {progress.done} sur {progress.total}
             </span>
             <span className="h-3 overflow-hidden rounded-full bg-placeholder">

@@ -6,7 +6,7 @@ export function PasswordField({ label, error, ...input }: { label: string; error
   const [shown, setShown] = useState(false)
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-[15px] font-semibold">
+      <label htmlFor={id} className="text-[0.8824rem] font-semibold">
         {label}
       </label>
       <span className="relative flex">

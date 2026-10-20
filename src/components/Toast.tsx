@@ -60,7 +60,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   useEffect(() => setBannerEl(toast?.bones ? banner.current : null), [toast])
 
   const body = toast && (
-    <div ref={banner} key={toast.id} className={`pointer-events-auto flex min-h-12 max-w-full items-center gap-2 rounded-2xl bg-text py-1 pr-1 pl-4 text-[15px] text-white shadow-lg ${toast.bones ? 'toast-drop' : 'animate-fade'}`}>
+    <div ref={banner} key={toast.id} className={`pointer-events-auto flex min-h-12 max-w-full items-center gap-2 rounded-2xl bg-text py-1 pr-1 pl-4 text-[0.8824rem] text-white shadow-lg ${toast.bones ? 'toast-drop' : 'animate-fade'}`}>
       <span className="py-2">{toast.text}</span>
       {toast.action ? (
         <button
@@ -69,7 +69,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             toast.action?.run()
             setToast(null)
           }}
-          className="min-h-12 shrink-0 rounded-full border-2 border-solid border-white/70 bg-transparent px-4 text-[17px] font-bold text-white"
+          className="min-h-12 shrink-0 rounded-full border-2 border-solid border-white/70 bg-transparent px-4 text-[1rem] font-bold text-white"
         >
           {toast.action.label}
         </button>

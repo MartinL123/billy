@@ -8,6 +8,7 @@ import { isConfigured } from './firebase/config'
 import { Splash } from './features/auth/Splash'
 import { isNative } from './native'
 import { watchFirestoreCrash } from './firebase/recover'
+import { textClasses, textLevel } from './lib/textSize'
 
 // Nouvelle version : l’app se recharge seule. Sur iPhone l’app reste ouverte des jours,
 // on revérifie donc à chaque retour au premier plan.
@@ -28,6 +29,16 @@ if (!(isNative() && window.location.protocol === 'capacitor:'))
 
 // R-042 : Firestore en panne après un passage en arrière-plan (iOS) : l’app se recharge à son retour.
 watchFirestoreCrash()
+
+// R-056 : le niveau de taille du texte d’iOS, sur <html> (relu au retour au premier plan, quand le réglage a pu changer).
+const markTextSize = () => {
+  const html = document.documentElement
+  html.classList.remove('texte-grand', 'texte-tres-grand')
+  html.classList.add(...textClasses(textLevel(parseFloat(getComputedStyle(html).fontSize))))
+}
+markTextSize()
+document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && markTextSize())
+window.addEventListener('resize', markTextSize)
 
 const root = createRoot(document.getElementById('root')!)
 

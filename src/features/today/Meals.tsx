@@ -38,7 +38,7 @@ export function Meals({ dogName, feeding, today }: { dogName: string; feeding: F
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-[19px] font-bold">Repas</h2>
+        <h2 className="text-[1.1176rem] font-bold">Repas</h2>
         <span className="text-sm text-muted">
           {feeding.gramsPerDay} g par jour{grams ? ` · ${grams} g par repas` : ''}
         </span>
@@ -50,8 +50,8 @@ export function Meals({ dogName, feeding, today }: { dogName: string; feeding: F
             return (
               <li key={`${meal.time}-${i}`} className={`flex flex-col items-center gap-0.5 rounded-field px-1 py-2.5 text-center ${isNext ? 'bg-primary-soft' : 'bg-bg'}`}>
                 <span className={`font-display text-xl font-bold ${isNext ? 'text-primary-dark' : 'text-text'}`}>{formatTime(meal.time)}</span>
-                <span className="text-[13px] text-muted">{meal.label}</span>
-                {isNext && <span className="text-[13px] font-semibold text-primary-dark">Prochain</span>}
+                <span className="text-[0.7647rem] text-muted">{meal.label}</span>
+                {isNext && <span className="text-[0.7647rem] font-semibold text-primary-dark">Prochain</span>}
               </li>
             )
           })}

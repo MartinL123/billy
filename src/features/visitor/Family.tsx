@@ -49,16 +49,16 @@ export function FamilySection() {
   return (
     <section className="flex flex-col gap-2.5">
       <h2 className="text-xl font-bold">Famille</h2>
-      <p className="text-[15px] leading-snug text-[#3F4946]">Un proche suit {dog.name} depuis son compte : balades, souvenirs, santé et progrès, sans rien pouvoir modifier. Les documents restent privés.</p>
+      <p className="text-[0.8824rem] leading-snug text-[#3F4946]">Un proche suit {dog.name} depuis son compte : balades, souvenirs, santé et progrès, sans rien pouvoir modifier. Les documents restent privés.</p>
       {viewers.length > 0 && (
         <ul className="card m-0 flex list-none flex-col px-4 py-1">
           {viewers.map((viewer, i) => (
             <li key={viewer.id} className={`flex min-h-14 items-center gap-3 py-2 ${i ? 'border-t border-divider' : ''}`}>
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-base font-semibold">{viewer.email || 'Un proche'}</span>
-                {viewer.since && <span className="text-[13px] text-muted">Depuis le {formatLong(viewer.since.slice(0, 10))}</span>}
+                {viewer.since && <span className="text-[0.7647rem] text-muted">Depuis le {formatLong(viewer.since.slice(0, 10))}</span>}
               </span>
-              <button type="button" onClick={() => setRemoving(viewer)} className="btn btn-quiet min-h-11 px-3 text-[15px] text-danger">
+              <button type="button" onClick={() => setRemoving(viewer)} className="btn btn-quiet min-h-11 px-3 text-[0.8824rem] text-danger">
                 Retirer
               </button>
             </li>
@@ -67,8 +67,8 @@ export function FamilySection() {
       )}
       {link && (
         <button type="button" onClick={() => copy(link)} className="card flex flex-col items-start gap-1 border-0 px-4 py-3 text-left">
-          <span className="text-[13px] font-bold text-muted">Lien à envoyer (touchez pour copier)</span>
-          <span className="text-[15px] break-all text-text">{link}</span>
+          <span className="text-[0.7647rem] font-bold text-muted">Lien à envoyer (touchez pour copier)</span>
+          <span className="text-[0.8824rem] break-all text-text">{link}</span>
         </button>
       )}
       <button type="button" onClick={invite} disabled={busy} className="btn btn-outline min-h-12">
@@ -98,9 +98,9 @@ export function VisitorAccount() {
   return (
     <section className="flex flex-col gap-2.5">
       <h2 className="text-xl font-bold">Vous regardez {dog.name}</h2>
-      <p className="text-[15px] leading-snug text-[#3F4946]">En lecture seule : vous voyez ses balades, ses souvenirs, sa santé et ses progrès, sans rien modifier.</p>
+      <p className="text-[0.8824rem] leading-snug text-[#3F4946]">En lecture seule : vous voyez ses balades, ses souvenirs, sa santé et ses progrès, sans rien modifier.</p>
       <div className="card px-4 py-3.5">
-        <span className="text-[13px] text-muted">Connecté avec</span>
+        <span className="text-[0.7647rem] text-muted">Connecté avec</span>
         <p className="truncate text-base font-semibold">{email}</p>
       </div>
       <button type="button" onClick={() => setStopping(true)} className="btn btn-outline min-h-12">

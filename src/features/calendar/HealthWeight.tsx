@@ -31,11 +31,11 @@ export default function HealthWeight() {
       <section className="card flex flex-col gap-3 p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex flex-col gap-0.5">
-            <h2 className="text-[19px] font-bold">Poids</h2>
-            <div className="text-[13px] text-muted">{lastWeight ? `Pesé le ${formatShort(lastWeight.date, year)}` : 'Aucune pesée pour l’instant'}</div>
+            <h2 className="text-[1.1176rem] font-bold">Poids</h2>
+            <div className="text-[0.7647rem] text-muted">{lastWeight ? `Pesé le ${formatShort(lastWeight.date, year)}` : 'Aucune pesée pour l’instant'}</div>
           </div>
           {lastWeight && (
-            <div className="font-display text-[30px] font-bold">
+            <div className="font-display text-[1.7647rem] font-bold">
               {formatKg(lastWeight.kg)} <span className="font-sans text-base font-semibold text-muted">kg</span>
             </div>
           )}
@@ -50,7 +50,7 @@ export default function HealthWeight() {
                 type="button"
                 aria-label={`Modifier la pesée du ${formatLong(weight.date)}`}
                 onClick={() => setWeightSheet({ editing: weight })}
-                className="flex min-h-12 items-center gap-3 border-0 border-t border-solid border-divider bg-transparent px-0 text-left text-[17px] text-text"
+                className="flex min-h-12 items-center gap-3 border-0 border-t border-solid border-divider bg-transparent px-0 text-left text-[1rem] text-text"
               >
                 <span className="flex-1">{formatShort(weight.date, year)}</span>
                 <span className="font-semibold">{formatKg(weight.kg)} kg</span>

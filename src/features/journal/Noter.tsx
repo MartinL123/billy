@@ -160,7 +160,7 @@ export default function Noter() {
   if (auto && !error)
     return (
       <main className="mx-auto flex min-h-dvh max-w-[430px] items-center justify-center px-5">
-        <p role="status" className="text-[17px] font-semibold text-muted">
+        <p role="status" className="text-[1rem] font-semibold text-muted">
           Enregistrement…
         </p>
       </main>
@@ -187,7 +187,7 @@ export default function Noter() {
         {fromQuest && (
           <div className="flex flex-wrap items-center gap-2">
             <SkillPill bossId={skills[0] ?? ''} />
-            <span className="text-[15px] font-semibold text-muted">Mission du jour</span>
+            <span className="text-[0.8824rem] font-semibold text-muted">Mission du jour</span>
           </div>
         )}
 
@@ -205,7 +205,7 @@ export default function Noter() {
                       URL.revokeObjectURL(photo.previewUrl)
                       setPhotos(photos.filter((p) => p.key !== photo.key))
                     }}
-                    className="absolute inset-x-0 bottom-0 flex min-h-12 items-center justify-center border-0 bg-[rgba(24,32,30,0.72)] text-[17px] font-bold text-white"
+                    className="absolute inset-x-0 bottom-0 flex min-h-12 items-center justify-center border-0 bg-[rgba(24,32,30,0.72)] text-[1rem] font-bold text-white"
                   >
                     Retirer
                   </button>
@@ -214,13 +214,13 @@ export default function Noter() {
             </div>
           )}
           {photos.length < MAX_PHOTOS && (
-            <FilePicker accept="image/*" onFiles={(files) => void addPhotos(files)} className={photos.length ? 'btn btn-outline' : 'flex h-[200px] flex-col items-center justify-center gap-2 rounded-[22px] border-2 border-dashed border-line-strong bg-surface text-[17px] font-bold text-primary'}>
+            <FilePicker accept="image/*" onFiles={(files) => void addPhotos(files)} className={photos.length ? 'btn btn-outline' : 'flex h-[200px] flex-col items-center justify-center gap-2 rounded-[22px] border-2 border-dashed border-line-strong bg-surface text-[1rem] font-bold text-primary'}>
               <PhotoIcon size={photos.length ? 22 : 36} />
               Ajouter une photo
             </FilePicker>
           )}
           {progress && (
-            <p role="status" className="text-[15px] text-muted">
+            <p role="status" className="text-[0.8824rem] text-muted">
               {progress}
             </p>
           )}
@@ -237,7 +237,7 @@ export default function Noter() {
               setError('')
             }}
             placeholder={`Une balade, un jeu, un progrès ${ofName(dog.name)}…`}
-            className="resize-none rounded-[18px] border-2 border-solid border-border bg-surface px-4 py-3.5 text-[17px] leading-[1.45] text-text focus:border-primary"
+            className="resize-none rounded-[18px] border-2 border-solid border-border bg-surface px-4 py-3.5 text-[1rem] leading-[1.45] text-text focus:border-primary"
           />
         </label>
 
@@ -252,7 +252,7 @@ export default function Noter() {
                   type="button"
                   aria-pressed={on}
                   onClick={() => setFeeling(on ? undefined : value)}
-                  className={`flex h-[104px] flex-col items-center justify-center gap-1.5 rounded-[20px] border-solid text-[17px] font-bold ${on ? 'border-[3px] border-primary bg-primary text-white' : 'border-2 border-border bg-surface text-text'}`}
+                  className={`flex h-[104px] flex-col items-center justify-center gap-1.5 rounded-[20px] border-solid text-[1rem] font-bold ${on ? 'border-[3px] border-primary bg-primary text-white' : 'border-2 border-border bg-surface text-text'}`}
                 >
                   <Face feeling={value} />
                   {label}
@@ -268,8 +268,8 @@ export default function Noter() {
             <label className={`flex min-h-16 items-center gap-3.5 rounded-[18px] border-2 border-solid px-4 py-3 ${movedAway ? 'border-primary bg-primary-soft' : 'border-border bg-surface'}`}>
               <input type="checkbox" checked={movedAway} onChange={(e) => setMovedAway(e.target.checked)} className="size-7 shrink-0 accent-primary" />
               <span className="flex flex-col gap-0.5">
-                <span className="text-[17px] leading-snug font-bold">{place('On s’est éloignés pour qu’il se sente mieux')}</span>
-                <span className="text-[15px] text-muted">C’est la bonne réaction</span>
+                <span className="text-[1rem] leading-snug font-bold">{place('On s’est éloignés pour qu’il se sente mieux')}</span>
+                <span className="text-[0.8824rem] text-muted">C’est la bonne réaction</span>
               </span>
             </label>
           </fieldset>
@@ -286,8 +286,8 @@ export default function Noter() {
             return (
               <fieldset key={id} className="card m-0 flex flex-col gap-3 border-0 p-4">
                 <legend className="sr-only">{skill.name} : prochaine étape</legend>
-                <span className="text-[13px] font-bold tracking-[0.6px] text-milestone-dark uppercase">{skill.name} · prochaine étape</span>
-                <p className="text-[17px] leading-snug font-semibold">
+                <span className="text-[0.7647rem] font-bold tracking-[0.6px] text-milestone-dark uppercase">{skill.name} · prochaine étape</span>
+                <p className="text-[1rem] leading-snug font-semibold">
                   {stepPhrase(id, left.target ?? 1)}. {date === today ? "C’est réussi aujourd’hui ?" : "C’est réussi ?"}
                 </p>
                 <div className="flex items-center gap-3">
@@ -296,7 +296,7 @@ export default function Noter() {
                       <span key={i} className={`h-2.5 w-9 rounded-full ${i < done ? 'bg-milestone' : 'bg-placeholder'}`} />
                     ))}
                   </span>
-                  <span className="text-[15px] text-muted">
+                  <span className="text-[0.8824rem] text-muted">
                     {already ? 'Déjà réussi ce jour-là' : missing === 0 ? 'Étape acquise !' : done === 0 ? 'À réussir 3 jours différents' : `Encore ${missing} fois, un autre jour`}
                   </span>
                 </div>
@@ -314,11 +314,11 @@ export default function Noter() {
             )
           })}
         {!askable && stepSkills.length > 0 && (
-          <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[15px] leading-snug text-[#1D3F73]">Les jours difficiles comptent aussi. La prochaine étape attendra un meilleur jour.</p>
+          <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[0.8824rem] leading-snug text-[#1D3F73]">Les jours difficiles comptent aussi. La prochaine étape attendra un meilleur jour.</p>
         )}
 
         {error && (
-          <p role="alert" className="rounded-[18px] bg-danger-soft px-4 py-3 text-[15px] font-semibold text-danger">
+          <p role="alert" className="rounded-[18px] bg-danger-soft px-4 py-3 text-[0.8824rem] font-semibold text-danger">
             {error}
           </p>
         )}
@@ -326,7 +326,7 @@ export default function Noter() {
 
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto max-w-[430px] px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-          <button type="submit" disabled={saving || Boolean(progress)} className="btn btn-main min-h-[60px] w-full px-6 text-[19px] disabled:opacity-60">
+          <button type="submit" disabled={saving || Boolean(progress)} className="btn btn-main min-h-[60px] w-full px-6 text-[1.1176rem] disabled:opacity-60">
             <span>{saving ? 'Enregistrement…' : 'Enregistrer'}</span>
           </button>
         </div>

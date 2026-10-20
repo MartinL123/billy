@@ -82,9 +82,9 @@ export default function Walks() {
       </header>
       <main className="flex flex-col gap-4 px-5 pt-1 pb-[calc(env(safe-area-inset-bottom)+120px)]">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-[28px] leading-tight font-extrabold">Ses balades</h1>
+          <h1 className="font-display text-[1.6471rem] leading-tight font-extrabold">Ses balades</h1>
           {/* Sans balade, pas de « 0 balade · 0,0 km » au-dessus de l’état vide (R-036). */}
-          {!(rows.length === 0 && filter === 'toutes') && <p className="text-[17px] text-muted">{walksSummary(shown)}</p>}
+          {!(rows.length === 0 && filter === 'toutes') && <p className="text-[1rem] text-muted">{walksSummary(shown)}</p>}
         </div>
         {/* « Noter un souvenir » vit ici depuis la V5 (il a quitté l’accueil). */}
         {!readOnly && (
@@ -101,8 +101,8 @@ export default function Walks() {
               <path d="M22 66 C40 40 58 70 76 44 S100 30 104 26" fill="none" stroke="#9A4413" strokeWidth="5" strokeLinecap="round" strokeDasharray="2 9" />
               <circle cx="22" cy="66" r="7" fill="#1E5A50" stroke="#fff" strokeWidth="3" />
             </svg>
-            <h2 className="font-display text-[22px] font-extrabold">Pas encore de balade</h2>
-            <p className="text-[17px] leading-snug text-[#3F4946]">{isNative() ? 'Vos marches de l’Apple Watch arrivent ici toutes seules' : 'Importez vos balades Strava : elles arrivent ici'}, et le brouillard se lève sur la carte {ofName(dog.name)}.</p>
+            <h2 className="font-display text-[1.2941rem] font-extrabold">Pas encore de balade</h2>
+            <p className="text-[1rem] leading-snug text-[#3F4946]">{isNative() ? 'Vos marches de l’Apple Watch arrivent ici toutes seules' : 'Importez vos balades Strava : elles arrivent ici'}, et le brouillard se lève sur la carte {ofName(dog.name)}.</p>
             {!readOnly && (
               <Link to="/importer" className={`btn ${isNative() ? 'btn-outline min-h-12' : 'btn-main min-h-[56px]'} self-stretch`}>
                 {isNative() ? 'Importer un fichier GPX' : 'Importer mes balades'}
@@ -113,12 +113,12 @@ export default function Walks() {
           <>
             <div role="group" aria-label="Filtrer les balades" className="scroll-row -mx-5 flex gap-2 px-5">
               {filters.map((f) => (
-                <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className={`min-h-11 shrink-0 rounded-full border-2 border-solid px-4 text-[15px] font-bold ${filter === f.id ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}>
+                <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className={`min-h-11 shrink-0 rounded-full border-2 border-solid px-4 text-[0.8824rem] font-bold ${filter === f.id ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}>
                   {f.label}
                 </button>
               ))}
             </div>
-            {groups.length === 0 && <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[17px] text-[#1D3F73]">Aucune balade pour ce filtre.</p>}
+            {groups.length === 0 && <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[1rem] text-[#1D3F73]">Aucune balade pour ce filtre.</p>}
             {groups.map((group) => (
               <section key={group.key} className="flex flex-col gap-2">
                 <h2 className="text-sm font-bold tracking-[0.6px] text-muted uppercase">{formatMonthYear(`${group.key}-01`)}</h2>
@@ -135,8 +135,8 @@ export default function Walks() {
                             </span>
                           )}
                           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                            <span className="truncate text-[17px] font-bold">{row.text}</span>
-                            <span className="text-[15px] text-muted">{formatShort(row.date)} · un souvenir</span>
+                            <span className="truncate text-[1rem] font-bold">{row.text}</span>
+                            <span className="text-[0.8824rem] text-muted">{formatShort(row.date)} · un souvenir</span>
                           </span>
                         </Link>
                       </li>
@@ -147,12 +147,12 @@ export default function Walks() {
                           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                             <span className="flex min-w-0 items-center gap-2">
                               <span className="h-1.5 w-5 shrink-0 rounded-full" style={{ background: colors.get(row.item.id) }} aria-hidden="true" />
-                              <span className="truncate text-[17px] font-bold">{row.item.name}</span>
+                              <span className="truncate text-[1rem] font-bold">{row.item.name}</span>
                             </span>
-                            <span className="text-[15px] text-muted">{[formatShort(row.item.date), row.item.commune, formatRouteDistance(row.item.route.distanceM), row.item.route.durationMin ? formatDuration(row.item.route.durationMin) : ''].filter(Boolean).join(' · ')}</span>
+                            <span className="text-[0.8824rem] text-muted">{[formatShort(row.item.date), row.item.commune, formatRouteDistance(row.item.route.distanceM), row.item.route.durationMin ? formatDuration(row.item.route.durationMin) : ''].filter(Boolean).join(' · ')}</span>
                             <span className="flex flex-wrap gap-1.5">
                               {walkTags(row.item).map((t) => (
-                                <span key={t} className="rounded-full bg-bg px-2 py-0.5 text-[13px] font-semibold text-[#3F4946]">
+                                <span key={t} className="rounded-full bg-bg px-2 py-0.5 text-[0.7647rem] font-semibold text-[#3F4946]">
                                   {t}
                                 </span>
                               ))}

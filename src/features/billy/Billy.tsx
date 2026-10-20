@@ -78,7 +78,7 @@ export default function Billy() {
           <ChevronLeftIcon size={20} />
           Accueil
         </button>
-        <Link to="/boutique" data-bones-counter aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[17px] font-extrabold text-gold-dark no-underline">
+        <Link to="/boutique" data-bones-counter aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[1rem] font-extrabold text-gold-dark no-underline">
           <BoneIcon size={20} />
           {balance(bones)}
         </Link>
@@ -87,8 +87,8 @@ export default function Billy() {
         <span className="overflow-hidden rounded-full border-4 border-solid border-milestone">
           <DogPhoto size={76} />
         </span>
-        <h1 className="font-display text-[30px] leading-tight font-extrabold">{dog.unnamed ? 'Votre chien' : dog.name}</h1>
-        {age && <p className="text-[16px] text-[#3F4946]">{age}</p>}
+        <h1 className="font-display text-[1.7647rem] leading-tight font-extrabold">{dog.unnamed ? 'Votre chien' : dog.name}</h1>
+        {age && <p className="text-[0.9412rem] text-[#3F4946]">{age}</p>}
       </div>
 
       <section aria-labelledby="apprend" className="flex flex-col gap-2.5">
@@ -103,7 +103,7 @@ export default function Billy() {
           return (
             <div key={id} className={`card flex flex-col gap-2.5 rounded-[20px] border-2 border-solid px-4 py-3.5 ${open ? 'border-primary' : 'border-transparent'}`}>
               <button type="button" onClick={() => setSelected(open ? undefined : id)} aria-expanded={open} className="tap flex flex-col items-stretch gap-2.5 border-0 bg-transparent p-0 text-left text-text">
-                <span className="text-[16px] leading-snug font-bold">{placeSkill(goal)}</span>
+                <span className="text-[0.9412rem] leading-snug font-bold">{placeSkill(goal)}</span>
                 {/* Une patte par étape, un trophée pour la dernière : aucun chiffre (décision du 20 oct.). */}
                 <span role="img" aria-label={pawsLabel(level)} className="flex gap-1.5">
                   {skillPaws(level).map((state, k) => (
@@ -113,9 +113,9 @@ export default function Billy() {
               </button>
               {open && (
                 <div className="anim-in flex flex-col gap-0.5 border-0 border-t border-solid border-[#E6EAE7] pt-2.5">
-                  <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{next ? 'Prochaine étape' : 'Tout est acquis'}</span>
-                  {next && <span className="text-[16px] text-[#3F4946]">{next}</span>}
-                  <Link to={`/competence/${id}`} className="inline-flex min-h-11 items-center self-start text-[15px] font-bold text-primary no-underline">
+                  <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{next ? 'Prochaine étape' : 'Tout est acquis'}</span>
+                  {next && <span className="text-[0.9412rem] text-[#3F4946]">{next}</span>}
+                  <Link to={`/competence/${id}`} className="inline-flex min-h-11 items-center self-start text-[0.8824rem] font-bold text-primary no-underline">
                     Voir tout son chemin ›
                   </Link>
                 </div>
@@ -128,8 +128,8 @@ export default function Billy() {
       <nav aria-label={`Tout sur ${dog.name}`} className="grid grid-cols-2 gap-3">
         {tiles.map((tile) => (
           <Link key={tile.title} to={tile.to} className="card tap flex min-h-[88px] flex-col gap-1 rounded-[20px] p-3.5 text-text no-underline">
-            <span className="text-[16px] font-bold">{tile.title}</span>
-            <span className="text-[14px] leading-snug text-[#3F4946]">{tile.detail}</span>
+            <span className="text-[0.9412rem] font-bold">{tile.title}</span>
+            <span className="text-[0.8235rem] leading-snug text-[#3F4946]">{tile.detail}</span>
           </Link>
         ))}
       </nav>

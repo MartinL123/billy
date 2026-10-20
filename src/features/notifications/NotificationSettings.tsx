@@ -38,13 +38,13 @@ export function NotificationSettings() {
           <label key={kind.id} className={`flex min-h-14 items-center gap-3.5 py-2 ${i ? 'border-t border-divider' : ''}`}>
             <input type="checkbox" role="switch" checked={prefs[kind.id]} onChange={() => void toggle(kind.id)} className="size-7 shrink-0 accent-primary" />
             <span className="flex flex-col gap-0.5">
-              <span className="text-[17px] font-bold">{kind.title}</span>
-              <span className="text-[15px] leading-snug text-muted">{kind.detail(dog.name)}</span>
+              <span className="text-[1rem] font-bold">{kind.title}</span>
+              <span className="text-[0.8824rem] leading-snug text-muted">{kind.detail(dog.name)}</span>
             </span>
           </label>
         ))}
         {permission === 'denied' && (
-          <p role="status" className="mt-2 text-[15px] leading-snug text-primary-dark">
+          <p role="status" className="mt-2 text-[0.8824rem] leading-snug text-primary-dark">
             Les notifications sont coupées pour Flair. Pour les recevoir : Réglages › Notifications › Flair.
           </p>
         )}

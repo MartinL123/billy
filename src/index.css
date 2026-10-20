@@ -2,6 +2,22 @@
 
 /* Tokens repris de docs/maquettes/README.md */
 @theme {
+  /* R-056 : espacements et rayons en px (ils ne suivent pas la taille du texte) ; tailles nommées sur la base 17 px. */
+  --spacing: 4px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --text-xs: 0.7059rem;
+  --text-sm: 0.8235rem;
+  --text-base: 0.9412rem;
+  --text-lg: 1.0588rem;
+  --text-xl: 1.1765rem;
+  --text-2xl: 1.4118rem;
+  --text-3xl: 1.7647rem;
   --color-primary: #1e5a50;
   --color-primary-dark: #143f38;
   --color-primary-soft: #dcebe6;
@@ -82,7 +98,7 @@
   border: 1.5px solid var(--color-line-strong);
   background: var(--color-surface);
   padding: 0 16px;
-  font-size: 16px;
+  font-size: 0.9412rem;
   color: var(--color-text);
 }
 
@@ -99,7 +115,7 @@
   padding: 6px 20px;
   border-radius: 9999px;
   border: 2px solid transparent;
-  font-size: 17px;
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1.2;
   text-align: center;
@@ -167,12 +183,35 @@ body,
   min-height: 100%;
 }
 
+/*
+ * R-056 : la taille du texte suit le réglage d'iOS (Réglages › Accessibilité › Affichage et taille du texte).
+ * -apple-system-body vaut 17 px par défaut et grandit avec le réglage ; toutes les tailles de texte sont en rem
+ * sur cette base (17 px = 1rem). Ailleurs (ordinateur), la base reste 17 px : même rendu par défaut.
+ * Les espacements et les rayons restent en px (--spacing, --radius-* plus haut) : seul le texte grandit.
+ */
 html {
   -webkit-text-size-adjust: 100%;
+  font-size: 17px;
+}
+
+/* Tailles d'accessibilité : comme dans iOS, les titres grandissent moins que le texte (sinon trois mots par écran). */
+.texte-tres-grand :is(h1, h2).font-display {
+  font-size: 1.15rem;
+}
+
+/* iPhone et iPad seulement : sur Mac, -apple-system-body vaut 13 px. */
+@media (pointer: coarse) {
+  @supports (font: -apple-system-body) {
+    html {
+      font: -apple-system-body;
+      font-family: var(--font-sans);
+    }
+  }
 }
 
 body {
   margin: 0;
+  font-size: 0.9412rem;
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
@@ -191,7 +230,7 @@ button {
 input,
 select,
 textarea {
-  font-size: 16px;
+  font-size: 0.9412rem;
 }
 
 button,

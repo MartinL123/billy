@@ -23,7 +23,7 @@ export function WalksCard() {
         </p>
       </div>
       {routes.length === 0 && <ImportWalkButton className="" />}
-      <Link to="/territoire" className="flex min-h-12 items-center justify-between rounded-[16px] bg-primary-soft px-4 text-[17px] font-bold text-primary-dark no-underline">
+      <Link to="/territoire" className="flex min-h-12 items-center justify-between rounded-[16px] bg-primary-soft px-4 text-[1rem] font-bold text-primary-dark no-underline">
         <span>Voir sur la carte</span>
         <ChevronRightIcon size={20} />
       </Link>

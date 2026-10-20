@@ -4,7 +4,7 @@ import { CloudPendingIcon } from './Icons'
 export function Pending({ show, className = '' }: { show: boolean; className?: string }) {
   if (!show) return null
   return (
-    <span className={`inline-flex items-center gap-1 text-[13px] font-semibold text-info ${className}`}>
+    <span className={`inline-flex items-center gap-1 text-[0.7647rem] font-semibold text-info ${className}`}>
       <CloudPendingIcon size={16} />
       En attente d’envoi
     </span>

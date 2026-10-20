@@ -83,7 +83,7 @@ export function EntryCard({ entry, today, activeTag, onOpenPhoto }: EntryCardPro
         {/* Sans photo, la mini-carte du trajet prend la place de la photo. */}
         {route && photos.length === 0 && <RouteThumb points={route.points} moments={route.moments} size={120} />}
         {/* Le texte complet est dans le détail : sur la carte, 4 lignes au plus. */}
-        {entry.text && <span className="line-clamp-4 text-[17px] leading-[1.45] whitespace-pre-wrap">{entry.text}</span>}
+        {entry.text && <span className="line-clamp-4 text-[1rem] leading-[1.45] whitespace-pre-wrap">{entry.text}</span>}
         <MomentChips entry={entry} activeTag={activeTag} />
       </span>
       {!entry.readOnly && <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />}

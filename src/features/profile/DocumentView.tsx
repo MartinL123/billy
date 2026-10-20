@@ -133,8 +133,8 @@ export default function DocumentView() {
 
       <main className="flex flex-col gap-4 px-5 pb-[calc(env(safe-area-inset-bottom)+120px)]">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-[26px] leading-tight font-bold">{document_.title}</h1>
-          <p className="text-[15px] text-muted">
+          <h1 className="font-display text-[1.5294rem] leading-tight font-bold">{document_.title}</h1>
+          <p className="text-[0.8824rem] text-muted">
             {categoryLabel(document_.category)} · {formatLong(document_.date)}
           </p>
           <Pending show={document_.pending} />

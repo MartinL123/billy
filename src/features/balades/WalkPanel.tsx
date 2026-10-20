@@ -24,22 +24,22 @@ export function WalkPanel({ entryId, name, date, route, color, replaying, onRepl
         <span className="h-1.5 w-11 rounded-full bg-line-strong" />
       </button>
       <div className="-ml-2 flex shrink-0 items-center justify-between">
-        <button type="button" onClick={onClose} className="flex min-h-11 items-center gap-1 border-0 bg-transparent px-2 text-[15px] font-bold text-primary">
+        <button type="button" onClick={onClose} className="flex min-h-11 items-center gap-1 border-0 bg-transparent px-2 text-[0.8824rem] font-bold text-primary">
           <ChevronLeftIcon size={18} />
           Toutes les balades
         </button>
-        <Link to={`/souvenir/${entryId}`} className="flex min-h-11 items-center px-2 text-[15px] font-bold text-primary no-underline">
+        <Link to={`/souvenir/${entryId}`} className="flex min-h-11 items-center px-2 text-[0.8824rem] font-bold text-primary no-underline">
           Le souvenir
         </Link>
       </div>
-      <h1 className="flex shrink-0 items-center gap-2.5 font-display text-[22px] leading-tight font-extrabold">
+      <h1 className="flex shrink-0 items-center gap-2.5 font-display text-[1.2941rem] leading-tight font-extrabold">
         {color && <span className="h-1.5 w-6 shrink-0 rounded-full" style={{ background: color }} aria-hidden="true" />}
         {name}
       </h1>
       {/* Réduit, le panneau ne garde que ce qui précède (le nom) : la suite glisse sous la barre. */}
       <div ref={sheet.bodyRef} style={sheet.bodyStyle} className="-mx-5 flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto overscroll-contain px-5 [&>*]:shrink-0" aria-hidden={sheet.collapsed || undefined} inert={sheet.collapsed || undefined}>
-        <p className="text-[15px] text-muted">{stats}</p>
-        <p className="text-[15px] text-[#3F4946]">{readOnly ? 'Touchez une autre balade pour l’ouvrir.' : 'Touchez le tracé pour ajouter un repère, une autre balade pour l’ouvrir.'}</p>
+        <p className="text-[0.8824rem] text-muted">{stats}</p>
+        <p className="text-[0.8824rem] text-[#3F4946]">{readOnly ? 'Touchez une autre balade pour l’ouvrir.' : 'Touchez le tracé pour ajouter un repère, une autre balade pour l’ouvrir.'}</p>
         {route.points.length > 1 && (
           <button type="button" onClick={onReplay} className="btn btn-main min-h-[52px] gap-2">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

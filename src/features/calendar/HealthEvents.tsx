@@ -48,7 +48,7 @@ export default function HealthEvents() {
     <SubScreen title="Tous les événements">
       {toComplete.length > 0 && (
         <section className="flex flex-col gap-3">
-          <h2 className="text-[19px] font-bold">À compléter</h2>
+          <h2 className="text-[1.1176rem] font-bold">À compléter</h2>
           <div className="card overflow-hidden">
             {toComplete.map((event, i) => (
               <CalendarEventRow key={event.id} event={event} today={today} first={i === 0} />
@@ -58,7 +58,7 @@ export default function HealthEvents() {
       )}
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-[19px] font-bold">À venir</h2>
+        <h2 className="text-[1.1176rem] font-bold">À venir</h2>
         <div role="group" aria-label="Filtrer par catégorie" className="scroll-row -mx-5 flex gap-2 px-5 pt-0.5 pb-1">
           {CARE_FILTERS.map((item) => {
             const on = filter === item.id
@@ -69,19 +69,19 @@ export default function HealthEvents() {
                 type="button"
                 aria-pressed={on}
                 onClick={() => setFilter(item.id)}
-                className="flex min-h-12 shrink-0 items-center gap-[7px] rounded-full border-2 border-solid px-3.5 text-[15px] font-bold"
+                className="flex min-h-12 shrink-0 items-center gap-[7px] rounded-full border-2 border-solid px-3.5 text-[0.8824rem] font-bold"
                 style={on ? { background: item.color, borderColor: item.color, color: '#FFFFFF' } : { background: '#FFFFFF', borderColor: '#C9D1CD', color: '#18201E' }}
               >
                 {item.id !== 'tout' && <span className="size-2.5 rounded-full" style={{ background: on ? '#FFFFFF' : item.color }} />}
                 {item.label}
-                <span className="text-[13px] opacity-80">{count}</span>
+                <span className="text-[0.7647rem] opacity-80">{count}</span>
               </button>
             )
           })}
         </div>
         {next.length > 0 ? (
           <>
-            {filter !== 'tout' && <p className="text-[15px] font-semibold text-muted">{filterSummary(filter, next.length)}</p>}
+            {filter !== 'tout' && <p className="text-[0.8824rem] font-semibold text-muted">{filterSummary(filter, next.length)}</p>}
             <div className="card overflow-hidden">
               {next.map((event, i) => (
                 <CalendarEventRow key={event.id} event={event} today={today} first={i === 0} />
@@ -90,7 +90,7 @@ export default function HealthEvents() {
           </>
         ) : (
           <div className="card flex flex-col items-start gap-3 p-4">
-            <p className="text-[17px] font-semibold">{info.empty}</p>
+            <p className="text-[1rem] font-semibold">{info.empty}</p>
             <Link to={info.type ? `/evenement/nouveau?type=${info.type}` : '/evenement/nouveau'} className="btn btn-outline">
               {info.add}
             </Link>
@@ -100,7 +100,7 @@ export default function HealthEvents() {
 
       {done.length > 0 && (
         <section className="flex flex-col gap-3">
-          <h2 className="text-[19px] font-bold">Faits</h2>
+          <h2 className="text-[1.1176rem] font-bold">Faits</h2>
           <div className="card overflow-hidden">
             {(showAllDone ? done : done.slice(0, DONE_PREVIEW)).map((event, i) => (
               <CalendarEventRow key={event.id} event={event} today={today} first={i === 0} />

@@ -45,11 +45,11 @@ import { BossIcon } from '../training/BossIcon'
 import { Result } from './Result'
 import { errorText } from '../../firebase/errors'
 
-const label = 'text-[17px] font-bold'
-const input = 'field min-h-14 text-[17px]'
+const label = 'text-[1rem] font-bold'
+const input = 'field min-h-14 text-[1rem]'
 const option = (on: boolean) =>
   `flex min-h-[64px] w-full items-center gap-3.5 rounded-[20px] border-2 border-solid px-4 py-3 text-left ${on ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`
-const chipClass = (on: boolean) => `min-h-12 rounded-full border-2 border-solid px-4 text-left text-[15px] leading-tight font-semibold ${on ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`
+const chipClass = (on: boolean) => `min-h-12 rounded-full border-2 border-solid px-4 text-left text-[0.8824rem] leading-tight font-semibold ${on ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`
 
 const MEAL_LABELS = ['Matin', 'Midi', 'Après-midi', 'Soir']
 const mealLabel = (time: string) => MEAL_LABELS[time < '11:00' ? 0 : time < '13:30' ? 1 : time < '18:00' ? 2 : 3]!
@@ -326,7 +326,7 @@ export default function Questionnaire() {
           <div className="h-full origin-left rounded-full bg-primary transition-transform duration-[250ms] ease-[cubic-bezier(.2,.8,.3,1)]" style={{ transform: `scaleX(${(pos + 1) / flow.length})` }} />
         </div>
         {/* La partie est rappelée ici, sous la barre : la ligne du haut garde ses boutons sur une seule ligne. */}
-        <p className="flex flex-wrap justify-between gap-x-3 text-[13px] font-bold tracking-[0.6px] uppercase" aria-live="polite">
+        <p className="flex flex-wrap justify-between gap-x-3 text-[0.7647rem] font-bold tracking-[0.6px] uppercase" aria-live="polite">
           <span className="text-primary">{route.kind === 'depart' ? 'Pour commencer' : PARTS[step.part - 1]}</span>
           <span className="text-muted">{route.kind === 'tout' ? `Partie ${step.part} sur ${PARTS.length}` : `Question ${pos + 1} sur ${flow.length}`}</span>
         </p>
@@ -336,8 +336,8 @@ export default function Questionnaire() {
       <div key={pos} className={`flex flex-1 flex-col gap-5 ${direction > 0 ? 'q-next' : direction < 0 ? 'q-prev' : ''}`}>
         {step.kind !== 'fin' && step.kind !== 'skill' && (
           <div className="flex flex-col gap-2">
-            <h1 className="font-display text-[28px] leading-tight font-bold">{title}</h1>
-            {step.help && <p className="text-[17px] leading-snug text-muted">{g(step.help)}</p>}
+            <h1 className="font-display text-[1.6471rem] leading-tight font-bold">{title}</h1>
+            {step.help && <p className="text-[1rem] leading-snug text-muted">{g(step.help)}</p>}
           </div>
         )}
 
@@ -353,7 +353,7 @@ export default function Questionnaire() {
           />
         )}
 
-        {step.kind === 'longtext' && <textarea aria-label={title} rows={3} value={draft[step.id] ?? ''} onChange={(e) => set(step.id, e.target.value)} className="resize-none rounded-[18px] border-2 border-solid border-border bg-surface px-4 py-3.5 text-[17px] leading-[1.45] text-text" />}
+        {step.kind === 'longtext' && <textarea aria-label={title} rows={3} value={draft[step.id] ?? ''} onChange={(e) => set(step.id, e.target.value)} className="resize-none rounded-[18px] border-2 border-solid border-border bg-surface px-4 py-3.5 text-[1rem] leading-[1.45] text-text" />}
 
         {step.kind === 'date' && (
           <div className="flex flex-col gap-2.5">
@@ -368,7 +368,7 @@ export default function Questionnaire() {
               return (
                 <button key={value} type="button" role="radio" aria-checked={on} onClick={() => set(step.id, on ? '' : value)} className={option(on)}>
                   <Tick on={on} />
-                  <span className="text-[19px] font-bold">{g(text)}</span>
+                  <span className="text-[1.1176rem] font-bold">{g(text)}</span>
                 </button>
               )
             })}
@@ -378,7 +378,7 @@ export default function Questionnaire() {
                   Quand ? <span className="font-normal text-muted">(facultatif)</span>
                 </span>
                 <NativePickerInput type="date" min={today} value={draft['sterilise-date'] ?? ''} onChange={(e) => set('sterilise-date', e.target.value)} className={`${input} px-3`} />
-                <span className="text-[15px] text-muted">{draft['sterilise-date'] ? 'Un rappel s’ajoutera dans Santé.' : 'Sans date, Santé vous rappellera de prendre rendez-vous.'}</span>
+                <span className="text-[0.8824rem] text-muted">{draft['sterilise-date'] ? 'Un rappel s’ajoutera dans Santé.' : 'Sans date, Santé vous rappellera de prendre rendez-vous.'}</span>
               </label>
             )}
           </div>
@@ -391,7 +391,7 @@ export default function Questionnaire() {
               return (
                 <button key={value} type="button" role="checkbox" aria-checked={on} onClick={() => set(step.id, (on ? choices.filter((c) => c !== value) : [...choices, value]).join('|'))} className={`${option(on)} gap-2.5 px-3`}>
                   <Tick on={on} />
-                  <span className="text-[17px] leading-tight font-bold">{g(text)}</span>
+                  <span className="text-[1rem] leading-tight font-bold">{g(text)}</span>
                 </button>
               )
             })}
@@ -437,7 +437,7 @@ export default function Questionnaire() {
                   <NativePickerInput aria-label="Date de la prochaine séance" type="date" min={today} value={draft['educateur-date'] ?? ''} onChange={(e) => set('educateur-date', e.target.value)} className={`${input} min-w-0 px-3`} />
                   <NativePickerInput aria-label="Heure de la prochaine séance" type="time" value={draft['educateur-heure'] ?? ''} onChange={(e) => set('educateur-heure', e.target.value)} className={`${input} w-[120px] px-3`} />
                 </div>
-                <p className="text-[15px] text-muted">Elle s’ajoutera dans Santé.</p>
+                <p className="text-[0.8824rem] text-muted">Elle s’ajoutera dans Santé.</p>
               </fieldset>
             )}
           </>
@@ -475,7 +475,7 @@ export default function Questionnaire() {
               <ul className="card m-0 flex list-none flex-col p-0">
                 {reactions.map((reaction, i) => (
                   <li key={reaction.situation} className={`flex items-center gap-3 px-4 py-2.5 ${i ? 'border-t border-divider' : ''}`}>
-                    <span className="flex-1 text-[17px] leading-snug">{reactionSentence(reaction)}</span>
+                    <span className="flex-1 text-[1rem] leading-snug">{reactionSentence(reaction)}</span>
                     <button type="button" aria-label={`Retirer : ${reaction.situation}`} onClick={() => setReactions(reactions.filter((r) => r !== reaction))} className="btn btn-quiet min-h-12 shrink-0 px-3">
                       Retirer
                     </button>
@@ -484,7 +484,7 @@ export default function Questionnaire() {
               </ul>
             )}
             <fieldset className="m-0 flex flex-col gap-3 rounded-[20px] border-2 border-dashed border-line-strong p-4">
-              <legend className="px-1 text-[17px] font-bold">Ajouter une phrase</legend>
+              <legend className="px-1 text-[1rem] font-bold">Ajouter une phrase</legend>
               <label className="flex flex-col gap-2">
                 <span className={label}>Quand…</span>
                 <input value={situation} onChange={(e) => setSituation(e.target.value)} placeholder={g('il croise un vélo')} autoComplete="off" className={input} />
@@ -518,7 +518,7 @@ export default function Questionnaire() {
               </span>
               <span className="font-display text-2xl font-bold">{skill.name}</span>
             </div>
-            <h1 className="font-display text-[26px] leading-tight font-bold">{title}</h1>
+            <h1 className="font-display text-[1.5294rem] leading-tight font-bold">{title}</h1>
             <div role="radiogroup" aria-label={skill.name} className="flex flex-col gap-2.5">
               {skillOptions(skill.id).map(({ value, label: text }) => {
                 const current = skillValue(skill.id)
@@ -526,7 +526,7 @@ export default function Questionnaire() {
                 return (
                   <button key={value} type="button" role="radio" aria-checked={on} onClick={() => setSkillDraft({ ...skillDraft, [skill.id]: value })} className={option(on)}>
                     <Tick on={on} />
-                    <span className="text-[19px] font-bold">{text}</span>
+                    <span className="text-[1.1176rem] font-bold">{text}</span>
                   </button>
                 )
               })}
@@ -540,7 +540,7 @@ export default function Questionnaire() {
               const below: SkillAnswer = i === 0 ? 'dehors' : 'anime'
               return (
                 <fieldset key={value} className="m-0 flex flex-col gap-2 border-0 p-0">
-                  <legend className="mb-2 p-0 text-[19px] font-bold">{question}</legend>
+                  <legend className="mb-2 p-0 text-[1.1176rem] font-bold">{question}</legend>
                   <div className="grid grid-cols-2 gap-2">
                     <button type="button" aria-pressed={yes} onClick={() => setSkillDraft({ ...skillDraft, [skill.id]: value })} className={`btn ${yes ? 'btn-on' : 'btn-outline'}`}>
                       Oui
@@ -558,7 +558,7 @@ export default function Questionnaire() {
         {step.kind === 'fin' && <Result />}
 
         {error && (
-          <p role="alert" className="text-[15px] font-semibold text-danger">
+          <p role="alert" className="text-[0.8824rem] font-semibold text-danger">
             {error}
           </p>
         )}

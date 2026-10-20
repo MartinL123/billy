@@ -33,7 +33,7 @@ import { FamilySection, VisitorAccount } from '../visitor/Family'
 
 function InfoRow({ label, value, first }: { label: string; value: string; first?: boolean }) {
   return (
-    <div className={`flex justify-between gap-3 py-3.5 text-[15px] ${first ? '' : 'border-t border-divider'}`}>
+    <div className={`flex justify-between gap-3 py-3.5 text-[0.8824rem] ${first ? '' : 'border-t border-divider'}`}>
       <span className="text-muted">{label}</span>
       <span className="text-right font-semibold">{value}</span>
     </div>
@@ -46,11 +46,11 @@ function ContactRow({ role, callLabel, contact, first }: { role: string; callLab
   return (
     <div className={`flex items-center gap-3 py-3 ${first ? '' : 'border-t border-divider'}`}>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-[13px] text-muted">{role}</span>
+        <span className="text-[0.7647rem] text-muted">{role}</span>
         {known ? (
           <>
             <span className="truncate text-base font-semibold">{contact?.name || contact?.phone}</span>
-            {contact?.name && contact.phone && <span className="text-[13px] text-muted">{contact.phone}</span>}
+            {contact?.name && contact.phone && <span className="text-[0.7647rem] text-muted">{contact.phone}</span>}
           </>
         ) : (
           <span className="text-base text-muted">Pas encore renseigné</span>
@@ -108,10 +108,10 @@ function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; onl
 
   return (
     <Sheet label="Supprimer mon compte" onClose={busy ? () => undefined : onClose}>
-      <h2 className="mt-1 font-display text-[24px] leading-tight font-extrabold">Supprimer mon compte et mes données ?</h2>
-      <p className="text-[17px] leading-snug">Tout ce qui concerne {dogName} sera effacé pour toujours : profil, carnet, photos, documents, calendrier et progression. On ne peut pas revenir en arrière.</p>
+      <h2 className="mt-1 font-display text-[1.4118rem] leading-tight font-extrabold">Supprimer mon compte et mes données ?</h2>
+      <p className="text-[1rem] leading-snug">Tout ce qui concerne {dogName} sera effacé pour toujours : profil, carnet, photos, documents, calendrier et progression. On ne peut pas revenir en arrière.</p>
       <label className="flex flex-col gap-1.5">
-        <span className="text-[15px] font-semibold">Votre mot de passe, pour confirmer</span>
+        <span className="text-[0.8824rem] font-semibold">Votre mot de passe, pour confirmer</span>
         <span className="flex gap-2">
           <input type={shown ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} aria-invalid={error ? true : undefined} className={`field min-w-0 flex-1 ${error ? 'border-danger' : ''}`} />
           <button type="button" aria-pressed={shown} onClick={() => setShown(!shown)} className="btn btn-outline shrink-0 px-4">
@@ -120,7 +120,7 @@ function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; onl
         </span>
       </label>
       {error && (
-        <p role="alert" className="text-[15px] font-semibold text-danger">
+        <p role="alert" className="text-[0.8824rem] font-semibold text-danger">
           {error}
         </p>
       )}
@@ -182,7 +182,7 @@ export default function Profile() {
 
       <div className="flex flex-col items-center gap-2 text-center">
         <DogPhoto size={120} alt={`Photo ${ofName(dog.name)}`} className="rounded-full shadow-[0_2px_8px_rgba(24,32,30,0.12)]" />
-        <h1 className="mt-1 font-display text-[32px] leading-none font-extrabold">{dog.name}</h1>
+        <h1 className="mt-1 font-display text-[1.8824rem] leading-none font-extrabold">{dog.name}</h1>
         <p className="text-base text-muted">
           {[formatAgeShort(dog.birthDate, today)].filter(Boolean).join(' · ')}
         </p>
@@ -228,15 +228,15 @@ export default function Profile() {
         <h2 className="text-xl font-bold">{place('Comment il réagit')}</h2>
         <div className="card flex flex-col gap-3 p-4">
           {sentences.length > 0 ? (
-            <ul className="m-0 flex list-none flex-col gap-1.5 p-0 text-[17px] leading-snug">
+            <ul className="m-0 flex list-none flex-col gap-1.5 p-0 text-[1rem] leading-snug">
               {sentences.map((sentence) => (
                 <li key={sentence}>{sentence}</li>
               ))}
             </ul>
           ) : (
-            <p className="text-[17px] leading-snug text-muted">Pas encore renseigné.</p>
+            <p className="text-[1rem] leading-snug text-muted">Pas encore renseigné.</p>
           )}
-          {dog.homeMood && <p className="text-[17px] leading-snug">{place(`À la maison, il est plutôt ${dog.homeMood.toLocaleLowerCase('fr')}.`)}</p>}
+          {dog.homeMood && <p className="text-[1rem] leading-snug">{place(`À la maison, il est plutôt ${dog.homeMood.toLocaleLowerCase('fr')}.`)}</p>}
           <EditLink to="/questionnaire?etape=reactions" className="btn btn-outline">
             Modifier ses réactions
           </EditLink>
@@ -264,7 +264,7 @@ export default function Profile() {
       <Link to={status.complete ? '/questionnaire?etape=fin' : '/questionnaire'} className="card-link min-h-16">
         <NoteIcon size={24} className="shrink-0 text-primary" />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[17px] font-bold">Questionnaire de départ</span>
+          <span className="text-[1rem] font-bold">Questionnaire de départ</span>
           <span className="text-sm text-muted">{statusLabel(status)}</span>
         </span>
         <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
@@ -278,7 +278,7 @@ export default function Profile() {
           <div className="flex items-center gap-3 py-3.5">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-placeholder font-bold text-[#3F4946]">{email.charAt(0).toUpperCase()}</div>
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="text-[13px] text-muted">Connecté avec</span>
+              <span className="text-[0.7647rem] text-muted">Connecté avec</span>
               <span className="truncate text-base font-semibold">{email}</span>
             </div>
           </div>
@@ -286,24 +286,24 @@ export default function Profile() {
             {pendingCount === 0 ? (
               <>
                 <CloudCheckIcon size={20} className="shrink-0 text-primary" />
-                <span className="flex-1 text-[15px] font-semibold text-primary">Tout est synchronisé</span>
+                <span className="flex-1 text-[0.8824rem] font-semibold text-primary">Tout est synchronisé</span>
               </>
             ) : (
               <>
                 <CloudPendingIcon size={20} className="shrink-0 text-info" />
-                <span className="flex-1 text-[15px] font-semibold text-info">
+                <span className="flex-1 text-[0.8824rem] font-semibold text-info">
                   {pendingCount > 1 ? `${pendingCount} éléments en attente d’envoi` : "1 élément en attente d’envoi"}
                 </span>
               </>
             )}
-            {!online && <span className="text-[13px] text-muted">Hors ligne</span>}
+            {!online && <span className="text-[0.7647rem] text-muted">Hors ligne</span>}
           </div>
           <div className="flex flex-col gap-2 border-t border-divider py-3.5">
-            <div className={`text-[15px] font-semibold ${spaceLevel === 'ok' ? 'text-text' : 'text-milestone-dark'}`}>{usageLabel(space)}</div>
+            <div className={`text-[0.8824rem] font-semibold ${spaceLevel === 'ok' ? 'text-text' : 'text-milestone-dark'}`}>{usageLabel(space)}</div>
             <div className="h-2.5 overflow-hidden rounded-full bg-placeholder" role="img" aria-label={usageLabel(space)}>
               <div className={`h-full rounded-full ${spaceLevel === 'ok' ? 'bg-primary' : 'bg-milestone'}`} style={{ width: `${Math.min(100, Math.max(2, (space / USER_QUOTA) * 100))}%` }} />
             </div>
-            {spaceLevel !== 'ok' && <p role="status" className="text-[15px] leading-snug text-milestone-dark">{spaceLevel === 'plein' ? FULL_MESSAGE : ALMOST_FULL_MESSAGE}</p>}
+            {spaceLevel !== 'ok' && <p role="status" className="text-[0.8824rem] leading-snug text-milestone-dark">{spaceLevel === 'plein' ? FULL_MESSAGE : ALMOST_FULL_MESSAGE}</p>}
           </div>
         </div>
         <button type="button" onClick={() => setChangingPassword(true)} className="btn btn-outline">
@@ -321,13 +321,13 @@ export default function Profile() {
         <button type="button" onClick={() => setDeleting(true)} className="btn border-2 border-solid border-danger bg-surface text-danger">
           Supprimer mon compte et mes données
         </button>
-        <p className="text-[13px] leading-snug text-muted">Vos données restent privées. Martin, qui gère l’app, peut techniquement y accéder.</p>
+        <p className="text-[0.7647rem] leading-snug text-muted">Vos données restent privées. Martin, qui gère l’app, peut techniquement y accéder.</p>
       </section>
 
         </>
       )}
 
-      <p className="text-center text-[13px] text-muted">
+      <p className="text-center text-[0.7647rem] text-muted">
         Version du {new Date(__BUILD_TIME__).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
       </p>
 

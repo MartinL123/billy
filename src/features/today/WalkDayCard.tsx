@@ -44,15 +44,15 @@ export function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void
     onClose()
   }
 
-  const choice = (on: boolean) => `tap min-h-[52px] rounded-[16px] border-2 border-solid text-[17px] font-extrabold ${on ? 'border-primary bg-primary-soft text-primary' : 'border-line-strong bg-surface text-[#3F4946]'}`
+  const choice = (on: boolean) => `tap min-h-[52px] rounded-[16px] border-2 border-solid text-[1rem] font-extrabold ${on ? 'border-primary bg-primary-soft text-primary' : 'border-line-strong bg-surface text-[#3F4946]'}`
   return (
     <Sheet label={`Noter ${walk.name.toLowerCase()}`} onClose={onClose}>
       <div>
-        <span className="text-[13px] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">
+        <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">
           {walk.name} · {formatHour(walk.time)}
           {walk.date !== today ? ' · hier' : ''}
         </span>
-        <h2 className="mt-1 font-display text-[24px] font-extrabold">Combien de temps ?</h2>
+        <h2 className="mt-1 font-display text-[1.4118rem] font-extrabold">Combien de temps ?</h2>
       </div>
       <div role="radiogroup" aria-label="Durée de la sortie" className="grid grid-cols-3 gap-2.5">
         {DURATION_CHOICES.map((m) => (
@@ -65,12 +65,12 @@ export function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void
         </button>
       </div>
       {pick === 'autre' && (
-        <label className="flex flex-col gap-1.5 text-[15px] font-bold">
+        <label className="flex flex-col gap-1.5 text-[0.8824rem] font-bold">
           Durée en minutes
-          <input type="number" inputMode="numeric" min={1} max={300} value={other} onChange={(e) => setOther(e.target.value)} autoFocus className="min-h-12 rounded-[14px] border-2 border-solid border-line-strong px-3.5 text-[16px] font-normal" />
+          <input type="number" inputMode="numeric" min={1} max={300} value={other} onChange={(e) => setOther(e.target.value)} autoFocus className="min-h-12 rounded-[14px] border-2 border-solid border-line-strong px-3.5 text-[0.9412rem] font-normal" />
         </label>
       )}
-      <p className="text-[14px] leading-snug text-[#3F4946]">Sans tracé, le brouillard ne bouge pas. Pour le lever, lancez la marche sur la Watch ou importez-la.</p>
+      <p className="text-[0.8235rem] leading-snug text-[#3F4946]">Sans tracé, le brouillard ne bouge pas. Pour le lever, lancez la marche sur la Watch ou importez-la.</p>
       <button type="button" onClick={save} disabled={!valid} className="btn btn-main min-h-[56px]">
         C’est noté
       </button>
@@ -104,12 +104,12 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
 
   return (
     <section aria-label="Ses sorties du jour" className="card flex flex-col gap-3 rounded-[24px] p-4">
-      <h2 className="font-display text-[20px] leading-tight font-extrabold">Ses sorties du jour</h2>
+      <h2 className="font-display text-[1.1765rem] leading-tight font-extrabold">Ses sorties du jour</h2>
       {!readOnly && yesterday && yesterday.slots.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[13px] font-extrabold tracking-[0.6px] text-[#3F4946] uppercase">Hier</span>
+          <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-[#3F4946] uppercase">Hier</span>
           {yesterday.slots.map((slot) => (
-            <button key={slot} type="button" onClick={() => onNote(yesterday.date, slot)} aria-label={`Noter la sortie ${label(slot).toLowerCase()} d’hier`} className="tap min-h-11 rounded-full border-2 border-dashed border-[#6E8C83] bg-surface px-3.5 text-[15px] font-bold text-primary">
+            <button key={slot} type="button" onClick={() => onNote(yesterday.date, slot)} aria-label={`Noter la sortie ${label(slot).toLowerCase()} d’hier`} className="tap min-h-11 rounded-full border-2 border-dashed border-[#6E8C83] bg-surface px-3.5 text-[0.8824rem] font-bold text-primary">
               + {label(slot)}
             </button>
           ))}
@@ -119,28 +119,28 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
         {plan.slots.map((slot) => (
           <li key={slot.slot}>
             {slot.state === 'faite' ? (
-              <span className="anim-pop flex h-[84px] flex-col items-center justify-center gap-0.5 rounded-[16px] bg-primary-soft text-center text-primary-dark">
+              <span className="anim-pop flex min-h-[84px] flex-col items-center justify-center gap-0.5 rounded-[16px] bg-primary-soft text-center text-primary-dark">
                 <CheckIcon size={22} />
-                <span className="text-[16px] font-extrabold">{label(slot.slot)}</span>
-                <span className="text-[14px] font-semibold">{slot.minutes ? minutesText(slot.minutes) : 'Faite'}</span>
-                {pending && <span className="text-[12px] text-[#3F4946]">en attente</span>}
+                <span className="text-[0.9412rem] font-extrabold">{label(slot.slot)}</span>
+                <span className="text-[0.8235rem] font-semibold">{slot.minutes ? minutesText(slot.minutes) : 'Faite'}</span>
+                {pending && <span className="text-[0.7059rem] text-[#3F4946]">en attente</span>}
               </span>
             ) : readOnly ? (
-              <span className="flex h-[84px] flex-col items-center justify-center gap-0.5 rounded-[16px] border-2 border-dashed border-[#6E8C83] text-text">
-                <span className="text-[14px] font-semibold text-[#3F4946]">{formatHour(times[slot.slot])}</span>
-                <span className="text-[16px] font-extrabold">{label(slot.slot)}</span>
+              <span className="flex min-h-[84px] flex-col items-center justify-center gap-0.5 rounded-[16px] border-2 border-dashed border-[#6E8C83] text-text">
+                <span className="text-[0.8235rem] font-semibold text-[#3F4946]">{formatHour(times[slot.slot])}</span>
+                <span className="text-[0.9412rem] font-extrabold">{label(slot.slot)}</span>
               </span>
             ) : (
-              <button type="button" onClick={() => onNote(today, slot.slot)} aria-label={`Noter la sortie ${label(slot.slot).toLowerCase()}, ${slot.hour}`} className="tap flex h-[84px] w-full flex-col items-center justify-center gap-0.5 rounded-[16px] border-2 border-dashed border-[#6E8C83] bg-surface p-0 text-text">
-                <span className="text-[14px] font-semibold text-[#3F4946]">{formatHour(times[slot.slot])}</span>
-                <span className="text-[16px] font-extrabold">{label(slot.slot)}</span>
-                <span className="text-[14px] font-bold text-primary">+ Noter</span>
+              <button type="button" onClick={() => onNote(today, slot.slot)} aria-label={`Noter la sortie ${label(slot.slot).toLowerCase()}, ${slot.hour}`} className="tap flex min-h-[84px] w-full flex-col items-center justify-center gap-0.5 rounded-[16px] border-2 border-dashed border-[#6E8C83] bg-surface p-0 text-text">
+                <span className="text-[0.8235rem] font-semibold text-[#3F4946]">{formatHour(times[slot.slot])}</span>
+                <span className="text-[0.9412rem] font-extrabold">{label(slot.slot)}</span>
+                <span className="text-[0.8235rem] font-bold text-primary">+ Noter</span>
               </button>
             )}
           </li>
         ))}
       </ul>
-      <p className="text-[15px] leading-snug text-[#3F4946]">{sentence}</p>
+      <p className="text-[0.8824rem] leading-snug text-[#3F4946]">{sentence}</p>
       {/* App iOS (T-036) : partir d’ici, sauf si la carte du moment le propose déjà. */}
       {!readOnly && isNative() && showStart && plan.slots.some((s) => s.state !== 'faite') && (
         <Link to="/balade-en-cours?depart=1" className="tap btn btn-outline min-h-[50px] gap-2">
@@ -152,7 +152,7 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
       )}
       {/* Un compte sans aucune balade : l’import reste proposé ici (sinon, il est dans le panneau de Balades). */}
       {!readOnly && noWalkYet && (
-        <Link to="/importer" className="tap btn btn-quiet min-h-11 self-center px-4 text-[15px] text-primary">
+        <Link to="/importer" className="tap btn btn-quiet min-h-11 self-center px-4 text-[0.8824rem] text-primary">
           {isNative() ? 'Importer un fichier GPX' : 'Importer mes balades'}
         </Link>
       )}

@@ -53,7 +53,7 @@ export function WeightSheet({ today, weights, editing, onClose }: WeightSheetPro
 
         <div className="flex gap-3">
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-            <label htmlFor="kg" className="text-[15px] font-semibold">
+            <label htmlFor="kg" className="text-[0.8824rem] font-semibold">
               Poids
             </label>
             <div className="flex h-16 items-center gap-2 rounded-field border-2 border-primary bg-surface px-4">
@@ -72,11 +72,11 @@ export function WeightSheet({ today, weights, editing, onClose }: WeightSheetPro
                 aria-invalid={error ? true : undefined}
                 className="btn btn-quiet min-w-0 flex-1 font-display outline-none"
               />
-              <span className="text-[17px] font-semibold text-muted">kg</span>
+              <span className="text-[1rem] font-semibold text-muted">kg</span>
             </div>
           </div>
           <div className="flex w-[150px] flex-col gap-1.5">
-            <label htmlFor="kg-date" className="text-[15px] font-semibold">
+            <label htmlFor="kg-date" className="text-[0.8824rem] font-semibold">
               Date
             </label>
             <NativePickerInput id="kg-date" type="date" max={today} value={date} onChange={(e) => setDate(e.target.value)} className="field h-16 px-3" />

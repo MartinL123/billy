@@ -66,9 +66,9 @@ function Row({ to, icon, tint, title, detail, alert = false, last = false }: { t
         {icon}
       </span>
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="text-[16px] font-extrabold">{title}</span>
+        <span className="text-[0.9412rem] font-extrabold">{title}</span>
         {/* Seul un soin en retard est en rouge (R-039). */}
-        <span className={`text-[14px] leading-snug ${alert ? 'font-bold text-danger' : 'text-[#3F4946]'}`}>{detail}</span>
+        <span className={`text-[0.8235rem] leading-snug ${alert ? 'font-bold text-danger' : 'text-[#3F4946]'}`}>{detail}</span>
       </span>
       <ChevronRightIcon size={20} className="shrink-0 text-[#5A6662]" />
     </Link>
@@ -97,7 +97,7 @@ export function LifeTiles({ arrival = false }: { /** Première ouverture du jour
 
   return (
     <>
-      <h2 className="mt-1 font-display text-[20px] font-extrabold">Sa vie avec vous</h2>
+      <h2 className="mt-1 font-display text-[1.1765rem] font-extrabold">Sa vie avec vous</h2>
       <nav aria-label="Sa vie avec vous" className={`card flex flex-col p-0 ${arrival ? 'anim-in' : ''}`}>
         <Row to="/billy" icon={ICONS.progres} tint="#DCEBE6" title="Ses progrès" detail={progressLine(active)} />
         <Row to={walks.length ? '/territoire' : '/importer'} icon={ICONS.balades} tint="#E3EAF8" title="Ses balades" detail={watchHint ?? walksLine(walks.map((w) => w.route), share)} />

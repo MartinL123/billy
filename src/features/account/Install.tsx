@@ -15,12 +15,12 @@ function Steps({ title, steps, note }: { title: string; steps: string[]; note?: 
       <ol className="m-0 flex list-none flex-col gap-2.5 p-0">
         {steps.map((step, i) => (
           <li key={step} className="flex items-start gap-3">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-[15px] leading-none font-extrabold text-white">{i + 1}</span>
-            <span className="text-[17px] leading-7">{step}</span>
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-[0.8824rem] leading-none font-extrabold text-white">{i + 1}</span>
+            <span className="text-[1rem] leading-7">{step}</span>
           </li>
         ))}
       </ol>
-      {note && <p className="text-[15px] leading-snug text-muted">{note}</p>}
+      {note && <p className="text-[0.8824rem] leading-snug text-muted">{note}</p>}
     </section>
   )
 }
@@ -36,8 +36,8 @@ export function InstallGuide({ onBack, backLabel = 'Retour' }: { onBack: () => v
         </button>
       </header>
       <main className="flex flex-col gap-4 px-5 pt-1 pb-[calc(env(safe-area-inset-bottom)+40px)]">
-        <h1 className="font-display text-[28px] leading-tight font-extrabold">Mettre {APP_NAME} sur votre téléphone</h1>
-        <p className="text-[17px] leading-snug text-[#3F4946]">Pas besoin de magasin d’applications : on l’ajoute à l’écran d’accueil, comme une app.</p>
+        <h1 className="font-display text-[1.6471rem] leading-tight font-extrabold">Mettre {APP_NAME} sur votre téléphone</h1>
+        <p className="text-[1rem] leading-snug text-[#3F4946]">Pas besoin de magasin d’applications : on l’ajoute à l’écran d’accueil, comme une app.</p>
         <Steps
           title="Sur iPhone (Safari)"
           steps={[`Ouvrez ${APP_URL} dans Safari.`, 'Touchez Partager (le carré avec une flèche vers le haut).', 'Choisissez « Sur l’écran d’accueil ».', 'Touchez « Ajouter ».']}

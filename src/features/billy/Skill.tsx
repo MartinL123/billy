@@ -95,7 +95,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
   if (!skill) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="text-[17px] text-muted">Cette compétence n’existe pas.</p>
+        <p className="text-[1rem] text-muted">Cette compétence n’existe pas.</p>
         <button type="button" onClick={back} className="btn btn-main">
           Retour
         </button>
@@ -130,7 +130,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
   return (
     <div className="mx-auto min-h-dvh max-w-[430px] bg-bg">
       <header className="flex flex-col gap-3 rounded-b-[28px] px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white" style={{ background: inkOn(territory) }}>
-        <button type="button" onClick={back} className="flex min-h-12 items-center gap-1.5 self-start rounded-full border-2 border-solid border-white/60 bg-transparent px-4 text-[17px] font-semibold text-white">
+        <button type="button" onClick={back} className="flex min-h-12 items-center gap-1.5 self-start rounded-full border-2 border-solid border-white/60 bg-transparent px-4 text-[1rem] font-semibold text-white">
           <ChevronLeftIcon size={20} />
           {overlay ? 'Retour' : territory.name}
         </button>
@@ -139,15 +139,15 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
             <BossIcon bossId={skill.id} size={32} />
           </span>
           <span className="flex min-w-0 flex-col gap-0.5">
-            <h1 className="font-display text-[30px] leading-none font-extrabold">{skill.name}</h1>
-            <span className="text-[15px] leading-snug text-white/90">Objectif : {stepPhrase(skill.id, MAX_LEVEL).replace(/^./, (c) => c.toLocaleLowerCase('fr'))}</span>
+            <h1 className="font-display text-[1.7647rem] leading-none font-extrabold">{skill.name}</h1>
+            <span className="text-[0.8824rem] leading-snug text-white/90">Objectif : {stepPhrase(skill.id, MAX_LEVEL).replace(/^./, (c) => c.toLocaleLowerCase('fr'))}</span>
           </span>
         </div>
       </header>
 
       <main className={`flex flex-col gap-3 px-0 pt-2 ${overlay ? 'pb-[calc(env(safe-area-inset-bottom)+40px)]' : 'pb-[calc(env(safe-area-inset-bottom)+170px)]'}`}>
         <Pending show={Boolean(stored?.pending)} />
-        <p className="px-5 text-center text-[15px] text-muted">Touchez une étape pour la cocher ou la décocher.</p>
+        <p className="px-5 text-center text-[0.8824rem] text-muted">Touchez une étape pour la cocher ou la décocher.</p>
         <ol className="relative m-0 w-full list-none p-0" style={{ aspectRatio: `${W} / ${H}` }}>
           <li className="contents" aria-hidden="true">
             <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 size-full">
@@ -165,8 +165,8 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
                     <span className="text-xs font-extrabold tracking-[0.5px] uppercase" style={{ color: inkOn(territory) }}>
                       En ce moment
                     </span>
-                    <span className="text-[15px] leading-snug font-bold">{stepPhrase(skill.id, step)}</span>
-                    <span className="flex items-center gap-[5px] text-[13px] text-muted">
+                    <span className="text-[0.8824rem] leading-snug font-bold">{stepPhrase(skill.id, step)}</span>
+                    <span className="flex items-center gap-[5px] text-[0.7647rem] text-muted">
                       {[0, 1, 2].map((i) => (
                         <span key={i} className={`size-[11px] rounded-full ${i < left.done ? 'bg-gold' : 'border-2 border-solid border-[#C9D1CD]'}`} />
                       ))}
@@ -190,8 +190,8 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
                     </span>
                   }
                 >
-                  <span className="rounded-lg bg-bg px-2 text-[15px] font-bold text-[#8A6514]">Maîtrisé : {stepPhrase(skill.id, step).replace(/^./, (c) => c.toLocaleLowerCase('fr'))}</span>
-                  {mastered && <span className="text-[13px] text-muted">{whenOf(step)}</span>}
+                  <span className="rounded-lg bg-bg px-2 text-[0.8824rem] font-bold text-[#8A6514]">Maîtrisé : {stepPhrase(skill.id, step).replace(/^./, (c) => c.toLocaleLowerCase('fr'))}</span>
+                  {mastered && <span className="text-[0.7647rem] text-muted">{whenOf(step)}</span>}
                 </Stop>
               )
             }
@@ -209,30 +209,30 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
                     </span>
                   }
                 >
-                  <span className="text-[15px] leading-snug font-bold">{stepPhrase(skill.id, step)}</span>
-                  <span className="text-[13px] text-muted">{whenOf(step)}</span>
+                  <span className="text-[0.8824rem] leading-snug font-bold">{stepPhrase(skill.id, step)}</span>
+                  <span className="text-[0.7647rem] text-muted">{whenOf(step)}</span>
                 </Stop>
               )
             }
             return (
               <Stop key={step} index={step - 1} radius={40} label={`${stepPhrase(skill.id, step)}. Pas encore cochée`} onOpen={() => setOpened(step)} circle={<span className="size-20 rounded-full border-4 border-dashed bg-surface" style={{ borderColor: territory.soft === '#DCEBE6' ? '#5B9384' : territory.soft === '#E3EAF8' ? '#6A8CC8' : '#C27F4F' }} />}>
-                <span className="text-[15px] leading-snug font-semibold text-[#3F4946]">{stepPhrase(skill.id, step)}</span>
+                <span className="text-[0.8824rem] leading-snug font-semibold text-[#3F4946]">{stepPhrase(skill.id, step)}</span>
               </Stop>
             )
           })}
         </ol>
 
-        {mastered && <p className="mx-5 rounded-[20px] bg-gold-soft px-4 py-3 text-[17px] leading-snug font-semibold text-[#5C4410]">À entretenir : elle revient de temps en temps dans la mission du jour.</p>}
+        {mastered && <p className="mx-5 rounded-[20px] bg-gold-soft px-4 py-3 text-[1rem] leading-snug font-semibold text-[#5C4410]">À entretenir : elle revient de temps en temps dans la mission du jour.</p>}
       </main>
 
       {!overlay && !readOnly && (
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto flex max-w-[430px] flex-col gap-2 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-          <Link to={`/exercice?competence=${skill.id}`} className="btn btn-main min-h-[58px] text-[18px]">
+          <Link to={`/exercice?competence=${skill.id}`} className="btn btn-main min-h-[58px] text-[1.0588rem]">
             <TargetIcon size={22} />
             S’entraîner · {minutes} min
           </Link>
-          <Link to={`/noter?depuis=competence&competences=${skill.id}`} className="flex min-h-12 items-center justify-center rounded-full border-2 border-solid text-[17px] font-bold no-underline" style={{ borderColor: territory.color, color: inkOn(territory) }}>
+          <Link to={`/noter?depuis=competence&competences=${skill.id}`} className="flex min-h-12 items-center justify-center rounded-full border-2 border-solid text-[1rem] font-bold no-underline" style={{ borderColor: territory.color, color: inkOn(territory) }}>
             Déjà fait aujourd’hui ? Le noter
           </Link>
         </div>
@@ -243,12 +243,12 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
       {opened !== null &&
         (opened <= progress.level ? (
           <Sheet label="Étape cochée" onClose={() => setOpened(null)}>
-            <p className="text-[13px] font-extrabold tracking-[0.5px] uppercase" style={{ color: inkOn(territory) }}>
+            <p className="text-[0.7647rem] font-extrabold tracking-[0.5px] uppercase" style={{ color: inkOn(territory) }}>
               {skill.name} · {whenOf(opened) === 'Il savait déjà le faire' ? place('il savait déjà le faire') : `acquise le ${whenOf(opened)}`}
             </p>
-            <h2 className="font-display text-[22px] leading-tight font-extrabold">{stepPhrase(skill.id, opened)}</h2>
-            <p className="text-[17px] leading-snug">{place('Il ne le fait plus vraiment, ou c’était une erreur ? Décochez l’étape : elle redevient l’étape en cours. Le niveau sera recalculé.')}</p>
-            {opened < progress.level && <p className="rounded-[14px] bg-[#FFF8E6] px-3.5 py-2.5 text-[15px] leading-snug text-gold-dark">Les étapes plus difficiles déjà cochées seront décochées aussi.</p>}
+            <h2 className="font-display text-[1.2941rem] leading-tight font-extrabold">{stepPhrase(skill.id, opened)}</h2>
+            <p className="text-[1rem] leading-snug">{place('Il ne le fait plus vraiment, ou c’était une erreur ? Décochez l’étape : elle redevient l’étape en cours. Le niveau sera recalculé.')}</p>
+            {opened < progress.level && <p className="rounded-[14px] bg-[#FFF8E6] px-3.5 py-2.5 text-[0.8824rem] leading-snug text-gold-dark">Les étapes plus difficiles déjà cochées seront décochées aussi.</p>}
             <button type="button" onClick={() => setChecked(opened, false)} className="btn mt-1 border-2 border-solid border-danger bg-surface text-danger">
               Décocher cette étape
             </button>
@@ -258,11 +258,11 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
           </Sheet>
         ) : (
           <Sheet label="Étape pas encore cochée" onClose={() => setOpened(null)}>
-            <p className="text-[13px] font-extrabold tracking-[0.5px] uppercase" style={{ color: inkOn(territory) }}>
+            <p className="text-[0.7647rem] font-extrabold tracking-[0.5px] uppercase" style={{ color: inkOn(territory) }}>
               {skill.name}
             </p>
-            <h2 className="font-display text-[22px] leading-tight font-extrabold">{stepPhrase(skill.id, opened)}</h2>
-            <p className="text-[17px] leading-snug">
+            <h2 className="font-display text-[1.2941rem] leading-tight font-extrabold">{stepPhrase(skill.id, opened)}</h2>
+            <p className="text-[1rem] leading-snug">
               {dog.name} sait déjà faire ça ? Cochez l’étape : elle sera notée « {place('Il savait déjà le faire')} ».{opened > current ? ' Les étapes plus faciles seront cochées aussi.' : ''}
             </p>
             <button type="button" onClick={() => setChecked(opened, true)} className="btn btn-on mt-1">

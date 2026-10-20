@@ -78,10 +78,18 @@ export default function Billy() {
           <ChevronLeftIcon size={20} />
           Accueil
         </button>
-        <Link to="/boutique" data-bones-counter aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[1rem] font-extrabold text-gold-dark no-underline">
-          <BoneIcon size={20} />
-          {balance(bones)}
-        </Link>
+        {/* Visiteur (R-073) : le solde se voit, la boutique reste au propriétaire. */}
+        {readOnly ? (
+          <span aria-label={`${balance(bones)} os`} className="flex min-h-11 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[1rem] font-extrabold text-gold-dark">
+            <BoneIcon size={20} />
+            {balance(bones)}
+          </span>
+        ) : (
+          <Link to="/boutique" data-bones-counter aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[1rem] font-extrabold text-gold-dark no-underline">
+            <BoneIcon size={20} />
+            {balance(bones)}
+          </Link>
+        )}
       </div>
       <div className="flex flex-col items-center gap-1.5 text-center">
         <span className="overflow-hidden rounded-full border-4 border-solid border-milestone">
@@ -126,7 +134,7 @@ export default function Billy() {
       </section>
 
       <nav aria-label={`Tout sur ${dog.name}`} className="grid grid-cols-2 gap-3">
-        {tiles.map((tile) => (
+        {tiles.filter((tile) => !readOnly || (tile.to !== '/boutique' && tile.to !== '/meute')).map((tile) => (
           <Link key={tile.title} to={tile.to} className="card tap flex min-h-[88px] flex-col gap-1 rounded-[20px] p-3.5 text-text no-underline">
             <span className="text-[0.9412rem] font-bold">{tile.title}</span>
             <span className="text-[0.8235rem] leading-snug text-[#3F4946]">{tile.detail}</span>

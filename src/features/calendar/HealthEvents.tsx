@@ -91,9 +91,11 @@ export default function HealthEvents() {
         ) : (
           <div className="card flex flex-col items-start gap-3 p-4">
             <p className="text-[1rem] font-semibold">{info.empty}</p>
-            <Link to={info.type ? `/evenement/nouveau?type=${info.type}` : '/evenement/nouveau'} className="btn btn-outline">
-              {info.add}
-            </Link>
+            {!readOnly && (
+              <Link to={info.type ? `/evenement/nouveau?type=${info.type}` : '/evenement/nouveau'} className="btn btn-outline">
+                {info.add}
+              </Link>
+            )}
           </div>
         )}
       </section>

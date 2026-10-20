@@ -299,11 +299,13 @@ export default function Explorer() {
                     {f.label}
                   </button>
                 ))}
-                {/* Les spots de la meute, avec les filtres (T-031). */}
-                <button type="button" aria-pressed={packLayer} onClick={() => setPackLayer(!packLayer)} className={`flex items-center gap-1.5 ${chip(packLayer)}`}>
-                  <span className="size-2.5 rounded-full bg-[#2559A8]" aria-hidden="true" />
-                  Spots de la meute
-                </button>
+                {/* Les spots de la meute, avec les filtres (T-031) ; pas chez un visiteur (R-073), qui n’est pas de la meute. */}
+                {!readOnly && (
+                  <button type="button" aria-pressed={packLayer} onClick={() => setPackLayer(!packLayer)} className={`flex items-center gap-1.5 ${chip(packLayer)}`}>
+                    <span className="size-2.5 rounded-full bg-[#2559A8]" aria-hidden="true" />
+                    Spots de la meute
+                  </button>
+                )}
               </div>
               {/* Les balades en cartes, à l’horizontale : un toucher la met en avant sur la carte, un autre la relâche. */}
               {shown.length === 0 ? (

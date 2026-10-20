@@ -10,9 +10,11 @@ import { useToday } from '../../lib/useToday'
 import { SubScreen } from './SubScreen'
 import { WeightChart } from './WeightChart'
 import { formatKg, WeightSheet } from './WeightSheet'
+import { useReadOnly } from '../../firebase/viewer'
 
 /** Le poids : la courbe, les pesées, « Ajouter une pesée ». */
 export default function HealthWeight() {
+  const readOnly = useReadOnly()
   const { weights } = useData()
   const today = useToday()
   // Depuis la carte « Pesée du mois » (?ajouter=1) : la pesée s’ouvre tout de suite (T-013).
@@ -49,6 +51,7 @@ export default function HealthWeight() {
                 key={weight.id}
                 type="button"
                 aria-label={`Modifier la pesée du ${formatLong(weight.date)}`}
+                disabled={readOnly}
                 onClick={() => setWeightSheet({ editing: weight })}
                 className="flex min-h-12 items-center gap-3 border-0 border-t border-solid border-divider bg-transparent px-0 text-left text-[1rem] text-text"
               >
@@ -59,9 +62,11 @@ export default function HealthWeight() {
             ))}
           </div>
         )}
-        <button type="button" onClick={() => setWeightSheet({})} className={outlineButton}>
-          Ajouter une pesée
-        </button>
+        {!readOnly && (
+          <button type="button" onClick={() => setWeightSheet({})} className={outlineButton}>
+            Ajouter une pesée
+          </button>
+        )}
       </section>
 
       {weightSheet && <WeightSheet today={today} weights={weights} editing={weightSheet.editing} onClose={() => setWeightSheet(null)} />}

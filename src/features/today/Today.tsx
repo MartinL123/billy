@@ -329,10 +329,18 @@ export default function Today() {
             <span className="font-display text-[clamp(21px,7vw,26px)] leading-tight font-extrabold break-words">Bonjour, {dog.name}</span>
           </span>
         </Link>
-        <Link to="/boutique" data-bones-counter aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[1rem] font-extrabold text-gold-dark no-underline">
-          <BoneIcon size={20} />
-          <CountUp value={balance(bones)} fromZero={arrival} />
-        </Link>
+        {/* Visiteur (R-073) : le solde se voit, la boutique reste au propriétaire. */}
+        {readOnly ? (
+          <span aria-label={`${balance(bones)} os`} className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[1rem] font-extrabold text-gold-dark">
+            <BoneIcon size={20} />
+            {balance(bones)}
+          </span>
+        ) : (
+          <Link to="/boutique" data-bones-counter aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[1rem] font-extrabold text-gold-dark no-underline">
+            <BoneIcon size={20} />
+            <CountUp value={balance(bones)} fromZero={arrival} />
+          </Link>
+        )}
       </header>
 
       {/* Une nouvelle carte du moment (soin fait, mission faite…) monte à la place de l’ancienne (T-033). */}

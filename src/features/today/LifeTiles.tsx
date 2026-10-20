@@ -11,6 +11,7 @@ import { walkItems } from '../../lib/walkList'
 import { APP_NAME } from '../../appName'
 import { isNative } from '../../native'
 import { watchLooksBlocked } from '../balades/watchImport'
+import { useReadOnly } from '../../firebase/viewer'
 
 const STROKE = { fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
 
@@ -80,6 +81,7 @@ function Row({ to, icon, tint, title, detail, alert = false, last = false }: { t
  * de Billy (et la pastille d’os de l’en-tête) ; « Noter un souvenir » est dans l’écran des souvenirs.
  */
 export function LifeTiles({ arrival = false }: { /** Première ouverture du jour : la carte monte avec la cascade (T-033). */ arrival?: boolean }) {
+  const readOnly = useReadOnly()
   const { dog, bossProgress, entries, events, fog, communes } = useData()
   const today = useToday()
   const walks = useMemo(() => walkItems(entries), [entries])
@@ -100,9 +102,10 @@ export function LifeTiles({ arrival = false }: { /** Première ouverture du jour
       <h2 className="mt-1 font-display text-[1.1765rem] font-extrabold">Sa vie avec vous</h2>
       <nav aria-label="Sa vie avec vous" className={`card flex flex-col p-0 ${arrival ? 'anim-in' : ''}`}>
         <Row to="/billy" icon={ICONS.progres} tint="#DCEBE6" title="Ses progrès" detail={progressLine(active)} />
-        <Row to={walks.length ? '/territoire' : '/importer'} icon={ICONS.balades} tint="#E3EAF8" title="Ses balades" detail={watchHint ?? walksLine(walks.map((w) => w.route), share)} />
+        <Row to={walks.length || readOnly ? '/territoire' : '/importer'} icon={ICONS.balades} tint="#E3EAF8" title="Ses balades" detail={watchHint ?? walksLine(walks.map((w) => w.route), share)} />
         <Row to="/sante" icon={ICONS.sante} tint="#FBE6D4" title="Sa santé" detail={sante.text} alert={sante.late} />
-        <Row to={memories.count ? '/balades' : '/noter'} icon={ICONS.souvenirs} tint="#FCEFD3" title="Ses souvenirs" detail={memories.count ? memoriesLine(entries) : 'Noter le premier'} last />
+        {/* Visiteur (R-073) : rien à noter, seulement à regarder. */}
+        <Row to={memories.count || readOnly ? '/balades' : '/noter'} icon={ICONS.souvenirs} tint="#FCEFD3" title="Ses souvenirs" detail={memories.count ? memoriesLine(entries) : readOnly ? 'Pas encore de souvenir' : 'Noter le premier'} last />
       </nav>
     </>
   )

@@ -167,7 +167,7 @@ export default function DocumentForm() {
 
         <div className="flex items-start gap-2.5 rounded-field bg-info-soft px-3.5 py-3">
           <InfoIcon size={20} className="mt-px shrink-0 text-info" />
-          <p className="text-sm leading-[1.4] text-[#1D3F73]">Pour scanner un papier, utilisez l’app Notes ou Fichiers de votre iPhone, puis importe le PDF ici.</p>
+          <p className="text-sm leading-[1.4] text-[#1D3F73]">Pour scanner un papier, utilisez l’app Notes ou Fichiers de votre iPhone, puis importez le PDF ici.</p>
         </div>
 
         <TextField label="Titre" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Carnet de santé, compte rendu…" enterKeyHint="done" />

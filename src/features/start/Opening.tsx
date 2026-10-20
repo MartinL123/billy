@@ -16,13 +16,15 @@ const PAWS = [
 
 /** Le temps de l’animation d’entrée avant d’ouvrir l’accueil : l’accueil est utilisable en moins d’1 s. */
 const ENTER_MS = 450
+/** L’app entre seule après 1 s (T-049) ; un toucher entre tout de suite. */
+export const AUTO_ENTER_MS = 1000
 
 const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
 /**
  * Écran d’ouverture, à chaque lancement (T-017), animé (T-032, maquette « Flair — Accueil et ouverture ») :
  * halo qui respire, deux ondes, empreintes qui flottent ; au toucher, la photo s’enfonce puis grandit, une onde claire
- * envahit l’écran et l’accueil monte.
+ * envahit l’écran et l’accueil monte. Depuis la V5 (T-049), l’app entre seule après 1 s ; un toucher entre tout de suite.
  */
 export default function Opening() {
   const { dog } = useData()
@@ -49,6 +51,15 @@ export default function Opening() {
     setEntering(true)
     timer.current = window.setTimeout(go, ENTER_MS)
   }
+
+  // Entrée seule (T-049) : après 1 s, ou tout de suite si l’iPhone réduit les animations.
+  const auto = useRef<number | undefined>(undefined)
+  const enterRef = useRef(enter)
+  enterRef.current = enter
+  useEffect(() => {
+    auto.current = window.setTimeout(() => enterRef.current(), reducedMotion() ? 0 : AUTO_ENTER_MS)
+    return () => window.clearTimeout(auto.current)
+  }, [])
 
   return (
     <main className={`relative mx-auto flex min-h-dvh max-w-[430px] flex-col items-center overflow-hidden bg-primary px-6 pt-[env(safe-area-inset-top)] pb-[calc(env(safe-area-inset-bottom)+32px)] text-white ${entering ? 'op-leave' : ''}`}>

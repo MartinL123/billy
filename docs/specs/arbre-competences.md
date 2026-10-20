@@ -198,13 +198,18 @@ rencontres.**
 - **Tapis puis relax** pour le « reste ».
 - **Attendre à la porte 🆕** : la main sur la poignée ; il se lève, la porte se referme ; il reste assis, elle s'ouvre
   et tu dis « vas-y ».
+- **S'arrêter au trottoir 🆕** : à chaque bord de trottoir, il s'assoit (au début sur un petit tapis-cible, ou tu
+  t'arrêtes et attends qu'il se pose) ; « oui ! » et friandise ; il traverse au « vas-y ». S'il descend avant, « oups »
+  neutre, on revient et on recommence. Puis on complique : friandise ou jouet lancé sur la route, légère tension de
+  laisse, geste brusque. Rue calme et heure creuse d'abord (voir La Ville).
+  *Source : reel @zurithemarvel « curb stop », 11 octobre 2026.*
 - **Quatre pattes au sol 🆕** : quand quelqu'un arrive, friandises lancées au sol tant que ses 4 pattes y sont.
 
 | Étape | Exercice et réglage | Pour valider | Temps estimé |
 |---|---|---|---|
 | 1. S'assoit et se couche à la demande | Assis et couché au leurre, puis au mot | Assis et couché au mot, au calme | 3 à 7 jours |
 | 2. Reste en place et attend à la porte | Tapis 10 s ; Attendre à la porte | Reste 10 s ; attend que la porte s'ouvre | 1 à 2 sem. |
-| 3. S'assoit, se couche et reste, dehors au calme | Les mêmes, dans un lieu calme dehors | Réussi dehors | 1 à 3 sem. |
+| 3. S'assoit, se couche et reste, dehors au calme | Les mêmes, dans un lieu calme dehors ; S'arrêter au trottoir, rue calme | Réussi dehors ; s'assoit seul au bord du trottoir | 1 à 3 sem. |
 | 4. Ne saute pas sur les gens qui arrivent | Quatre pattes au sol avec un proche, puis un invité | Ne saute pas à l'arrivée | 2 à 4 sem. |
 | 5. Garde ses bonnes manières partout | Les mêmes, dans 3 lieux | Réussi dans 3 lieux | 3 à 6 sem. |
 
@@ -308,7 +313,7 @@ Les 3 compétences de cet étage sont des **compétences de peur**. Un moment «
 ## Pour Claude Code
 
 - Ajouter au catalogue (`training.ts`) les exercices 🆕 : Petites absences, Visite de courtoisie, Assis et couché au
-  leurre, Attendre à la porte, Quatre pattes au sol, Parcours d'objets.
+  leurre, Attendre à la porte, S'arrêter au trottoir, Quatre pattes au sol, Parcours d'objets.
 - Ajouter pour chaque compétence la **correspondance étape → exercices (+ niveau N1–N5)** des tableaux ci-dessus.
   « S'entraîner » et la mission du jour l'utilisent.
 - Durée de séance : 3 min tant que Billy a moins de 6 mois (calculée depuis sa date de naissance), puis 5 min.

@@ -33,6 +33,12 @@ Lire avant toute nouvelle fonctionnalité (l'index complet est dans `docs/README
 - `docs/style-guide.html` : style guide (couleurs et contrastes, typo, boutons, composants, éléments de jeu, écriture) — à respecter pour tout nouvel écran
 - `docs/maquettes/README.md` : tokens visuels ; les maquettes `V3-*` font foi pour les écrans refondus
 - Contexte seulement : `docs/recherche/` (audit UX, recherche dressage)
+- `.claude/skills/apple-design/` : skill de revue UI fondé sur les guidelines d'Apple (HIG).
+  À utiliser pour tout nouvel écran ou composant modifié : relire le code avec ce skill avant de pousser.
+  Ordre de priorité en cas de conflit : spec V3 et maquettes V3 > style guide > HIG.
+  Billy est une app web affichée dans iOS : appliquer les principes, l'accessibilité, la typo,
+  les couleurs, la mise en page et les textes ; les conventions iOS natives seulement si elles
+  ne contredisent pas la spec.
 
 ## Principes UX (non négociables)
 

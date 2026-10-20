@@ -19,6 +19,8 @@ export interface ImportResult {
   /** Part de la commune découverte, avant et après (si la commune est connue). */
   share?: { name: string; before: number; after: number }
   line: string
+  /** Les os gagnés par ces balades (fin de balade : la pastille « +3 os », T-051). */
+  gained: Bone[]
 }
 
 let last: ImportResult | null = null
@@ -58,12 +60,14 @@ export async function importActivities(
   const walks: ImportResult['walks'] = []
   const tracks: { lat: number; lng: number }[][] = []
   let bones = [...ctx.bones]
+  const gained: Bone[] = []
   for (let i = 0; i < count; i++) {
     onProgress(i, count)
     const walk = tallyActivity(tally, await read(i), ctx.knownKeys)
     if (!walk) continue
     const saved = saveImportedWalk(walk, bones, ctx.today, ctx.times, source)
     bones = [...bones, ...saved.bones]
+    gained.push(...saved.bones)
     tracks.push(walk.full)
     walks.push({ entryId: saved.entryId, name: saved.name, date: walk.date ?? ctx.today, distanceM: walk.distanceM, ...(walk.durationMin ? { durationMin: walk.durationMin } : {}), points: walk.points })
     // Laisser respirer l’écran entre deux fichiers (barre de progression, gestes).
@@ -87,6 +91,6 @@ export async function importActivities(
   }
   // Les mois récents d’abord.
   walks.sort((a, b) => b.date.localeCompare(a.date))
-  last = { walks, distanceM: walks.reduce((sum, w) => sum + w.distanceM, 0), newCells, ...(share ? { share } : {}), line: ignoredLine(tally) }
+  last = { walks, distanceM: walks.reduce((sum, w) => sum + w.distanceM, 0), newCells, ...(share ? { share } : {}), line: ignoredLine(tally), gained }
   return last
 }

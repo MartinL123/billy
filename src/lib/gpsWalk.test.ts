@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chrono, gpsActivity, minutesSince, overlapShare, tooShort, withoutGpsDuplicates, type GpsPoint } from './gpsWalk'
+import { chrono, doubtfulSegments, durationParts, endWalkPills, gpsActivity, minutesSince, overlapShare, territoryBits, tooShort, weakSignal, withoutGpsDuplicates, type GpsPoint } from './gpsWalk'
 import type { WatchWalk } from './watch'
 
 const start = '2026-10-18T17:00:00.000Z'
@@ -31,5 +31,33 @@ describe('balade enregistrée par l’iPhone (T-036)', () => {
     const watch = (from: number, to: number): WatchWalk => ({ uuid: String(from), start: at(from), end: at(to), type: 'walking', points: [] })
     const known = [{ source: 'gps', route: { source: 'gps', startTime: at(2), endTime: at(38) } }, { route: { source: 'gpx', startTime: at(100), endTime: at(140) } }]
     expect(withoutGpsDuplicates([watch(0, 40), watch(30, 90), watch(100, 140)], known).map((w) => w.uuid)).toEqual(['30', '100'])
+  })
+})
+
+describe('balade en cours, V5 (T-051)', () => {
+  it('« 15 min 17 s »', () => {
+    expect(durationParts(917_000)).toEqual({ min: 15, sec: 17 })
+    expect(durationParts(-5)).toEqual({ min: 0, sec: 0 })
+  })
+
+  it('GPS faible : plus de 50 m depuis plus de 20 s', () => {
+    expect(weakSignal(80, 0, 21_000)).toBe(true)
+    expect(weakSignal(80, 0, 10_000)).toBe(false)
+    expect(weakSignal(12, 0, 60_000)).toBe(false)
+    expect(weakSignal(undefined, undefined, 60_000)).toBe(false)
+  })
+
+  it('les portions douteuses (trou de plus de 20 s)', () => {
+    const pts = [at(0), at(0.2), at(1), at(1.1)].map((time) => ({ lat: 48.6, lng: -2, time }))
+    expect(doubtfulSegments(pts)).toEqual([[1, 2]])
+  })
+
+  it('les bouts de territoire et les pastilles de fin : +3 os seulement s’ils sont donnés', () => {
+    expect(territoryBits(39)).toBe(0)
+    expect(territoryBits(85)).toBe(2)
+    const nb = (list: string[]) => list.map((t) => t.replace(/ /g, ' '))
+    expect(nb(endWalkPills({ noteBones: 3, bits: 2, slotName: 'Sortie du soir' }))).toEqual(['+3 os', '2 nouveaux bouts de territoire', 'Sortie du soir notée'])
+    // Limite de 3 notes par jour atteinte : pas de pastille d’os.
+    expect(nb(endWalkPills({ noteBones: 0, bits: 1 }))).toEqual(['Un nouveau bout de territoire'])
   })
 })

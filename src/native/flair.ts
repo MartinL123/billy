@@ -43,6 +43,8 @@ interface FlairNativePlugin {
   keepAwake(options: { on: boolean }): Promise<void>
   addListener(event: 'walkPoint', listener: (point: GpsPoint) => void): Promise<PluginListenerHandle>
   addListener(event: 'walkStopped', listener: (data: { stoppedAt?: string }) => void): Promise<PluginListenerHandle>
+  /** La précision du GPS à chaque mise à jour (même pour un point écarté) : signal faible (T-051). */
+  addListener(event: 'walkSignal', listener: (data: { accuracy: number; time: string }) => void): Promise<PluginListenerHandle>
 }
 
 export const FlairNative = registerPlugin<FlairNativePlugin>('FlairNative')

@@ -624,3 +624,17 @@ input::-webkit-date-and-time-value {
     background: #e6eae7;
   }
 }
+
+/* Balade en cours (V5, T-051) : le point orange qui clignote doucement. Coupé avec « Réduire les animations ». */
+@keyframes live-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.live-dot {
+  animation: live-blink 1.4s ease-in-out infinite;
+}

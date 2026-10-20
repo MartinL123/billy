@@ -66,3 +66,38 @@ export function withoutGpsDuplicates(walks: WatchWalk[], known: { source?: strin
   const gps = known.flatMap((k) => (k.route?.source === 'gps' && k.route.startTime && k.route.endTime ? [{ start: k.route.startTime, end: k.route.endTime }] : []))
   return walks.filter((w) => !gps.some((g) => overlapShare(w, g) > 0.5))
 }
+
+// ——— V5 (T-051) : l’écran « Balade en cours » ———
+
+/** « 15 min 17 s » : les minutes en grand, les secondes plus petites (plus de « 15:17 »). */
+export function durationParts(ms: number): { min: number; sec: number } {
+  const total = Math.max(0, Math.floor(ms / 1000))
+  return { min: Math.floor(total / 60), sec: total % 60 }
+}
+
+/** Le GPS est faible : précision moins bonne que 50 m depuis plus de 20 s. */
+export const WEAK_ACCURACY_M = 50
+export const WEAK_AFTER_MS = 20_000
+export function weakSignal(lastAccuracy: number | undefined, weakSince: number | undefined, now: number): boolean {
+  return lastAccuracy !== undefined && lastAccuracy > WEAK_ACCURACY_M && weakSince !== undefined && now - weakSince > WEAK_AFTER_MS
+}
+
+/** Deux points à plus de 20 s d’écart : la portion entre les deux est douteuse (tracé en pointillés). */
+export function doubtfulSegments(points: GpsPoint[]): [number, number][] {
+  const out: [number, number][] = []
+  for (let i = 1; i < points.length; i++) if (Date.parse(points[i]!.time) - Date.parse(points[i - 1]!.time) > WEAK_AFTER_MS) out.push([i - 1, i])
+  return out
+}
+
+/** Un « bout de territoire » : 40 cases de 25 m jamais vues (environ 2 500 m²). */
+export const CELLS_PER_BIT = 40
+export const territoryBits = (newCells: number) => Math.floor(newCells / CELLS_PER_BIT)
+
+/** Les pastilles de « Belle balade ! », dans l’ordre : os (seulement s’il y en a), territoire, sortie notée. */
+export function endWalkPills({ noteBones, bits, slotName }: { noteBones: number; bits: number; slotName?: string }): string[] {
+  const out: string[] = []
+  if (noteBones > 0) out.push(`+${noteBones} os`)
+  if (bits > 0) out.push(bits === 1 ? 'Un nouveau bout de territoire' : `${bits} nouveaux bouts de territoire`)
+  if (slotName) out.push(`${slotName} notée`)
+  return out
+}

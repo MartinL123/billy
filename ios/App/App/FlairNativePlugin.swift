@@ -255,6 +255,10 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
 
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard recording, let state = readState(), let started = (state["startedAt"] as? String).flatMap(FlairNativePlugin.parseDate) else { return }
+        // La précision du GPS, même quand le point est écarté : l'écran annonce un signal faible (V5, T-051).
+        if let last = locations.last {
+            notifyListeners("walkSignal", data: ["accuracy": last.horizontalAccuracy, "time": FlairNativePlugin.format(last.timestamp)])
+        }
         for point in locations where point.horizontalAccuracy >= 0 && point.horizontalAccuracy <= maxAccuracy {
             append(point)
             notifyListeners("walkPoint", data: ["lat": point.coordinate.latitude, "lng": point.coordinate.longitude, "time": FlairNativePlugin.format(point.timestamp)])

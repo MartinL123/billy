@@ -22,6 +22,8 @@ export interface MapWalk {
   id: string
   color: string
   points: LatLng[]
+  /** Une portion douteuse (GPS faible) : tracé en pointillés (T-051). */
+  dashed?: boolean
 }
 
 interface Props {
@@ -81,13 +83,14 @@ const TAP_PX = 14
 
 /** Les tracés des balades : un liseré blanc dessous, la couleur de chaque balade dessus. */
 function drawWalks(m: MapLibreMap, walks: MapWalk[], dimmed: boolean) {
-  const data = { type: 'FeatureCollection' as const, features: walks.filter((w) => w.points.length > 1).map((w) => ({ type: 'Feature' as const, properties: { id: w.id, color: w.color }, geometry: { type: 'LineString' as const, coordinates: w.points.map(lngLat) } })) }
+  const data = { type: 'FeatureCollection' as const, features: walks.filter((w) => w.points.length > 1).map((w) => ({ type: 'Feature' as const, properties: { id: w.id, color: w.color, dashed: Boolean(w.dashed) }, geometry: { type: 'LineString' as const, coordinates: w.points.map(lngLat) } })) }
   const source = m.getSource('trajets') as GeoJSONSource | undefined
   if (source) source.setData(data)
   else {
     m.addSource('trajets', { type: 'geojson', data })
-    m.addLayer({ id: 'trajets-liseré', type: 'line', source: 'trajets', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#FFFFFF', 'line-width': 7 } })
-    m.addLayer({ id: 'trajets', type: 'line', source: 'trajets', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 4 } })
+    m.addLayer({ id: 'trajets-liseré', type: 'line', source: 'trajets', filter: ['!=', ['get', 'dashed'], true], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#FFFFFF', 'line-width': 7 } })
+    m.addLayer({ id: 'trajets', type: 'line', source: 'trajets', filter: ['!=', ['get', 'dashed'], true], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 4 } })
+    m.addLayer({ id: 'trajets-pointilles', type: 'line', source: 'trajets', filter: ['==', ['get', 'dashed'], true], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 4, 'line-dasharray': [0.5, 2] } })
   }
   // Une balade mise en avant : les autres s’effacent.
   m.setPaintProperty('trajets', 'line-opacity', dimmed ? 0.3 : 1)
@@ -95,6 +98,7 @@ function drawWalks(m: MapLibreMap, walks: MapWalk[], dimmed: boolean) {
   // Les trajets restent au-dessus du brouillard, la balade mise en avant au-dessus de tout.
   m.moveLayer('trajets-liseré')
   m.moveLayer('trajets')
+  m.moveLayer('trajets-pointilles')
   for (const id of ['balade-liseré', 'balade', 'parcouru']) if (m.getLayer(id)) m.moveLayer(id)
 }
 

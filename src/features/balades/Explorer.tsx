@@ -260,7 +260,7 @@ export default function Explorer() {
         aria-label={`Le territoire ${ofName(dog.name)}`}
         {...sheet.handlers}
         style={sheet.style}
-        className={`absolute inset-x-0 bottom-0 z-10 mx-auto flex max-h-[calc(100%-50dvh)] max-w-[430px] ${sheet.scrollable && !sheet.collapsed ? '' : 'touch-pan-x'} ${selected || walk ? 'invisible' : ''} flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 pb-3 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]`}
+        className={`absolute inset-x-0 bottom-0 z-10 mx-auto flex max-h-[calc(100%-50dvh)] max-w-[430px] ${sheet.scrollable && !sheet.collapsed ? '' : 'touch-pan-x'} ${selected || walk ? 'invisible' : ''} flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 pb-9 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]`}
       >
         <button type="button" onClick={() => sheet.setCollapsed(!sheet.collapsed)} aria-expanded={!sheet.collapsed} aria-label={sheet.collapsed ? 'Afficher le panneau' : 'Réduire le panneau'} className="mx-auto -mb-2 flex min-h-11 w-24 shrink-0 touch-none items-center justify-center border-0 bg-transparent">
           <span className="h-1.5 w-11 rounded-full bg-line-strong" />
@@ -366,7 +366,8 @@ export default function Explorer() {
               </ul>
             </div>
           )}
-          {/* L’action principale : partir (iOS) ; sur le web, ajouter ses balades (import). Collée au bas du panneau : jamais à faire défiler. */}
+          {/* L’action principale : partir (iOS) ; sur le web, ajouter ses balades (import). Collée au bas du panneau : jamais à
+              faire défiler, et au-dessus du rond Accueil qui dépasse de 26 px de la barre (R-072, d’où pb-9 sur le panneau). */}
           {!readOnly && (
           <div className="sticky bottom-0 -mx-5 flex flex-col gap-2 bg-surface px-5 pt-2 pb-1">
             {isNative() ? (

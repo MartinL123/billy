@@ -1,4 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { useData } from '../firebase/store'
+import { lateCare } from '../lib/healthScreen'
+import { useToday } from '../lib/useToday'
 import { HeartIcon, HomeIcon, MapIcon, PlusIcon } from './Icons'
 
 /** Hauteur de la barre (hors zone sûre) et dépassement du rond de l’accueil au-dessus d’elle. */
@@ -9,12 +12,16 @@ const side = (isActive: boolean) =>
   // Tous les libellés sur la même ligne de base que « Accueil » : contenu calé en bas, 14 px au-dessus du bord.
   `flex flex-col items-center justify-end gap-1 pb-[14px] text-[13px] no-underline ${isActive ? 'font-bold text-primary' : 'font-semibold text-[#3F4946]'}`
 
-function SideTab({ to, label, icon, className = '' }: { to: string; label: string; icon: React.ReactNode; className?: string }) {
+function SideTab({ to, label, icon, badge = 0, className = '' }: { to: string; label: string; icon: React.ReactNode; badge?: number; className?: string }) {
   return (
-    <NavLink to={to} className={({ isActive }) => `${side(isActive)} ${className}`}>
+    <NavLink to={to} aria-label={badge ? `${label}, ${badge} soin${badge > 1 ? 's' : ''} en retard` : undefined} className={({ isActive }) => `${side(isActive)} ${className}`}>
       {({ isActive }) => (
         <>
-          <span className={`flex h-8 w-[60px] items-center justify-center rounded-full ${isActive ? 'bg-primary-soft' : ''}`}>{icon}</span>
+          <span className={`relative flex h-8 w-[60px] items-center justify-center rounded-full ${isActive ? 'bg-primary-soft' : ''}`}>
+            {icon}
+            {/* V5 : un soin en retard se voit depuis n’importe quel onglet. */}
+            {badge > 0 && <span aria-hidden="true" className="absolute top-[-4px] right-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-solid border-surface bg-danger px-1 text-[11px] font-extrabold text-white">{badge}</span>}
+          </span>
           <span className="max-w-full truncate px-1">{label}</span>
         </>
       )}
@@ -27,6 +34,8 @@ function SideTab({ to, label, icon, className = '' }: { to: string; label: strin
  * Le Carnet, Billy et la Meute restent ouverts depuis les écrans (photo de Billy, Balades), plus depuis la barre.
  */
 function TabBar() {
+  const { events } = useData()
+  const late = lateCare(events, useToday()).length
   return (
     <nav aria-label="Navigation principale" className="fixed inset-x-0 bottom-0 z-20 border-t border-divider bg-surface pb-[env(safe-area-inset-bottom)]">
       <div className="mx-auto grid max-w-[430px] grid-cols-3" style={{ height: BAR }}>
@@ -45,7 +54,7 @@ function TabBar() {
             </>
           )}
         </NavLink>
-        <SideTab to="/sante" label="Santé" icon={<HeartIcon />} />
+        <SideTab to="/sante" label="Santé" icon={<HeartIcon />} badge={late} />
       </div>
     </nav>
   )

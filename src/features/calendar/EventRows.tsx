@@ -1,3 +1,4 @@
+import { canMarkDone } from '../../lib/healthScreen'
 import { Link, useNavigate } from 'react-router-dom'
 import { CheckIcon, ChevronRightIcon, PaperclipIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
@@ -71,6 +72,8 @@ export function CalendarEventRow({ event, today, first }: { event: Event; today:
   // Un soin fait s’affiche au jour où il a vraiment été fait (audit R-001).
   const shown = event.done ? doneDate(event) : event.date
   const otherMonth = shown && shown.slice(0, 7) !== today.slice(0, 7)
+  // V5 : on ne coche pas un soin de janvier en octobre ; la coche apparaît le jour J (ou en retard).
+  const markable = Boolean(event.date) && (event.done || canMarkDone(event.date, today))
 
   return (
     <div className={`flex flex-col gap-2.5 px-4 py-3.5 ${overdue ? 'bg-danger-soft' : ''} ${first ? '' : 'border-t border-divider'}`}>
@@ -99,9 +102,9 @@ export function CalendarEventRow({ event, today, first }: { event: Event; today:
         </span>
         <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
       </Link>
-      {(event.date || Boolean(event.documentIds?.length)) && (
+      {(markable || Boolean(event.documentIds?.length)) && (
         <div className="flex flex-wrap gap-2">
-          {event.date && <DoneButton event={event} onToggle={toggle} />}
+          {markable && <DoneButton event={event} onToggle={toggle} />}
           <DocumentLink event={event} />
         </div>
       )}

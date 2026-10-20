@@ -1,4 +1,6 @@
+import type { ReactNode } from 'react'
 import { ChevronLeftIcon, ChevronRightIcon } from '../../components/Icons'
+import { weekOf } from '../../lib/healthScreen'
 import type { BillyEvent, WithId } from '../../firebase/types'
 import { addDays, addMonths, dayNumber, daysInMonth, formatLong, formatMonthYear, parseISO, type ISODate } from '../../lib/dates'
 import { typeInfo } from '../../lib/events'
@@ -11,6 +13,11 @@ interface MonthGridProps {
   events: WithId<BillyEvent>[]
   onMonthChange: (month: ISODate) => void
   onSelect: (day: ISODate) => void
+  /** Replié sur la semaine en cours (V5, T-053) ; la pilule « Voir le mois » / « Voir la semaine » le déplie. */
+  collapsed?: boolean
+  onToggle?: () => void
+  /** Sous la grille : le détail du jour touché. */
+  children?: ReactNode
 }
 
 /** Semaines complètes (lundi → dimanche) couvrant le mois. */
@@ -22,7 +29,7 @@ function gridDays(month: ISODate): ISODate[] {
   return Array.from({ length: cells }, (_, i) => addDays(month, i - offset))
 }
 
-export function MonthGrid({ month, today, selected, events, onMonthChange, onSelect }: MonthGridProps) {
+export function MonthGrid({ month, today, selected, events, onMonthChange, onSelect, collapsed = false, onToggle, children }: MonthGridProps) {
   const colorsByDay = new Map<ISODate, string[]>()
   for (const event of events) {
     if (!event.date) continue
@@ -36,16 +43,25 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
 
   return (
     <section aria-label="Vue du mois" className="card flex flex-col gap-1.5 rounded-3xl px-3 pt-3 pb-2">
-      <div className="flex items-center justify-between">
-        <button type="button" aria-label="Mois précédent" onClick={() => onMonthChange(addMonths(month, -1))} className={navButton}>
-          <ChevronLeftIcon />
-        </button>
-        <div className="text-[17px] font-bold" aria-live="polite">
-          {formatMonthYear(month)}
+      <div className="flex items-center justify-between gap-2">
+        {!collapsed && (
+          <button type="button" aria-label="Mois précédent" onClick={() => onMonthChange(addMonths(month, -1))} className={navButton}>
+            <ChevronLeftIcon />
+          </button>
+        )}
+        <div className={`text-[17px] font-bold ${collapsed ? 'pl-1.5' : ''}`} aria-live="polite">
+          {formatMonthYear(collapsed ? (selected ?? today) : month).replace(/^./, (c) => c.toLocaleUpperCase('fr'))}
         </div>
-        <button type="button" aria-label="Mois suivant" onClick={() => onMonthChange(addMonths(month, 1))} className={navButton}>
-          <ChevronRightIcon />
-        </button>
+        {!collapsed && (
+          <button type="button" aria-label="Mois suivant" onClick={() => onMonthChange(addMonths(month, 1))} className={navButton}>
+            <ChevronRightIcon />
+          </button>
+        )}
+        {onToggle && (
+          <button type="button" onClick={onToggle} aria-expanded={!collapsed} className="tap min-h-11 rounded-full border-0 bg-primary-soft px-3.5 text-[15px] font-bold text-primary-dark">
+            {collapsed ? 'Voir le mois' : 'Voir la semaine'}
+          </button>
+        )}
       </div>
       <div aria-hidden="true" className="grid grid-cols-7 text-center text-xs font-semibold text-muted">
         {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((d, i) => (
@@ -53,7 +69,7 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
         ))}
       </div>
       <div className="grid grid-cols-7 gap-y-0.5">
-        {gridDays(month).map((day) => {
+        {(collapsed ? weekOf(selected ?? today) : gridDays(month)).map((day) => {
           const inMonth = day.slice(0, 7) === month.slice(0, 7)
           const isToday = day === today
           const isSelected = day === selected
@@ -71,14 +87,15 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
             >
               <span
                 className={`flex size-[34px] items-center justify-center rounded-full ${
-                  isToday
+                  // V5 : le jour touché en vert plein, aujourd’hui en vert clair.
+                  isSelected
                     ? 'bg-primary font-bold text-white'
-                    : isSelected
+                    : isToday
                       ? 'bg-primary-soft font-bold text-primary-dark'
-                      : inMonth
+                      : inMonth || collapsed
                         ? 'text-text'
                         : 'text-[#87918D]'
-                } ${isToday && isSelected ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                }`}
               >
                 {parseISO(day).d}
               </span>
@@ -91,6 +108,7 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
           )
         })}
       </div>
+      {children}
     </section>
   )
 }

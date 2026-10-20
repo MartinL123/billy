@@ -4,7 +4,7 @@ import { CheckIcon, ChevronLeftIcon, TargetIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
 import { Sheet } from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
-import { SKILLS, stepPhrase, territoryOf } from '../../content/phrases'
+import { inkOn, SKILLS, stepPhrase, territoryOf } from '../../content/phrases'
 import { MAX_LEVEL } from '../../content/training'
 import { useData } from '../../firebase/store'
 import { setStepChecked } from '../../firebase/training'
@@ -129,7 +129,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px] bg-bg">
-      <header className="flex flex-col gap-3 rounded-b-[28px] px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white" style={{ background: territory.color }}>
+      <header className="flex flex-col gap-3 rounded-b-[28px] px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white" style={{ background: inkOn(territory) }}>
         <button type="button" onClick={back} className="flex min-h-12 items-center gap-1.5 self-start rounded-full border-2 border-solid border-white/60 bg-transparent px-4 text-[17px] font-semibold text-white">
           <ChevronLeftIcon size={20} />
           {overlay ? 'Retour' : territory.name}
@@ -162,7 +162,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
               return (
                 <Stop key={step} index={step - 1} radius={54} label={`En ce moment : ${stepPhrase(skill.id, step)}. Toucher pour la cocher`} onOpen={() => setOpened(step)} circle={<span className="flex size-[108px] items-center justify-center rounded-full border-[6px] border-solid border-gold bg-surface shadow-[0_6px_16px_rgba(242,181,68,0.45)]">{photo(84)}</span>}>
                   <span id="etape-en-cours" className="flex flex-col gap-1.5 rounded-[18px] bg-surface px-3.5 py-3 text-left shadow-[0_2px_8px_rgba(24,32,30,0.1)]">
-                    <span className="text-xs font-extrabold tracking-[0.5px] uppercase" style={{ color: territory.color }}>
+                    <span className="text-xs font-extrabold tracking-[0.5px] uppercase" style={{ color: inkOn(territory) }}>
                       En ce moment
                     </span>
                     <span className="text-[15px] leading-snug font-bold">{stepPhrase(skill.id, step)}</span>
@@ -204,7 +204,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
                   label={`${stepPhrase(skill.id, step)}. Cochée`}
                   onOpen={() => setOpened(step)}
                   circle={
-                    <span className="flex size-20 items-center justify-center rounded-full border-[5px] border-solid border-white text-white shadow-[0_3px_8px_rgba(0,0,0,0.15)]" style={{ background: territory.color }}>
+                    <span className="flex size-20 items-center justify-center rounded-full border-[5px] border-solid border-white text-white shadow-[0_3px_8px_rgba(0,0,0,0.15)]" style={{ background: inkOn(territory) }}>
                       <CheckIcon size={32} strokeWidth={3} />
                     </span>
                   }
@@ -232,7 +232,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
             <TargetIcon size={22} />
             S’entraîner · {minutes} min
           </Link>
-          <Link to={`/noter?depuis=competence&competences=${skill.id}`} className="flex min-h-12 items-center justify-center rounded-full border-2 border-solid text-[17px] font-bold no-underline" style={{ borderColor: territory.color, color: territory.color }}>
+          <Link to={`/noter?depuis=competence&competences=${skill.id}`} className="flex min-h-12 items-center justify-center rounded-full border-2 border-solid text-[17px] font-bold no-underline" style={{ borderColor: territory.color, color: inkOn(territory) }}>
             Déjà fait aujourd’hui ? Le noter
           </Link>
         </div>
@@ -243,7 +243,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
       {opened !== null &&
         (opened <= progress.level ? (
           <Sheet label="Étape cochée" onClose={() => setOpened(null)}>
-            <p className="text-[13px] font-extrabold tracking-[0.5px] uppercase" style={{ color: territory.color }}>
+            <p className="text-[13px] font-extrabold tracking-[0.5px] uppercase" style={{ color: inkOn(territory) }}>
               {skill.name} · {whenOf(opened) === 'Il savait déjà le faire' ? place('il savait déjà le faire') : `acquise le ${whenOf(opened)}`}
             </p>
             <h2 className="font-display text-[22px] leading-tight font-extrabold">{stepPhrase(skill.id, opened)}</h2>
@@ -258,7 +258,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
           </Sheet>
         ) : (
           <Sheet label="Étape pas encore cochée" onClose={() => setOpened(null)}>
-            <p className="text-[13px] font-extrabold tracking-[0.5px] uppercase" style={{ color: territory.color }}>
+            <p className="text-[13px] font-extrabold tracking-[0.5px] uppercase" style={{ color: inkOn(territory) }}>
               {skill.name}
             </p>
             <h2 className="font-display text-[22px] leading-tight font-extrabold">{stepPhrase(skill.id, opened)}</h2>

@@ -197,7 +197,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
-      <header className="flex flex-col gap-3 rounded-b-[28px] px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white" style={{ background: territory.color }}>
+      <header className="flex flex-col gap-3 rounded-b-[28px] px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white" style={{ background: inkOn(territory) }}>
         <button type="button" onClick={back} className="flex min-h-12 items-center gap-1.5 self-start rounded-full border-2 border-solid border-white/60 bg-transparent px-4 text-[17px] font-semibold text-white">
           <ChevronLeftIcon size={20} />
           {fromQuest ? 'Accueil' : 'Retour'}
@@ -302,7 +302,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
             type="button"
             onClick={() => navigate(fromQuest ? '/noter?depuis=quete' : `/noter?depuis=exercice&competences=${skill}`)}
             className="min-h-12 rounded-full border-2 border-solid bg-transparent text-[17px] font-bold"
-            style={{ borderColor: territory.color, color: territory.color }}
+            style={{ borderColor: territory.color, color: inkOn(territory) }}
           >
             C’est fait !
           </button>

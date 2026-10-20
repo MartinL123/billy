@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { CheckIcon } from '../../components/Icons'
 import { useToast } from '../../components/Toast'
-import { SKILLS, stepShort, TERRITORIES } from '../../content/phrases'
+import { inkOn, SKILLS, stepShort, TERRITORIES } from '../../content/phrases'
 import { MAX_LEVEL } from '../../content/training'
 import { updateDog } from '../../firebase/db'
 import { useData } from '../../firebase/store'
@@ -56,7 +56,7 @@ export default function EnCours() {
 
         {TERRITORIES.map((territory) => (
           <section key={territory.tier} className="flex flex-col gap-2">
-            <h2 className="mt-1 text-[13px] font-bold tracking-[0.6px] uppercase" style={{ color: territory.color }}>
+            <h2 className="mt-1 text-[13px] font-bold tracking-[0.6px] uppercase" style={{ color: inkOn(territory) }}>
               {territory.name}
             </h2>
             {SKILLS.filter((s) => s.tier === territory.tier).map((skill) => {

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { ChevronLeftIcon } from '../../components/Icons'
 import { useBack } from '../../lib/useBack'
 import { CheckIcon, ChevronRightIcon } from '../../components/Icons'
-import { SKILLS, stepShort, TERRITORIES, type Territory } from '../../content/phrases'
+import { inkOn, SKILLS, stepShort, TERRITORIES, type Territory } from '../../content/phrases'
 import { MAX_LEVEL } from '../../content/training'
 import { useData } from '../../firebase/store'
 import { activeSkills } from '../../lib/active'
@@ -55,7 +55,7 @@ function Floor({ territory, active }: { territory: Territory; active: string[] }
           </svg>
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="text-[13px] font-bold tracking-[0.6px] uppercase" style={{ color: territory.color }}>
+          <span className="text-[13px] font-bold tracking-[0.6px] uppercase" style={{ color: inkOn(territory) }}>
             {territory.floor}
           </span>
           <h2 className="font-display text-[22px] leading-tight font-extrabold">{territory.name}</h2>
@@ -77,7 +77,7 @@ function Floor({ territory, active }: { territory: Territory; active: string[] }
               className="flex flex-col items-center gap-1.5 rounded-[20px] bg-surface px-2.5 pt-2.5 pb-3 text-center text-text no-underline shadow-[0_2px_6px_rgba(24,32,30,0.08)]"
             >
               {/* L’étiquette a sa propre ligne au-dessus du badge : elle ne recouvre jamais l’anneau. */}
-              <span className={`rounded-lg px-2 py-0.5 text-xs font-bold text-white ${current ? '' : 'invisible'}`} style={{ background: territory.color }}>
+              <span className={`rounded-lg px-2 py-0.5 text-xs font-bold text-white ${current ? '' : 'invisible'}`} style={{ background: inkOn(territory) }}>
                 En cours
               </span>
               <Badge bossId={skill.id} acquired={acquired} />
@@ -88,7 +88,7 @@ function Floor({ territory, active }: { territory: Territory; active: string[] }
                 <span className={`text-sm leading-snug ${acquired ? 'text-[#3F4946]' : 'text-muted'}`}>{acquired || current ? stepShort(skill.id, acquired + 1) : 'À découvrir'}</span>
               )}
               {exercise && (
-                <span className="mt-0.5 flex max-w-full items-center gap-1 rounded-[14px] px-2.5 py-1 text-left text-[13px] leading-tight font-bold" style={{ background: territory.soft, color: territory.color }}>
+                <span className="mt-0.5 flex max-w-full items-center gap-1 rounded-[14px] px-2.5 py-1 text-left text-[13px] leading-tight font-bold" style={{ background: territory.soft, color: inkOn(territory) }}>
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true" className="shrink-0">
                     <path d="M2 1l7 4-7 4z" />
                   </svg>
@@ -110,7 +110,7 @@ function Floor({ territory, active }: { territory: Territory; active: string[] }
           <ChevronRightIcon size={20} />
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-px">
-          <span className="text-[15px] font-extrabold" style={{ color: target.color }}>
+          <span className="text-[15px] font-extrabold" style={{ color: inkOn(target) }}>
             {territory.link.label}
           </span>
           <span className="text-sm leading-snug font-semibold">{territory.link.text}</span>

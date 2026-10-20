@@ -1,4 +1,4 @@
-# Flair — contexte du projet (mis à jour le 19 octobre 2026)
+# Flair — contexte du projet (mis à jour le 20 octobre 2026)
 
 Document de référence pour Claude (chat, Claude Code, Claude Design). À lire avant toute proposition ou tout code.
 En cas de divergence : la spec en cours (`docs/specs/spec-v4-simplification.md`, puis `spec-v3-simplification.md`) fait foi,
@@ -71,6 +71,7 @@ Retours de Martin déjà intégrés :
 ## 6. Décisions et points ouverts
 
 Décisions (les plus récentes en haut) :
+- 20/10 (refonte V5, tickets T-049 à T-054, prompt `docs/design/prompt-claude-code-2026-10-20.md`) : Santé version B (calendrier replié sur la semaine) ; Balades version A (un bouton « Affichage », plan par défaut, brouillard sombre, « 4 % découvert ») ; compétences en pattes + prochaine étape, **jamais « 3 sur 5 »** ; carte de l'accueil qui suit le moment de la journée ; Boutique, Meute, profil, souvenir et carte déplacés hors de l'accueil ; +3 os par balade terminée (comme un moment) ; ouverture seule après 1 s. Les 5 écrans en un seul lot. Maquettes : `docs/maquettes/V5-*.dc.html`.
 - 19/10 : produit pour des inconnus (personas), fonctions natives si elles valent leur coût.
 - 19/10 : progression de la carte affichée en pourcentage, pas en pattes.
 - 19/10 : « J'ai fait cette sortie » (sortie sans tracé) pour ceux sans Watch ni Strava.
@@ -78,9 +79,7 @@ Décisions (les plus récentes en haut) :
 - 17/10 (V4) : 3 onglets (Balades · Aujourd'hui · Santé), Billy s'ouvre par sa photo, un seul système de récompense (os).
 
 À trancher par Martin :
-- **« 3 sur 5 »** : la V4 l'autorise pour les compétences, le design system et le guide l'interdisent.
-- **Santé A ou B** (calendrier replié sur la semaine) et **Carte A ou B** (réglages satellite regroupés).
-- Écran d'ouverture « toucher la photo » à chaque lancement, ou entrée automatique après 1 s.
+- Rien pour l'instant (tranché le 20/10).
 
 ## 7. Bugs relevés le 19 octobre (captures)
 

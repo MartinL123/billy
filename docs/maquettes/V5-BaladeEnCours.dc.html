@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Balade en cours · Proposition</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&amp;family=Figtree:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1e5a50}a:hover{color:#143f38}
+button{font-family:inherit}
+.tap{transition:transform 150ms cubic-bezier(.2,.8,.3,1)}
+.tap:active{transform:scale(.96)}
+.fade{animation:fade 250ms cubic-bezier(.2,.8,.3,1) both}
+.sheet{animation:sheet 400ms cubic-bezier(.3,1.15,.5,1) both}
+.pop{animation:pop 400ms cubic-bezier(.3,1.3,.5,1) both}
+.chip{animation:chip 400ms cubic-bezier(.3,1.3,.5,1) both}
+.pulse{transform-box:fill-box;transform-origin:center;animation:pulse 1800ms cubic-bezier(.2,.8,.3,1) infinite}
+.dot{animation:blink 1400ms ease-in-out infinite}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes sheet{from{transform:translateY(100%)}to{transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+@keyframes chip{from{opacity:0;transform:translateY(-16px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes pulse{0%{transform:scale(.6);opacity:.7}100%{transform:scale(2.6);opacity:0}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #e7ebe5; font-family: Figtree, system-ui, sans-serif; color: #18201e;">
+
+  <svg width="390" height="600" viewBox="0 0 390 600" role="img" aria-label="Carte de la balade : le tracé orange lève le brouillard rue Anselme" style="position: absolute; left: 0; top: 0;">
+    <defs>
+      <filter id="bp-blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="16"/></filter>
+      <mask id="bp-fog">
+        <rect width="390" height="600" fill="#ffffff"/>
+        <g filter="url(#bp-blur)" fill="none" stroke="#000000" stroke-linecap="round" stroke-width="90">
+          <path d="M150 170 C 200 200, 250 205, 320 200 L 400 196"/>
+          <path d="M150 170 L 120 260 L 210 380 L 290 470"/>
+        </g>
+      </mask>
+    </defs>
+    <rect width="390" height="600" fill="#e7ebe5"/>
+    <g stroke="#ffffff" stroke-width="8" stroke-linecap="round" fill="none">
+      <path d="M40 40 L 330 420"/><path d="M-10 230 L 400 120"/><path d="M60 300 L 400 560"/><path d="M200 -10 L 120 620"/><path d="M-10 470 L 260 600"/>
+    </g>
+    <g stroke="#f7f8f6" stroke-width="3" fill="none"><path d="M0 120 L 390 330"/><path d="M300 0 L 240 600"/><path d="M0 380 L 390 260"/></g>
+    <text x="214" y="300" font-family="Figtree, sans-serif" font-weight="700" font-size="12" fill="#5a6662" transform="rotate(38 214 300)">Rue Anselme</text>
+    <rect width="390" height="600" fill="#1f3a34" fill-opacity="0.8" mask="url(#bp-fog)"/>
+    <path d="M150 170 C 200 200, 250 205, 320 200 L 400 196" stroke="#f2b544" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M150 170 L 120 260 L 210 380" stroke="#f2b544" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle class="pulse" cx="210" cy="380" r="12" fill="#2f80d0"/>
+    <circle cx="210" cy="380" r="10" fill="#2f80d0" stroke="#ffffff" stroke-width="3"/>
+  </svg>
+
+  <sc-if value="{{showLiveTop}}" hint-placeholder-val="{{true}}">
+    <div style="position: absolute; left: 16px; right: 16px; top: 16px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px;">
+      <button class="tap" onClick="{{askDiscard}}" style="height: 44px; padding: 0 16px; border-radius: 9999px; border: 0; background: #ffffff; box-shadow: 0 2px 8px rgba(24,32,30,0.16); display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 15px; color: #3f4946; cursor: pointer;">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#3f4946" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>Ne pas garder</button>
+      <sc-if value="{{found}}" hint-placeholder-val="{{false}}">
+        <div class="chip" role="status" style="align-self: center; margin-top: 6px; padding: 10px 16px; border-radius: 9999px; background: #fcefd3; color: #3d2a00; font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(24,32,30,0.18);">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><g fill="#f2b544" stroke="#8a6514" stroke-width="1.2"><ellipse cx="12" cy="16" rx="5" ry="4"/><circle cx="6" cy="10" r="2"/><circle cx="10" cy="6.5" r="2"/><circle cx="14" cy="6.5" r="2"/><circle cx="18" cy="10" r="2"/></g></svg>
+          Oslo découvre la rue Anselme</div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isLive}}" hint-placeholder-val="{{true}}">
+    <section style="position: absolute; left: 0; right: 0; bottom: 0; background: #ffffff; border-radius: 26px 26px 0 0; box-shadow: 0 -4px 18px rgba(24,32,30,0.18); padding: 20px 16px 28px; display: flex; flex-direction: column; gap: 14px;">
+      <span style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; letter-spacing: 0.6px; color: #8a3e0c;"><span class="dot" style="width: 10px; height: 10px; border-radius: 9999px; background: #bf5519;"></span>BALADE EN COURS AVEC OSLO</span>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+        <div style="display: flex; flex-direction: column;">
+          <span style="font-size: 14px; color: #5a6662; font-weight: 600;">Durée</span>
+          <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 48px; line-height: 52px;">{{min}}<span style="font-size: 24px;"> min </span><span style="font-size: 30px; color: #3f4946;">{{sec}}</span><span style="font-size: 20px; color: #3f4946;"> s</span></span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end;">
+          <span style="font-size: 14px; color: #5a6662; font-weight: 600;">Distance</span>
+          <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 30px; line-height: 40px; color: #1e5a50;">1,0 km</span>
+        </div>
+      </div>
+      <span style="align-self: flex-start; padding: 6px 12px; border-radius: 9999px; background: #dcebe6; color: #143f38; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#1e5a50" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Ses 15 min du soir sont faites</span>
+      <span style="font-size: 15px; color: #3f4946;">Vous pouvez verrouiller l’iPhone : le GPS continue.</span>
+      <button class="tap" onClick="{{finish}}" style="height: 58px; border: 0; border-radius: 9999px; background: #bf5519; color: #ffffff; font-weight: 700; font-size: 19px; cursor: pointer;">Terminer</button>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{isConfirm}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0;">
+      <button class="fade" onClick="{{resume}}" aria-label="Continuer la balade" style="position: absolute; inset: 0; border: 0; background: rgba(24,32,30,0.42); cursor: pointer;"></button>
+      <div class="sheet" role="dialog" aria-label="Ne pas garder cette balade ?" style="position: absolute; left: 0; right: 0; bottom: 0; background: #ffffff; border-radius: 26px 26px 0 0; padding: 12px 16px 28px; display: flex; flex-direction: column; gap: 14px;">
+        <span style="align-self: center; width: 40px; height: 5px; border-radius: 9999px; background: #d3d9d6;"></span>
+        <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 26px;">Ne pas garder cette balade ?</h2>
+        <span style="font-size: 16px; color: #3f4946;">Le tracé sera effacé : pas de brouillard levé, pas d’os.</span>
+        <button class="tap" onClick="{{resume}}" style="height: 56px; border: 0; border-radius: 9999px; background: #bf5519; color: #ffffff; font-weight: 700; font-size: 18px; cursor: pointer;">Continuer la balade</button>
+        <button class="tap" onClick="{{discard}}" style="height: 50px; border-radius: 9999px; border: 2px solid #b3261e; background: #ffffff; color: #b3261e; font-weight: 700; font-size: 17px; cursor: pointer;">Ne pas la garder</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isEnd}}" hint-placeholder-val="{{false}}">
+    <section class="sheet" style="position: absolute; left: 0; right: 0; bottom: 0; background: #ffffff; border-radius: 26px 26px 0 0; box-shadow: 0 -4px 18px rgba(24,32,30,0.18); padding: 24px 16px 28px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;">
+      <span class="pop" style="width: 64px; height: 64px; border-radius: 9999px; background: #1e5a50; display: flex; align-items: center; justify-content: center; animation-delay: 150ms;">
+        <svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#ffffff" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 28px;">Belle balade !</h2>
+      <span style="font-size: 16px; color: #3f4946;">{{endLine}}</span>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
+        <span class="pop" style="animation-delay: 300ms; padding: 8px 12px; border-radius: 9999px; background: #fcefd3; color: #3d2a00; font-weight: 800; font-size: 15px;">+3 os</span>
+        <span class="pop" style="animation-delay: 380ms; padding: 8px 12px; border-radius: 9999px; background: #e3eaf8; color: #1d4685; font-weight: 700; font-size: 15px;">Rue Anselme découverte</span>
+        <span class="pop" style="animation-delay: 460ms; padding: 8px 12px; border-radius: 9999px; background: #dcebe6; color: #143f38; font-weight: 700; font-size: 15px;">Sortie du soir notée</span>
+      </div>
+      <a href="Carte-Proposition.dc.html" class="tap" style="align-self: stretch; margin-top: 6px; height: 56px; border-radius: 9999px; background: #bf5519; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; text-decoration: none;">Voir son territoire</a>
+      <a href="#" class="tap" style="align-self: stretch; height: 50px; border-radius: 9999px; border: 2px solid #1e5a50; box-sizing: border-box; color: #1e5a50; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 17px; text-decoration: none;">Ajouter un souvenir</a>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{isGone}}" hint-placeholder-val="{{false}}">
+    <section class="sheet" style="position: absolute; left: 0; right: 0; bottom: 0; background: #ffffff; border-radius: 26px 26px 0 0; padding: 24px 16px 28px; display: flex; flex-direction: column; gap: 14px;">
+      <h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 24px;">La balade n’a pas été gardée</h2>
+      <span style="font-size: 16px; color: #3f4946;">Vous pourrez noter la sortie à la main depuis l’accueil.</span>
+      <a href="Main.dc.html" class="tap" style="height: 56px; border-radius: 9999px; background: #bf5519; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; text-decoration: none;">Retour à l’accueil</a>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { t: 917, mode: 'live', found: false }; }
+  componentDidMount() {
+    this.iv = setInterval(() => { if (this.state.mode !== 'end' && this.state.mode !== 'gone') this.setState({ t: this.state.t + 1 }); }, 1000);
+    this.ft = setTimeout(() => this.setState({ found: true }), 2500);
+  }
+  componentWillUnmount() { clearInterval(this.iv); clearTimeout(this.ft); }
+  renderVals() {
+    const t = this.state.t, m = this.state.mode;
+    const min = Math.floor(t / 60), sec = t % 60;
+    return {
+      min: String(min), sec: String(sec),
+      isLive: m === 'live' || m === 'confirm',
+      showLiveTop: m === 'live',
+      isConfirm: m === 'confirm',
+      isEnd: m === 'end',
+      isGone: m === 'gone',
+      found: this.state.found,
+      endLine: min + ' min ' + sec + ' s · 1,0 km avec Oslo',
+      askDiscard: () => this.setState({ mode: 'confirm' }),
+      resume: () => this.setState({ mode: 'live' }),
+      discard: () => this.setState({ mode: 'gone' }),
+      finish: () => this.setState({ mode: 'end' })
+    };
+  }
+}
+</script>
+</body>
+</html>

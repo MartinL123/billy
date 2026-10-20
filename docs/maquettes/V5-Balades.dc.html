@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Carte · Proposition</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&amp;family=Figtree:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1e5a50}a:hover{color:#143f38}
+button{font-family:inherit}
+.tap{transition:transform 150ms cubic-bezier(.2,.8,.3,1)}
+.tap:active{transform:scale(.96)}
+.route{transition:opacity 250ms cubic-bezier(.2,.8,.3,1),stroke-width 250ms cubic-bezier(.2,.8,.3,1)}
+.fog{animation:fog 600ms cubic-bezier(.2,.8,.3,1) both}
+.rise{animation:rise 400ms cubic-bezier(.2,.8,.3,1) both}
+.paw-next{animation:breathe 1600ms ease-in-out infinite}
+@keyframes fog{from{opacity:0}to{opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #e7ebe5; font-family: Figtree, system-ui, sans-serif; color: #18201e;">
+
+  <svg width="390" height="520" viewBox="0 0 390 520" role="img" aria-label="Carte de Saint-Ouen : deux balades ont levé le brouillard autour du point de départ" style="position: absolute; left: 0; top: 0;">
+    <defs>
+      <filter id="cp-blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>
+      <mask id="cp-fog">
+        <rect width="390" height="520" fill="#ffffff"/>
+        <g filter="url(#cp-blur)" fill="none" stroke="#000000" stroke-width="64">
+          <ellipse cx="185" cy="300" rx="70" ry="86"/>
+          <ellipse cx="200" cy="300" rx="104" ry="112"/>
+        </g>
+      </mask>
+    </defs>
+    <rect width="390" height="520" fill="#e7ebe5"/>
+    <path d="M-10 140 C 80 110, 140 200, 230 160 S 360 80, 410 100" stroke="#c6d6dc" stroke-width="28" fill="none"/>
+    <g stroke="#ffffff" stroke-width="7" stroke-linecap="round" fill="none">
+      <path d="M-10 250 L 400 330"/><path d="M-10 420 L 400 380"/><path d="M60 180 L 120 540"/>
+      <path d="M250 170 L 300 540"/><path d="M-10 330 L 160 250 L 400 220"/><path d="M150 520 L 230 170"/>
+    </g>
+    <g stroke="#f7f8f6" stroke-width="3" fill="none">
+      <path d="M0 290 L 390 290"/><path d="M180 180 L 190 520"/><path d="M0 470 L 390 450"/><path d="M330 160 L 340 520"/>
+    </g>
+    <text x="196" y="236" text-anchor="middle" font-family="Figtree, sans-serif" font-weight="700" font-size="12" fill="#5a6662">Saint-Ouen-sur-Seine</text>
+    <rect class="fog" width="390" height="520" fill="#1f3a34" fill-opacity="0.8" mask="url(#cp-fog)"/>
+    <ellipse class="route" cx="200" cy="300" rx="104" ry="112" fill="none" stroke="#d9661f" stroke-width="{{rB.w}}" opacity="{{rB.o}}"/>
+    <ellipse class="route" cx="185" cy="300" rx="70" ry="86" fill="none" stroke="#2f80d0" stroke-width="{{rA.w}}" opacity="{{rA.o}}"/>
+    <circle cx="96" cy="300" r="9" fill="#1e5a50" stroke="#ffffff" stroke-width="3"/>
+  </svg>
+
+  <div style="position: absolute; left: 16px; right: 16px; top: 16px; display: flex; justify-content: space-between;">
+    <button class="tap" style="height: 44px; padding: 0 16px; border-radius: 9999px; border: 0; background: #ffffff; box-shadow: 0 2px 8px rgba(24,32,30,0.16); display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; color: #18201e; cursor: pointer;">
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#18201e" stroke-width="2.2" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg>Affichage</button>
+    <button class="tap" style="height: 44px; padding: 0 16px; border-radius: 9999px; border: 0; background: #ffffff; box-shadow: 0 2px 8px rgba(24,32,30,0.16); display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; color: #18201e; cursor: pointer;">
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#18201e" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.5" fill="#18201e"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Me situer</button>
+  </div>
+
+  <section class="rise" style="position: absolute; left: 0; right: 0; top: 440px; bottom: 84px; background: #ffffff; border-radius: 26px 26px 0 0; box-shadow: 0 -4px 18px rgba(24,32,30,0.18); padding: 10px 16px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
+    <span style="align-self: center; width: 40px; height: 5px; border-radius: 9999px; background: #d3d9d6;"></span>
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;">
+      <div style="display: flex; flex-direction: column;">
+        <span style="font-size: 13px; font-weight: 800; letter-spacing: 0.6px; color: #2559a8;">LE QUARTIER</span>
+        <h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 22px; line-height: 26px;">Le territoire d’Oslo</h1>
+      </div>
+      <span style="display: flex; align-items: baseline; gap: 4px; color: #1e5a50;"><b style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 30px; line-height: 30px;">4 %</b><span style="font-size: 14px; font-weight: 700;">découvert</span></span>
+    </div>
+    <div role="img" aria-label="4 % de Saint-Ouen découvert" style="height: 10px; border-radius: 9999px; background: #e6eae7; overflow: hidden;"><div style="width: 4%; min-width: 14px; height: 100%; border-radius: 9999px; background: #f2b544;"></div></div>
+    <span style="font-size: 15px; color: #3f4946;">{{hint}}</span>
+    <div style="display: flex; gap: 10px; overflow-x: auto; margin: 0 -16px; padding: 2px 16px;">
+      <sc-for list="{{balades}}" as="b" hint-placeholder-count="2">
+        <button class="tap" onClick="{{b.pick}}" aria-pressed="{{b.on}}" style="flex: 0 0 auto; min-width: 172px; height: 70px; border-radius: 16px; border: {{b.border}}; background: {{b.bg}}; padding: 0 14px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 4px; cursor: pointer; color: #18201e; text-align: left;">
+          <span style="display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 16px;"><span style="width: 18px; height: 5px; border-radius: 9999px; background: {{b.color}};"></span>{{b.nom}}</span>
+          <span style="font-size: 14px; color: #5a6662;">{{b.detail}}</span>
+        </button>
+      </sc-for>
+    </div>
+    <a href="Balade-Proposition.dc.html" class="tap" style="margin-top: auto; height: 56px; border-radius: 9999px; background: #bf5519; color: #ffffff; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 18px; text-decoration: none;">
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="#ffffff"/></svg>Partir en balade</a>
+  </section>
+
+  <nav aria-label="Onglets" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; background: #ffffff; border-top: 1px solid #e6eae7; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: end; padding-bottom: 10px; box-sizing: border-box;">
+    <a href="Carte-Proposition.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #1e5a50; font-weight: 800; font-size: 13px;">
+      <span style="width: 56px; height: 30px; border-radius: 9999px; background: #dcebe6; display: flex; align-items: center; justify-content: center;"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#1e5a50" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg></span>Balades</a>
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #3f4946; font-weight: 700; font-size: 13px;">
+      <span style="width: 60px; height: 60px; margin-top: -30px; border-radius: 9999px; background: #1e5a50; border: 4px solid #ffffff; box-shadow: 0 6px 16px rgba(30,90,80,0.35); display: flex; align-items: center; justify-content: center;"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="round"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg></span>Accueil</a>
+    <a href="Sante-Proposition.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #3f4946; font-weight: 700; font-size: 13px;">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#3f4946" stroke-width="2.2" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Santé</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { sel: null }; }
+  renderVals() {
+    const sel = this.state.sel;
+    const list = [
+      { id: 'a', nom: 'Marche du matin', detail: 'Aujourd’hui · 2,0 km', color: '#2f80d0' },
+      { id: 'b', nom: 'Marche le matin', detail: '17 octobre 2026 · 2,8 km', color: '#d9661f' }
+    ];
+    const balades = list.map((b) => {
+      const on = sel === b.id;
+      return { ...b, on: on, border: on ? '2px solid #1e5a50' : '2px solid #e6eae7', bg: on ? '#dcebe6' : '#ffffff', pick: () => this.setState({ sel: on ? null : b.id }) };
+    });
+    const style = (id) => ({ w: sel === id ? 8 : 5, o: !sel || sel === id ? 1 : 0.25 });
+    let hint = 'Chaque balade lève le brouillard. Touchez-en une pour la revoir.';
+    if (sel === 'a') hint = 'Marche du matin : aujourd’hui, 30 min, 2,0 km.';
+    if (sel === 'b') hint = 'Marche le matin : 17 octobre 2026, 40 min, 2,8 km.';
+    return { balades: balades, rA: style('a'), rB: style('b'), hint: hint };
+  }
+}
+</script>
+</body>
+</html>

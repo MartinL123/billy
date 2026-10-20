@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Santé · Proposition B</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&amp;family=Figtree:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1e5a50}a:hover{color:#143f38}
+button{font-family:inherit}
+.tap{transition:transform 150ms cubic-bezier(.2,.8,.3,1)}
+.tap:active{transform:scale(.94)}
+.open{animation:open 250ms cubic-bezier(.2,.8,.3,1) both}
+@keyframes open{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #f3f5f2; font-family: Figtree, system-ui, sans-serif; color: #18201e;">
+  <div style="position: absolute; inset: 0 0 84px 0; overflow-y: auto; padding: 20px 16px 100px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; flex-direction: column; gap: 2px;">
+      <h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 30px; line-height: 34px;">Santé</h1>
+      <span style="font-size: 16px; color: #3f4946;">Tout est à jour. Rien à prévoir avant le 10 janvier 2027.</span>
+    </div>
+
+    <section style="background: #ffffff; border-radius: 20px; box-shadow: 0 1px 2px rgba(24,32,30,0.06); padding: 14px 12px; display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 4px;">
+        <b style="font-size: 17px;">Octobre 2026</b>
+        <button class="tap" onClick="{{toggle}}" aria-expanded="{{month}}" style="height: 44px; padding: 0 14px; border-radius: 9999px; border: 2px solid #d3d9d6; background: #ffffff; color: #1e5a50; font-weight: 700; font-size: 15px; cursor: pointer;">{{toggleLabel}}</button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); text-align: center; font-size: 13px; font-weight: 700; color: #5a6662;">
+        <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+      </div>
+      <div class="{{gridCls}}" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); row-gap: 4px;">
+        <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+          <button class="tap" onClick="{{d.pick}}" aria-label="{{d.aria}}" aria-pressed="{{d.on}}" style="height: 48px; border: 0; background: transparent; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer;">
+            <span style="width: 34px; height: 34px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: {{d.weight}}; background: {{d.bg}}; color: {{d.color}};">{{d.n}}</span>
+            <span style="height: 6px; width: 6px; border-radius: 9999px; background: {{d.dot}};"></span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="margin: 2px 4px 0; padding-top: 10px; border-top: 1px solid #e6eae7; display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 13px; font-weight: 800; letter-spacing: 0.6px; color: #5a6662;">{{selTitle}}</span>
+        <sc-for list="{{selEvents}}" as="e" hint-placeholder-count="1">
+          <span style="display: flex; align-items: center; gap: 8px; font-size: 16px;"><span style="padding: 2px 8px; border-radius: 9999px; background: {{e.soft}}; color: {{e.ink}}; font-size: 13px; font-weight: 800;">{{e.type}}</span>{{e.label}}</span>
+        </sc-for>
+        <sc-if value="{{selEmpty}}" hint-placeholder-val="{{false}}"><span style="font-size: 15px; color: #5a6662;">Rien ce jour-là.</span></sc-if>
+      </div>
+    </section>
+
+    <section style="background: #ffffff; border-radius: 20px; box-shadow: 0 1px 2px rgba(24,32,30,0.06); padding: 16px; display: flex; flex-direction: column; gap: 4px;">
+      <span style="font-size: 13px; font-weight: 800; letter-spacing: 0.6px; color: #8a3e0c;">PROCHAINE CHOSE</span>
+      <b style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px;">Oslo a 6 mois</b>
+      <span style="font-size: 15px; color: #5a6662;">Dimanche 10 janvier 2027 · dans 83 jours</span>
+    </section>
+
+    <div style="background: #ffffff; border-radius: 20px; box-shadow: 0 1px 2px rgba(24,32,30,0.06); display: flex; flex-direction: column;">
+      <a href="#" class="tap" style="min-height: 60px; padding: 8px 16px; display: flex; align-items: center; gap: 10px; text-decoration: none; color: #18201e; border-bottom: 1px solid #e6eae7;"><span style="flex-grow: 1; display: flex; flex-direction: column;"><b style="font-size: 16px;">Vaccins</b><span style="font-size: 14px; color: #5a6662;">Rappel en juillet 2027</span></span><span style="padding: 4px 10px; border-radius: 9999px; background: #dcebe6; color: #143f38; font-size: 13px; font-weight: 700;">À jour</span></a>
+      <a href="#" class="tap" style="min-height: 60px; padding: 8px 16px; display: flex; align-items: center; gap: 10px; text-decoration: none; color: #18201e; border-bottom: 1px solid #e6eae7;"><span style="flex-grow: 1; display: flex; flex-direction: column;"><b style="font-size: 16px;">Vermifuge</b><span style="font-size: 14px; color: #5a6662;">Prochain le 19 janvier 2027</span></span><span style="padding: 4px 10px; border-radius: 9999px; background: #dcebe6; color: #143f38; font-size: 13px; font-weight: 700;">À jour</span></a>
+      <a href="#" class="tap" style="min-height: 60px; padding: 8px 16px; display: flex; align-items: center; gap: 10px; text-decoration: none; color: #18201e; border-bottom: 1px solid #e6eae7;"><span style="flex-grow: 1; display: flex; flex-direction: column;"><b style="font-size: 16px;">Poids</b><span style="font-size: 14px; color: #5a6662;">8,7 kg · 19 octobre 2026</span></span></a>
+      <a href="#" class="tap" style="min-height: 60px; padding: 8px 16px; display: flex; align-items: center; gap: 10px; text-decoration: none; color: #18201e;"><span style="flex-grow: 1; display: flex; flex-direction: column;"><b style="font-size: 16px;">Antiparasitaire, repas, documents</b><span style="font-size: 14px; color: #5a6662;">À compléter</span></span></a>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 84px; padding: 24px 16px 12px; background: linear-gradient(rgba(243,245,242,0), #f3f5f2 40%);">
+    <a href="#" class="tap" style="height: 56px; border-radius: 9999px; background: #bf5519; color: #ffffff; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 18px; text-decoration: none;">
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Ajouter un soin ou un RDV</a>
+  </div>
+
+  <nav aria-label="Onglets" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; background: #ffffff; border-top: 1px solid #e6eae7; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: end; padding-bottom: 10px; box-sizing: border-box;">
+    <a href="Carte-B.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #3f4946; font-weight: 700; font-size: 13px;"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#3f4946" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>Balades</a>
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #3f4946; font-weight: 700; font-size: 13px;"><span style="width: 60px; height: 60px; margin-top: -30px; border-radius: 9999px; background: #1e5a50; border: 4px solid #ffffff; box-shadow: 0 6px 16px rgba(30,90,80,0.35); display: flex; align-items: center; justify-content: center;"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="round"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg></span>Accueil</a>
+    <a href="Sante-B.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #1e5a50; font-weight: 800; font-size: 13px;"><span style="width: 56px; height: 30px; border-radius: 9999px; background: #dcebe6; display: flex; align-items: center; justify-content: center;"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#1e5a50" stroke-width="2.2" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span>Santé</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { month: false, sel: 19 }; }
+  renderVals() {
+    const EV = {
+      10: [{ type: 'Soin', label: 'Soin noté', soft: '#efe8fa', ink: '#5a3896', dot: '#7b4fc9' }],
+      19: [{ type: 'Poids', label: 'Pesée : 8,7 kg', soft: '#dcebe6', ink: '#143f38', dot: '#1e5a50' }]
+    };
+    const all = [];
+    [28, 29, 30].forEach((n) => all.push({ n: n, out: true }));
+    for (let n = 1; n <= 31; n++) all.push({ n: n, out: false });
+    all.push({ n: 1, out: true });
+    const week = all.slice(21, 28);
+    const list = this.state.month ? all : week;
+    const days = list.map((d) => {
+      const ev = !d.out && EV[d.n];
+      const on = !d.out && this.state.sel === d.n;
+      const today = !d.out && d.n === 19;
+      return {
+        n: String(d.n), on: on,
+        aria: d.n + (d.out ? '' : ' octobre') + (ev ? ', ' + ev[0].label : ''),
+        bg: on ? '#1e5a50' : (today ? '#dcebe6' : 'transparent'),
+        color: on ? '#ffffff' : (d.out ? '#9aa39f' : '#18201e'),
+        weight: today || on ? '800' : '500',
+        dot: ev ? ev[0].dot : 'transparent',
+        pick: () => { if (!d.out) this.setState({ sel: d.n }); }
+      };
+    });
+    const sel = EV[this.state.sel] || [];
+    return {
+      month: this.state.month,
+      toggleLabel: this.state.month ? 'Voir la semaine' : 'Voir le mois',
+      gridCls: this.state.month ? 'open' : '',
+      toggle: () => this.setState({ month: !this.state.month }),
+      days: days,
+      selTitle: (this.state.sel === 19 ? 'AUJOURD’HUI · ' : '') + this.state.sel + ' OCTOBRE',
+      selEvents: sel,
+      selEmpty: sel.length === 0
+    };
+  }
+}
+</script>
+</body>
+</html>

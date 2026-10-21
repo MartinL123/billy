@@ -147,11 +147,17 @@ export default function LiveWalk() {
       }
       // « Terminer » depuis l’accueil, ou une balade déjà arrêtée qui attend d’être enregistrée (R-042).
       // (Une balade arrêtée seule après 3 h attend le choix : « Terminer » ou « Ne pas la garder », R-043.)
-      if (current.active && (params.get('terminer') || (current.stopped && !current.autoStopped))) return finish()
+      if (current.active && (params.get('terminer') || (current.stopped && !current.autoStopped))) {
+        if (params.get('depart') || params.get('terminer')) navigate('/balade-en-cours', { replace: true })
+        return finish()
+      }
       if (!current.active && !params.get('depart')) return navigate('/', { replace: true })
       try {
         const walk = current.recording || current.autoStopped ? current : await FlairNative.startWalk()
         if (!alive) return
+        // T-058 : plus de « ?depart=1 » dans l’adresse une fois la balade lancée ; un rechargement (mise à jour du site,
+        // récupération R-042) reprend cette balade, et après la fin il ne peut plus en démarrer une nouvelle.
+        if (params.get('depart')) navigate('/balade-en-cours', { replace: true })
         setStartedAt(walk.startedAt)
         setPoints(walk.points)
         setStoppedAt(walk.autoStopped ? walk.stoppedAt : undefined)

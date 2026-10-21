@@ -27,6 +27,8 @@ docs/
     README.md                     ← AUDITS UX : index, méthode, personas
     audit-NN-AAAA-MM-JJ.md        ← un fichier par audit (remarques R-xxx)
     prompt-audit-NN.md            ← le prompt Claude Code de chaque audit
+  profondeur/
+    README.md                     ← FLAIR PLUS PROFOND (21 oct.) : boucle centrale, rapport, protocole de casse, fiche contenu, mesure, test 5 personnes
   design/
     contexte-flair.md             ← CONTEXTE : produit, personas, règles non négociables, décisions (à lire en premier)
     guide-claude-design.md        ← guide + prompt pour faire proposer de meilleurs écrans à Claude Design

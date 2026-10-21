@@ -24,6 +24,7 @@ import { formatRouteDistance } from '../../lib/route'
 import { sharePercent, territoryHint } from '../../lib/territory'
 import { ofName } from '../../lib/gender'
 import { useReadOnly } from '../../firebase/viewer'
+import { WatchOptIn } from './WatchOptIn'
 
 const ExplorerMap = lazy(() => import('./ExplorerMap').then((m) => ({ default: m.ExplorerMap })))
 
@@ -286,7 +287,11 @@ export default function Explorer() {
           )}
           {walks.length === 0 ? (
             // App iOS (T-001) : les marches de la Watch arrivent seules ; le fichier GPX reste en secours.
-            <p className="text-[0.9412rem] leading-snug text-[#3F4946]">{isNative() ? 'Partez en balade : le tracé lève le brouillard. Vos marches de l’Apple Watch arrivent seules.' : 'Importez vos balades Strava pour lever le brouillard.'}</p>
+            <>
+              <p className="text-[0.9412rem] leading-snug text-[#3F4946]">{isNative() ? 'Partez en balade : le tracé lève le brouillard.' : 'Importez vos balades Strava pour lever le brouillard.'}</p>
+              {/* R-079 : l’accès à Santé seulement si on le choisit. */}
+              {!readOnly && <WatchOptIn compact />}
+            </>
           ) : (
             <>
               <p className="text-[0.8824rem] leading-snug text-[#3F4946]" aria-live="polite">

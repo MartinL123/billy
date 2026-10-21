@@ -30,6 +30,7 @@ import { isNative } from '../../native'
 import { useReadOnly } from '../../firebase/viewer'
 import { FamilySection, VisitorAccount } from '../visitor/Family'
 import { ExportButton } from './ExportButton'
+import { WatchOptIn } from '../balades/WatchOptIn'
 
 
 function InfoRow({ label, value, first }: { label: string; value: string; first?: boolean }) {
@@ -257,6 +258,14 @@ export default function Profile() {
       ) : (
         <>
       <WalkSettings />
+
+      {/* R-079 : les marches de l’Apple Watch, seulement si on le choisit (app iOS). */}
+      {isNative() && (
+        <section className="flex flex-col gap-2.5">
+          <h2 className="text-xl font-bold">Apple Watch</h2>
+          <WatchOptIn />
+        </section>
+      )}
 
       {/* App iOS : les notifications locales (T-042) ; le web garde le rappel du soir. */}
       {isNative() ? <NotificationSettings /> : <EveningReminder dogName={dog.name} />}

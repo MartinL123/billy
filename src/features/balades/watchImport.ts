@@ -39,8 +39,32 @@ function setLooksBlocked(blocked: boolean) {
   }
 }
 
+/** R-079 : la lecture des marches (et donc la fenêtre Santé d’iOS) n’arrive qu’une fois choisie par la personne. */
+const OPT_IN_KEY = 'flair.montre'
+
+export function watchOptedIn(): boolean {
+  try {
+    return localStorage.getItem(OPT_IN_KEY) === 'oui'
+  } catch {
+    return false
+  }
+}
+
+/** « Retrouver les balades de ma montre » : choisi ; la prochaine synchro demande l’accès à Santé. */
+export function optInWatch(): void {
+  try {
+    localStorage.setItem(OPT_IN_KEY, 'oui')
+  } catch {
+    // Stockage indisponible : le choix vaut pour cette ouverture.
+  }
+  lastRun = undefined
+  optedThisSession = true
+  window.dispatchEvent(new Event('flair:montre'))
+}
+
 let lastRun: number | undefined
 let running = false
+let optedThisSession = false
 
 export interface WatchContext {
   entries: WithId<Entry>[]
@@ -60,6 +84,11 @@ export async function syncWatch(ctx: () => WatchContext, onAdded: (count: number
   try {
     const startedAt = new Date(now).toISOString()
     const saved = (await getDoc(accountDoc())).data() as { watchSyncedAt?: string } | undefined
+    // R-079 : pas de lecture (ni de fenêtre Santé) sans accord. Un compte qui lisait déjà ses marches reste branché.
+    if (!watchOptedIn() && !optedThisSession) {
+      if (!saved?.watchSyncedAt) return
+      optInWatch()
+    }
     // Rien trouvé la première fois : on relit les 30 derniers jours, au cas où la lecture vient d'être autorisée.
     const since = watchSince(watchLooksBlocked() ? undefined : saved?.watchSyncedAt, new Date(now))
     // Une balade de l’iPhone en cours : on attend qu’elle soit gardée (sinon la séance Watch du même moment passerait avant).

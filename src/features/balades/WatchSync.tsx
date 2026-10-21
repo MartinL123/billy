@@ -33,7 +33,12 @@ export function WatchSync() {
     }
     run()
     document.addEventListener('visibilitychange', run)
-    return () => document.removeEventListener('visibilitychange', run)
+    // R-079 : juste après « Retrouver les balades de ma montre ».
+    window.addEventListener('flair:montre', run)
+    return () => {
+      document.removeEventListener('visibilitychange', run)
+      window.removeEventListener('flair:montre', run)
+    }
   }, [])
 
   return null

@@ -10,7 +10,7 @@ import { useToday } from '../../lib/useToday'
 import { walkItems } from '../../lib/walkList'
 import { APP_NAME } from '../../appName'
 import { isNative } from '../../native'
-import { watchLooksBlocked } from '../balades/watchImport'
+import { watchLooksBlocked, watchOptedIn } from '../balades/watchImport'
 import { useReadOnly } from '../../firebase/viewer'
 
 const STROKE = { fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
@@ -93,7 +93,7 @@ export function LifeTiles({ arrival = false }: { /** Première ouverture du jour
   }, [walks, communes, fog])
   const active = activeSkills(dog.activeSkills, dog.traits ?? [], bossProgress)
   // App iOS : aucune séance trouvée dans Santé, la lecture n’est sans doute pas autorisée (T-001). Une ligne, pas de popup.
-  const watchHint = isNative() && watchLooksBlocked() ? `Autoriser ${APP_NAME} à lire vos marches (Réglages › Santé)` : undefined
+  const watchHint = isNative() && watchOptedIn() && watchLooksBlocked() ? `Autoriser ${APP_NAME} à lire vos marches (Réglages › Santé)` : undefined
   const sante = healthTile(events, today)
   const memories = memoriesTile(entries, today)
 

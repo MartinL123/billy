@@ -1,81 +1,73 @@
-import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type PointerEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type PointerEvent, type RefObject } from 'react'
+import { nearestSnap, type Snap } from '../../lib/sheetSnap'
 
 // Le panneau glissant du bas de la carte : celui des balades et celui d’une balade mise en avant (même geste partout).
+// R-077 : trois crans comme dans Plans. Réduit (poignée et titre), moitié (à l’ouverture), haut (juste sous les
+// boutons de la carte). Hors du cran haut, glisser n’importe où déplace le panneau et la liste ne défile pas ; au cran
+// haut, la liste défile, et tout en haut de la liste, tirer vers le bas fait redescendre le panneau.
 
-/** Réduit, le panneau ne garde que sa poignée, plus cette marge : la carte prend presque tout l’écran. */
-const PEEK_MARGIN = 24
-/**
- * Petit écran (iPhone SE, R-033) : sous 700 px de haut, le panneau s’ouvre réduit, en laissant voir ses premières
- * lignes (les filtres et la part découverte), pour que la carte et ses boutons restent visibles.
- */
-const SMALL_SCREEN = 700
-const SMALL_PEEK = 104
-const isSmallScreen = () => typeof window !== 'undefined' && window.innerHeight < SMALL_SCREEN
-const SNAP = 'transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1)'
+export type { Snap }
 
-/**
- * Le panneau glissant : il suit le doigt (glissé vertical seulement, le défilement des filtres reste horizontal),
- * puis se cale ouvert ou réduit selon la vitesse du geste ou la position la plus proche. Ouvert, il monte au plus à
- * la moitié de l’écran ; la suite se lit en faisant défiler son contenu (le panneau se glisse alors par sa poignée).
- */
-export function useSheet({ startCollapsed }: { /** Réduit au départ (sinon : réduit seulement sur petit écran). */ startCollapsed?: boolean } = {}) {
+const SNAP_EASE = 'transform 0.34s cubic-bezier(0.3, 1.15, 0.5, 1)'
+
+export function useSheet({ start = 'half', peekRef, bottomInset = 0 }: { start?: Snap; /** Le bas de cet élément borne la partie visible réduit (sinon : le haut du contenu). */ peekRef?: RefObject<HTMLElement | null>; /** Hauteur couverte en bas par une barre fixe (l’action principale). */ bottomInset?: number } = {}) {
   const ref = useRef<HTMLElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
-  const [small] = useState(isSmallScreen)
-  const [collapsed, setCollapsed] = useState(startCollapsed ?? small)
-  const peek = small ? SMALL_PEEK : PEEK_MARGIN
-  const [travel, setTravel] = useState(0)
-  /** Le contenu dépasse la moitié de l’écran : il défile. */
-  const [scrollable, setScrollable] = useState(false)
-  const drag = useRef<{ y: number; t: number; from: number; moving: boolean; id: number } | null>(null)
+  const [snap, setSnap] = useState<Snap>(start)
+  const [positions, setPositions] = useState<Record<Snap, number>>({ full: 0, half: 0, collapsed: 0 })
+  const drag = useRef<{ y: number; t: number; from: number; moving: boolean; id: number; fromBody: boolean } | null>(null)
   const moved = useRef(false)
 
-  // Distance de repli : tout le contenu sous les filtres.
+  // Les trois positions (translateY), recalculées si la taille change.
   useLayoutEffect(() => {
     const el = ref.current
     const body = bodyRef.current
     if (!el || !body) return
-    // Le contenu commence 12 px (gap-3) sous la poignée.
     const measure = () => {
-      setTravel(Math.max(0, el.offsetHeight - (body.offsetTop - 12 + peek)))
-      setScrollable(body.scrollHeight > body.clientHeight + 1)
+      const height = el.offsetHeight
+      const container = el.parentElement?.clientHeight ?? height
+      // (Le panneau et son titre bougent ensemble : l’écart entre eux ne dépend pas du cran.)
+      const peekBottom = peekRef?.current ? peekRef.current.getBoundingClientRect().bottom - el.getBoundingClientRect().top : body.offsetTop
+      const half = Math.max(0, height - container / 2)
+      const collapsed = Math.max(half, height - peekBottom - 12 - bottomInset)
+      setPositions({ full: 0, half, collapsed })
     }
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(el)
-    observer.observe(body)
+    if (el.parentElement) observer.observe(el.parentElement)
     return () => observer.disconnect()
-  }, [peek])
+  }, [peekRef, bottomInset])
 
-  // Le contenu change (filtres, liste) : relu à chaque affichage, sans boucle (même valeur, pas de nouveau rendu).
-  useLayoutEffect(() => {
+  // Hors du cran haut, la liste revient en haut ; tout en haut, tirer vers le bas reste au panneau (touch-action).
+  const syncTouch = () => {
     const body = bodyRef.current
-    if (body) setScrollable(body.scrollHeight > body.clientHeight + 1)
-  })
-
-  // Réduit (glissé ou poignée), le panneau montre toujours le haut de son contenu.
+    if (body) body.style.touchAction = snap === 'full' ? (body.scrollTop <= 0 ? 'pan-up pan-x' : 'pan-y pan-x') : 'pan-x'
+  }
   useEffect(() => {
-    if (collapsed && bodyRef.current) bodyRef.current.scrollTop = 0
-  }, [collapsed])
+    if (snap !== 'full' && bodyRef.current) bodyRef.current.scrollTop = 0
+    syncTouch()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snap])
 
-  const offset = collapsed ? travel : 0
+  const offset = positions[snap]
   const place = (y: number, animate: boolean) => {
     if (!ref.current) return
-    ref.current.style.transition = animate ? SNAP : 'none'
+    ref.current.style.transition = animate ? SNAP_EASE : 'none'
     ref.current.style.transform = `translateY(${y}px)`
-    // Le contenu s’efface à mesure qu’il passe sous la barre d’onglets.
-    if (bodyRef.current) {
-      bodyRef.current.style.transition = animate ? 'opacity 0.32s' : 'none'
-      // Sur petit écran, les premières lignes restent lisibles, panneau réduit.
-      bodyRef.current.style.opacity = String(small || !travel ? 1 : Math.min(1, Math.max(0, 1 - y / travel)))
-    }
+  }
+
+  const settle = (next: Snap) => {
+    setSnap(next)
+    place(positions[next], true)
   }
 
   const handlers = {
     onPointerDown: (e: PointerEvent) => {
-      // Panneau ouvert dont le contenu défile : le doigt sur le contenu le fait défiler, la poignée glisse le panneau.
-      if (scrollable && !collapsed && bodyRef.current?.contains(e.target as Node)) return
-      drag.current = { y: e.clientY, t: e.timeStamp, from: offset, moving: false, id: e.pointerId }
+      const inBody = Boolean(bodyRef.current?.contains(e.target as Node))
+      // Au cran haut, le doigt dans une liste défilée la fait défiler.
+      if (snap === 'full' && inBody && (bodyRef.current?.scrollTop ?? 0) > 0) return
+      drag.current = { y: e.clientY, t: e.timeStamp, from: offset, moving: false, id: e.pointerId, fromBody: inBody }
       moved.current = false
     },
     onPointerMove: (e: PointerEvent) => {
@@ -84,12 +76,18 @@ export function useSheet({ startCollapsed }: { /** Réduit au départ (sinon : r
       const dy = e.clientY - d.y
       if (!d.moving) {
         if (Math.abs(dy) < 6) return
+        // Au cran haut, monter dans la liste la fait défiler : le panneau ne bouge pas.
+        if (snap === 'full' && d.fromBody && dy < 0) {
+          drag.current = null
+          return
+        }
         d.moving = true
         ref.current?.setPointerCapture(e.pointerId)
       }
       // Au-delà des bords, le panneau résiste (un tiers du geste).
       const raw = d.from + dy
-      const y = raw < 0 ? raw / 3 : raw > travel ? travel + (raw - travel) / 3 : raw
+      const max = positions.collapsed
+      const y = raw < 0 ? raw / 3 : raw > max ? max + (raw - max) / 3 : raw
       place(y, false)
     },
     onPointerUp: (e: PointerEvent) => {
@@ -98,11 +96,7 @@ export function useSheet({ startCollapsed }: { /** Réduit au départ (sinon : r
       if (!d?.moving) return
       moved.current = true
       const dy = e.clientY - d.y
-      const speed = dy / Math.max(1, e.timeStamp - d.t)
-      const y = d.from + dy
-      const next = speed > 0.4 ? true : speed < -0.4 ? false : y > travel / 2
-      setCollapsed(next)
-      place(next ? travel : 0, true)
+      settle(nearestSnap(positions, d.from + dy, dy / Math.max(1, e.timeStamp - d.t)))
     },
     onPointerCancel: () => {
       if (drag.current?.moving) place(offset, true)
@@ -117,15 +111,19 @@ export function useSheet({ startCollapsed }: { /** Réduit au départ (sinon : r
     },
   }
 
+  /** La poignée : réduit → moitié → haut → moitié. */
+  const cycle = () => settle(snap === 'collapsed' ? 'half' : snap === 'half' ? 'full' : 'half')
+
   return {
     ref,
     bodyRef,
-    collapsed,
-    setCollapsed,
+    snap,
+    setSnap: settle,
+    cycle,
+    collapsed: snap === 'collapsed',
     handlers,
-    style: { transform: `translateY(${offset}px)`, transition: SNAP },
-    small,
-    scrollable,
-    bodyStyle: { opacity: collapsed && !small ? 0 : 1, transition: 'opacity 0.32s' },
+    onBodyScroll: syncTouch,
+    style: { transform: `translateY(${offset}px)`, transition: SNAP_EASE },
+    handleLabel: snap === 'collapsed' ? 'Afficher le panneau' : snap === 'half' ? 'Agrandir le panneau' : 'Réduire le panneau',
   }
 }

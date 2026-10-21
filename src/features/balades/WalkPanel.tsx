@@ -10,7 +10,7 @@ import { useSheet } from './useSheet'
  * bas comme le panneau des balades (même geste) : réduit, il garde le nom de la balade et la carte prend l’écran.
  */
 export function WalkPanel({ entryId, name, date, route, color, replaying, onReplay, onClose, readOnly = false }: { readOnly?: boolean; entryId: string; name: string; date: string; route: Route; color?: string; replaying: boolean; onReplay: () => void; onClose: () => void }) {
-  const sheet = useSheet({ startCollapsed: false })
+  const sheet = useSheet()
   const stats = [formatLong(date), formatRouteDistance(route.distanceM), route.durationMin ? (route.source ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} repère${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
   return (
     <section
@@ -18,10 +18,16 @@ export function WalkPanel({ entryId, name, date, route, color, replaying, onRepl
       aria-label={name}
       {...sheet.handlers}
       style={sheet.style}
-      className={`absolute inset-x-0 bottom-0 z-10 mx-auto flex max-h-[calc(100%-50dvh)] max-w-[430px] ${sheet.scrollable && !sheet.collapsed ? '' : 'touch-pan-x'} flex-col gap-2.5 rounded-t-[26px] bg-surface px-5 pt-2 pb-9 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]`}
+      className="absolute inset-x-0 top-[calc(env(safe-area-inset-top)+62px)] bottom-0 z-10 mx-auto flex max-w-[430px] flex-col gap-2.5 rounded-t-[26px] bg-surface px-5 pt-2 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]"
     >
-      <button type="button" onClick={() => sheet.setCollapsed(!sheet.collapsed)} aria-expanded={!sheet.collapsed} aria-label={sheet.collapsed ? 'Afficher le panneau' : 'Réduire le panneau'} className="mx-auto -mb-2 flex min-h-11 w-24 shrink-0 touch-none items-center justify-center border-0 bg-transparent">
-        <span className="h-1.5 w-11 rounded-full bg-line-strong" />
+      <button type="button" onClick={sheet.cycle} aria-expanded={!sheet.collapsed} aria-label={sheet.handleLabel} className="mx-auto -mb-2 flex min-h-11 w-24 shrink-0 touch-none items-center justify-center border-0 bg-transparent">
+        {sheet.snap === 'full' ? (
+          <svg width="28" height="14" viewBox="0 0 28 14" aria-hidden="true">
+            <path d="M3 3l11 8 11-8" fill="none" stroke="#7D8783" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ) : (
+          <span className="h-1.5 w-11 rounded-full bg-line-strong" />
+        )}
       </button>
       <div className="-ml-2 flex shrink-0 items-center justify-between">
         <button type="button" onClick={onClose} className="flex min-h-11 items-center gap-1 border-0 bg-transparent px-2 text-[0.8824rem] font-bold text-primary">
@@ -37,7 +43,7 @@ export function WalkPanel({ entryId, name, date, route, color, replaying, onRepl
         {name}
       </h1>
       {/* Réduit, le panneau ne garde que ce qui précède (le nom) : la suite glisse sous la barre. */}
-      <div ref={sheet.bodyRef} style={sheet.bodyStyle} className="-mx-5 flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto overscroll-contain px-5 [&>*]:shrink-0" aria-hidden={sheet.collapsed || undefined} inert={sheet.collapsed || undefined}>
+      <div ref={sheet.bodyRef} onScroll={sheet.onBodyScroll} className={`-mx-5 flex min-h-0 flex-1 flex-col gap-2.5 overscroll-contain px-5 pb-9 [&>*]:shrink-0 ${sheet.snap === 'full' ? 'overflow-y-auto' : 'overflow-y-hidden'}`} aria-hidden={sheet.collapsed || undefined} inert={sheet.collapsed || undefined}>
         <p className="text-[0.8824rem] text-muted">{stats}</p>
         <p className="text-[0.8824rem] text-[#3F4946]">{readOnly ? 'Touchez une autre balade pour l’ouvrir.' : 'Touchez le tracé pour ajouter un repère, une autre balade pour l’ouvrir.'}</p>
         {route.points.length > 1 && (

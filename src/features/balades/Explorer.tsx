@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { isNative } from '../../native'
 import { ChevronRightIcon, PlusIcon } from '../../components/Icons'
@@ -148,7 +148,20 @@ export default function Explorer() {
   const focusAt = selected ? (selected.kind === 'idea' ? selected.idea : selected.spot) : undefined
   const focus = useMemo<[number, number] | undefined>(() => (focusAt ? [focusAt.lat, focusAt.lng] : undefined), [focusAt?.lat, focusAt?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const sheet = useSheet()
+  // R-077 : le panneau à trois crans ; réduit, il garde le titre et le pourcentage au-dessus de l’action fixée en bas.
+  const peekRef = useRef<HTMLDivElement>(null)
+  const footerRef = useRef<HTMLDivElement>(null)
+  const [footerHeight, setFooterHeight] = useState(0)
+  useLayoutEffect(() => {
+    const footer = footerRef.current
+    if (!footer) return setFooterHeight(0)
+    const measure = () => setFooterHeight(footer.offsetHeight)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(footer)
+    return () => observer.disconnect()
+  }, [readOnly])
+  const sheet = useSheet({ peekRef, bottomInset: footerHeight })
 
   // Une balade ouverte depuis son souvenir (?balade=…) : mise en avant, replay, repères à placer.
   const walkId = params.get('balade')
@@ -261,14 +274,26 @@ export default function Explorer() {
         aria-label={`Le territoire ${ofName(dog.name)}`}
         {...sheet.handlers}
         style={sheet.style}
-        className={`absolute inset-x-0 bottom-0 z-10 mx-auto flex max-h-[calc(100%-50dvh)] max-w-[430px] ${sheet.scrollable && !sheet.collapsed ? '' : 'touch-pan-x'} ${selected || walk ? 'invisible' : ''} flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 pb-9 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]`}
+        className={`absolute inset-x-0 top-[calc(env(safe-area-inset-top)+62px)] bottom-0 z-10 mx-auto flex max-w-[430px] ${selected || walk ? 'invisible' : ''} flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]`}
       >
-        <button type="button" onClick={() => sheet.setCollapsed(!sheet.collapsed)} aria-expanded={!sheet.collapsed} aria-label={sheet.collapsed ? 'Afficher le panneau' : 'Réduire le panneau'} className="mx-auto -mb-2 flex min-h-11 w-24 shrink-0 touch-none items-center justify-center border-0 bg-transparent">
-          <span className="h-1.5 w-11 rounded-full bg-line-strong" />
+        {/* La poignée : réduit → moitié → haut → moitié ; au cran haut, une flèche ⌄ pour réduire. */}
+        <button type="button" onClick={sheet.cycle} aria-expanded={!sheet.collapsed} aria-label={sheet.handleLabel} className="mx-auto -mb-2 flex min-h-11 w-24 shrink-0 touch-none items-center justify-center border-0 bg-transparent">
+          {sheet.snap === 'full' ? (
+            <svg width="28" height="14" viewBox="0 0 28 14" aria-hidden="true">
+              <path d="M3 3l11 8 11-8" fill="none" stroke="#7D8783" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          ) : (
+            <span className="h-1.5 w-11 rounded-full bg-line-strong" />
+          )}
         </button>
-        <div ref={sheet.bodyRef} style={sheet.bodyStyle} className="-mx-5 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-5 [&>*]:shrink-0" aria-hidden={(sheet.collapsed && !sheet.small) || undefined} inert={(sheet.collapsed && !sheet.small) || undefined}>
-          {/* V5 : le quartier, le pourcentage découvert en grand et sa barre dorée. */}
-          <div className="flex items-end justify-between gap-3">
+        <div
+          ref={sheet.bodyRef}
+          onScroll={sheet.onBodyScroll}
+          style={{ paddingBottom: footerHeight + 12 }}
+          className={`-mx-5 flex min-h-0 flex-1 flex-col gap-3 overscroll-contain px-5 [&>*]:shrink-0 ${sheet.snap === 'full' ? 'overflow-y-auto' : 'overflow-y-hidden [&_.scroll-row]:touch-pan-x'}`}
+        >
+          {/* V5 : le quartier, le pourcentage découvert en grand et sa barre dorée (visibles même réduit). */}
+          <div ref={peekRef} className="flex items-end justify-between gap-3">
             <div className="flex min-w-0 flex-col">
               <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">Le quartier</span>
               <h1 className="font-display text-[1.2941rem] leading-tight font-extrabold">Le territoire {ofName(dog.name)}</h1>
@@ -371,10 +396,12 @@ export default function Explorer() {
               </ul>
             </div>
           )}
-          {/* L’action principale : partir (iOS) ; sur le web, ajouter ses balades (import). Collée au bas du panneau : jamais à
-              faire défiler, et au-dessus du rond Accueil qui dépasse de 26 px de la barre (R-072, d’où pb-9 sur le panneau). */}
-          {!readOnly && (
-          <div className="sticky bottom-0 -mx-5 flex flex-col gap-2 bg-surface px-5 pt-2 pb-1">
+        </div>
+      </section>
+      {/* L’action principale : partir (iOS) ; sur le web, ajouter ses balades (import). Fixée en bas, à tous les crans du
+          panneau (R-077), au-dessus du rond Accueil qui dépasse de 26 px de la barre (R-072). */}
+      {!readOnly && (
+          <div ref={footerRef} className={`absolute inset-x-0 bottom-0 z-[11] mx-auto flex max-w-[430px] flex-col gap-2 bg-surface px-5 pt-2 pb-9 ${selected || walk ? 'invisible' : ''}`}>
             {isNative() ? (
               <>
                 <Link to="/balade-en-cours?depart=1" className="tap btn btn-main min-h-[56px]">
@@ -394,8 +421,6 @@ export default function Explorer() {
             )}
           </div>
           )}
-        </div>
-      </section>
       {walk && walkEntry && !selected && <WalkPanel readOnly={readOnly} entryId={walkEntry.id} name={walks.find((w) => w.id === walkEntry.id)?.name ?? 'La balade'} date={walkEntry.date} route={walk.route} color={walk.color} replaying={replaying} onReplay={() => setReplaying(!replaying)} onClose={closeWalk} />}
       {placing && walkRoute && (
         <PlaceMoment

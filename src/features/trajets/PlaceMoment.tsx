@@ -9,6 +9,8 @@ export function PlaceMoment({ at, onPlace, onCancel }: { at: { lat: number; lng:
   const [type, setType] = useState<RouteMoment['type'] | null>(null)
   const [note, setNote] = useState('')
   const [street, setStreet] = useState<string>()
+  // Le bouton reste actif (lisible) ; le toucher trop tôt dit ce qui manque.
+  const [missing, setMissing] = useState(false)
   useEffect(() => {
     let live = true
     streetName(at.lat, at.lng).then((name) => live && setStreet(name))
@@ -41,7 +43,12 @@ export function PlaceMoment({ at, onPlace, onCancel }: { at: { lat: number; lng:
         </span>
         <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={type === 'rencontre' ? 'Oslo, au bord de l’eau' : 'Un vélo est passé très près'} autoComplete="off" className="field" />
       </label>
-      <button type="button" disabled={!ready} onClick={() => type && onPlace(type, note.trim(), street)} className="btn btn-main disabled:opacity-50">
+      {missing && !ready && (
+        <p role="alert" className="text-[0.8824rem] font-semibold text-danger">
+          {type === null ? 'Choisissez d’abord ce qui s’est passé.' : 'Écrivez un mot pour la note libre.'}
+        </p>
+      )}
+      <button type="button" onClick={() => (ready && type ? onPlace(type, note.trim(), street) : setMissing(true))} className="btn btn-main">
         Placer ce repère
       </button>
     </Sheet>

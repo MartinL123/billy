@@ -125,10 +125,10 @@ function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; onl
           {error}
         </p>
       )}
-      <button type="button" onClick={() => void erase()} disabled={busy} className="btn btn-danger mt-1 disabled:opacity-60">
+      <button type="button" onClick={() => void erase()} disabled={busy} aria-busy={busy} className="btn btn-danger mt-1">
         {busy ? 'Suppression en cours…' : 'Tout supprimer définitivement'}
       </button>
-      <button type="button" onClick={onClose} disabled={busy} className="btn btn-on disabled:opacity-60">
+      <button type="button" onClick={onClose} disabled={busy} className="btn btn-on">
         Garder mon compte
       </button>
     </Sheet>

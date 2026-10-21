@@ -1,3 +1,4 @@
+import { isNative } from '../native'
 import { registerPlugin, type PluginListenerHandle } from '@capacitor/core'
 import type { GpsPoint } from '../lib/gpsWalk'
 import type { WatchWalk } from '../lib/watch'
@@ -47,6 +48,8 @@ interface FlairNativePlugin {
   keepAwake(options: { on: boolean }): Promise<void>
   /** R-078 : retour par glissement depuis le bord gauche (coupé pendant une balade en cours). */
   setBackGesture(options: { on: boolean }): Promise<void>
+  /** R-080 : une petite vibration (succès) ou un léger « clic » (sélection). */
+  haptic(options: { type: 'success' | 'selection' }): Promise<void>
   /** T-061 : la balade est dans la base locale, pas encore au serveur ; sa copie est gardée. */
   markSaved(options: { entryId: string }): Promise<void>
   /** T-061 : les entrées dont la copie attend que l’envoi soit confirmé. */
@@ -61,3 +64,9 @@ interface FlairNativePlugin {
 }
 
 export const FlairNative = registerPlugin<FlairNativePlugin>('FlairNative')
+
+/** R-080 : retour haptique, app iOS seulement ; jamais bloquant. */
+export function haptic(type: 'success' | 'selection'): void {
+  if (!isNative()) return
+  FlairNative.haptic({ type }).catch(() => undefined)
+}

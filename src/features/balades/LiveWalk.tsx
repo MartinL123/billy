@@ -25,6 +25,7 @@ import { FlairNative } from '../../native/flair'
 import { ExplorerMap } from './ExplorerMap'
 import { importActivities } from './importRun'
 import { logEvent } from '../../firebase/journal'
+import { haptic } from '../../native/flair'
 
 const toMin = (time: string) => {
   const [h, m] = time.split(':').map(Number)
@@ -162,6 +163,7 @@ export default function LiveWalk() {
       const noteBones = result.gained.filter((b) => b.reason === 'note').reduce((sum, b) => sum + b.amount, 0)
       const end = walk.stoppedAt ? Date.parse(walk.stoppedAt) : Date.now()
       logEvent({ type: 'walk_saved', source: 'gps', m: Math.round(saved.distanceM), min: Math.round(elapsedMs(walk.startedAt!, end) / 60_000) })
+      haptic('success')
       setEnded({ entryId: saved.entryId, ms: elapsedMs(walk.startedAt!, end), distanceM: saved.distanceM, pills: endWalkPills({ noteBones, bits: territoryBits(newCellsRef.current), ...(slotLabel ? { slotName: slotLabel } : {}) }) })
       setPhase('walking')
     } catch (error) {
@@ -470,6 +472,7 @@ export default function LiveWalk() {
           <button
             type="button"
             onClick={async () => {
+              haptic('success')
               noteWalk({ date: fewPoints.date, slot: fewPoints.slot, minutes: fewPoints.minutes, time: fewPoints.time }, data.current.bones, data.current.today)
               await FlairNative.clearWalk().catch(() => undefined)
               setFewPoints(undefined)

@@ -21,7 +21,8 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         CAPPluginMethod(name: "markSaved", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "pendingSent", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "clearSent", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "setBackGesture", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "setBackGesture", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "haptic", returnType: CAPPluginReturnPromise)
     ]
 
     private let health = HKHealthStore()
@@ -417,6 +418,20 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         let on = call.getBool("on") ?? true
         DispatchQueue.main.async {
             self.bridge?.webView?.allowsBackForwardNavigationGestures = on
+            call.resolve()
+        }
+    }
+
+    /// `haptic({ type })` (R-080) : « success » (balade gardée, sortie notée, étape validée) ou « selection » (le
+    /// panneau de la carte s'arrête sur un cran). Rien sur les taps ordinaires.
+    @objc func haptic(_ call: CAPPluginCall) {
+        let type = call.getString("type") ?? "success"
+        DispatchQueue.main.async {
+            if type == "selection" {
+                UISelectionFeedbackGenerator().selectionChanged()
+            } else {
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            }
             call.resolve()
         }
     }

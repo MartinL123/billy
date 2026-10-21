@@ -13,6 +13,7 @@ import { walkItems } from '../../lib/walkList'
 import { formatHour, WALK_SLOTS, type WalkSlot, type WalkTimes } from '../../lib/walks'
 import { useToday } from '../../lib/useToday'
 import { isNative } from '../../native'
+import { haptic } from '../../native/flair'
 
 /** Une sortie à noter (R-044) : d’aujourd’hui, ou d’hier le matin. */
 export interface ToNote {
@@ -37,6 +38,7 @@ export function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void
 
   const save = () => {
     if (!valid) return
+    haptic('success')
     const gains = noteWalk({ date: walk.date, slot: walk.slot, minutes, time: walk.time }, bones, today)
     const label = `${walk.name} notée`
     const amount = gains.reduce((sum, g) => sum + g.amount, 0)

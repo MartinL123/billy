@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type PointerEvent, type RefObject } from 'react'
 import { nearestSnap, type Snap } from '../../lib/sheetSnap'
+import { haptic } from '../../native/flair'
 
 // Le panneau glissant du bas de la carte : celui des balades et celui d’une balade mise en avant (même geste partout).
 // R-077 : trois crans comme dans Plans. Réduit (poignée et titre), moitié (à l’ouverture), haut (juste sous les
@@ -96,7 +97,10 @@ export function useSheet({ start = 'half', peekRef, bottomInset = 0 }: { start?:
       if (!d?.moving) return
       moved.current = true
       const dy = e.clientY - d.y
-      settle(nearestSnap(positions, d.from + dy, dy / Math.max(1, e.timeStamp - d.t)))
+      const next = nearestSnap(positions, d.from + dy, dy / Math.max(1, e.timeStamp - d.t))
+      // R-080 : un léger « clic » quand le panneau s’arrête sur un autre cran.
+      if (next !== snap) haptic('selection')
+      settle(next)
     },
     onPointerCancel: () => {
       if (drag.current?.moving) place(offset, true)

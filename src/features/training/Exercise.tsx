@@ -209,7 +209,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
         <p className="text-[0.8824rem] leading-snug text-white/90">Étape « {stepPhrase(skill, step)} »</p>
         <div className="flex flex-wrap gap-2">
           <span className={pill} style={{ background: 'rgba(255,255,255,0.16)' }}>
-            {minutes} min
+            {minutes}{'\u00a0'}min
           </span>
           <span className={pill} style={{ background: 'rgba(255,255,255,0.16)' }}>
             {setting}
@@ -296,7 +296,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
           ) : (
             <button type="button" onClick={timer.start} className="btn btn-main min-h-[58px] text-[1.0588rem]">
               <TargetIcon size={22} />
-              Lancer le minuteur · {minutes} min
+              Lancer le minuteur · {minutes}{'\u00a0'}min
             </button>
           )}
           <button

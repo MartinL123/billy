@@ -24,7 +24,7 @@ export interface ToNote {
   advised?: number
 }
 
-const minutesText = (m: number) => (m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')}` : ''}` : `${m} min`)
+const minutesText = (m: number) => (m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')}` : ''}` : `${m}\u00a0min`)
 
 /** « Combien de temps ? » : 10, 15, 25, 40 min, 1 h ou Autre ; la durée conseillée présélectionnée. */
 export function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void }) {
@@ -33,11 +33,12 @@ export function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void
   const toast = useToast()
   const [pick, setPick] = useState<number | 'autre'>(preselectedDuration(walk.advised))
   const [other, setOther] = useState('')
+  const [error, setError] = useState(false)
   const minutes = pick === 'autre' ? Math.round(Number(other)) : pick
   const valid = Number.isFinite(minutes) && minutes >= 1 && minutes <= 300
 
   const save = () => {
-    if (!valid) return
+    if (!valid) return setError(true)
     haptic('success')
     const gains = noteWalk({ date: walk.date, slot: walk.slot, minutes, time: walk.time }, bones, today)
     const label = `${walk.name} notée`
@@ -69,11 +70,19 @@ export function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void
       {pick === 'autre' && (
         <label className="flex flex-col gap-1.5 text-[0.8824rem] font-bold">
           Durée en minutes
-          <input type="number" inputMode="numeric" min={1} max={300} value={other} onChange={(e) => setOther(e.target.value)} autoFocus className="min-h-12 rounded-[14px] border-2 border-solid border-line-strong px-3.5 text-[0.9412rem] font-normal" />
+          <input type="number" inputMode="numeric" min={1} max={300} value={other} onChange={(e) => {
+              setOther(e.target.value)
+              setError(false)
+            }} autoFocus aria-invalid={error || undefined} aria-describedby={error ? 'duree-err' : undefined} className={`min-h-12 rounded-[14px] border-2 border-solid px-3.5 text-[1rem] font-normal ${error ? 'border-danger' : 'border-line-strong'}`} />
         </label>
       )}
+      {pick === 'autre' && error && (
+        <p id="duree-err" role="alert" className="text-sm font-medium text-danger">
+          Entrez une durée entre 1 et 300{'\u00a0'}min
+        </p>
+      )}
       <p className="text-[0.8235rem] leading-snug text-[#3F4946]">Sans tracé, le brouillard ne bouge pas. Pour le lever, lancez la marche sur la Watch ou importez-la.</p>
-      <button type="button" onClick={save} disabled={!valid} className="btn btn-main min-h-[56px]">
+      <button type="button" onClick={save} className="btn btn-main min-h-[56px]">
         C’est noté
       </button>
     </Sheet>

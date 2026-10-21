@@ -49,7 +49,7 @@ export interface Route {
   endTime?: string
 }
 
-export const durationLabel = (min: number) => (min >= 60 ? '1 h +' : `${min} min`)
+export const durationLabel = (min: number) => (min >= 60 ? '1 h +' : `${min} min`)
 
 const at = ([lat, lng]: RoutePoint) => ({ lat, lng })
 

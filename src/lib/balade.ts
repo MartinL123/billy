@@ -65,7 +65,7 @@ export function simplifyWalk(points: RoutePoint[], max = MAX_WALK_POINTS): Route
 
 /** « 47 min », « 1 h 12 », « 2 h » */
 export function formatDuration(min: number): string {
-  if (min < 60) return `${min} min`
+  if (min < 60) return `${min}\u00a0min`
   const h = Math.floor(min / 60)
   const m = min % 60
   return m ? `${h} h ${String(m).padStart(2, '0')}` : `${h} h`

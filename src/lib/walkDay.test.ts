@@ -37,7 +37,7 @@ describe('ses sorties du jour (T-035)', () => {
     const budget = walkBudget({ ...billy, walks: [], walksLeft: 3 })!
     const plan = walkDayPlan({ times, done: {}, walks: [], budget, now: at(7) })
     expect(plan.summary.replace(/\u00a0/g, ' ')).toBe('0 min sur 1 h 15 · encore 3 sorties de 25 min')
-    expect(plan.tip).toBe('25 min par sortie : 5 min par mois d’âge, 3 fois par jour.')
+    expect(plan.tip).toBe('25\u00a0min par sortie\u00a0: 5\u00a0min par mois d’âge, 3 fois par jour.')
   })
 
   it('sans règle (chien adulte) : les sorties, sans durée conseillée', () => {
@@ -91,7 +91,7 @@ describe('ses sorties du jour (T-035)', () => {
     expect(bigWalkNotice(normal, true)).toBeUndefined()
     // 40 min, il reste 5 min sur 1 sortie : raccourcie.
     const short = walkBudget({ ...puppy, walks: [40], walksLeft: 1 })!
-    expect(bigWalkNotice(short, true)).toMatch(/^Grosse balade aujourd’hui \(40 min, au lieu de 15 à 3 mois\)\. La prochaine sortie\u00a0: 5 min suffisent\.$/)
+    expect(bigWalkNotice(short, true)).toMatch(/^Grosse balade aujourd’hui \(40\u00a0min, au lieu de 15 à 3 mois\)\. La prochaine sortie\u00a0: 5\u00a0min suffisent\.$/)
     expect(bigWalkNotice(short, false)).toBeUndefined()
   })
 

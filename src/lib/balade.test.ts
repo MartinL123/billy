@@ -22,7 +22,7 @@ describe('balade importée', () => {
   }, 20000)
 
   it('écrit la durée', () => {
-    expect(formatDuration(47)).toBe('47 min')
+    expect(formatDuration(47)).toBe('47\u00a0min')
     expect(formatDuration(72)).toBe('1 h 12')
     expect(formatDuration(120)).toBe('2 h')
   })

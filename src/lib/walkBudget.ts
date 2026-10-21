@@ -49,4 +49,4 @@ export function walkBudget({ birthDate, today, walks, walksLeft }: { birthDate?:
 }
 
 /** « 25 min », « 1 h 15 ». */
-export const minutesLabel = (minutes: number) => (minutes >= 60 ? `${Math.floor(minutes / 60)} h${minutes % 60 ? ` ${String(minutes % 60).padStart(2, '0')}` : ''}` : `${minutes} min`)
+export const minutesLabel = (minutes: number) => (minutes >= 60 ? `${Math.floor(minutes / 60)} h${minutes % 60 ? ` ${String(minutes % 60).padStart(2, '0')}` : ''}` : `${minutes} min`)

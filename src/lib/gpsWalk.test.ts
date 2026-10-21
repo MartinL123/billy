@@ -11,7 +11,7 @@ describe('balade enregistrée par l’iPhone (T-036)', () => {
   it('le chrono et la durée de la carte', () => {
     expect(chrono(247_000)).toBe('4:07')
     expect(chrono(3_729_000)).toBe('1:02:09')
-    expect(minutesSince(23 * 60_000 + 5_000)).toBe('23 min')
+    expect(minutesSince(23 * 60_000 + 5_000)).toBe('23\u00a0min')
     expect(minutesSince(65 * 60_000)).toBe('1 h 05')
   })
 

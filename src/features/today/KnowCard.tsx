@@ -17,7 +17,7 @@ export function KnowCard() {
   return (
     <section aria-label="Faisons connaissance" className="card flex flex-col gap-2.5 rounded-[20px] p-[18px]">
       {/* T-072 : plus de « +15 os » par partie, ces os n’étaient donnés que par DressageAwards (retiré). */}
-      <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-primary uppercase">Faisons connaissance · 2 min</span>
+      <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-primary uppercase">Faisons connaissance · 2{'\u00a0'}min</span>
       <h2 className="font-display text-[1.1765rem] leading-tight font-extrabold">{starting ? 'Les questions du départ' : place(PARTS[(part?.part ?? 1) - 1]!)}</h2>
       <p className="text-[0.8824rem] leading-snug text-[#3F4946]">{part ? `${part.remaining} petite${part.remaining > 1 ? 's' : ''} question${part.remaining > 1 ? 's' : ''}. Ses missions seront choisies pour ${dog.name}.` : 'Quelques questions pour finir.'}</p>
       <div className="flex items-center gap-3">

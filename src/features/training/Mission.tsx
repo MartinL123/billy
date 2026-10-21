@@ -13,7 +13,10 @@ import { Illustration } from './Illustration'
 import { place } from '../../lib/garden'
 import { sessionStart } from '../../firebase/journal'
 
-/** Minuteur d’une étape : il part tout seul et appelle `onEnd` à la fin. */
+/** Petite pause à 0 s avant l’étape suivante (R-067) : le changement ne surprend pas. */
+const END_PAUSE_MS = 1500
+
+/** Minuteur d’une étape : il part tout seul et appelle `onEnd` à la fin, après une courte pause. */
 function useCountdown(seconds: number | undefined, onEnd: () => void) {
   const [left, setLeft] = useState(seconds ?? 0)
   const end = useRef(onEnd)
@@ -22,15 +25,19 @@ function useCountdown(seconds: number | undefined, onEnd: () => void) {
     if (!seconds) return
     const endsAt = Date.now() + seconds * 1000
     setLeft(seconds)
+    let pause: ReturnType<typeof setTimeout> | undefined
     const timer = setInterval(() => {
       const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000))
       setLeft(remaining)
       if (remaining === 0) {
         clearInterval(timer)
-        end.current()
+        pause = setTimeout(() => end.current(), END_PAUSE_MS)
       }
     }, 250)
-    return () => clearInterval(timer)
+    return () => {
+      clearInterval(timer)
+      clearTimeout(pause)
+    }
   }, [seconds])
   return left
 }
@@ -49,6 +56,14 @@ export default function Mission() {
   const finished = index >= steps.length
   const step = steps[Math.min(index, steps.length - 1)]!
   const left = useCountdown(finished ? undefined : step.seconds, () => setIndex((i) => i + 1))
+  // VoiceOver (R-067) : la nouvelle étape est annoncée, sans couper ce qui est en cours de lecture.
+  const [announce, setAnnounce] = useState('')
+  const announced = useRef(index)
+  useEffect(() => {
+    if (announced.current === index) return
+    announced.current = index
+    setAnnounce(finished ? 'Mission finie. Ça s’est bien passé\u00a0?' : `Étape ${index + 1} sur ${steps.length}\u00a0: ${step.title}`)
+  }, [index]) // eslint-disable-line react-hooks/exhaustive-deps
   const reminder = mission.title
   const needs = [neededTreats(dog.treats).replace(/^Ses friandises préférées/, 'friandises'), exercise?.needs].filter(Boolean).join(', ').toLocaleLowerCase('fr')
 
@@ -68,6 +83,9 @@ export default function Mission() {
         </div>
         <span className="shrink-0 text-[0.8824rem] font-bold text-muted">{finished ? 'Fini' : `${index + 1} sur ${steps.length}`}</span>
       </header>
+      <p aria-live="polite" className="sr-only">
+        {announce}
+      </p>
 
       {finished ? (
         <main className="flex flex-1 flex-col gap-4 pt-10">
@@ -87,7 +105,7 @@ export default function Mission() {
         <main className="flex flex-1 flex-col gap-3 pt-6">
           <p className="text-[0.8824rem] font-bold text-milestone-dark">{reminder}</p>
           <h1 className="font-display text-[1.7647rem] leading-tight font-extrabold">{step.title}</h1>
-          {step.help && <p className="line-clamp-2 text-[1rem] leading-snug text-[#3F4946]">{step.help}</p>}
+          {step.help && <p className="text-[1rem] leading-snug text-[#3F4946]">{step.help}</p>}
           {step.seconds ? (
             <p role="timer" aria-live="off" className="font-display text-[3.2941rem] leading-none font-extrabold text-primary tabular-nums">
               {formatCountdown(left)}

@@ -66,7 +66,7 @@ export function walkDayPlan({ times, done, walks, budget, now }: { times: WalkTi
   else if (budget.next === 0) tip = `Ses ${minutesLabel(budget.daily)} de marche du jour sont faites : juste ses besoins, 5 minutes, au calme.`
   else if (budget.longWalk && budget.next < budget.perWalk) tip = 'Il a déjà beaucoup marché : sorties courtes et au calme. Laissez-le renifler, ça le fatigue autant qu’une longue marche.'
   else if (budget.next < budget.perWalk) tip = `Raccourcies pour ne pas dépasser ${minutesLabel(budget.daily)} sur la journée : ses articulations grandissent encore.`
-  else tip = `${budget.perWalk} min par sortie : 5 min par mois d’âge, 3 fois par jour.`
+  else tip = `${budget.perWalk} min par sortie : 5 min par mois d’âge, 3 fois par jour.`
 
   return { slots, walked, ...(budget ? { daily: budget.daily } : {}), summary, tip }
 }
@@ -116,7 +116,7 @@ export const minutesOfDay = (date: Date) => date.getHours() * 60 + date.getMinut
  */
 export function bigWalkNotice(budget: WalkBudget | undefined, longWalkToday: boolean): string | undefined {
   if (!budget?.longWalk || !longWalkToday || budget.next >= budget.perWalk) return undefined
-  const rest = budget.next ? `La prochaine sortie : ${budget.next} min suffisent.` : 'Pour le reste du jour, juste des sorties de 5 min pour ses besoins.'
+  const rest = budget.next ? `La prochaine sortie : ${budget.next} min suffisent.` : 'Pour le reste du jour, juste des sorties de 5 min pour ses besoins.'
   return `Grosse balade aujourd’hui (${minutesLabel(budget.longWalk)}, au lieu de ${budget.perWalk} à ${budget.months} mois). ${rest}`
 }
 

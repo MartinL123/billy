@@ -34,7 +34,7 @@ export function chrono(ms: number): string {
 /** « 23 min », « 1 h 05 » (la carte « Balade en cours »). */
 export function minutesSince(ms: number): string {
   const minutes = Math.floor(ms / 60000)
-  return minutes >= 60 ? `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, '0')}` : `${minutes} min`
+  return minutes >= 60 ? `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, '0')}` : `${minutes}\u00a0min`
 }
 
 /** La distance parcourue, en mètres (mêmes règles que l'import : les sauts du GPS à l'arrêt ne comptent pas). */

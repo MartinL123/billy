@@ -161,7 +161,7 @@ function useCardContent(card: NowCard, onWeighLater: () => void, onNote: (slot: 
           other: canSkip ? { label: 'Garder le repos', run: () => completeQuest(today, { kind: 'repos' }, skips, QUEST_XP) } : undefined,
         }
       return {
-        badge: `À faire maintenant · ${minutes} min`,
+        badge: `À faire maintenant · ${minutes}\u00a0min`,
         title: mission.title,
         text: mission.detail,
         scene: quest.planned?.exercise.scene,
@@ -315,8 +315,9 @@ export default function Today() {
     // Depuis l’écran d’ouverture (T-032) : l’accueil monte à sa place.
     <div className={`flex flex-col gap-4 px-5 ${fromOpening ? 'op-arrive' : ''} ${arrival ? 'anim-stagger' : ''}`}>
       <header className="flex items-center gap-3">
-        {/* La photo et le nom forment un seul bouton vers l’écran du chien (audit R-009). */}
-        <Link to="/billy" aria-label={`${dog.name}, ses progrès`} className="tap flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-[20px] text-text no-underline">
+        {/* La photo et le nom forment un seul bouton vers l’écran du chien (audit R-009).
+            VoiceOver (R-067) : « Bonjour, Billy » d’abord, comme à l’écran, puis la date et la destination. */}
+        <Link to="/billy" aria-label={`Bonjour, ${dog.name}, ${formatDayHeading(today)}. Voir ses progrès`} className="tap flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-[20px] text-text no-underline">
           <span className="shrink-0 overflow-hidden rounded-full border-[3px] border-solid border-milestone">
             <DogPhoto size={52} />
           </span>

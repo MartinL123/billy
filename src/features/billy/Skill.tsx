@@ -230,7 +230,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
         <div className="mx-auto flex max-w-[430px] flex-col gap-2 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           <Link to={`/exercice?competence=${skill.id}`} className="btn btn-main min-h-[58px] text-[1.0588rem]">
             <TargetIcon size={22} />
-            S’entraîner · {minutes} min
+            S’entraîner · {minutes}{'\u00a0'}min
           </Link>
           <Link to={`/noter?depuis=competence&competences=${skill.id}`} className="flex min-h-12 items-center justify-center rounded-full border-2 border-solid text-[1rem] font-bold no-underline" style={{ borderColor: territory.color, color: inkOn(territory) }}>
             Déjà fait aujourd’hui ? Le noter

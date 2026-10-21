@@ -44,7 +44,7 @@ export function filterWalks(items: WalkItem[], filter: WalkFilter, today: ISODat
 export function walksSummary(items: WalkItem[]): string {
   const km = items.reduce((s, w) => s + w.route.distanceM, 0) / 1000
   const min = items.reduce((s, w) => s + (w.route.durationMin ?? 0), 0)
-  const time = min ? ` · ${Math.floor(min / 60) ? `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, '0')}` : `${min} min`} ensemble` : ''
+  const time = min ? ` · ${Math.floor(min / 60) ? `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, '0')}` : `${min} min`} ensemble` : ''
   return `${items.length} balade${items.length > 1 ? 's' : ''} · ${km.toFixed(1).replace('.', ',')} km${time}`
 }
 

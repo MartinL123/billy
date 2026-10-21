@@ -150,7 +150,7 @@ export default function Noter() {
   useEffect(() => {
     if (outcome && shown >= celebrations) {
       // « +10 os » avec l’os qui saute : les os du moment, plus ceux de la mission.
-      toast(<BonesGained label="Noté !" amount={outcome.bones + (fromQuest ? BONES.mission : 0)} />, fromQuest ? undefined : { label: 'Annuler', run: outcome.undo }, { bones: true, shower: fromQuest })
+      toast(<BonesGained label="Noté !" amount={outcome.bones + (fromQuest ? BONES.mission : 0)} />, fromQuest ? undefined : { label: 'Annuler', run: outcome.undo }, { bones: true })
       leave()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

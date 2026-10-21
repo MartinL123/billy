@@ -45,7 +45,6 @@ import Opening from './features/start/Opening'
 import Questionnaire from './features/start/Questionnaire'
 import Welcome from './features/start/Welcome'
 import Today from './features/today/Today'
-import { DressageAwards } from './features/training/DressageAwards'
 import Exercise from './features/training/Exercise'
 import { watchUser, type User } from './firebase/auth'
 import { setClosingAccount } from './firebase/erase'
@@ -182,7 +181,6 @@ export default function App() {
         {/* Un visiteur ne fait rien partir : ni récompenses, ni meute, ni rattrapages, ni Watch, ni rappels. */}
         {!visitor && (
           <>
-            <DressageAwards />
             <CommunitySync />
             <BonesBackfill />
             <FogBackfill />

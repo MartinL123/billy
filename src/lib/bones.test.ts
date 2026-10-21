@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { backfillBones, balance, BONES, boneId, challengeBone, earned, missionBones, momentBones, noteBone, purchaseBone, questionnaireBone, regularWeekBone, welcomeBone } from './bones'
-import { weekOf } from './rhythm'
+import { backfillBones, balance, BONES, boneId, earned, missionBones, momentBones, noteBone, purchaseBone, questionnaireBone, welcomeBone } from './bones'
 
 describe('les os', () => {
   it('un moment noté rapporte +3, jusqu’à 3 fois par jour', () => {
@@ -33,19 +32,10 @@ describe('les os', () => {
     ])
   })
 
-  it('défi +30, questionnaire +50, chacun une seule fois (identifiant fixe)', () => {
-    expect(challengeBone('2026-10-12', '2026-10-15')).toMatchObject({ id: 'defi-2026-10-12', amount: 30 })
+  it('questionnaire +50, une seule fois (identifiant fixe)', () => {
     expect(questionnaireBone('2026-10-14')).toMatchObject({ id: 'questionnaire-depart', amount: 50 })
     expect(welcomeBone('2026-10-14')).toMatchObject({ id: 'questionnaire-bienvenue', amount: 10 })
     expect(boneId('mission', '2026-10-14')).toBe(missionBones('2026-10-14', false)[0]!.id)
-  })
-
-  it('semaine régulière : +20 dès 5 jours notés sur 7, pas avant', () => {
-    const week = weekOf('2026-10-14')
-    expect(regularWeekBone(week, week.slice(0, 4), '2026-10-15')).toBeUndefined()
-    expect(regularWeekBone(week, week.slice(0, 5), '2026-10-16')).toMatchObject({ id: 'semaine-2026-10-12', amount: 20 })
-    // Les jours d'une autre semaine ne comptent pas.
-    expect(regularWeekBone(week, ['2026-10-01', '2026-10-02', ...week.slice(0, 4)], '2026-10-15')).toBeUndefined()
   })
 
   it('le solde est la somme ; seul un achat en dépense', () => {

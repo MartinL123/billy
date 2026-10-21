@@ -30,7 +30,6 @@ import { LifeTiles } from './LifeTiles'
 import { useCurrentWalk } from '../balades/useCurrentWalk'
 import { elapsedMs, minutesSince } from '../../lib/gpsWalk'
 import { isNative } from '../../native'
-import { CountUp } from '../../components/CountUp'
 
 // « Plus tard » sur la pesée : on n’en reparle pas avant demain (choix gardé sur cet appareil).
 const WEIGH_LATER_KEY = 'billy-pesee-plus-tard'
@@ -336,9 +335,9 @@ export default function Today() {
             {balance(bones)}
           </span>
         ) : (
-          <Link to="/boutique" data-bones-counter aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[1rem] font-extrabold text-gold-dark no-underline">
+          <Link to="/boutique" aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[1rem] font-extrabold text-gold-dark no-underline">
             <BoneIcon size={20} />
-            <CountUp value={balance(bones)} fromZero={arrival} />
+            {balance(bones)}
           </Link>
         )}
       </header>

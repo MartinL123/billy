@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 import { territoryOf } from '../../content/phrases'
 import { MAX_LEVEL } from '../../content/training'
 import { BossIcon } from '../training/BossIcon'
@@ -12,7 +11,7 @@ const SEG = CIRC / MAX_LEVEL - GAP
  * Badge d’une compétence : cercle à la couleur du territoire, entouré d’un anneau en 5 segments
  * qui s’allument au fil des étapes. Aucun chiffre. Doré quand tout est acquis, pâle quand rien ne l’est, jamais grisé.
  */
-export function Badge({ bossId, acquired, size = 84, animateStep, lit }: { bossId: string; acquired: number; size?: number; /** Étape tout juste gagnée : son segment se remplit (« C’est réussi ! »). */ animateStep?: number; /** Couleur des segments allumés, à la place de celle du territoire. */ lit?: string }) {
+export function Badge({ bossId, acquired, size = 84, lit }: { bossId: string; acquired: number; size?: number; /** Couleur des segments allumés, à la place de celle du territoire. */ lit?: string }) {
   const territory = territoryOf(bossId)
   const mastered = acquired >= MAX_LEVEL
   const litColor = mastered ? '#F2B544' : (lit ?? territory.color)
@@ -30,9 +29,7 @@ export function Badge({ bossId, acquired, size = 84, animateStep, lit }: { bossI
             stroke={i < acquired ? litColor : territory.soft}
             strokeWidth="7"
             strokeLinecap="round"
-            strokeDasharray={i + 1 === animateStep ? `${SEG} ${CIRC}` : `${SEG} ${CIRC - SEG}`}
-            className={i + 1 === animateStep ? 'cel-ring' : undefined}
-            style={i + 1 === animateStep ? ({ '--seg-len': SEG } as CSSProperties) : undefined}
+            strokeDasharray={`${SEG} ${CIRC - SEG}`}
             transform={`rotate(${-90 + (360 / MAX_LEVEL) * i + (GAP / 2 / CIRC) * 360} 42 42)`}
           />
         ))}

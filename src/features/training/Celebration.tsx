@@ -1,36 +1,11 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { stepPhraseLower, territoryOf } from '../../content/phrases'
+import { stepPhraseLower } from '../../content/phrases'
 import { Badge } from '../billy/Badge'
 import { bossById, MAX_LEVEL } from '../../content/training'
-import { BoneShower } from '../../components/BoneShower'
 
-/** Confettis aux couleurs du territoire : ils tombent dans le haut de l’écran, jamais sur les boutons. */
-function Confetti({ colors, count }: { colors: string[]; count: number }) {
-  return (
-    <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[55%] overflow-hidden">
-      {Array.from({ length: count }, (_, i) => {
-        const left = ((i * 37) % 92) + 4
-        const style = {
-          left: `${left}%`,
-          background: colors[i % colors.length],
-          width: i % 3 === 0 ? 8 : 10,
-          height: i % 3 === 0 ? 14 : 8,
-          borderRadius: i % 4 === 0 ? 999 : 2,
-          '--delay': `${(i % 5) * 0.06}s`,
-          '--dx': `${((i * 53) % 60) - 30}px`,
-          '--fall': `${34 + ((i * 29) % 18)}vh`,
-          '--rot': `${((i * 97) % 360) + 180}deg`,
-        } as CSSProperties
-        return <span key={i} className="cel-confetti" style={style} />
-      })}
-    </span>
-  )
-}
-
-/** Plein écran de récompense. Un toucher n’importe où passe l’animation ; « Continuer » ferme. */
+/** Plein écran sobre (T-072 : ni confettis ni pluie d’os) ; « Continuer » ferme. */
 function FullScreen({ label, children }: { label: string; children: ReactNode }) {
-  const [skip, setSkip] = useState(false)
   useEffect(() => {
     const previous = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -43,8 +18,7 @@ function FullScreen({ label, children }: { label: string; children: ReactNode })
       role="dialog"
       aria-modal="true"
       aria-label={label}
-      onClick={() => setSkip(true)}
-      className={`fixed inset-0 z-50 flex flex-col items-center overflow-x-hidden overflow-y-auto bg-primary-dark px-7 pt-[calc(env(safe-area-inset-top)+64px)] pb-[calc(env(safe-area-inset-bottom)+32px)] text-center text-white ${skip ? 'cel-skip' : ''}`}
+      className="fixed inset-0 z-50 flex flex-col items-center overflow-x-hidden overflow-y-auto bg-primary-dark px-7 pt-[calc(env(safe-area-inset-top)+64px)] pb-[calc(env(safe-area-inset-bottom)+32px)] text-center text-white"
     >
       {children}
     </div>,
@@ -58,15 +32,12 @@ const pill = 'rounded-2xl bg-white/15 px-3.5 py-2 text-base font-bold'
 /** Nouvelle étape : « C’est réussi ! », la phrase de l’étape en grand, la suivante. Ni étoile ni compteur. */
 export function StepSuccess({ dogName, bossId, level, inCarnet = true, onClose }: { dogName: string; bossId: string; level: number; inCarnet?: boolean; onClose: () => void }) {
   const boss = bossById(bossId)
-  const territory = territoryOf(bossId)
   return (
     <FullScreen label="C’est réussi">
-      <Confetti colors={[territory.color, territory.soft, '#F2B544', '#FFFFFF']} count={14} />
-      <BoneShower />
-      <span className="cel-badge flex size-40 shrink-0 items-center justify-center rounded-full bg-white shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
-        <Badge bossId={bossId} acquired={level} size={136} animateStep={level} lit="#F2B544" />
+      <span className="flex size-40 shrink-0 items-center justify-center rounded-full bg-white shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+        <Badge bossId={bossId} acquired={level} size={136} lit="#F2B544" />
       </span>
-      <div className="cel-text flex w-full flex-1 flex-col items-center">
+      <div className="flex w-full flex-1 flex-col items-center">
         <p className="mt-7 text-[0.8824rem] font-bold tracking-[1px] text-[#F7D58A] uppercase">C’est réussi ! · {boss?.name}</p>
         <h1 className="mt-3 font-display text-[1.7647rem] leading-tight font-extrabold">
           {dogName} {stepPhraseLower(bossId, level)}

@@ -337,29 +337,13 @@ input::-webkit-date-and-time-value {
   }
 }
 
-/* ——— « C'est réussi ! » : animation en CSS seul, ~1,5 s (spec V3 § 5.7) ———
-   Le badge rebondit, le segment gagné de l'anneau se remplit, des confettis tombent, puis le texte apparaît.
-   `.cel-skip` (un toucher sur l'écran) amène tout à l'état final. Réduire les animations : simple fondu. */
+/* Badge qui rebondit et texte qui apparaît (gelé avec la meute, T-072 : seule la carte « Marquer » s'en sert).
+   Réduire les animations : simple fondu. */
 .cel-badge {
   animation: cel-bounce 0.6s cubic-bezier(0.3, 1.4, 0.5, 1) both;
 }
-.cel-ring {
-  animation: cel-fill 0.55s ease-out 0.45s both;
-}
 .cel-text {
   animation: cel-appear 0.45s ease-out 1.05s both;
-}
-.cel-confetti {
-  position: absolute;
-  top: -16px;
-  animation: cel-fall 1.2s cubic-bezier(0.25, 0.6, 0.6, 1) var(--delay, 0s) both;
-}
-.cel-skip .cel-badge,
-.cel-skip .cel-ring,
-.cel-skip .cel-text,
-.cel-skip .cel-confetti {
-  animation-duration: 1ms;
-  animation-delay: 0s;
 }
 @keyframes cel-bounce {
   0% {
@@ -374,38 +358,16 @@ input::-webkit-date-and-time-value {
     transform: scale(1);
   }
 }
-@keyframes cel-fill {
-  from {
-    stroke-dashoffset: var(--seg-len);
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
 @keyframes cel-appear {
   from {
     opacity: 0;
     transform: translateY(8px);
   }
 }
-@keyframes cel-fall {
-  from {
-    opacity: 1;
-    transform: translate(0, 0) rotate(0deg);
-  }
-  to {
-    opacity: 0;
-    transform: translate(var(--dx, 0px), var(--fall, 40vh)) rotate(var(--rot, 180deg));
-  }
-}
 @media (prefers-reduced-motion: reduce) {
   .cel-badge,
-  .cel-ring,
   .cel-text {
     animation: fade-in 0.3s ease-out both;
-  }
-  .cel-confetti {
-    display: none;
   }
 }
 
@@ -563,15 +525,6 @@ input::-webkit-date-and-time-value {
 
 /* ——— Animations dans toute l'app (T-033) ——— */
 
-/* Le compteur d'os rebondit quand un os arrive. */
-.bump {
-  animation: bump 0.4s var(--ease-spring);
-}
-@keyframes bump {
-  40% {
-    transform: scale(1.22);
-  }
-}
 /* Le bandeau d'os glisse depuis le haut. */
 .toast-drop {
   animation: toast-drop var(--dur-in) var(--ease-spring) both;
@@ -579,36 +532,6 @@ input::-webkit-date-and-time-value {
 @keyframes toast-drop {
   from {
     transform: translateY(-140%);
-    opacity: 0;
-  }
-}
-/* Le petit os qui vole du bandeau jusqu'au compteur. */
-.bone-fly {
-  animation: bone-fly 0.65s cubic-bezier(0.5, 0, 0.3, 1) 0.35s both;
-}
-@keyframes bone-fly {
-  to {
-    transform: translate(var(--dx), var(--dy)) scale(0.6);
-    opacity: 0.2;
-  }
-}
-/* Fin de mission, nouvelle étape : une gerbe d'os (1 s). */
-.shower-bone {
-  position: absolute;
-  left: 50%;
-  top: 45%;
-  animation: shower 1s cubic-bezier(0.2, 0.7, 0.4, 1) var(--delay, 0s) both;
-}
-@keyframes shower {
-  0% {
-    transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
-    opacity: 0;
-  }
-  15% {
-    opacity: 1;
-  }
-  100% {
-    transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1) rotate(var(--rot));
     opacity: 0;
   }
 }
@@ -675,10 +598,6 @@ input::-webkit-date-and-time-value {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .shower-bone,
-  .bone-fly {
-    display: none;
-  }
   .skeleton {
     background: #e6eae7;
   }

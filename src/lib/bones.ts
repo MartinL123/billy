@@ -35,7 +35,6 @@ export const BONES = {
 }
 
 export const NOTES_PER_DAY = 3
-export const REGULAR_DAYS = 5
 
 export type BoneReason = 'mission' | 'note' | 'reussite' | 'etape' | 'defi' | 'semaine' | 'repos' | 'questionnaire' | 'marque' | 'meute' | 'sortie' | 'zone' | 'achat'
 
@@ -86,19 +85,11 @@ export function missionBones(date: ISODate, rest: boolean): BoneWithId[] {
   return [bone('mission', date, date, BONES.mission), ...(rest ? [bone('repos', date, date, BONES.rest)] : [])]
 }
 
-export const challengeBone = (week: ISODate, date: ISODate) => bone('defi', week, date, BONES.challenge)
 /** Sortie cochée : +2, une fois par créneau et par jour (la décocher ne retire rien). */
 export const walkBone = (date: ISODate, slot: string) => bone('sortie', `${date}-${slot}`, date, BONES.walk)
 export const questionnaireBone = (date: ISODate) => bone('questionnaire', 'depart', date, BONES.questionnaire)
 /** +10 os de bienvenue (R-035) : identifiant fixe, jamais donnés deux fois. */
 export const welcomeBone = (date: ISODate) => bone('questionnaire', 'bienvenue', date, BONES.welcome)
-export const profilePartBone = (part: number, date: ISODate) => bone('questionnaire', `partie-${part}`, date, BONES.profilePart)
-
-/** Semaine régulière : dès que 5 jours de la semaine ont un moment noté. */
-export function regularWeekBone(week: ISODate[], notedDays: ISODate[], date: ISODate): BoneWithId | undefined {
-  const days = week.filter((d) => notedDays.includes(d)).length
-  return days >= REGULAR_DAYS ? bone('semaine', week[0]!, date, BONES.regularWeek) : undefined
-}
 
 /** Marquer un spot : +5, ou +10 si ce chien ne l’avait jamais marqué. Une fois par spot et par jour. */
 export const markBone = (spotId: string, date: ISODate, firstTime: boolean) => bone('marque', `${spotId}-${date}`, date, firstTime ? BONES.newSpot : BONES.mark)

@@ -5,7 +5,7 @@ import { setEventDone } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { formatLong, parseISO, toISO, type ISODate } from '../../lib/dates'
 import { lateLabel, typeInfo } from '../../lib/events'
-import { canMarkDone, healthStatus, lateCare, nextThing, whenLine } from '../../lib/healthScreen'
+import { canCheck, canMarkDone, isLifeStep, healthStatus, lateCare, nextThing, whenLine } from '../../lib/healthScreen'
 import { useToast } from '../../components/Toast'
 import { AddCareSheet } from './AddCareSheet'
 import { careStatus } from '../../lib/health'
@@ -123,10 +123,16 @@ export default function Calendar() {
           </Link>
           <p className="text-[0.9412rem] text-[#3F4946]">{whenLine(next.date, today)}</p>
           {/* « C’est fait » seulement le jour J (ou en retard, voir plus haut). */}
-          {!readOnly && canMarkDone(next.date, today) && (
+          {!readOnly && canCheck(next, today) && (
             <button type="button" onClick={() => setEventDone(next, true)} className="btn btn-outline min-h-12">
               C’est fait
             </button>
+          )}
+          {/* R-068 : le jour d’une étape de vie, on la fête : un souvenir plutôt qu’une case à cocher. */}
+          {!readOnly && isLifeStep(next) && canMarkDone(next.date, today) && (
+            <Link to="/noter" className="btn btn-outline min-h-12">
+              Noter un souvenir
+            </Link>
           )}
         </section>
       )}

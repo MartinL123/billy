@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canMarkDone, healthStatus, lateCare, nextThing, weekOf, whenLine } from './healthScreen'
+import { canCheck, canMarkDone, healthStatus, lateCare, nextThing, weekOf, whenLine } from './healthScreen'
 
 const TODAY = '2026-10-19' // un lundi
 
@@ -28,5 +28,13 @@ describe('écran Santé V5 (T-053)', () => {
     expect(lateCare(events, TODAY).map((e) => e.id)).toEqual(['a'])
     expect(nextThing(events, TODAY)?.id).toBe('b')
     expect(whenLine('2027-01-10', TODAY)).toBe('Dimanche 10 janvier 2027 · dans 83 jours')
+  })
+})
+
+describe('étapes de vie (R-068)', () => {
+  it('« Oslo a 6 mois » ne se coche pas, même le jour J, et n’est jamais en retard', () => {
+    expect(canCheck({ date: '2026-10-21', type: 'etape' }, '2026-10-21')).toBe(false)
+    expect(canCheck({ date: '2026-10-21', type: 'vermifuge' }, '2026-10-21')).toBe(true)
+    expect(lateCare([{ date: '2026-10-01', done: false, type: 'etape' }, { date: '2026-10-02', done: false, type: 'vaccin' }], '2026-10-21')).toHaveLength(1)
   })
 })

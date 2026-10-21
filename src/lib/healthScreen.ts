@@ -8,7 +8,11 @@ interface Dated {
   date: ISODate | ''
   done: boolean
   time?: string
+  type?: string
 }
+
+/** R-068 : une étape de vie (« Oslo a 6 mois », anniversaire) se fête, elle ne se coche pas et n’est jamais en retard. */
+export const isLifeStep = (e: { type?: string }) => e.type === 'etape'
 
 /** Les 7 jours (lundi → dimanche) de la semaine de `day` : le calendrier replié. */
 export function weekOf(day: ISODate): ISODate[] {
@@ -20,9 +24,12 @@ export function weekOf(day: ISODate): ISODate[] {
 /** « C’est fait » n’apparaît que le jour J ou en retard (jamais pour un rappel lointain, ex. « Oslo a 6 mois »). */
 export const canMarkDone = (date: ISODate | '', today: ISODate) => Boolean(date) && date <= today
 
+/** « C’est fait » pour cet événement : un soin ou un rendez-vous, le jour J ou en retard ; jamais une étape de vie. */
+export const canCheck = (e: { date: ISODate | ''; type?: string }, today: ISODate) => !isLifeStep(e) && canMarkDone(e.date, today)
+
 /** Les soins en retard, les plus anciens d’abord : ils passent en tête (seul cas de rouge). */
 export function lateCare<T extends Dated>(events: T[], today: ISODate): T[] {
-  return events.filter((e) => isOverdue(e, today)).sort((a, b) => a.date.localeCompare(b.date))
+  return events.filter((e) => !isLifeStep(e) && isOverdue(e, today)).sort((a, b) => a.date.localeCompare(b.date))
 }
 
 /** La prochaine chose (aujourd’hui ou plus tard), hors retards. */

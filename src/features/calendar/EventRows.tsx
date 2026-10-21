@@ -1,4 +1,4 @@
-import { canMarkDone } from '../../lib/healthScreen'
+import { canCheck } from '../../lib/healthScreen'
 import { Link, useNavigate } from 'react-router-dom'
 import { CheckIcon, ChevronRightIcon, PaperclipIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
@@ -76,7 +76,7 @@ export function CalendarEventRow({ event, today, first }: { event: Event; today:
   const otherMonth = shown && shown.slice(0, 7) !== today.slice(0, 7)
   // V5 : on ne coche pas un soin de janvier en octobre ; la coche apparaît le jour J (ou en retard).
   // Visiteur (T-048) : il voit les soins, sans les cocher.
-  const markable = !readOnly && Boolean(event.date) && (event.done || canMarkDone(event.date, today))
+  const markable = !readOnly && Boolean(event.date) && (event.done || canCheck(event, today))
 
   return (
     <div className={`flex flex-col gap-2.5 px-4 py-3.5 ${overdue ? 'bg-danger-soft' : ''} ${first ? '' : 'border-t border-divider'}`}>

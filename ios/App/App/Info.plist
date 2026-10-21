@@ -28,6 +28,11 @@
 	<string>Flair lit vos séances de l’Apple Watch pour afficher vos balades et leur tracé.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Flair enregistre le tracé de la balade, même écran verrouillé.</string>
+	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
+	<dict>
+		<key>balade</key>
+		<string>La position exacte permet de tracer la balade de votre chien sur la carte.</string>
+	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Flair enregistre le tracé de la balade, même écran verrouillé.</string>
 	<key>UIApplicationSceneManifest</key>

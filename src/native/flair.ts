@@ -28,6 +28,8 @@ export interface CurrentWalk {
   stopped?: boolean
   stoppedAt?: string
   points: GpsPoint[]
+  /** T-060 : « Position exacte » coupée : les positions sont trop imprécises pour un tracé. */
+  reducedAccuracy?: boolean
 }
 
 interface FlairNativePlugin {

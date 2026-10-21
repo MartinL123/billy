@@ -193,6 +193,8 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         guard let state = readState(), let startedAt = state["startedAt"] as? String else { return ["active": false, "recording": false, "points": []] }
         var summary: [String: Any] = ["active": true, "recording": recording, "startedAt": startedAt, "autoStopped": state["autoStopped"] as? Bool ?? false, "stopped": state["stoppedAt"] != nil, "points": readPoints()]
         if let stoppedAt = state["stoppedAt"] as? String { summary["stoppedAt"] = stoppedAt }
+        // T-060 : « Position exacte » coupée dans Réglages : les points (plusieurs centaines de mètres) seront écartés.
+        if let manager = location { summary["reducedAccuracy"] = manager.accuracyAuthorization == .reducedAccuracy }
         return summary
     }
 
@@ -241,6 +243,11 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
             }
         } else {
             writeState(["startedAt": FlairNativePlugin.format(Date())])
+        }
+        // T-060 : position approximative → iOS demande la position exacte pour cette balade (clé « balade » de
+        // NSLocationTemporaryUsageDescriptionDictionary). Refusée : l'écran l'annonce, et la sortie pourra être notée.
+        if manager.accuracyAuthorization == .reducedAccuracy {
+            manager.requestTemporaryFullAccuracyAuthorization(withPurposeKey: "balade")
         }
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.distanceFilter = 5

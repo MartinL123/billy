@@ -17,3 +17,16 @@ export function entriesToVerify(saved: string[], points: { lat: number; lng: num
   const found = entries.filter((e) => knownImportKeys([e]).has(key)).map((e) => e.id)
   return found.length ? found : undefined
 }
+
+/** Sous ce temps, ce n'est pas une balade (un départ par erreur) : effacée sans rien demander. */
+export const ASK_AFTER_MS = 2 * 60 * 1000
+
+/**
+ * T-060 : que faire d'une balade arrêtée. Assez longue et assez de chemin : la garder. Moins de 2 minutes : un départ
+ * par erreur, l'effacer. Sinon (le GPS n'a presque rien donné : position approximative, immeubles, tunnel) :
+ * demander, jamais d'effacement silencieux ; on peut au moins noter la sortie et sa durée.
+ */
+export function endDecision(tooShortWalk: boolean, elapsed: number): 'garder' | 'effacer' | 'demander' {
+  if (!tooShortWalk) return 'garder'
+  return elapsed < ASK_AFTER_MS ? 'effacer' : 'demander'
+}

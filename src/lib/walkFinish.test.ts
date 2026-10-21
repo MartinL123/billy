@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { entriesToVerify } from './walkFinish'
+import { endDecision, entriesToVerify } from './walkFinish'
 
 const points = [
   { lat: 48.8566, lng: 2.3522, time: '2026-10-19T11:14:00.538Z' },
@@ -23,4 +23,10 @@ describe('fin de balade : que vérifier avant d’effacer la copie de l’iPhone
     expect(entriesToVerify([], points, [{ id: 'autre', importKey: 'x' }])).toBeUndefined()
     expect(entriesToVerify([], [], [])).toBeUndefined()
   })
+})
+
+describe('balade arrêtée : garder, effacer ou demander (T-060)', () => {
+  it('assez de chemin : on garde', () => expect(endDecision(false, 30 * 60_000)).toBe('garder'))
+  it('moins de 2 min : un départ par erreur, effacé', () => expect(endDecision(true, 90_000)).toBe('effacer'))
+  it('30 min mais presque aucun point GPS : on demande, jamais d’effacement silencieux', () => expect(endDecision(true, 30 * 60_000)).toBe('demander'))
 })

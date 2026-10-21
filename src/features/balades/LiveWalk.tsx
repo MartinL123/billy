@@ -12,15 +12,21 @@ import { formatRouteDistance } from '../../lib/route'
 import { errorText, withTimeout } from '../../lib/timeout'
 import { isFirestoreCrash } from '../../lib/firestoreCrash'
 import { ensureSavedLocally, NotSavedError } from '../../lib/localSave'
-import { entriesToVerify } from '../../lib/walkFinish'
-import { entryInLocalCache } from '../../firebase/imports'
+import { endDecision, entriesToVerify } from '../../lib/walkFinish'
+import { entryInLocalCache, noteWalk } from '../../firebase/imports'
+import { todayISO } from '../../lib/dates'
 import { recoverFromFirestoreCrash } from '../../firebase/recover'
 import { useToday } from '../../lib/useToday'
-import { slotForStart, walkName, walkTimes } from '../../lib/walks'
+import { slotForStart, walkName, walkTimes, WALK_SLOTS, type WalkSlot } from '../../lib/walks'
 import { isNative } from '../../native'
 import { FlairNative } from '../../native/flair'
 import { ExplorerMap } from './ExplorerMap'
 import { importActivities } from './importRun'
+
+const toMin = (time: string) => {
+  const [h, m] = time.split(':').map(Number)
+  return (h ?? 0) * 60 + (m ?? 0)
+}
 
 type Phase = 'starting' | 'walking' | 'denied' | 'saving' | 'failed'
 
@@ -64,6 +70,10 @@ export default function LiveWalk() {
   const [failure, setFailure] = useState<Failure>()
   const [ended, setEnded] = useState<Ended>()
   const [gone, setGone] = useState(false)
+  /** T-060 : arrêtée sans assez de positions GPS pour un tracé ; on demande au lieu d’effacer. */
+  const [fewPoints, setFewPoints] = useState<{ minutes: number; date: string; slot: WalkSlot; time: string }>()
+  /** T-060 : « Position exacte » coupée dans Réglages : le GPS ne donne qu’une position approximative. */
+  const [reduced, setReduced] = useState(false)
   /** La précision du GPS et depuis quand elle est mauvaise (V5) : « Le GPS cherche le ciel ». */
   const [accuracy, setAccuracy] = useState<number>()
   const [weakSince, setWeakSince] = useState<number>()
@@ -91,7 +101,21 @@ export default function LiveWalk() {
       const walk = await withTimeout(FlairNative.stopWalk(), STOP_MS, 'stopWalk')
       count = walk.points.length
       started = walk.startedAt
-      if (!walk.startedAt || tooShort(walk.points, walk.startedAt, walk.stoppedAt ? Date.parse(walk.stoppedAt) : Date.now())) {
+      const endedAt = walk.stoppedAt ? Date.parse(walk.stoppedAt) : Date.now()
+      const decision = walk.startedAt ? endDecision(tooShort(walk.points, walk.startedAt, endedAt), elapsedMs(walk.startedAt, endedAt)) : 'effacer'
+      if (decision === 'demander' && walk.startedAt) {
+        // Pas d’effacement silencieux : la sortie a eu lieu, on peut au moins la noter (la copie reste sur l’iPhone).
+        const start = new Date(walk.startedAt)
+        const t = walkTimes(data.current.dog.walkTimes)
+        const minutes = Math.max(1, Math.round(elapsedMs(walk.startedAt, endedAt) / 60_000))
+        const nearest = [...WALK_SLOTS].sort((a, b) => Math.abs(toMin(t[a.id]) - parisMinutes(walk.startedAt!)) - Math.abs(toMin(t[b.id]) - parisMinutes(walk.startedAt!)))[0]!.id
+        const near = slotForStart(t, parisMinutes(walk.startedAt)) ?? nearest
+        setFewPoints({ minutes, date: todayISO(start), slot: near, time: `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}` })
+        setPhase('walking')
+        finishing.current = false
+        return
+      }
+      if (decision === 'effacer') {
         step = 'effacement (clearWalk)'
         await withTimeout(FlairNative.clearWalk(), STOP_MS, 'clearWalk')
         toast('Balade trop courte, elle n’a pas été gardée.')
@@ -122,7 +146,7 @@ export default function LiveWalk() {
       // « Belle balade ! » : +3 os (s’ils sont donnés : limite de 3 notes par jour), territoire, sortie notée.
       const noteBones = result.gained.filter((b) => b.reason === 'note').reduce((sum, b) => sum + b.amount, 0)
       const end = walk.stoppedAt ? Date.parse(walk.stoppedAt) : Date.now()
-      setEnded({ entryId: saved.entryId, ms: elapsedMs(walk.startedAt, end), distanceM: saved.distanceM, pills: endWalkPills({ noteBones, bits: territoryBits(newCellsRef.current), ...(slotLabel ? { slotName: slotLabel } : {}) }) })
+      setEnded({ entryId: saved.entryId, ms: elapsedMs(walk.startedAt!, end), distanceM: saved.distanceM, pills: endWalkPills({ noteBones, bits: territoryBits(newCellsRef.current), ...(slotLabel ? { slotName: slotLabel } : {}) }) })
       setPhase('walking')
     } catch (error) {
       console.error('Balade non enregistrée', step, error)
@@ -163,6 +187,7 @@ export default function LiveWalk() {
       try {
         const walk = current.recording || current.autoStopped ? current : await FlairNative.startWalk()
         if (!alive) return
+        setReduced(Boolean(walk.reducedAccuracy))
         // T-058 : plus de « ?depart=1 » dans l’adresse une fois la balade lancée ; un rechargement (mise à jour du site,
         // récupération R-042) reprend cette balade, et après la fin il ne peut plus en démarrer une nouvelle.
         if (params.get('depart')) navigate('/balade-en-cours', { replace: true })
@@ -285,6 +310,11 @@ export default function LiveWalk() {
               Ne pas garder
             </button>
           )}
+          {reduced && !ended && (
+            <p role="status" className="pointer-events-auto self-stretch rounded-[16px] bg-surface px-4 py-3 text-[0.8824rem] leading-snug shadow-[0_4px_12px_rgba(24,32,30,0.18)]">
+              <strong>Position approximative.</strong> Pour un tracé, activez « Position exacte » dans Réglages › Flair › Position.
+            </p>
+          )}
           {weak && !ended && (
             <p role="status" className="pointer-events-auto self-stretch rounded-[16px] bg-surface px-4 py-3 text-[0.8824rem] leading-snug shadow-[0_4px_12px_rgba(24,32,30,0.18)]">
               <strong>Le GPS cherche le ciel.</strong> La balade continue, le tracé se recolle tout seul.
@@ -381,6 +411,40 @@ export default function LiveWalk() {
             </>
           )}
         </section>
+      )}
+
+      {fewPoints && (
+        // T-060 : le GPS n’a presque rien donné. On ne perd pas la sortie : on la note, ou on choisit de ne pas la garder.
+        <Sheet label="Le GPS n’a presque rien enregistré" onClose={() => setFewPoints(undefined)}>
+          <h2 className="mt-1 font-display text-[1.5294rem] leading-tight font-extrabold">Le GPS n’a presque rien enregistré</h2>
+          <p className="text-[0.9412rem] leading-snug text-[#3F4946]">
+            {fewPoints.minutes} min de sortie, mais trop peu de positions pour un tracé. Vous pouvez noter la sortie : elle compte dans sa journée.
+          </p>
+          <button
+            type="button"
+            onClick={async () => {
+              noteWalk({ date: fewPoints.date, slot: fewPoints.slot, minutes: fewPoints.minutes, time: fewPoints.time }, data.current.bones, data.current.today)
+              await FlairNative.clearWalk().catch(() => undefined)
+              setFewPoints(undefined)
+              toast('Sortie notée')
+              navigate('/', { replace: true })
+            }}
+            className="btn btn-main min-h-14"
+          >
+            Noter la sortie ({fewPoints.minutes} min)
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              await FlairNative.clearWalk().catch(() => undefined)
+              setFewPoints(undefined)
+              setGone(true)
+            }}
+            className="btn min-h-[50px] border-2 border-solid border-danger bg-surface text-danger"
+          >
+            Ne pas la garder
+          </button>
+        </Sheet>
       )}
 
       {confirmCancel && (

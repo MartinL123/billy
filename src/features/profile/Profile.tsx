@@ -29,6 +29,7 @@ import { ofName } from '../../lib/gender'
 import { isNative } from '../../native'
 import { useReadOnly } from '../../firebase/viewer'
 import { FamilySection, VisitorAccount } from '../visitor/Family'
+import { ExportButton } from './ExportButton'
 
 
 function InfoRow({ label, value, first }: { label: string; value: string; first?: boolean }) {
@@ -309,6 +310,8 @@ export default function Profile() {
         <button type="button" onClick={() => setChangingPassword(true)} className="btn btn-outline">
           Changer mon mot de passe
         </button>
+        {/* T-065 : dates, durées, sources et compteurs, sans lieux ni textes ; le fichier reste sur l'appareil. */}
+        <ExportButton />
         {/* Dans l’app iOS, elle est déjà sur le téléphone. */}
         {!isNative() && (
           <Link to="/installer" className="btn btn-outline">

@@ -46,21 +46,37 @@ function FlyingBone({ from }: { from: HTMLElement | null }) {
   )
 }
 
+/** R-064 : durée d’affichage d’un toast, sans action et avec une action. */
+export const TOAST_MS = 5000
+export const TOAST_ACTION_MS = 10_000
+
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<Toast | null>(null)
   const show = useCallback<Show>((text, action, options) => setToast({ id: Date.now(), text, action, ...(options?.bones ? { bones: true } : {}), ...(options?.shower ? { shower: true } : {}) }), [])
   const banner = useRef<HTMLDivElement>(null)
   const [bannerEl, setBannerEl] = useState<HTMLElement | null>(null)
 
+  // R-064 : un toast avec une action (« Annuler ») reste 10 s, et le temps s’arrête tant qu’on le touche ou qu’il a le
+  // focus (VoiceOver, clavier) ; sans action, 5 s.
+  const [held, setHeld] = useState(false)
   useEffect(() => {
-    if (!toast) return
-    const timer = setTimeout(() => setToast(null), 5000)
+    if (!toast || held) return
+    const timer = setTimeout(() => setToast(null), toast.action ? TOAST_ACTION_MS : TOAST_MS)
     return () => clearTimeout(timer)
-  }, [toast])
+  }, [toast, held])
+  useEffect(() => setHeld(false), [toast])
   useEffect(() => setBannerEl(toast?.bones ? banner.current : null), [toast])
 
   const body = toast && (
-    <div ref={banner} key={toast.id} className={`pointer-events-auto flex min-h-12 max-w-full items-center gap-2 rounded-2xl bg-text py-1 pr-1 pl-4 text-[0.8824rem] text-white shadow-lg ${toast.bones ? 'toast-drop' : 'animate-fade'}`}>
+    <div
+      ref={banner}
+      key={toast.id}
+      onPointerDown={() => setHeld(true)}
+      onPointerUp={() => setHeld(false)}
+      onPointerCancel={() => setHeld(false)}
+      onFocus={() => setHeld(true)}
+      onBlur={() => setHeld(false)}
+      className={`pointer-events-auto flex min-h-12 max-w-full items-center gap-2 rounded-2xl bg-text py-1 pr-1 pl-4 text-[0.8824rem] text-white shadow-lg ${toast.bones ? 'toast-drop' : 'animate-fade'}`}>
       <span className="py-2">{toast.text}</span>
       {toast.action ? (
         <button

@@ -67,6 +67,8 @@ interface Props {
     onReplayEnd: () => void
     /** Toucher le tracé (ou tout près) : y ajouter un repère. */
     onTapRoute: (at: { lat: number; lng: number }) => void
+    /** R-059 : rempli par la carte ; le centre de ce qu’on voit au-dessus de `visibleBottom` (« Ajouter un repère » sans viser). */
+    centerRef?: { current: ((visibleBottom: number) => { lat: number; lng: number }) | null }
     /** Toucher ailleurs (ni le tracé, ni une autre balade) : revenir à toutes les balades. */
     onLeave: () => void
     onPhoto: (index: number) => void
@@ -325,6 +327,23 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
       if (map.current === m && !handlers.current.walk && points.length) whenReady(m, () => fitPoints(m, points, frameOf(m), true))
     }
   }, [walkRoute, walkPhotos, walkColor])
+
+  // R-059 : le centre de la carte visible (au-dessus du panneau), pour poser un repère sans viser.
+  const centerRef = walk?.centerRef
+  useEffect(() => {
+    if (!centerRef) return
+    centerRef.current = (visibleBottom) => {
+      const m = map.current
+      if (!m) return { lat: NaN, lng: NaN }
+      const canvas = m.getCanvas()
+      const top = canvas.getBoundingClientRect().top
+      const c = m.unproject([canvas.clientWidth / 2, Math.max(1, Math.min(canvas.clientHeight, visibleBottom - top)) / 2])
+      return { lat: c.lat, lng: c.lng }
+    }
+    return () => {
+      centerRef.current = null
+    }
+  }, [centerRef])
 
   const replaying = Boolean(walk?.replaying)
   useEffect(() => {

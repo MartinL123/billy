@@ -74,23 +74,35 @@ export function simplify(points: RoutePoint[]): RoutePoint[] {
   return out
 }
 
-/** Distance d’un point au trajet (au segment le plus proche), en mètres, sur de petites distances. */
-export function distanceToRoute(p: { lat: number; lng: number }, points: RoutePoint[]): number {
-  if (points.length === 0) return Infinity
-  if (points.length === 1) return distanceMeters(p, at(points[0]!))
+/** Le point du trajet le plus proche (sur le segment le plus proche), sur de petites distances. */
+export function nearestOnRoute(p: { lat: number; lng: number }, points: RoutePoint[]): { lat: number; lng: number } | null {
+  if (points.length === 0) return null
+  if (points.length === 1) return at(points[0]!)
   const k = Math.cos((p.lat * Math.PI) / 180)
   const xy = ([lat, lng]: RoutePoint) => [lng * k, lat]
   const [px, py] = [p.lng * k, p.lat]
   let best = Infinity
+  let nearest = at(points[0]!)
   for (let i = 1; i < points.length; i++) {
     const [ax, ay] = xy(points[i - 1]!)
     const [bx, by] = xy(points[i]!)
     const dx = bx! - ax!
     const dy = by! - ay!
     const t = dx || dy ? Math.max(0, Math.min(1, ((px - ax!) * dx + (py - ay!) * dy) / (dx * dx + dy * dy))) : 0
-    best = Math.min(best, distanceMeters(p, { lat: ay! + t * dy, lng: (ax! + t * dx) / k }))
+    const q = { lat: ay! + t * dy, lng: (ax! + t * dx) / k }
+    const d = distanceMeters(p, q)
+    if (d < best) {
+      best = d
+      nearest = q
+    }
   }
-  return best
+  return nearest
+}
+
+/** Distance d’un point au trajet (au segment le plus proche), en mètres, sur de petites distances. */
+export function distanceToRoute(p: { lat: number; lng: number }, points: RoutePoint[]): number {
+  const q = nearestOnRoute(p, points)
+  return q ? distanceMeters(p, q) : Infinity
 }
 
 /** Toucher « près » du trajet : à moins de 40 m. */

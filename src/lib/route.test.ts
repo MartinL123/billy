@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { distanceToRoute, formatRouteDistance, routeDistance, simplify, momentReaction, hasReaction, withMarkMoments, walksOfMonth, isHardMoment, type Route, type RouteMoment, type RoutePoint } from './route'
+import { distanceToRoute, nearestOnRoute, formatRouteDistance, routeDistance, simplify, momentReaction, hasReaction, withMarkMoments, walksOfMonth, isHardMoment, type Route, type RouteMoment, type RoutePoint } from './route'
 
 const A: RoutePoint = [48.8566, 2.3522]
 const B: RoutePoint = [48.8584, 2.3522] // ~200 m au nord
@@ -27,6 +27,12 @@ describe('les trajets', () => {
   it('sait si un toucher est près du trajet', () => {
     expect(distanceToRoute({ lat: 48.8575, lng: 2.3522 }, [A, B])).toBeLessThan(2)
     expect(distanceToRoute({ lat: 48.8575, lng: 2.3600 }, [A, B])).toBeGreaterThan(500)
+  })
+
+  it('trouve le point du trajet le plus proche (R-059 : repère posé sans viser la carte)', () => {
+    const q = nearestOnRoute({ lat: 48.8575, lng: 2.3600 }, [A, B])!
+    expect(distanceToRoute(q, [A, B])).toBeLessThan(0.5)
+    expect(nearestOnRoute({ lat: 0, lng: 0 }, [])).toBeNull()
   })
 
 

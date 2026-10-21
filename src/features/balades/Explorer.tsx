@@ -16,7 +16,7 @@ import { WalkPanel } from './WalkPanel'
 import { useSheet } from './useSheet'
 import { PlaceMoment } from '../trajets/PlaceMoment'
 import { updateEntryRoute } from '../../firebase/db'
-import { readRoute, storeRoute, type Route } from '../../lib/route'
+import { nearestOnRoute, readRoute, storeRoute, type Route } from '../../lib/route'
 import { useIdeas } from './useIdeas'
 import { arrowTo, KIND, metersLabel } from '../../lib/ideas'
 import { formatRelative } from '../../lib/dates'
@@ -170,6 +170,16 @@ export default function Explorer() {
   const walkPhotos = useMemo(() => (walkEntry?.photos ?? []).flatMap((p, index) => (p.lat !== undefined && p.lng !== undefined ? [{ index, thumbFileId: p.thumbFileId, lat: p.lat, lng: p.lng }] : [])), [walkEntry?.photos])
   const [replaying, setReplaying] = useState(false)
   const [placing, setPlacing] = useState<{ lat: number; lng: number } | null>(null)
+  const centerRef = useRef<((visibleBottom: number) => { lat: number; lng: number }) | null>(null)
+  // R-059 : « Ajouter un repère » sans viser la carte : au point du tracé le plus proche du centre de ce qu’on voit.
+  const addMark = (visibleBottom: number) => {
+    if (!walkRoute?.points.length) return
+    const center = centerRef.current?.(visibleBottom)
+    // Carte pas encore prête : le milieu du tracé.
+    const middle = walkRoute.points[Math.floor(walkRoute.points.length / 2)]!
+    const at = center && Number.isFinite(center.lat) ? nearestOnRoute(center, walkRoute.points) : { lat: middle[0], lng: middle[1] }
+    if (at) setPlacing(at)
+  }
   const saveMoments = (moments: Route['moments']) => walkEntry && walkRoute && updateEntryRoute(walkEntry.id, storeRoute({ ...walkRoute, moments }))
   const walk =
     walkEntry && walkRoute
@@ -181,6 +191,7 @@ export default function Explorer() {
           onReplayEnd: () => setReplaying(false),
           // Visiteur (T-048) : pas de repère à placer.
           onTapRoute: (at: { lat: number; lng: number }) => !readOnly && setPlacing(at),
+          centerRef,
           // Une petite fenêtre de lieu ouverte : le toucher la referme seulement.
           onLeave: () => !selectedId && closeWalk(),
           onPhoto: () => navigate(`/souvenir/${walkEntry.id}`),
@@ -421,7 +432,7 @@ export default function Explorer() {
             )}
           </div>
           )}
-      {walk && walkEntry && !selected && <WalkPanel readOnly={readOnly} entryId={walkEntry.id} name={walks.find((w) => w.id === walkEntry.id)?.name ?? 'La balade'} date={walkEntry.date} route={walk.route} color={walk.color} replaying={replaying} onReplay={() => setReplaying(!replaying)} onClose={closeWalk} />}
+      {walk && walkEntry && !selected && <WalkPanel readOnly={readOnly} entryId={walkEntry.id} name={walks.find((w) => w.id === walkEntry.id)?.name ?? 'La balade'} date={walkEntry.date} route={walk.route} color={walk.color} replaying={replaying} onReplay={() => setReplaying(!replaying)} onAddMark={addMark} onClose={closeWalk} />}
       {placing && walkRoute && (
         <PlaceMoment
           at={placing}

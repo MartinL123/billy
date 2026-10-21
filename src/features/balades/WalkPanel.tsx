@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { ChevronLeftIcon } from '../../components/Icons'
+import { outlineButton } from '../../components/Form'
+import { ChevronLeftIcon, PinIcon } from '../../components/Icons'
 import { formatDuration } from '../../lib/balade'
 import { formatLong } from '../../lib/dates'
 import { durationLabel, formatRouteDistance, type Route } from '../../lib/route'
@@ -9,7 +10,7 @@ import { useSheet } from './useSheet'
  * Le panneau d’une balade ouverte sur la carte : ce qu’elle est, la revoir, y placer des repères. Il se glisse vers le
  * bas comme le panneau des balades (même geste) : réduit, il garde le nom de la balade et la carte prend l’écran.
  */
-export function WalkPanel({ entryId, name, date, route, color, replaying, onReplay, onClose, readOnly = false }: { readOnly?: boolean; entryId: string; name: string; date: string; route: Route; color?: string; replaying: boolean; onReplay: () => void; onClose: () => void }) {
+export function WalkPanel({ entryId, name, date, route, color, replaying, onReplay, onAddMark, onClose, readOnly = false }: { readOnly?: boolean; entryId: string; name: string; date: string; route: Route; color?: string; replaying: boolean; onReplay: () => void; /** R-059 : `visibleBottom` = le haut du panneau (la carte visible s’arrête là). */ onAddMark: (visibleBottom: number) => void; onClose: () => void }) {
   const sheet = useSheet()
   const stats = [formatLong(date), formatRouteDistance(route.distanceM), route.durationMin ? (route.source ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} repère${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
   return (
@@ -52,6 +53,13 @@ export function WalkPanel({ entryId, name, date, route, color, replaying, onRepl
               {replaying ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />}
             </svg>
             {replaying ? 'Arrêter' : 'Revoir la balade'}
+          </button>
+        )}
+        {/* R-059 : la même chose que toucher le tracé, sans viser (VoiceOver, Switch Control). */}
+        {!readOnly && route.points.length > 0 && (
+          <button type="button" onClick={() => onAddMark(sheet.ref.current?.getBoundingClientRect().top ?? window.innerHeight)} className={`${outlineButton} gap-2`}>
+            <PinIcon size={20} />
+            Ajouter un repère
           </button>
         )}
       </div>

@@ -20,7 +20,8 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         CAPPluginMethod(name: "keepAwake", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "markSaved", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "pendingSent", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "clearSent", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "clearSent", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setBackGesture", returnType: CAPPluginReturnPromise)
     ]
 
     private let health = HKHealthStore()
@@ -407,6 +408,15 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
             if let savedAs = self.readState()?["savedAs"] as? String, ids.contains(savedAs) {
                 try? FileManager.default.removeItem(at: self.walkDir)
             }
+            call.resolve()
+        }
+    }
+
+    /// `setBackGesture({ on })` (R-078) : le retour par glissement depuis le bord gauche, coupé pendant une balade.
+    @objc func setBackGesture(_ call: CAPPluginCall) {
+        let on = call.getBool("on") ?? true
+        DispatchQueue.main.async {
+            self.bridge?.webView?.allowsBackForwardNavigationGestures = on
             call.resolve()
         }
     }

@@ -256,6 +256,8 @@ export default function LiveWalk() {
       }),
     ]
     FlairNative.keepAwake({ on: true }).catch(() => undefined)
+    // R-078 : pas de retour par glissement pendant la balade (un geste involontaire quitterait l’écran).
+    FlairNative.setBackGesture({ on: false }).catch(() => undefined)
     const timer = window.setInterval(() => setNow(Date.now()), 1000)
     // De retour au premier plan : les points enregistrés écran verrouillé.
     const resync = () => {
@@ -265,6 +267,7 @@ export default function LiveWalk() {
     return () => {
       handles.forEach((h) => h.then((handle) => handle.remove()))
       FlairNative.keepAwake({ on: false }).catch(() => undefined)
+      FlairNative.setBackGesture({ on: true }).catch(() => undefined)
       window.clearInterval(timer)
       document.removeEventListener('visibilitychange', resync)
     }

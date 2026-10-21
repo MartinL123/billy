@@ -45,6 +45,8 @@ interface FlairNativePlugin {
   cancelWalk(): Promise<void>
   currentWalk(): Promise<CurrentWalk>
   keepAwake(options: { on: boolean }): Promise<void>
+  /** R-078 : retour par glissement depuis le bord gauche (coupé pendant une balade en cours). */
+  setBackGesture(options: { on: boolean }): Promise<void>
   /** T-061 : la balade est dans la base locale, pas encore au serveur ; sa copie est gardée. */
   markSaved(options: { entryId: string }): Promise<void>
   /** T-061 : les entrées dont la copie attend que l’envoi soit confirmé. */

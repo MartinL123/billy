@@ -617,16 +617,16 @@ input::-webkit-date-and-time-value {
   animation: live-blink 1.4s ease-in-out infinite;
 }
 
-/* Billy (V5, T-052) : la patte de l’étape en cours respire (1,6 s, échelle 1,15). */
+/* Billy (V5, T-052) : la patte de l’étape en cours respire, doucement (R-067 : 2,4 s, échelle 1,08). */
 @keyframes paw-breathe {
   0%,
   100% {
     transform: scale(1);
   }
   50% {
-    transform: scale(1.15);
+    transform: scale(1.08);
   }
 }
 .paw-breathe {
-  animation: paw-breathe 1.6s ease-in-out infinite;
+  animation: paw-breathe 2.4s ease-in-out infinite;
 }

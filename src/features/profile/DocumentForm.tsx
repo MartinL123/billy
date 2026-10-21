@@ -135,7 +135,7 @@ export default function DocumentForm() {
           <div className="card flex items-center gap-3.5 p-3.5">
             <div className={`relative flex h-[84px] w-16 shrink-0 items-end justify-center overflow-hidden rounded-lg border ${badge.className}`}>
               <img src={picked.previewUrl} alt="" className="absolute inset-0 size-full object-cover" />
-              <span className={`relative w-full py-0.5 text-center text-[0.6471rem] font-bold ${badge.className}`}>{badge.label}</span>
+              <span className={`relative w-full py-0.5 text-center text-[0.7059rem] font-bold ${badge.className}`}>{badge.label}</span>
             </div>
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <div className="truncate text-base font-semibold">{picked.name}</div>

@@ -35,7 +35,7 @@ export function DocumentsSection() {
                 to={`/document/${document.id}`}
                 className={`flex items-center gap-3 py-3 text-text no-underline ${i ? 'border-t border-divider' : ''}`}
               >
-                <span className={`flex h-[54px] w-11 shrink-0 items-center justify-center rounded-lg border text-[0.5882rem] font-bold ${badge.className}`}>{badge.label}</span>
+                <span className={`flex h-[54px] w-11 shrink-0 items-center justify-center rounded-lg border text-[0.7059rem] font-bold ${badge.className}`}>{badge.label}</span>
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="truncate text-base font-semibold">{document.title}</span>
                   <span className="truncate text-[0.7647rem] text-muted">

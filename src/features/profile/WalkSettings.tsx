@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { NativePickerInput } from '../../components/Form'
+import { NativePickerInput, SWITCH } from '../../components/Form'
 import { updateDog } from '../../firebase/db'
 import { canPush, disablePush, enablePush, isInstalled, readPush } from '../../firebase/push'
 import { useData } from '../../firebase/store'
@@ -62,12 +62,12 @@ export function WalkSettings() {
           </label>
         ))}
         {canPush() && isInstalled() && (
-          <label className="flex min-h-12 items-center gap-3.5 border-t border-divider pt-3">
-            <input type="checkbox" role="switch" checked={enabled} disabled={busy} onChange={() => void toggle()} className="size-7 shrink-0 accent-primary" />
+          <label className="flex min-h-12 items-center justify-between gap-3.5 border-t border-divider pt-3">
             <span className="flex flex-col gap-0.5">
               <span className="text-[1rem] font-bold">Me prévenir à l’heure des sorties</span>
               <span className="text-[0.8824rem] text-muted">Jamais si la sortie est déjà cochée</span>
             </span>
+            <input type="checkbox" role="switch" {...SWITCH} checked={enabled} disabled={busy} onChange={() => void toggle()} className="shrink-0 accent-primary" />
           </label>
         )}
         {message && (

@@ -133,3 +133,6 @@ export function NativePickerInput({ type, value, placeholder, className = '', ..
     </span>
   )
 }
+
+/** Interrupteur natif de Safari (17.4 et plus) : `<input type="checkbox" switch>`, que React et TypeScript ne connaissent pas encore. */
+export const SWITCH = { switch: '' } as Record<string, string>

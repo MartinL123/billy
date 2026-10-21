@@ -3,7 +3,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from '../../components/Icons'
 import { weekOf } from '../../lib/healthScreen'
 import type { BillyEvent, WithId } from '../../firebase/types'
 import { addDays, addMonths, dayNumber, daysInMonth, formatLong, formatMonthYear, parseISO, type ISODate } from '../../lib/dates'
-import { typeInfo } from '../../lib/events'
+import { markShape, typeInfo, typesSentence } from '../../lib/events'
 
 interface MonthGridProps {
   /** Premier jour du mois affiché. */
@@ -30,13 +30,13 @@ function gridDays(month: ISODate): ISODate[] {
 }
 
 export function MonthGrid({ month, today, selected, events, onMonthChange, onSelect, collapsed = false, onToggle, children }: MonthGridProps) {
-  const colorsByDay = new Map<ISODate, string[]>()
+  // R-061 : par jour, les types (un point par type : couleur et forme), pour l’écran et le lecteur d’écran.
+  const typesByDay = new Map<ISODate, string[]>()
   for (const event of events) {
     if (!event.date) continue
-    const colors = colorsByDay.get(event.date) ?? []
-    const color = typeInfo(event.type).color
-    if (!colors.includes(color)) colors.push(color)
-    colorsByDay.set(event.date, colors)
+    const types = typesByDay.get(event.date) ?? []
+    if (!types.includes(event.type)) types.push(event.type)
+    typesByDay.set(event.date, types)
   }
 
   const navButton = 'flex size-12 items-center justify-center rounded-full border-0 bg-transparent p-0 text-text'
@@ -73,15 +73,15 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
           const inMonth = day.slice(0, 7) === month.slice(0, 7)
           const isToday = day === today
           const isSelected = day === selected
-          const colors = colorsByDay.get(day) ?? []
-          const count = colors.length
+          const types = typesByDay.get(day) ?? []
+          const count = types.length
           return (
             <button
               key={day}
               type="button"
               aria-current={isToday ? 'date' : undefined}
               aria-pressed={isSelected}
-              aria-label={`${formatLong(day)}${count ? `, ${count} événement${count > 1 ? 's' : ''}` : ''}`}
+              aria-label={`${formatLong(day)}${count ? `, ${typesSentence(types)}` : ''}`}
               onClick={() => onSelect(day)}
               className="flex h-12 flex-col items-center gap-px border-0 bg-transparent p-0 text-[0.8824rem]"
             >
@@ -100,9 +100,12 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
                 {parseISO(day).d}
               </span>
               <span className="flex h-1.5 gap-[3px]">
-                {colors.slice(0, 3).map((color) => (
-                  <span key={color} className="size-1.5 rounded-full" style={{ background: color }} />
-                ))}
+                {types.slice(0, 3).map((type) => {
+                  const shape = markShape(type)
+                  const color = typeInfo(type).color
+                  return <span key={type} className={`size-1.5 ${shape === 'carre' ? 'rounded-[1px]' : 'rounded-full'}`} style={shape === 'anneau' ? { border: `1.5px solid ${color}` } : { background: color }} />
+                })}
+                {count > 3 && <span className="text-[0.6471rem] leading-[6px] font-bold text-muted">+{count - 3}</span>}
               </span>
             </button>
           )

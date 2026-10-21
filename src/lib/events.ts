@@ -9,6 +9,23 @@ interface TypeInfo {
   title: string
   color: string
   recurrence: Recurrence
+  /** R-061 : fond d’une pastille avec texte blanc (au moins 4,5:1) ; la couleur claire reste pour les points. */
+  pill?: string
+}
+
+/** R-061 : la forme du point dans le calendrier (le type ne se lit jamais par la seule couleur). */
+export type MarkShape = 'rond' | 'carre' | 'anneau'
+export function markShape(type: string): MarkShape {
+  if (type === 'veto' || type === 'educateur') return 'carre'
+  if (type === 'vaccin' || type === 'vermifuge' || type === 'antiparasitaire') return 'rond'
+  return 'anneau'
+}
+
+/** R-061 : « vaccin et RDV véto », pour le lecteur d’écran. */
+export function typesSentence(types: string[]): string {
+  const labels = [...new Set(types.map((t) => typeInfo(t).label.toLocaleLowerCase('fr')))]
+  if (labels.length <= 1) return labels[0] ?? ''
+  return `${labels.slice(0, -1).join(', ')} et ${labels[labels.length - 1]}`
 }
 
 export const EVENT_TYPES: Record<EventType, TypeInfo> = {
@@ -17,9 +34,9 @@ export const EVENT_TYPES: Record<EventType, TypeInfo> = {
   antiparasitaire: { label: 'Antiparasitaire', title: 'Antiparasitaire', color: '#7B4FC9', recurrence: 'monthly' },
   veto: { label: 'Véto', title: 'RDV vétérinaire', color: '#C4423A', recurrence: 'none' },
   educateur: { label: 'Éducateur', title: "Séance avec l’éducateur", color: '#1E5A50', recurrence: 'none' },
-  sejour: { label: 'Séjour', title: 'Séjour', color: '#8C9692', recurrence: 'none' },
-  etape: { label: 'Étape', title: '', color: '#D9661F', recurrence: 'none' },
-  autre: { label: 'Autre', title: '', color: '#8C9692', recurrence: 'none' },
+  sejour: { label: 'Séjour', title: 'Séjour', color: '#8C9692', recurrence: 'none', pill: '#5A6662' },
+  etape: { label: 'Étape', title: '', color: '#D9661F', recurrence: 'none', pill: '#8A3E0C' },
+  autre: { label: 'Autre', title: '', color: '#8C9692', recurrence: 'none', pill: '#5A6662' },
 }
 
 export const EVENT_TYPE_ORDER: EventType[] = ['vaccin', 'vermifuge', 'antiparasitaire', 'veto', 'educateur', 'sejour', 'etape', 'autre']
@@ -74,7 +91,7 @@ export const CARE_FILTERS: FilterInfo[] = [
   { id: 'vaccins', label: 'Vaccins', color: '#2F6FD0', one: 'vaccin à venir', many: 'vaccins à venir', empty: 'Aucun vaccin à venir', add: 'Ajouter un vaccin', type: 'vaccin' },
   { id: 'veto', label: 'Véto', color: '#C4423A', one: 'rendez-vous véto à venir', many: 'rendez-vous véto à venir', empty: 'Aucun rendez-vous véto à venir', add: 'Ajouter un rendez-vous véto', type: 'veto' },
   { id: 'educateur', label: 'Éducateur', color: '#1E5A50', one: 'séance avec l’éducateur à venir', many: 'séances avec l’éducateur à venir', empty: 'Aucune séance avec l’éducateur à venir', add: 'Ajouter une séance avec l’éducateur', type: 'educateur' },
-  { id: 'etapes', label: 'Étapes', color: '#D9661F', one: 'étape à venir', many: 'étapes à venir', empty: 'Aucune étape à venir', add: 'Ajouter une étape', type: 'etape' },
+  { id: 'etapes', label: 'Étapes', color: '#8A3E0C', one: 'étape à venir', many: 'étapes à venir', empty: 'Aucune étape à venir', add: 'Ajouter une étape', type: 'etape' },
 ]
 
 export const filterInfo = (id: string): FilterInfo => CARE_FILTERS.find((f) => f.id === id) ?? CARE_FILTERS[0]!

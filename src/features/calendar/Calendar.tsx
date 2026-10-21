@@ -101,7 +101,7 @@ export default function Calendar() {
               {ofDay.map((event) => (
                 <li key={event.id}>
                   <Link to={`/evenement/${event.id}`} className="flex min-h-11 items-center gap-2.5 text-text no-underline">
-                    <span className="rounded-full px-2.5 py-0.5 text-[0.7647rem] font-extrabold text-white" style={{ background: typeInfo(event.type).color }}>
+                    <span className="rounded-full px-2.5 py-0.5 text-[0.7647rem] font-extrabold text-white" style={{ background: typeInfo(event.type).pill ?? typeInfo(event.type).color }}>
                       {typeInfo(event.type).label}
                     </span>
                     <span className="text-[0.8824rem] font-semibold">{event.title}</span>

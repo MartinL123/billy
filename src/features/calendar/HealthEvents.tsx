@@ -74,7 +74,7 @@ export default function HealthEvents() {
               >
                 {item.id !== 'tout' && <span className="size-2.5 rounded-full" style={{ background: on ? '#FFFFFF' : item.color }} />}
                 {item.label}
-                <span className="text-[0.7647rem] opacity-80">{count}</span>
+                <span className="text-[0.7647rem] font-semibold">{count}</span>
               </button>
             )
           })}

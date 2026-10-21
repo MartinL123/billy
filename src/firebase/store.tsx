@@ -6,7 +6,7 @@ import { accountDoc, viewedOwnerUid } from './paths'
 import { isClosingAccount } from './erase'
 import type { Bone } from '../lib/bones'
 import type { WalkDay } from '../lib/walks'
-import { isExposure, isTrainingSession, type BillyDocument, type BillyEvent, type BossProgress, type DailyQuestDoc, type Dog, type FogZone, type InventoryItem, type Entry, type Exposure, type Place, type QuestWeek, type TrainingSession, type Weight, type WithId, type XpEntry } from './types'
+import { isExposure, isTrainingSession, type BillyDocument, type BillyEvent, type BossProgress, type DailyQuestDoc, type Dog, type FogZone, type InventoryItem, type Entry, type Exposure, type TrainingSession, type Weight, type WithId, type XpEntry } from './types'
 import { setFemale, setNoGarden } from '../lib/garden'
 import { isFemale } from '../lib/gender'
 import type { Commune } from '../lib/commune'
@@ -22,10 +22,8 @@ interface Data {
   sessions: WithId<TrainingSession>[]
   exposures: WithId<Exposure>[]
   bossProgress: Record<string, WithId<BossProgress> | undefined>
-  places: WithId<Place>[]
   /** Journal d’XP, en ajout seul. */
   xpLog: WithId<XpEntry>[]
-  questWeeks: WithId<QuestWeek>[]
   /** Missions du jour, les plus récentes d’abord. */
   dailyQuests: WithId<DailyQuestDoc>[]
   /** Espace utilisé par les photos et documents (octets), connu même hors ligne. */
@@ -82,9 +80,7 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   const [sessions, setSessions] = useState<WithId<TrainingSession>[]>()
   const [exposures, setExposures] = useState<WithId<Exposure>[]>()
   const [bossProgress, setBossProgress] = useState<WithId<BossProgress>[]>()
-  const [places, setPlaces] = useState<WithId<Place>[]>()
   const [xpLog, setXpLog] = useState<WithId<XpEntry>[]>()
-  const [questWeeks, setQuestWeeks] = useState<WithId<QuestWeek>[]>()
   const [dailyQuests, setDailyQuests] = useState<WithId<DailyQuestDoc>[]>()
   const [bones, setBones] = useState<WithId<Bone>[]>()
   const [usage, setUsageState] = useState(0)
@@ -105,9 +101,7 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
       watchCollection<TrainingSession>('sessions', 'desc', (items) => setSessions(items.filter(isTrainingSession).sort(byCreation))),
       watchCollection<Exposure>('exposures', 'desc', (items) => setExposures(items.filter(isExposure).sort(byCreation))),
       watchAll<BossProgress>('bossProgress', setBossProgress),
-      watchAll<Place>('places', setPlaces),
       watchCollection<XpEntry>('xpLog', 'desc', setXpLog),
-      watchCollection<QuestWeek>('quests', 'desc', setQuestWeeks),
       watchCollection<DailyQuestDoc>('dailyQuest', 'desc', setDailyQuests),
       watchCollection<Bone>('bones', 'desc', setBones),
       watchCollection<WalkDay>('walks', 'desc', setWalks),
@@ -130,16 +124,16 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   }, [dog, online])
 
   const data = useMemo<Data | null>(() => {
-    if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures || !bossProgress || !places || !xpLog || !questWeeks || !dailyQuests || !bones || !inventory || !fog || !communes || !walks) return null
-    const pendingCount = [dog, ...events, ...weights, ...entries, ...documents, ...sessions, ...exposures, ...bossProgress, ...places].filter((item) => item.pending).length
+    if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures || !bossProgress || !xpLog || !dailyQuests || !bones || !inventory || !fog || !communes || !walks) return null
+    const pendingCount = [dog, ...events, ...weights, ...entries, ...documents, ...sessions, ...exposures, ...bossProgress].filter((item) => item.pending).length
     const progressById = Object.fromEntries(bossProgress.map((p) => [p.id, p]))
     // Tant que le nom n’est pas donné, l’interface dit « Votre chien ».
     const named = dog.name?.trim() ? dog : { ...dog, name: 'Votre chien', unnamed: true }
     // Sans jardin : les textes du dressage parlent de couloir, palier, parc vide.
     setNoGarden(dog.garden === 'Non')
     setFemale(isFemale(dog.sex))
-    return { dog: named, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, places, xpLog, questWeeks, dailyQuests, bones, inventory, fog, communes, walks, usage, pendingCount, online }
-  }, [dog, events, weights, entries, documents, sessions, exposures, bossProgress, places, xpLog, questWeeks, dailyQuests, bones, inventory, fog, communes, walks, usage, online])
+    return { dog: named, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, xpLog, dailyQuests, bones, inventory, fog, communes, walks, usage, pendingCount, online }
+  }, [dog, events, weights, entries, documents, sessions, exposures, bossProgress, xpLog, dailyQuests, bones, inventory, fog, communes, walks, usage, online])
 
   if (!data) return <>{fallback(dog === null && !online)}</>
   return <DataContext.Provider value={data}>{children}</DataContext.Provider>

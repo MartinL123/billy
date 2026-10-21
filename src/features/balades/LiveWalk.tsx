@@ -78,6 +78,8 @@ export default function LiveWalk() {
   const [fewPoints, setFewPoints] = useState<{ minutes: number; date: string; slot: WalkSlot; time: string }>()
   /** T-060 : « Position exacte » coupée dans Réglages : le GPS ne donne qu’une position approximative. */
   const [reduced, setReduced] = useState(false)
+  /** T-062 : l’iPhone n’a plus de place pour écrire les points. */
+  const [storageFull, setStorageFull] = useState(false)
   /** La précision du GPS et depuis quand elle est mauvaise (V5) : « Le GPS cherche le ciel ». */
   const [accuracy, setAccuracy] = useState<number>()
   const [weakSince, setWeakSince] = useState<number>()
@@ -183,7 +185,17 @@ export default function LiveWalk() {
     if (!isNative()) return
     let alive = true
     ;(async () => {
-      const found = await FlairNative.currentWalk()
+      let found
+      try {
+        found = await FlairNative.currentWalk()
+      } catch (error) {
+        // T-062 : jamais d’écran bloqué sur « départ » : l’erreur est nommée, « Réessayer » relance l’écran.
+        if (alive) {
+          setFailure({ step: 'lecture de la balade (currentWalk)', error: errorText(error), points: 0 })
+          setPhase('failed')
+        }
+        return
+      }
       // T-061 : une balade déjà enregistrée qui attend le réseau n’est plus « en cours » : on peut en démarrer une autre.
       const current = found.savedAs ? { ...found, active: false, recording: false, points: [] } : found
       if (current.active && current.startedAt) {
@@ -208,8 +220,12 @@ export default function LiveWalk() {
         setPoints(walk.points)
         setStoppedAt(walk.autoStopped ? walk.stoppedAt : undefined)
         setPhase('walking')
-      } catch {
-        if (alive) setPhase('denied')
+      } catch (error) {
+        if (!alive) return
+        // T-062 : « position non autorisée » seulement si c’est le cas ; sinon l’erreur est nommée (stockage plein…).
+        if ((error as { code?: string })?.code === 'denied') return setPhase('denied')
+        setFailure({ step: (error as { code?: string })?.code === 'storage' ? 'départ, stockage de l’iPhone plein' : 'départ (startWalk)', error: errorText(error), points: 0 })
+        setPhase('failed')
       }
     })()
     return () => {
@@ -225,6 +241,7 @@ export default function LiveWalk() {
     const handles = [
       FlairNative.addListener('walkPoint', (point) => setPoints((list) => [...list, point])),
       FlairNative.addListener('walkStopped', (data) => setStoppedAt(data.stoppedAt ?? new Date().toISOString())),
+      FlairNative.addListener('walkError', (data) => data.code === 'storage' && setStorageFull(true)),
       FlairNative.addListener('walkSignal', (data) => {
         setAccuracy(data.accuracy)
         setWeakSince((since) => (data.accuracy > 50 ? (since ?? Date.now()) : undefined))
@@ -283,6 +300,7 @@ export default function LiveWalk() {
     return out
   }, [latLngs, points])
   const here = latLngs[latLngs.length - 1]
+  const startFailed = Boolean(failure && (failure.step.startsWith('départ') || failure.step.startsWith('lecture')))
   const weak = weakSignal(accuracy, weakSince, now)
 
   // La sortie à laquelle la balade se rattache, et sa durée conseillée : « Ses 15 min du soir sont faites ».
@@ -322,6 +340,11 @@ export default function LiveWalk() {
               <CloseIcon size={18} />
               Ne pas garder
             </button>
+          )}
+          {storageFull && !ended && (
+            <p role="alert" className="pointer-events-auto self-stretch rounded-[16px] bg-surface px-4 py-3 text-[0.8824rem] leading-snug text-danger shadow-[0_4px_12px_rgba(24,32,30,0.18)]">
+              <strong>L’iPhone est plein.</strong> Les nouveaux points ne s’enregistrent plus. Libérez de la place, puis touchez Terminer.
+            </p>
           )}
           {reduced && !ended && (
             <p role="status" className="pointer-events-auto self-stretch rounded-[16px] bg-surface px-4 py-3 text-[0.8824rem] leading-snug shadow-[0_4px_12px_rgba(24,32,30,0.18)]">
@@ -406,9 +429,9 @@ export default function LiveWalk() {
           {phase === 'failed' ? (
             <>
               <p role="alert" className="text-[0.8824rem] leading-snug font-semibold text-danger">
-                La balade n’a pas pu être enregistrée. Elle est gardée sur l’iPhone : rien n’est perdu.
+                {startFailed ? `La balade n’a pas pu démarrer (${failure?.step}).` : 'La balade n’a pas pu être enregistrée. Elle est gardée sur l’iPhone\u00a0: rien n’est perdu.'}
               </p>
-              <button type="button" onClick={() => void finish()} className="btn btn-main min-h-[58px] text-[1.1176rem]">
+              <button type="button" onClick={() => (startFailed ? window.location.reload() : void finish())} className="btn btn-main min-h-[58px] text-[1.1176rem]">
                 Réessayer
               </button>
               <button type="button" onClick={copyDetail} className="btn btn-quiet min-h-11 self-center px-4 text-[0.8824rem]">

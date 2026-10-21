@@ -53,6 +53,8 @@ interface FlairNativePlugin {
   addListener(event: 'walkPoint', listener: (point: GpsPoint) => void): Promise<PluginListenerHandle>
   addListener(event: 'walkStopped', listener: (data: { stoppedAt?: string }) => void): Promise<PluginListenerHandle>
   /** La précision du GPS à chaque mise à jour (même pour un point écarté) : signal faible (T-051). */
+  /** T-062 : un point n’a pas pu être écrit sur l’iPhone (`storage` : stockage plein). */
+  addListener(event: 'walkError', listener: (data: { code: string }) => void): Promise<PluginListenerHandle>
   addListener(event: 'walkSignal', listener: (data: { accuracy: number; time: string }) => void): Promise<PluginListenerHandle>
 }
 

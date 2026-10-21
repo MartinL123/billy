@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chrono, doubtfulSegments, durationParts, endWalkPills, gpsActivity, minutesSince, overlapShare, territoryBits, tooShort, weakSignal, withoutGpsDuplicates, type GpsPoint } from './gpsWalk'
+import { chrono, doubtfulSegments, durationParts, endWalkPills, gpsActivity, minutesSince, overlapShare, territoryBits, tooShort, weakSignal, withoutGpsDuplicates, type GpsPoint, stoppedAtOf } from './gpsWalk'
 import type { WatchWalk } from './watch'
 
 const start = '2026-10-18T17:00:00.000Z'
@@ -59,5 +59,19 @@ describe('balade en cours, V5 (T-051)', () => {
     expect(nb(endWalkPills({ noteBones: 3, bits: 2, slotName: 'Sortie du soir' }))).toEqual(['+3 os', '2 nouveaux bouts de territoire', 'Sortie du soir notée'])
     // Limite de 3 notes par jour atteinte : pas de pastille d’os.
     expect(nb(endWalkPills({ noteBones: 0, bits: 1 }))).toEqual(['Un nouveau bout de territoire'])
+  })
+})
+
+describe('arrêt à 3 h (R-043, T-062)', () => {
+  const start = '2026-10-21T08:00:00.000Z'
+  it('« Terminer » touché : l’heure de l’arrêt', () => {
+    expect(stoppedAtOf({ stopped: true, stoppedAt: '2026-10-21T08:40:00.000Z', recording: false, startedAt: start }, Date.parse('2026-10-21T09:00:00Z'))).toBe('2026-10-21T08:40:00.000Z')
+  })
+  it('app fermée depuis plus de 3 h : arrêtée à départ + 3 h, jamais plus tard', () => {
+    expect(stoppedAtOf({ recording: false, startedAt: start }, Date.parse('2026-10-21T15:00:00Z'))).toBe('2026-10-21T11:00:00.000Z')
+  })
+  it('moins de 3 h, ou le GPS enregistre encore : pas arrêtée', () => {
+    expect(stoppedAtOf({ recording: false, startedAt: start }, Date.parse('2026-10-21T10:00:00Z'))).toBeUndefined()
+    expect(stoppedAtOf({ recording: true, startedAt: start }, Date.parse('2026-10-21T15:00:00Z'))).toBeUndefined()
   })
 })

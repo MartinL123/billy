@@ -170,9 +170,17 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
     }
 
-    private func writeState(_ state: [String: Any]) {
-        try? FileManager.default.createDirectory(at: walkDir, withIntermediateDirectories: true)
-        if let data = try? JSONSerialization.data(withJSONObject: state) { try? data.write(to: stateFile, options: .atomic) }
+    /// Écrit l'état de la balade. Faux si l'écriture a échoué (stockage plein, T-062) : jamais d'échec muet au départ.
+    @discardableResult
+    private func writeState(_ state: [String: Any]) -> Bool {
+        do {
+            try FileManager.default.createDirectory(at: walkDir, withIntermediateDirectories: true)
+            let data = try JSONSerialization.data(withJSONObject: state)
+            try data.write(to: stateFile, options: .atomic)
+            return true
+        } catch {
+            return false
+        }
     }
 
     /// Les points enregistrés : une ligne « lat,lng,heure » par point.
@@ -185,15 +193,22 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         }
     }
 
-    private func append(_ point: CLLocation) {
+    /// Ajoute un point au fichier. Faux si l'écriture a échoué (stockage plein) : l'écran le dit (`walkError`, T-062).
+    private func append(_ point: CLLocation) -> Bool {
         let line = "\(point.coordinate.latitude),\(point.coordinate.longitude),\(FlairNativePlugin.format(point.timestamp))\n"
-        guard let data = line.data(using: .utf8) else { return }
-        if let handle = try? FileHandle(forWritingTo: pointsFile) {
-            handle.seekToEndOfFile()
-            handle.write(data)
-            handle.closeFile()
-        } else {
-            try? data.write(to: pointsFile)
+        guard let data = line.data(using: .utf8) else { return false }
+        do {
+            if FileManager.default.fileExists(atPath: pointsFile.path) {
+                let handle = try FileHandle(forWritingTo: pointsFile)
+                defer { try? handle.close() }
+                try handle.seekToEnd()
+                try handle.write(contentsOf: data)
+            } else {
+                try data.write(to: pointsFile)
+            }
+            return true
+        } catch {
+            return false
         }
     }
 
@@ -257,8 +272,10 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
                 call.resolve(walkSummary())
                 return
             }
-        } else {
-            writeState(["startedAt": FlairNativePlugin.format(Date())])
+        } else if !writeState(["startedAt": FlairNativePlugin.format(Date())]) {
+            // T-062 : impossible d'écrire sur l'iPhone (stockage plein) : on ne démarre pas une balade qui serait perdue.
+            call.reject("Stockage de l'iPhone plein", "storage")
+            return
         }
         // T-060 : position approximative → iOS demande la position exacte pour cette balade (clé « balade » de
         // NSLocationTemporaryUsageDescriptionDictionary). Refusée : l'écran l'annonce, et la sortie pourra être notée.
@@ -273,6 +290,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         manager.showsBackgroundLocationIndicator = true
         manager.startUpdatingLocation()
         recording = true
+        scheduleAutoStop()
         call.resolve(walkSummary())
     }
 
@@ -282,23 +300,42 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         if let last = locations.last {
             notifyListeners("walkSignal", data: ["accuracy": last.horizontalAccuracy, "time": FlairNativePlugin.format(last.timestamp)])
         }
-        for point in locations where point.horizontalAccuracy >= 0 && point.horizontalAccuracy <= maxAccuracy {
-            append(point)
+        // Au-delà de départ + 3 h, plus aucun point n'est gardé (T-062).
+        let limit = started.addingTimeInterval(maxDuration)
+        for point in locations where point.horizontalAccuracy >= 0 && point.horizontalAccuracy <= maxAccuracy && point.timestamp <= limit {
+            if !append(point) {
+                notifyListeners("walkError", data: ["code": "storage"])
+                continue
+            }
             notifyListeners("walkPoint", data: ["lat": point.coordinate.latitude, "lng": point.coordinate.longitude, "time": FlairNativePlugin.format(point.timestamp)])
         }
-        if Date().timeIntervalSince(started) > maxDuration {
-            stopUpdates()
-            // Le chrono se fige à l'heure de l'arrêt (R-043) : départ + 3 h.
-            let stoppedAt = FlairNativePlugin.format(started.addingTimeInterval(maxDuration))
-            var stopped = state
-            stopped["autoStopped"] = true
-            stopped["stoppedAt"] = stoppedAt
-            writeState(stopped)
-            notifyListeners("walkStopped", data: ["stoppedAt": stoppedAt])
-        }
+        if Date() > limit { autoStop() }
+    }
+
+    private var autoStopTimer: Timer?
+
+    /// T-062 : l'arrêt à 3 h ne dépend plus de l'arrivée d'un point (téléphone posé) : un minuteur à départ + 3 h.
+    private func scheduleAutoStop() {
+        autoStopTimer?.invalidate()
+        guard let started = (readState()?["startedAt"] as? String).flatMap(FlairNativePlugin.parseDate) else { return }
+        let delay = max(1, started.addingTimeInterval(maxDuration).timeIntervalSinceNow)
+        autoStopTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in self?.autoStop() }
+    }
+
+    /// Arrêt automatique (R-043) : le chrono se fige à départ + 3 h.
+    private func autoStop() {
+        guard recording, var state = readState(), state["stoppedAt"] == nil, let started = (state["startedAt"] as? String).flatMap(FlairNativePlugin.parseDate) else { return }
+        stopUpdates()
+        let stoppedAt = FlairNativePlugin.format(started.addingTimeInterval(maxDuration))
+        state["autoStopped"] = true
+        state["stoppedAt"] = stoppedAt
+        writeState(state)
+        notifyListeners("walkStopped", data: ["stoppedAt": stoppedAt])
     }
 
     private func stopUpdates() {
+        autoStopTimer?.invalidate()
+        autoStopTimer = nil
         location?.stopUpdatingLocation()
         location?.allowsBackgroundLocationUpdates = false
         recording = false

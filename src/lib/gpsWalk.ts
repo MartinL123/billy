@@ -101,3 +101,13 @@ export function endWalkPills({ noteBones, bits, slotName }: { noteBones: number;
   if (slotName) out.push(`${slotName} notée`)
   return out
 }
+
+/**
+ * Arrêtée (« Terminer » touché, ou 3 h dépassées) : l’heure de l’arrêt. Une balade interrompue (app fermée) depuis plus
+ * de 3 h ne se reprend plus, elle est seulement à enregistrer (R-043, T-062).
+ */
+export function stoppedAtOf(current: { stopped?: boolean; stoppedAt?: string; recording: boolean; startedAt?: string }, now: number): string | undefined {
+  if (current.stopped) return current.stoppedAt ?? current.startedAt
+  if (!current.recording && current.startedAt && now - Date.parse(current.startedAt) > MAX_WALK_MS) return new Date(Date.parse(current.startedAt) + MAX_WALK_MS).toISOString()
+  return undefined
+}

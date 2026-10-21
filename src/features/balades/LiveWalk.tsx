@@ -12,6 +12,7 @@ import { formatRouteDistance } from '../../lib/route'
 import { errorText, withTimeout } from '../../lib/timeout'
 import { isFirestoreCrash } from '../../lib/firestoreCrash'
 import { ensureSavedLocally, NotSavedError } from '../../lib/localSave'
+import { entriesToVerify } from '../../lib/walkFinish'
 import { entryInLocalCache } from '../../firebase/imports'
 import { recoverFromFirestoreCrash } from '../../firebase/recover'
 import { useToday } from '../../lib/useToday'
@@ -105,12 +106,19 @@ export default function LiveWalk() {
       )
       // Enregistrée ? On relit la base locale (R-045) : si Firestore est en panne, l’écriture a pu ne jamais arriver.
       step = 'vérification (base locale)'
-      await ensureSavedLocally(result.walks.map((w) => w.entryId), entryInLocalCache)
+      // T-059 : une balade précise est toujours relue avant d’effacer. Rien d’écrit (« Réessayer » après un
+      // enregistrement réussi) : c’est l’entrée qui porte sa clé ; introuvable : on n’efface rien.
+      const toVerify = entriesToVerify(result.walks.map((w) => w.entryId), walk.points, data.current.entries)
+      if (!toVerify) throw new NotSavedError('balade introuvable dans la base locale')
+      await ensureSavedLocally(toVerify, entryInLocalCache)
       // Dans la base locale (qui l’envoie dès qu’il y a du réseau) : on peut effacer la copie de l’iPhone.
       step = 'effacement (clearWalk)'
       await withTimeout(FlairNative.clearWalk(), STOP_MS, 'clearWalk')
       const saved = result.walks[0]
-      if (!saved) return navigate('/', { replace: true })
+      if (!saved) {
+        toast('Cette balade était déjà enregistrée.')
+        return navigate('/', { replace: true })
+      }
       // « Belle balade ! » : +3 os (s’ils sont donnés : limite de 3 notes par jour), territoire, sortie notée.
       const noteBones = result.gained.filter((b) => b.reason === 'note').reduce((sum, b) => sum + b.amount, 0)
       const end = walk.stoppedAt ? Date.parse(walk.stoppedAt) : Date.now()

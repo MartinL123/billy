@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "build:ios": "tsc --noEmit && VITE_TARGET=ios vite build && npx cap sync ios",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "emulators": "firebase emulators:start --project demo-billy",
     "emulators:user": "node scripts/create-emulator-user.mjs",
     "test:rules": "firebase emulators:exec --only firestore --project demo-billy \"vitest run --config vitest.rules.config.ts\""
@@ -33,6 +34,7 @@
     "@babel/parser": "7.29.9",
     "@capacitor/cli": "^8.5.3",
     "@firebase/rules-unit-testing": "^6.0.0",
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

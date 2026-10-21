@@ -12,3 +12,8 @@ dev-dist
 
 # Maquettes avec de vrais lieux (dépôt public)
 docs/maquettes/prive/
+
+# Tests de bout en bout (Playwright, T-063)
+playwright-report/
+test-results/
+.e2e-dist/

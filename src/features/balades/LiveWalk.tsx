@@ -24,6 +24,7 @@ import { isNative } from '../../native'
 import { FlairNative } from '../../native/flair'
 import { ExplorerMap } from './ExplorerMap'
 import { importActivities } from './importRun'
+import { logEvent } from '../../firebase/journal'
 
 const toMin = (time: string) => {
   const [h, m] = time.split(':').map(Number)
@@ -124,6 +125,7 @@ export default function LiveWalk() {
       if (decision === 'effacer') {
         step = 'effacement (clearWalk)'
         await withTimeout(FlairNative.clearWalk(), STOP_MS, 'clearWalk')
+        logEvent({ type: 'walk_discarded', min: walk.startedAt ? Math.round(elapsedMs(walk.startedAt, endedAt) / 60_000) : 0 })
         toast('Balade trop courte, elle n’a pas été gardée.')
         return navigate('/', { replace: true })
       }
@@ -159,10 +161,12 @@ export default function LiveWalk() {
       // « Belle balade ! » : +3 os (s’ils sont donnés : limite de 3 notes par jour), territoire, sortie notée.
       const noteBones = result.gained.filter((b) => b.reason === 'note').reduce((sum, b) => sum + b.amount, 0)
       const end = walk.stoppedAt ? Date.parse(walk.stoppedAt) : Date.now()
+      logEvent({ type: 'walk_saved', source: 'gps', m: Math.round(saved.distanceM), min: Math.round(elapsedMs(walk.startedAt!, end) / 60_000) })
       setEnded({ entryId: saved.entryId, ms: elapsedMs(walk.startedAt!, end), distanceM: saved.distanceM, pills: endWalkPills({ noteBones, bits: territoryBits(newCellsRef.current), ...(slotLabel ? { slotName: slotLabel } : {}) }) })
       setPhase('walking')
     } catch (error) {
       console.error('Balade non enregistrée', step, error)
+      logEvent({ type: 'walk_error', step })
       setFailure({ step, error: errorText(error), points: count, ...(started ? { startedAt: started } : {}) })
       setPhase('failed')
       finishing.current = false
@@ -205,12 +209,16 @@ export default function LiveWalk() {
       // « Terminer » depuis l’accueil, ou une balade déjà arrêtée qui attend d’être enregistrée (R-042).
       // (Une balade arrêtée seule après 3 h attend le choix : « Terminer » ou « Ne pas la garder », R-043.)
       if (current.active && (params.get('terminer') || (current.stopped && !current.autoStopped))) {
+        // Une balade arrêtée qui attendait d’être enregistrée (R-042) : reprise après un incident.
+        if (!params.get('terminer')) logEvent({ type: 'walk_recovered' })
         if (params.get('depart') || params.get('terminer')) navigate('/balade-en-cours', { replace: true })
         return finish()
       }
       if (!current.active && !params.get('depart')) return navigate('/', { replace: true })
       try {
-        const walk = current.recording || current.autoStopped ? current : await FlairNative.startWalk()
+        const resumed = current.recording || current.autoStopped
+        const walk = resumed ? current : await FlairNative.startWalk()
+        if (!resumed) logEvent({ type: 'walk_start' })
         if (!alive) return
         setReduced(Boolean(walk.reducedAccuracy))
         // T-058 : plus de « ?depart=1 » dans l’adresse une fois la balade lancée ; un rechargement (mise à jour du site,
@@ -473,6 +481,7 @@ export default function LiveWalk() {
             type="button"
             onClick={async () => {
               await FlairNative.clearWalk().catch(() => undefined)
+              logEvent({ type: 'walk_discarded', min: fewPoints.minutes })
               setFewPoints(undefined)
               setGone(true)
             }}
@@ -495,6 +504,7 @@ export default function LiveWalk() {
             type="button"
             onClick={async () => {
               await FlairNative.cancelWalk()
+              logEvent({ type: 'walk_discarded', min: Math.round(elapsed / 60_000) })
               setConfirmCancel(false)
               setGone(true)
             }}

@@ -25,6 +25,7 @@ import { Face } from './Face'
 import { errorText } from '../../firebase/errors'
 import { place } from '../../lib/garden'
 import { ofName } from '../../lib/gender'
+import { sessionDone } from '../../firebase/journal'
 
 const MAX_PHOTOS = 10
 interface Photo {
@@ -119,6 +120,8 @@ export default function Noter() {
         dog.name,
         bones,
       )
+      // T-066 : une séance d’entraînement notée (depuis la mission ou une compétence) : sa durée au journal privé.
+      if (fromQuest || skills.length) sessionDone(skills[0])
       if (fromQuest) completeQuest(today, { kind: today0.quest.kind, bossId: today0.quest.bossId, exerciseId: today0.quest.planned?.exercise.id }, today0.skips, QUEST_XP)
       // Souvenir des premières semaines : l’écran de résultat du questionnaire le retrouve.
       if (params.get('retour') === 'questionnaire') answerQuestion('souvenir', result.entryId, { 'questionnaire.souvenirs': [...(dog.questionnaire?.souvenirs ?? []), result.entryId] })

@@ -141,6 +141,7 @@ describe('firestore.rules : mode visiteur (T-048)', () => {
       await setDoc(doc(a, 'users/alice/files/ancien'), { data: 'x' })
       await setDoc(doc(a, 'users/alice/files/photo1'), { data: 'x', kind: 'photo' })
       await setDoc(doc(a, 'users/alice/push/abonnement'), { endpoint: 'https://x' })
+      await setDoc(doc(a, 'users/alice/journal/2026-10-21'), { date: '2026-10-21', events: [] })
     })
     const parent = env.authenticatedContext('parent').firestore()
     await assertSucceeds(setDoc(doc(parent, 'viewers/parent'), { owner: 'alice', code: 'abcdefghjkmn' }))
@@ -155,6 +156,8 @@ describe('firestore.rules : mode visiteur (T-048)', () => {
     await assertSucceeds(getDoc(doc(parent, 'users/alice/files/photo1')))
     await assertFails(getDoc(doc(parent, 'users/alice/push/abonnement')))
     await assertFails(getDocs(collection(parent, 'users/alice/push')))
+    // T-066 : le journal de mesure reste privé.
+    await assertFails(getDoc(doc(parent, 'users/alice/journal/2026-10-21')))
     // Le propriétaire, lui, lit tout.
     const alice = env.authenticatedContext('alice').firestore()
     await assertSucceeds(getDoc(doc(alice, 'users/alice/files/page1')))

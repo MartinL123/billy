@@ -22,6 +22,7 @@ import { Illustration } from './Illustration'
 import { needsCalmPlace } from '../../lib/community'
 import { CalmSpotCard } from '../meute/CalmSpotCard'
 import { place } from '../../lib/garden'
+import { sessionStart } from '../../firebase/journal'
 
 const GENERIC_TIP = 'S’il ne mange plus, il est trop stressé : arrêtez et revenez plus facile la prochaine fois.'
 
@@ -182,6 +183,8 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
   const acquired = bossProgress[skillId]?.level ?? 0
   const [exercise, setExercise] = useState<ExerciseInfo>(() => (fromQuest && quest.planned?.exercise) || exerciseById(params.get('exercice') ?? '') || currentExercise(skillId, acquired)?.exercise || EXERCISES[0]!)
   const [picking, setPicking] = useState(false)
+  // T-066 : début de séance (sa durée est notée quand le moment est enregistré).
+  useEffect(() => sessionStart(skillId), []) // eslint-disable-line react-hooks/exhaustive-deps
   const minutes = sessionMinutes(dog.birthDate, today)
   const timer = useTimer(minutes)
 

@@ -20,8 +20,9 @@ export { newId } from './paths'
 import { lifeMilestones } from '../lib/milestones'
 import type { StoredRoute } from '../lib/route'
 import type { BillyDocument, BillyEvent, Dog, Entry, Weight, WithId } from './types'
-import { todayISO, type ISODate } from '../lib/dates'
+import { diffDays, todayISO, type ISODate } from '../lib/dates'
 import { nextAfterDone, nextOccurrence } from '../lib/recurrence'
+import { logEvent } from './journal'
 
 // ——— Écoute en direct ———
 
@@ -145,6 +146,8 @@ export function setEventDone(event: WithId<BillyEvent>, done: boolean): string |
     send(batch.commit())
     return undefined
   }
+  // T-066 : journal privé, avec le retard (jours après la date prévue).
+  logEvent({ type: 'care_done', lateDays: event.date ? Math.max(0, diffDays(event.date, todayISO())) : 0 })
   // En retard : fait aujourd’hui, la récurrence repart d’aujourd’hui (audit R-001).
   const nextDate = event.nextId ? undefined : nextAfterDone(event.date, event.recurrence, todayISO())
   const nextId = nextDate ? newId('events') : undefined

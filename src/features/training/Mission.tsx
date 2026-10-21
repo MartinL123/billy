@@ -11,6 +11,7 @@ import { Face } from '../journal/Face'
 import { useQuest } from '../today/useQuest'
 import { Illustration } from './Illustration'
 import { place } from '../../lib/garden'
+import { sessionStart } from '../../firebase/journal'
 
 /** Minuteur d’une étape : il part tout seul et appelle `onEnd` à la fin. */
 function useCountdown(seconds: number | undefined, onEnd: () => void) {
@@ -39,6 +40,8 @@ export default function Mission() {
   const { dog } = useData()
   const navigate = useNavigate()
   const { quest, mission, minutes } = useQuest()
+  // T-066 : début de séance (sa durée est notée quand le moment est enregistré).
+  useEffect(() => sessionStart(quest.bossId), []) // eslint-disable-line react-hooks/exhaustive-deps
   const exercise = quest.planned?.exercise
   const steps = missionSteps(exercise?.steps ?? [mission.detail], minutes)
   const [index, setIndex] = useState(0)

@@ -10,6 +10,7 @@ import { discoveredShare, inPolygon, knownFog, revealedCells } from '../../lib/f
 import { emptyTally, ignoredLine, tallyActivity, type ImportTally } from '../../lib/importPlan'
 import type { RoutePoint } from '../../lib/route'
 import type { WalkTimes } from '../../lib/walks'
+import { logEvent } from '../../firebase/journal'
 
 /** Le résultat d’un import, pour l’écran « Le brouillard s’est levé ! ». */
 export interface ImportResult {
@@ -92,5 +93,7 @@ export async function importActivities(
   // Les mois récents d’abord.
   walks.sort((a, b) => b.date.localeCompare(a.date))
   last = { walks, distanceM: walks.reduce((sum, w) => sum + w.distanceM, 0), newCells, ...(share ? { share } : {}), line: ignoredLine(tally), gained }
+  // T-066 : journal privé (la balade GPS est notée par l’écran de la balade, après vérification).
+  if (source !== 'gps') for (const w of walks) logEvent({ type: 'walk_saved', source: source === 'watch' ? 'watch' : 'gpx', m: Math.round(w.distanceM), ...(w.durationMin ? { min: w.durationMin } : {}) })
   return last
 }

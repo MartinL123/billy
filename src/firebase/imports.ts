@@ -11,6 +11,7 @@ import { newId, send, userDoc } from './paths'
 import { isFirestoreCrash } from '../lib/firestoreCrash'
 import { slotWalkName } from '../lib/watch'
 import type { Entry } from './types'
+import { logEvent } from './journal'
 
 /**
  * Une balade importée devient un moment du Carnet (`source: 'strava'` ou `'watch'`), avec son trajet allégé. Elle compte comme une
@@ -73,6 +74,7 @@ export function noteWalk(walk: { date: ISODate; slot: WalkSlot; minutes: number;
   const gains = gain ? [gain] : []
   for (const g of gains) batch.set(userDoc('bones', g.id), { date: g.date, amount: g.amount, reason: g.reason, refId: g.refId })
   send(batch.commit())
+  logEvent({ type: 'walk_saved', source: 'sortie', min: walk.minutes })
   return gains
 }
 

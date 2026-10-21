@@ -43,7 +43,7 @@ depuis Xcode.
 8. **T-066 Journal privé** : selon `docs/profondeur/05-mesure.md`. `users/{uid}/journal/{AAAA-MM-JJ}`, `arrayUnion`,
    jamais en visiteur ; événements posés aux endroits existants (balade, soin coché, séance, ouverture au plus une
    fois par heure, rechargement R-042). Calcul des 3 indicateurs dans `src/lib/` avec tests ; écran caché
-   `#/journal` sans lien depuis l'app. Les règles Firestore actuelles couvrent déjà `users/{uid}/…` : ne les modifie
+   `#/mesure` sans lien depuis l'app. Les règles Firestore actuelles couvrent déjà `users/{uid}/…` : ne les modifie
    pas.
 
 ## À la fin

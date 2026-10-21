@@ -24,6 +24,8 @@ export function recoverFromFirestoreCrash(): void {
   const reload = () => {
     try {
       sessionStorage.setItem(KEY, String(Date.now()))
+      // T-066 : noté au journal après le rechargement (Firestore est en panne maintenant).
+      sessionStorage.setItem('flair.rechargement', 'firestoreCrash')
     } catch {
       // Stockage indisponible : la limite d'un rechargement toutes les 30 s ne joue pas, tant pis.
     }

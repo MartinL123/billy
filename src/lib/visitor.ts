@@ -18,6 +18,7 @@ const WRITE_ROUTES = [
   /^\/document\//,
   /^\/sante\/documents$/,
   /^\/meute/,
+  /^\/mesure$/,
 ]
 
 /** Vrai pour un écran qu’un visiteur ne peut pas ouvrir. */

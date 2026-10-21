@@ -55,6 +55,7 @@ import { setViewedOwner } from './firebase/paths'
 import { ReadOnlyContext, useReadOnly, viewedOwnerOf } from './firebase/viewer'
 import { isWriteRoute } from './lib/visitor'
 import Invitation from './features/visitor/Invitation'
+import Mesure, { JournalOpen } from './features/mesure/Mesure'
 import { SkeletonList, SkeletonScreen } from './components/Skeleton'
 
 function ScrollToTop() {
@@ -187,6 +188,7 @@ export default function App() {
             <BonesBackfill />
             <FogBackfill />
             <FilesKindBackfill />
+            <JournalOpen />
             <MilestonesFix />
           </>
         )}
@@ -222,6 +224,8 @@ export default function App() {
             </Route>
             <Route path="ouverture" element={<Opening />} />
             <Route path="invitation/:code" element={<Invitation />} />
+            {/* T-066 : la mesure, sans lien dans l’app (journal privé ; « journal » est une ancienne adresse). */}
+            <Route path="mesure" element={<Mesure />} />
             <Route path="questionnaire" element={<Questionnaire />} />
             <Route path="bienvenue" element={<Welcome />} />
             <Route path="noter" element={<Noter />} />

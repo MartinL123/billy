@@ -37,7 +37,7 @@ Volume attendu : moins de 30 écritures par jour (quota Spark : 20 000), moins d
 
 ## Où le lire
 
-Un écran caché `#/journal` (propriétaire seulement), sans lien depuis l'app : les 3 indicateurs sur 7, 30 et
+Un écran caché `#/mesure` (propriétaire seulement), sans lien depuis l'app : les 3 indicateurs sur 7, 30 et
 90 jours, et la liste brute des événements du jour. Rien n'est affiché à un visiteur ni à un testeur.
 
 ## Ce qui n'est pas mesurable par l'app seule

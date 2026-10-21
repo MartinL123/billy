@@ -1,8 +1,51 @@
 # Rapport chiffré
 
-État au 21 octobre 2026. **Les chiffres d'usage réel (balades captées, écrans ouverts) ne sont pas encore
-calculés** : il manque tes données. Ce qui suit est ce qui est mesurable sans elles, puis la liste exacte de ce
-qu'il faut exporter.
+État au 21 octobre 2026. Sources : l'export de tes données Flair (bouton « Exporter mes données », sans lieux ni
+textes), l'export Santé de l'iPhone (pas et séances), les journaux de l'iPhone, tes messages et le code. Les fichiers
+bruts restent sur ton Mac, hors du repo.
+
+## 0. Les chiffres clés
+
+| Métier | Mesure | Valeur |
+| --- | --- | --- |
+| 1. Balade | **Marches réelles captées par Flair avec un tracé** (14 au 20 oct.) | **7 sur 10 (70 %)** |
+| 1. Balade | Même chose depuis que l'import et l'app iOS existent (17 au 20 oct.) | **6 sur 6 (100 %)** |
+| 1. Balade | Balades perdues | **1** (R-042, 19 oct. : 259 positions GPS dans les journaux iOS, rien dans Flair) |
+| 1. Balade | D'où viennent les 8 tracés | Strava 3 · Apple Watch 2 · iPhone 1 · tracés à la main 2 |
+| 1. Balade | Sorties notées sans tracé (« + Noter ») | 4 (19, 20 et 21 oct.), dont 3 sans marche visible dans les pas |
+| 2. Santé | Soins arrivés à échéance pendant la période | **0** : l'indicateur n'est pas encore mesurable. Prochains : antiparasitaire le 25 oct., vermifuge le 27 oct. |
+| 2. Santé | Pesées | 1 dans la période (19 oct.) ; 5,2 → 8,7 → 12,3 kg en 11 semaines |
+| 3. Entraînement | **Jours avec la mission du jour faite** (13 au 20 oct.) | **3 sur 8** (14, 18, 20 oct.) — cible 5 sur 7 |
+| 3. Entraînement | Durée d'une séance | non mesurée aujourd'hui (le journal T-066 la donnera) |
+
+Méthode : une « marche réelle » est une période d'au moins 10 minutes à plus de 60 pas par minute (iPhone ou Watch,
+pauses de moins de 15 minutes fusionnées), reconnue dans l'export Santé. Une marche sans téléphone ni montre n'y
+apparaît pas : le dénominateur est un minimum. Seulement **2 séances Marche** ont été lancées sur la Watch depuis le
+1er septembre (les deux le 20 octobre) : la Watch seule ne suffit pas comme référence.
+
+Les 3 marches non captées datent des 15 et 16 octobre, avant l'import et l'app iOS. Depuis, tout est capté, mais
+**3 tracés sur 6 viennent de Strava** : tu enregistres avec une autre app puis tu importes. Le métier n° 1 dépend donc
+encore d'un outil extérieur.
+
+**Ce que tu utilises vraiment** (traces dans les données, 13 au 21 oct.) :
+
+| Fonction | Utilisée ? | Trace |
+| --- | --- | --- |
+| Balades (import Strava, Watch, iPhone, tracé à la main) | oui | 8 tracés |
+| Sorties du jour notées à la main | oui, depuis le 19 | 4 |
+| Mission du jour, moments d'entraînement notés | oui, 3 jours sur 8 | 3 missions, 4 moments |
+| Questionnaire | une fois (13 oct.) | |
+| Santé : soins | saisis au questionnaire, un vermifuge ajouté à la main (27 oct.) | aucun coché dans la période |
+| Pesée | 1 fois | |
+| **Boutique** | **oui, 2 achats** (14 et 20 oct.) | |
+| **Marquer un spot (meute)** | **oui, 2 fois** (14 et 20 oct.) | |
+| Souvenirs avec photo | 2, le 13 oct. seulement | |
+| Documents | **jamais** | 0 |
+| Anciennes séances, expositions, lieux | jamais (données d'avant) | 0 |
+
+À noter pour la boucle centrale : la boutique et « Marquer » servent un peu. Les **geler** plutôt que les retirer
+reste cohérent ; les retirer demande ton avis.
+
 
 ## 1. Ce que disent tes messages (13 au 21 octobre)
 
@@ -52,28 +95,14 @@ de crash, événements mémoire). Ils couvrent le 14 au 20 octobre ; Flair y app
 | Lectures disque de Flair | **3 à 4,9 Go par jour** (écritures 0,3 à 0,6 Go) | Très élevé pour une app de suivi : probablement le cache Firestore relu en entier (18 écouteurs permanents) et les tuiles de carte. Coût en batterie, à mesurer avec T-071 |
 | Processus réseau de WebKit tué par manque de mémoire | 1 fois (15 octobre, 20 h 11) ; non attribuable à Flair avec certitude (Safari utilise le même processus) | C'est le type de panne derrière R-042 : la protection (rechargement, copie native gardée) reste nécessaire |
 
-## 4. Ce qui reste à calculer, et ce qu'il me faut
+## 4. Ce qui reste à mesurer
 
-| Chiffre | Calcul | Donnée nécessaire |
+| Chiffre | Comment | Quand |
 | --- | --- | --- |
-| **% des balades réelles captées par Flair** | balades Flair ÷ marches Watch (≥ 10 min), jour par jour, depuis la première balade | Firestore (`entries` avec tracé, `walks`) + entraînements Marche de la Watch |
-| Balades perdues ou effacées | balade Watch sans balade Flair alors qu'une balade iPhone a démarré | les deux, + journaux iPhone |
-| Ce que tu utilises vraiment | dernière écriture par fonction (souvenirs, pesées, soins cochés, séances, achats, spots) | Firestore (horodatages) |
-| Santé tenue à jour | soins faits à temps ÷ soins arrivés à échéance | Firestore (`events`) |
-| Entraînement réel | jours avec séance ÷ jours ; durée des séances | Firestore (`dailyQuest`, `xpLog`, `entries` de type moment) |
-| Crashs | nombre et cause des crashs de Flair | journaux iPhone : **fait** (section 3) |
+| Soins faits à temps (indicateur 2) | journal T-066, ou nouvel export | après l'antiparasitaire du 25 oct. et le vermifuge du 27 |
+| Durée réelle d'une séance (indicateur 3) | journal T-066 | dès qu'il est en place |
+| Balades perdues sur 30 (critère) | feuille de pointage + nouvel export + journaux iPhone | à la fin de la campagne T-064 |
+| Écrans ouverts sans écriture | journal T-066 (`app_open`) ; l'export ne voit que ce qui écrit | après T-066 |
 
-### Ce qu'il faut exporter
-
-1. **Tes données Firestore.** Je n'ai pas pu les lire : la lecture avec les identifiants du CLI Firebase a été
-   refusée par les garde-fous de permissions. Deux options, à toi de choisir :
-   - **(a) recommandé** : j'ajoute dans Profil › Compte un bouton « Exporter mes données » (lecture seule) qui
-     enregistre un fichier JSON dans Fichiers, sans coordonnées GPS, sans photos ni textes. Tu me le déposes sur le
-     Mac **hors du dossier du projet** (le repo est public) ;
-   - **(b)** tu ajoutes une règle de permission qui m'autorise à lire Firestore avec le CLI Firebase.
-2. **Tes marches de la Watch** : sur l'iPhone, app Santé › ta photo en haut à droite › « Exporter toutes les
-   données de santé » → `export.zip`, envoyé par AirDrop sur le Mac (Bureau, hors du projet). J'en lis seulement les
-   entraînements « Marche » (date, heure, durée, distance).
-3. **Les crashs de l'iPhone** : fait le 21 octobre (section 3). À refaire après la campagne de 30 balades.
-4. **La console pendant une balade** (facultatif) : Mac › app Console › ton iPhone, filtre « fr.lanrezac.billy »,
-   pendant une balade de test ; « Enregistrer » à la fin.
+Pour refaire ce rapport : Profil › Compte › « Exporter mes données », et l'export Santé de l'iPhone, déposés sur le
+Bureau (hors du projet) ; plus l'iPhone branché et déverrouillé pour les journaux.

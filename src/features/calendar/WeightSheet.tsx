@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NativePickerInput } from '../../components/Form'
 import { Sheet } from '../../components/Sheet'
+import { useToast } from '../../components/Toast'
 import { deleteWeight, newId, saveWeight } from '../../firebase/db'
 import type { Weight, WithId } from '../../firebase/types'
 import { formatShort, isValidISO, type ISODate } from '../../lib/dates'
@@ -25,6 +26,7 @@ export function WeightSheet({ today, weights, editing, onClose }: WeightSheetPro
   const [raw, setRaw] = useState(editing ? formatKg(editing.kg) : '')
   const [date, setDate] = useState(editing?.date ?? today)
   const [error, setError] = useState('')
+  const toast = useToast()
 
   const previous = weights.find((w) => w.id !== editing?.id && w.date <= date)
   const kg = parseKg(raw)
@@ -104,7 +106,10 @@ export function WeightSheet({ today, weights, editing, onClose }: WeightSheetPro
           <button
             type="button"
             onClick={() => {
+              // R-063 : la suppression se rattrape : « Annuler » remet la pesée telle qu’elle était.
+              const removed = { date: editing.date, kg: editing.kg }
               deleteWeight(editing.id)
+              toast('Pesée supprimée', { label: 'Annuler', run: () => saveWeight(editing.id, removed) })
               onClose()
             }}
             className="btn btn-danger"

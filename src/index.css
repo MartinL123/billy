@@ -233,6 +233,22 @@ textarea {
   font-size: 0.9412rem;
 }
 
+/*
+ * R-081 : un appui long sur un bouton, un lien, un onglet, une poignée ou la carte ne sélectionne pas de texte et
+ * n'ouvre pas le menu « Copier » ou l'aperçu de lien (ça trahit la page web). Le texte qu'on lit et les champs restent
+ * sélectionnables.
+ */
+button,
+a,
+label,
+[role='button'],
+nav,
+.maplibregl-map {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 button,
 a,
 label {

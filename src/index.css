@@ -289,6 +289,8 @@ input::-webkit-date-and-time-value {
    On n'anime que transform et opacity. Rien ne bloque un toucher. « Réduire les animations » : tout est coupé
    (règle ci-dessus), l'état final s'affiche directement : un élément n'est jamais caché autrement que par son animation. */
 :root {
+  /* R-065 : une seule apparence, claire (contrôles natifs, barres de défilement, champs). */
+  color-scheme: light;
   --ease-out: cubic-bezier(0.2, 0.8, 0.3, 1);
   --ease-spring: cubic-bezier(0.3, 1.3, 0.5, 1);
   --dur-tap: 150ms;

@@ -100,9 +100,17 @@ export default function Billy() {
       </div>
 
       <section aria-labelledby="apprend" className="flex flex-col gap-2.5">
-        <h2 id="apprend" className="font-display text-xl font-extrabold">
-          {place('Ce qu’il apprend')}
-        </h2>
+        <div className="flex items-center justify-between gap-2">
+          <h2 id="apprend" className="font-display text-xl font-extrabold">
+            {place('Ce qu’il apprend')}
+          </h2>
+          {/* T-067 : choisir ses compétences en cours (la mission du jour en dépend) ; seul accès à cet écran. */}
+          {!readOnly && (
+            <Link to="/en-cours" aria-label={place('Changer ce qu’il apprend')} className="inline-flex min-h-11 shrink-0 items-center px-1 text-[0.8824rem] font-bold text-primary no-underline">
+              Changer
+            </Link>
+          )}
+        </div>
         {learning.map((id) => {
           const level = bossProgress[id]?.level ?? 0
           const goal = (bossById(id)?.goal ?? '').replace(/\.$/, '')

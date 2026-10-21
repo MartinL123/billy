@@ -12,8 +12,6 @@ export interface MapPlace {
   lat: number
   lng: number
   name: string
-  /** Encore dans le brouillard : un « ? » ; découvert : son icône et son nom. */
-  hidden: boolean
   icon: string
 }
 
@@ -189,7 +187,7 @@ function innerBox(layout: FogLayout): [number, number, number, number] {
 
 /**
  * La carte qui se découvre : le brouillard (un seul polygone troué, bords adoucis), les trajets en pointillés,
- * les lieux à découvrir. Plan ou satellite, 2D ou 3D.
+ * les spots. Plan ou satellite, 2D ou 3D.
  */
 export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places, satellite, three, center, focus, onPlace, onMapTap, onBearing, north, zoom, walk, dogName }: Props) {
   const host = useRef<HTMLDivElement>(null)
@@ -428,7 +426,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     })
   }, [cells, tracks, sat, Boolean(walkRoute)]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Les lieux : « ? » dans le brouillard, icône et nom une fois découverts. Ils restent droits en 3D.
+  // Les lieux : leur icône et leur nom. Ils restent droits en 3D.
   useEffect(() => {
     const m = map.current
     if (!m) return
@@ -436,11 +434,9 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     markers.current = places.map((place) => {
       const el = document.createElement('button')
       el.type = 'button'
-      el.setAttribute('aria-label', place.hidden ? 'Lieu à découvrir' : place.name)
+      el.setAttribute('aria-label', place.name)
       el.style.cssText = 'display:flex;align-items:center;gap:6px;background:none;border:0;padding:0;cursor:pointer'
-      el.innerHTML = place.hidden
-        ? '<span style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:2px dashed #fff;background:rgba(34,51,47,.55);color:#fff;font:800 18px Figtree,sans-serif">?</span>'
-        : `<span style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);font-size:18px">${place.icon}</span><span style="background:#fff;border-radius:12px;padding:3px 8px;font:700 13px Figtree,sans-serif;color:#18201E;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2)">${place.name.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)}</span>`
+      el.innerHTML = `<span style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);font-size:18px">${place.icon}</span><span style="background:#fff;border-radius:12px;padding:3px 8px;font:700 13px Figtree,sans-serif;color:#18201E;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2)">${place.name.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)}</span>`
       el.addEventListener('click', (e) => {
         e.stopPropagation()
         handlers.current.onPlace?.(place.id)

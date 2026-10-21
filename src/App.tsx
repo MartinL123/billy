@@ -11,7 +11,6 @@ import EntryView from './features/journal/EntryView'
 import Billy from './features/billy/Billy'
 import Shop from './features/shop/Shop'
 import Explorer from './features/balades/Explorer'
-import Ideas from './features/balades/Ideas'
 import Walks from './features/balades/Walks'
 import ImportStrava from './features/balades/ImportStrava'
 import Mission from './features/training/Mission'
@@ -230,7 +229,6 @@ export default function App() {
             <Route path="en-cours" element={<EnCours />} />
             <Route path="boutique" element={<Shop />} />
             <Route path="meute/chien/:id" element={<DogPublic />} />
-            <Route path="territoire/idees" element={<Ideas />} />
             <Route path="balades" element={<Walks />} />
             <Route path="exploration" element={<Navigate to="/territoire" replace />} />
             <Route path="ajouter-balade" element={<Navigate to="/territoire" replace />} />

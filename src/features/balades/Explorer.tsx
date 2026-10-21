@@ -17,8 +17,7 @@ import { useSheet } from './useSheet'
 import { PlaceMoment } from '../trajets/PlaceMoment'
 import { updateEntryRoute } from '../../firebase/db'
 import { nearestOnRoute, readRoute, storeRoute, type Route } from '../../lib/route'
-import { useIdeas } from './useIdeas'
-import { arrowTo, KIND, metersLabel } from '../../lib/ideas'
+import { useGrantedPosition } from '../../lib/useGrantedPosition'
 import { formatRelative } from '../../lib/dates'
 import { formatRouteDistance } from '../../lib/route'
 import { sharePercent, territoryHint } from '../../lib/territory'
@@ -96,8 +95,8 @@ export default function Explorer() {
   // Où l’on est (T-020) : la position demandée avec « Autour de moi », sinon celle déjà autorisée, sinon la dernière balade.
   const [myPos, setMyPos] = useState<{ lat: number; lng: number }>()
   const [locating, setLocating] = useState(false)
-  const { ideas, here } = useIdeas(myPos)
-  const start = here ?? (last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined)
+  const position = useGrantedPosition()
+  const start = myPos ?? position ?? (last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined)
   // La carte se cadre sur les balades du coin (Saint-Ouen, la Bretagne…), pas sur toute la France.
   const local = useMemo(() => walksNear(shown, start), [shown, start?.lat, start?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
   const frame = useMemo(() => local.flatMap((w) => w.route.points), [local])
@@ -125,27 +124,21 @@ export default function Explorer() {
 
   // Les spots marqués par Billy restent sur la carte, avec leur goutte.
   const me = auth.currentUser?.uid ?? ''
-  // Les lieux à découvrir listés dans le panneau : d’abord ceux encore dans le brouillard.
-  const discover = useMemo(() => [...ideas.filter((i) => !i.explored), ...ideas.filter((i) => i.explored)].slice(0, 3), [ideas])
   const places = useMemo<MapPlace[]>(() => {
     const mine = new Set(marks.filter((m) => m.uid === me).map((m) => m.spotId))
-    const marked = spots.filter((s) => mine.has(s.id)).map((s) => ({ id: s.id, lat: s.lat, lng: s.lng, name: s.name, hidden: false, icon: '💧' }))
-    // Les lieux à découvrir : « ? » dans le brouillard, leur icône et leur nom une fois découverts.
-    const found = ideas.map((i) => ({ id: i.id, lat: i.lat, lng: i.lng, name: i.name, hidden: !i.explored, icon: KIND[i.kind].icon }))
-    const pack = packLayer ? spots.filter((s) => !mine.has(s.id)).map((s) => ({ id: `meute:${s.id}`, lat: s.lat, lng: s.lng, name: s.name, hidden: false, icon: '🐾' })) : []
-    return [...marked, ...pack, ...found]
-  }, [spots, marks, me, ideas, packLayer])
+    const marked = spots.filter((s) => mine.has(s.id)).map((s) => ({ id: s.id, lat: s.lat, lng: s.lng, name: s.name, icon: '💧' }))
+    const pack = packLayer ? spots.filter((s) => !mine.has(s.id)).map((s) => ({ id: `meute:${s.id}`, lat: s.lat, lng: s.lng, name: s.name, icon: '🐾' })) : []
+    return [...marked, ...pack]
+  }, [spots, marks, me, packLayer])
   // Un lieu touché : la carte s’y centre et la petite fenêtre dit ce que c’est.
   const [selectedId, setSelectedId] = useState<string | null>(() => params.get('spot'))
   const selected = useMemo<Selected | undefined>(() => {
     if (!selectedId) return undefined
     const spotId = selectedId.replace(/^meute:/, '')
     const spot = spots.find((s) => s.id === spotId)
-    if (spot) return { kind: 'spot', spot, mine: marks.filter((m) => m.spotId === spot.id && m.uid === me) }
-    const idea = ideas.find((i) => i.id === selectedId)
-    return idea ? { kind: 'idea', idea } : undefined
-  }, [selectedId, spots, marks, ideas, me])
-  const focusAt = selected ? (selected.kind === 'idea' ? selected.idea : selected.spot) : undefined
+    return spot ? { spot, mine: marks.filter((m) => m.spotId === spot.id && m.uid === me) } : undefined
+  }, [selectedId, spots, marks, me])
+  const focusAt = selected?.spot
   const focus = useMemo<[number, number] | undefined>(() => (focusAt ? [focusAt.lat, focusAt.lng] : undefined), [focusAt?.lat, focusAt?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // R-077 : le panneau à trois crans ; réduit, il garde le titre et le pourcentage au-dessus de l’action fixée en bas.
@@ -258,8 +251,8 @@ export default function Explorer() {
           )}
         </div>
         <div className="flex flex-col items-end gap-2">
-          {/* Me situer (T-020) : la carte, la commune et les idées suivent l’endroit où l’on est. */}
-          <button type="button" onClick={locate} aria-label="Me situer : les balades et les idées du coin où je suis" className={`tap ${pill} ${myPos ? 'text-[#2F7BF6]' : ''}`}>
+          {/* Me situer (T-020) : la carte et la commune suivent l’endroit où l’on est. */}
+          <button type="button" onClick={locate} aria-label="Me situer : les balades du coin où je suis" className={`tap ${pill} ${myPos ? 'text-[#2F7BF6]' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true" className={locating ? 'animate-pulse' : ''}>
               <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
               <circle cx="12" cy="12" r="6" />
@@ -383,30 +376,6 @@ export default function Explorer() {
               )}
             </>
           )}
-          {/* À découvrir (T-029) : les lieux du coin, listés ici ; un toucher centre la carte dessus. */}
-          {here && discover.length > 0 && (
-            <div className="flex flex-col gap-1">
-              <h2 className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-muted uppercase">À découvrir</h2>
-              <ul className="m-0 flex list-none flex-col p-0">
-                {discover.map((idea, i) => (
-                  <li key={idea.id} className={i ? 'border-t border-divider' : ''}>
-                    <button type="button" onClick={() => setSelectedId(idea.id)} className="flex min-h-12 w-full items-center gap-3 border-0 bg-transparent px-0 py-1.5 text-left text-text">
-                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-bg text-[1.0588rem] font-extrabold" aria-hidden="true">
-                        {idea.explored ? KIND[idea.kind].icon : '?'}
-                      </span>
-                      <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="truncate text-[1rem] font-bold">{idea.explored ? idea.name : KIND[idea.kind].label}</span>
-                        <span className="truncate text-[0.8824rem] text-muted">
-                          {metersLabel(idea.meters)} {arrowTo(here, idea)}
-                        </span>
-                      </span>
-                      <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
       </section>
       {/* L’action principale : partir (iOS) ; sur le web, ajouter ses balades (import). Fixée en bas, à tous les crans du
@@ -447,7 +416,7 @@ export default function Explorer() {
         <PlaceCard
           key={selectedId}
           selected={selected}
-          here={here}
+          here={myPos ?? position}
           me={me}
           onClose={() => setSelectedId(null)}
           onRemove={(spot, mine) => {

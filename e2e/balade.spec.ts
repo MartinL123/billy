@@ -185,3 +185,25 @@ test('cas 13 · deux balades le même jour : deux balades, pas d’os en double'
   const perWalk = bones.filter((b) => walkIds.has(String((b.fields as { refId?: { stringValue?: string } }).refId?.stringValue)))
   expect(perWalk.length).toBeLessThanOrEqual(2)
 })
+
+// T-074 : un compte neuf qui perd le réseau avant que son profil arrive au serveur. Au retour du réseau, l'écouteur
+// du profil pouvait le dire tour à tour présent et absent : l'app basculait sans fin entre le squelette et l'écran, et
+// chaque bascule la remontait en entier (des centaines d'appels au natif en quelques secondes).
+base('T-074 · compte neuf hors ligne avant l’envoi du profil : l’app reste stable au retour du réseau', async ({ context }) => {
+  const fake = new FakeIphone()
+  await fake.install(context)
+  await skipOpening(context)
+  const user = await newUser()
+  const page = await context.newPage()
+  await login(page, user)
+  await context.setOffline(true)
+  await page.waitForTimeout(1500)
+  await context.setOffline(false)
+  await expect.poll(() => profileOnServer(user.uid, { backfills: false }), { timeout: 30_000, message: 'profil au serveur' }).toBe(true)
+  await page.waitForTimeout(1000)
+  const before = fake.count('FlairNative.currentWalk')
+  await page.waitForTimeout(5000)
+  // Un montage de l'app = un appel ou deux ; une boucle en fait des centaines.
+  expect(fake.count('FlairNative.currentWalk') - before).toBeLessThan(5)
+  await expect(page.getByText('Ses sorties du jour')).toBeVisible()
+})

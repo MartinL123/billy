@@ -46,13 +46,15 @@ export async function serverWalks(uid: string): Promise<FirestoreDoc[]> {
 
 /**
  * Le profil du premier lancement (et ses marques de rattrapage) est arrivé au serveur. Avant, couper le réseau
- * laisserait un compte tout neuf dont le profil n'existe que dans le cache local : ce n'est pas le cas à tester.
+ * laisserait un compte tout neuf dont le profil n'existe que dans le cache local : ce n'est pas le cas à tester
+ * (sauf T-074, qui ne regarde que le profil : `backfills: false`).
  */
-export async function profileOnServer(uid: string): Promise<boolean> {
+export async function profileOnServer(uid: string, { backfills = true } = {}): Promise<boolean> {
   const response = await fetch(`${FIRESTORE_URL}/v1/projects/${PROJECT}/databases/(default)/documents/users/${uid}/dog/billy`, {
     headers: { Authorization: 'Bearer owner' },
   })
   if (!response.ok) return false
   const fields = ((await response.json()) as FirestoreDoc).fields ?? {}
+  if (!backfills) return true
   return ['bonesBackfilled', 'fog25Backfilled', 'filesKindBackfilled'].every((key) => key in fields)
 }

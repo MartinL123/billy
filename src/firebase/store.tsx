@@ -73,6 +73,10 @@ const byCreation = <T extends { date: string; createdAt?: string }>(a: T, b: T) 
 export function DataProvider({ children, fallback }: { children: ReactNode; fallback: (offline: boolean) => ReactNode }) {
   const online = useOnline()
   const [dog, setDog] = useState<WithId<Dog> | null>()
+  // T-074 : le dernier profil vu. Après une coupure au premier lancement, l’écouteur peut dire le profil absent alors
+  // qu’il existe : l’écran garde alors ce profil (sinon il bascule sans fin entre le squelette et l’app, et chaque
+  // bascule la remonte en entier), pendant qu’ensureProfile relit le serveur. Pas pendant la suppression du compte.
+  const [lastDog, setLastDog] = useState<WithId<Dog>>()
   const [events, setEvents] = useState<WithId<BillyEvent>[]>()
   const [weights, setWeights] = useState<WithId<Weight>[]>()
   const [entries, setEntries] = useState<WithId<Entry>[]>()
@@ -91,7 +95,10 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
 
   useEffect(() => {
     const stops = [
-      watchDog(setDog),
+      watchDog((next) => {
+        setDog(next)
+        if (next) setLastDog(next)
+      }),
       watchCollection<BillyEvent>('events', 'asc', setEvents),
       watchCollection<Weight>('weights', 'desc', setWeights),
       watchCollection<Entry>('entries', 'desc', (items) => setEntries([...items].sort(byCreation))),
@@ -123,7 +130,9 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
     if (dog === null && online && !isClosingAccount() && !viewedOwnerUid()) ensureProfile().catch((error) => console.error('Création du profil impossible', error))
   }, [dog, online])
 
+  const shownDog = dog === null && !isClosingAccount() ? lastDog : dog
   const data = useMemo<Data | null>(() => {
+    const dog = shownDog
     if (!dog || !events || !weights || !entries || !documents || !sessions || !exposures || !bossProgress || !xpLog || !dailyQuests || !bones || !inventory || !fog || !communes || !walks) return null
     const pendingCount = [dog, ...events, ...weights, ...entries, ...documents, ...sessions, ...exposures, ...bossProgress].filter((item) => item.pending).length
     const progressById = Object.fromEntries(bossProgress.map((p) => [p.id, p]))
@@ -133,7 +142,7 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
     setNoGarden(dog.garden === 'Non')
     setFemale(isFemale(dog.sex))
     return { dog: named, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, xpLog, dailyQuests, bones, inventory, fog, communes, walks, usage, pendingCount, online }
-  }, [dog, events, weights, entries, documents, sessions, exposures, bossProgress, xpLog, dailyQuests, bones, inventory, fog, communes, walks, usage, online])
+  }, [shownDog, events, weights, entries, documents, sessions, exposures, bossProgress, xpLog, dailyQuests, bones, inventory, fog, communes, walks, usage, online])
 
   if (!data) return <>{fallback(dog === null && !online)}</>
   return <DataContext.Provider value={data}>{children}</DataContext.Provider>

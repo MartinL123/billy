@@ -12,6 +12,9 @@ export const resetPassword = (email: string) => sendPasswordResetEmail(auth, ema
 
 export const logOut = () => signOut(auth)
 
+/** L’e-mail du compte connecté (pour le trousseau iCloud, R-067). */
+export const currentEmail = () => auth.currentUser?.email ?? ''
+
 /**
  * Vérifie le mot de passe avant une action sensible (suppression du compte).
  * Firebase demande une connexion récente pour supprimer un compte.
@@ -40,17 +43,20 @@ export interface AuthMessage {
   text: string
 }
 
-export function authErrorMessage(error: unknown): AuthMessage {
+/** `signedIn` : on revérifie le mot de passe d’un compte connecté, l’e-mail ne peut donc pas être en cause. */
+export function authErrorMessage(error: unknown, signedIn = false): AuthMessage {
   const code = error instanceof FirebaseError ? error.code : ''
   switch (code) {
     case 'auth/invalid-email':
     case 'auth/missing-email':
       return { field: 'email', text: "Cette adresse e-mail n’est pas valide." }
+    case 'auth/missing-password':
+      return { field: 'password', text: 'Entrez votre mot de passe.' }
+    // Firebase ne dit plus lequel des deux est faux (R-067) : on ne l’affirme pas non plus.
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
     case 'auth/user-not-found':
-    case 'auth/missing-password':
-      return { field: 'password', text: 'Mot de passe incorrect. Réessayez.' }
+      return { field: 'password', text: signedIn ? 'Mot de passe incorrect. Réessayez.' : 'E-mail ou mot de passe incorrect.' }
     case 'auth/too-many-requests':
       return { field: 'password', text: 'Trop de tentatives. Patientez quelques minutes avant de réessayer.' }
     case 'auth/network-request-failed':

@@ -332,7 +332,7 @@ export default function Noter() {
 
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto max-w-[430px] px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-          <button type="submit" disabled={saving || Boolean(progress)} className="btn btn-main min-h-[60px] w-full px-6 text-[1.1176rem] disabled:opacity-60">
+          <button type="submit" disabled={saving || Boolean(progress)} aria-busy={saving || Boolean(progress) || undefined} className="btn btn-main min-h-[60px] w-full px-6 text-[1.1176rem]">
             <span>{saving ? 'Enregistrement…' : 'Enregistrer'}</span>
           </button>
         </div>

@@ -86,7 +86,7 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
   }
 
   return (
-    <FormScreen title="Modifier le profil" submitLabel="Enregistrer" busy={saving} onCancel={onClose} onSubmit={() => void save()}>
+    <FormScreen title="Modifier le profil" submitLabel={saving ? 'Enregistrement…' : 'Enregistrer'} busy={saving} onCancel={onClose} onSubmit={() => void save()}>
       <div className="flex flex-col items-center gap-2">
         {photo ? (
           <img src={photo.previewUrl} alt="Nouvelle photo" className="size-[120px] rounded-full border-4 border-white object-cover shadow-[0_2px_8px_rgba(24,32,30,0.12)]" />

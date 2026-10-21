@@ -10,7 +10,7 @@ export function PasswordField({ label, error, ...input }: { label: string; error
         {label}
       </label>
       <span className="relative flex">
-        <input id={id} type={shown ? 'text' : 'password'} aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-err` : undefined} className={`field w-full pr-14 ${error ? 'border-danger' : ''}`} {...input} />
+        <input id={id} type={shown ? 'text' : 'password'} autoCapitalize="none" autoCorrect="off" spellCheck={false} aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-err` : undefined} className={`field w-full pr-14 ${error ? 'border-danger' : ''}`} {...input} />
         <button
           type="button"
           aria-pressed={shown}

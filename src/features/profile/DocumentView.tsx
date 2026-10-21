@@ -172,8 +172,9 @@ export default function DocumentView() {
           <button
             type="button"
             disabled={!blobs}
+            aria-busy={!blobs || undefined}
             onClick={() => void share()}
-            className="btn btn-main w-full disabled:opacity-60"
+            className="btn btn-main w-full"
           >
             <ImportIcon size={20} />
             Partager

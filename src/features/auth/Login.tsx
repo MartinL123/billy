@@ -71,7 +71,7 @@ export default function Login() {
             id="email"
             type="email"
             inputMode="email"
-            autoComplete="email"
+            autoComplete="username"
             autoCapitalize="none"
             autoCorrect="off"
             value={email}
@@ -87,7 +87,7 @@ export default function Login() {
           )}
         </div>
         <PasswordField label="Mot de passe" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} error={error?.field === 'password' ? error.text : undefined} />
-        <button type="submit" disabled={busy} className="btn btn-main mt-2 disabled:opacity-60">
+        <button type="submit" disabled={busy} aria-busy={busy || undefined} className="btn btn-main mt-2">
           {busy ? 'Connexion…' : 'Se connecter'}
         </button>
         <button type="button" onClick={forgot} className="btn btn-outline self-center p-3">
@@ -108,9 +108,10 @@ export default function Login() {
         </button>
       )}
 
-      <p className="mt-auto pt-8 text-center text-[0.7647rem] leading-snug text-muted">Vos données restent privées. Martin, qui gère l’app, peut techniquement y accéder.</p>
-
-      <p className="mt-auto pt-8 text-center text-[0.7647rem] text-muted">Une seule connexion : l’app reste ouverte ensuite.</p>
+      <div className="mt-auto flex flex-col gap-8 pt-8 text-center text-[0.7647rem] leading-snug text-muted">
+        <p>Vos données restent privées. Martin, qui gère l’app, peut techniquement y accéder.</p>
+        <p>Une seule connexion : l’app reste ouverte ensuite.</p>
+      </div>
     </main>
   )
 }

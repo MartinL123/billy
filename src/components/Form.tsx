@@ -28,7 +28,7 @@ export function FormScreen({ title, submitLabel, onCancel, onSubmit, busy, child
       <div className="flex flex-col gap-5 px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+120px)]">{children}</div>
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto max-w-[430px] px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-          <button type="submit" disabled={busy} className="btn btn-main w-full disabled:opacity-60">
+          <button type="submit" disabled={busy} aria-busy={busy || undefined} className="btn btn-main w-full">
             {submitLabel}
           </button>
         </div>

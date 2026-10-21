@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { PasswordField } from '../../components/PasswordField'
 import { Sheet } from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
-import { authErrorMessage, changePassword, MIN_PASSWORD } from '../../firebase/auth'
+import { authErrorMessage, changePassword, currentEmail, MIN_PASSWORD } from '../../firebase/auth'
 import { updateDog } from '../../firebase/db'
 
 /** Changer son mot de passe : l’ancien, puis le nouveau (8 caractères au moins). */
@@ -26,7 +26,7 @@ export function PasswordSheet({ onClose }: { onClose: () => void }) {
       toast('Mot de passe changé')
       onClose()
     } catch (err) {
-      const message = authErrorMessage(err)
+      const message = authErrorMessage(err, true)
       setError({ field: message.text.includes('trop court') ? 'next' : 'current', text: message.text })
       setBusy(false)
     }
@@ -35,11 +35,22 @@ export function PasswordSheet({ onClose }: { onClose: () => void }) {
   return (
     <Sheet label="Changer mon mot de passe" onClose={busy ? () => undefined : onClose}>
       <h2 className="mt-1 font-display text-[1.4118rem] font-extrabold">Changer mon mot de passe</h2>
-      <PasswordField label="Mot de passe actuel" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} error={error?.field === 'current' ? error.text : undefined} />
-      <PasswordField label="Nouveau mot de passe (8 caractères au moins)" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} error={error?.field === 'next' ? error.text : undefined} />
-      <button type="button" onClick={() => void save()} disabled={busy} className="btn btn-main mt-1 disabled:opacity-60">
-        {busy ? 'Enregistrement…' : 'Enregistrer'}
-      </button>
+      {/* Un vrai formulaire avec l’identifiant caché : le trousseau iCloud propose et met à jour le bon mot de passe (R-067). */}
+      <form
+        noValidate
+        onSubmit={(e) => {
+          e.preventDefault()
+          void save()
+        }}
+        className="flex flex-col gap-3"
+      >
+        <input type="text" name="username" autoComplete="username" value={currentEmail()} readOnly hidden />
+        <PasswordField label="Mot de passe actuel" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} error={error?.field === 'current' ? error.text : undefined} />
+        <PasswordField label="Nouveau mot de passe (8 caractères au moins)" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} error={error?.field === 'next' ? error.text : undefined} />
+        <button type="submit" disabled={busy} aria-busy={busy || undefined} className="btn btn-main mt-1">
+          {busy ? 'Enregistrement…' : 'Enregistrer'}
+        </button>
+      </form>
       <button type="button" onClick={onClose} disabled={busy} className="btn btn-outline">
         Annuler
       </button>

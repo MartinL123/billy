@@ -92,7 +92,7 @@ function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; onl
       await confirmPassword(password)
     } catch (err) {
       setBusy(false)
-      return setError(authErrorMessage(err).text)
+      return setError(authErrorMessage(err, true).text)
     }
     try {
       // Tant que la suppression est en cours, l’app ne recrée pas de profil vide.

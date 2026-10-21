@@ -17,7 +17,10 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         CAPPluginMethod(name: "cancelWalk", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "clearWalk", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "currentWalk", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "keepAwake", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "keepAwake", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "markSaved", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "pendingSent", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "clearSent", returnType: CAPPluginReturnPromise)
     ]
 
     private let health = HKHealthStore()
@@ -155,6 +158,11 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("balade-en-cours", isDirectory: true)
     }
     private var stateFile: URL { walkDir.appendingPathComponent("etat.json") }
+    /// T-061 : les balades enregistrées dans la base locale mais pas encore arrivées au serveur (hors ligne) ; une
+    /// par dossier, nommé par l'entrée. Effacées seulement quand l'envoi est confirmé (`clearSent`).
+    private var sentDir: URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("balades-a-envoyer", isDirectory: true)
+    }
     private var pointsFile: URL { walkDir.appendingPathComponent("points.txt") }
 
     private func readState() -> [String: Any]? {
@@ -193,6 +201,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         guard let state = readState(), let startedAt = state["startedAt"] as? String else { return ["active": false, "recording": false, "points": []] }
         var summary: [String: Any] = ["active": true, "recording": recording, "startedAt": startedAt, "autoStopped": state["autoStopped"] as? Bool ?? false, "stopped": state["stoppedAt"] != nil, "points": readPoints()]
         if let stoppedAt = state["stoppedAt"] as? String { summary["stoppedAt"] = stoppedAt }
+        if let savedAs = state["savedAs"] as? String { summary["savedAs"] = savedAs }
         // T-060 : « Position exacte » coupée dans Réglages : les points (plusieurs centaines de mètres) seront écartés.
         if let manager = location { summary["reducedAccuracy"] = manager.accuracyAuthorization == .reducedAccuracy }
         return summary
@@ -228,6 +237,13 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
 
     private func begin(_ call: CAPPluginCall) {
         guard let manager = location else { return }
+        // T-061 : la balade d'avant est enregistrée mais attend le réseau : sa copie part dans « à envoyer », on repart à zéro.
+        if let state = readState(), let savedAs = state["savedAs"] as? String {
+            try? FileManager.default.createDirectory(at: sentDir, withIntermediateDirectories: true)
+            let target = sentDir.appendingPathComponent(savedAs, isDirectory: true)
+            try? FileManager.default.removeItem(at: target)
+            try? FileManager.default.moveItem(at: walkDir, to: target)
+        }
         if var state = readState() {
             // Une balade déjà arrêtée (« Terminer », ou plus de 3 h) ne repart jamais (R-043) : elle attend d'être
             // enregistrée ou effacée.
@@ -322,6 +338,40 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
     /// `currentWalk()` : la balade en cours (ou celle d'avant si l'app a été tuée), sans rien changer.
     @objc func currentWalk(_ call: CAPPluginCall) {
         DispatchQueue.main.async { call.resolve(self.walkSummary()) }
+    }
+
+    /// `markSaved({ entryId })` (T-061) : la balade est dans la base locale mais pas encore au serveur. Le fichier est
+    /// gardé ; l'accueil ne la propose plus « à enregistrer ».
+    @objc func markSaved(_ call: CAPPluginCall) {
+        let entryId = call.getString("entryId") ?? ""
+        DispatchQueue.main.async {
+            if var state = self.readState(), !entryId.isEmpty {
+                state["savedAs"] = entryId
+                self.writeState(state)
+            }
+            call.resolve()
+        }
+    }
+
+    /// `pendingSent()` (T-061) : les entrées dont la copie attend la confirmation d'envoi.
+    @objc func pendingSent(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            var ids = (try? FileManager.default.contentsOfDirectory(atPath: self.sentDir.path)) ?? []
+            if let savedAs = self.readState()?["savedAs"] as? String { ids.append(savedAs) }
+            call.resolve(["ids": ids])
+        }
+    }
+
+    /// `clearSent({ ids })` (T-061) : l'envoi au serveur est confirmé, les copies peuvent partir.
+    @objc func clearSent(_ call: CAPPluginCall) {
+        let ids = (call.getArray("ids") as? [String]) ?? []
+        DispatchQueue.main.async {
+            for id in ids { try? FileManager.default.removeItem(at: self.sentDir.appendingPathComponent(id, isDirectory: true)) }
+            if let savedAs = self.readState()?["savedAs"] as? String, ids.contains(savedAs) {
+                try? FileManager.default.removeItem(at: self.walkDir)
+            }
+            call.resolve()
+        }
     }
 
     /// `keepAwake({ on })` : l'écran reste allumé tant que l'écran « Balade en cours » est affiché.

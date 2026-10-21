@@ -4,6 +4,8 @@ import { Sheet } from '../../components/Sheet'
 import { CheckIcon, CloseIcon, PawIcon } from '../../components/Icons'
 import { useToast } from '../../components/Toast'
 import { useData } from '../../firebase/store'
+import { waitForPendingWrites } from 'firebase/firestore'
+import { db } from '../../firebase/app'
 import { knownImportKeys, parisMinutes } from '../../lib/activity'
 import { knownFog, revealedCells } from '../../lib/fog'
 import { doubtfulSegments, durationParts, elapsedMs, endWalkPills, gpsActivity, gpsDistance, territoryBits, tooShort, weakSignal, type GpsPoint } from '../../lib/gpsWalk'
@@ -33,6 +35,8 @@ type Phase = 'starting' | 'walking' | 'denied' | 'saving' | 'failed'
 /** Délais maximum (R-042) : l’arrêt du GPS, puis l’enregistrement. Au-delà, un message et « Réessayer ». */
 const STOP_MS = 10_000
 const SAVE_MS = 15_000
+/** T-061 : attente de la confirmation du serveur avant d’effacer la copie de l’iPhone (sinon, gardée « à envoyer »). */
+const SEND_MS = 5_000
 
 /** « Belle balade ! » (V5, T-051) : ce qui s’affiche une fois la balade enregistrée. */
 interface Ended {
@@ -135,9 +139,16 @@ export default function LiveWalk() {
       const toVerify = entriesToVerify(result.walks.map((w) => w.entryId), walk.points, data.current.entries)
       if (!toVerify) throw new NotSavedError('balade introuvable dans la base locale')
       await ensureSavedLocally(toVerify, entryInLocalCache)
-      // Dans la base locale (qui l’envoie dès qu’il y a du réseau) : on peut effacer la copie de l’iPhone.
-      step = 'effacement (clearWalk)'
-      await withTimeout(FlairNative.clearWalk(), STOP_MS, 'clearWalk')
+      // T-061 : la copie de l’iPhone n’est effacée qu’une fois l’envoi au serveur confirmé. Hors ligne, elle est gardée
+      // (« à envoyer ») et effacée plus tard par PendingWalksSync ; la balade, elle, est déjà dans la liste.
+      step = 'envoi (waitForPendingWrites)'
+      const sent = await withTimeout(waitForPendingWrites(db), SEND_MS, 'envoi').then(
+        () => true,
+        () => false,
+      )
+      step = sent ? 'effacement (clearWalk)' : 'garde jusqu’à l’envoi (markSaved)'
+      if (sent) await withTimeout(FlairNative.clearWalk(), STOP_MS, 'clearWalk')
+      else await withTimeout(FlairNative.markSaved({ entryId: toVerify[0]! }), STOP_MS, 'markSaved')
       const saved = result.walks[0]
       if (!saved) {
         toast('Cette balade était déjà enregistrée.')
@@ -172,7 +183,9 @@ export default function LiveWalk() {
     if (!isNative()) return
     let alive = true
     ;(async () => {
-      const current = await FlairNative.currentWalk()
+      const found = await FlairNative.currentWalk()
+      // T-061 : une balade déjà enregistrée qui attend le réseau n’est plus « en cours » : on peut en démarrer une autre.
+      const current = found.savedAs ? { ...found, active: false, recording: false, points: [] } : found
       if (current.active && current.startedAt) {
         setStartedAt(current.startedAt)
         setPoints(current.points)

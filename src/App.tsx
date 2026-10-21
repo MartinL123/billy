@@ -28,6 +28,7 @@ import { FogBackfill } from './features/balades/FogBackfill'
 import { FilesKindBackfill } from './features/profile/FilesKindBackfill'
 import { MilestonesFix } from './features/calendar/MilestonesFix'
 import { WatchSync } from './features/balades/WatchSync'
+import { PendingWalksSync } from './features/balades/PendingWalksSync'
 import { NotificationScheduler } from './features/notifications/NotificationScheduler'
 import DogPublic from './features/meute/DogPublic'
 // La carte (Leaflet) n’est chargée qu’en ouvrant l’onglet Meute.
@@ -195,6 +196,7 @@ export default function App() {
           {!visitor && (
             <>
               <WatchSync />
+              <PendingWalksSync />
               <NotificationScheduler />
             </>
           )}

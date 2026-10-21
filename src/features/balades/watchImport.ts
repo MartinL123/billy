@@ -63,7 +63,9 @@ export async function syncWatch(ctx: () => WatchContext, onAdded: (count: number
     // Rien trouvé la première fois : on relit les 30 derniers jours, au cas où la lecture vient d'être autorisée.
     const since = watchSince(watchLooksBlocked() ? undefined : saved?.watchSyncedAt, new Date(now))
     // Une balade de l’iPhone en cours : on attend qu’elle soit gardée (sinon la séance Watch du même moment passerait avant).
-    if ((await withTimeout(FlairNative.currentWalk(), 10_000, 'currentWalk')).active) return
+    const current = await withTimeout(FlairNative.currentWalk(), 10_000, 'currentWalk')
+    // Une balade iPhone en cours bloque la synchro ; pas une balade déjà enregistrée qui attend le réseau (T-061).
+    if (current.active && !current.savedAs) return
     // Délais maximum (R-042) : une lecture bloquée n’empêche jamais les suivantes.
     const read = await withTimeout(FlairNative.getWalks({ since }), 60_000, 'getWalks')
     if (!read.available) return

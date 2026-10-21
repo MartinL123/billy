@@ -27,6 +27,9 @@ if (!(isNative() && window.location.protocol === 'capacitor:'))
     },
   })
 
+// T-061 : dans l’app iOS, la base locale ne doit pas être purgée par le système (balades en attente d’envoi).
+if (isNative()) void navigator.storage?.persist?.().catch(() => undefined)
+
 // R-042 : Firestore en panne après un passage en arrière-plan (iOS) : l’app se recharge à son retour.
 watchFirestoreCrash()
 

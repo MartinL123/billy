@@ -30,6 +30,8 @@ export interface CurrentWalk {
   points: GpsPoint[]
   /** T-060 : « Position exacte » coupée : les positions sont trop imprécises pour un tracé. */
   reducedAccuracy?: boolean
+  /** T-061 : déjà enregistrée dans la base locale (cette entrée), en attente d’envoi au serveur : rien à faire. */
+  savedAs?: string
 }
 
 interface FlairNativePlugin {
@@ -43,6 +45,11 @@ interface FlairNativePlugin {
   cancelWalk(): Promise<void>
   currentWalk(): Promise<CurrentWalk>
   keepAwake(options: { on: boolean }): Promise<void>
+  /** T-061 : la balade est dans la base locale, pas encore au serveur ; sa copie est gardée. */
+  markSaved(options: { entryId: string }): Promise<void>
+  /** T-061 : les entrées dont la copie attend que l’envoi soit confirmé. */
+  pendingSent(): Promise<{ ids: string[] }>
+  clearSent(options: { ids: string[] }): Promise<void>
   addListener(event: 'walkPoint', listener: (point: GpsPoint) => void): Promise<PluginListenerHandle>
   addListener(event: 'walkStopped', listener: (data: { stoppedAt?: string }) => void): Promise<PluginListenerHandle>
   /** La précision du GPS à chaque mise à jour (même pour un point écarté) : signal faible (T-051). */

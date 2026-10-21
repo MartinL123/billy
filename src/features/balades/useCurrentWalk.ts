@@ -25,7 +25,7 @@ export function useCurrentWalk(): { startedAt: string; recording: boolean; stopp
     const read = () => {
       if (document.visibilityState !== 'visible') return
       FlairNative.currentWalk()
-        .then((current) => alive && setWalk(current.active && current.startedAt ? { startedAt: current.startedAt, recording: current.recording, ...(stoppedAtOf(current) ? { stoppedAt: stoppedAtOf(current) } : {}) } : undefined))
+        .then((current) => alive && setWalk(current.active && !current.savedAs && current.startedAt ? { startedAt: current.startedAt, recording: current.recording, ...(stoppedAtOf(current) ? { stoppedAt: stoppedAtOf(current) } : {}) } : undefined))
         .catch(() => undefined)
     }
     read()

@@ -74,12 +74,18 @@ export function addMarker(map: MapLibreMap, at: LatLng, element: HTMLElement, op
   return new Marker({ element, draggable: options.draggable ?? false, anchor: options.anchor ?? 'center' }).setLngLat(lngLat(at)).addTo(map)
 }
 
+/** Réglage « Réduire les animations » (R-067) : la caméra saute au lieu de glisser. */
+export const reducedMotion = () => Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
+
+/** Durée d’un mouvement de caméra : 0 si l’on réduit les animations. */
+export const cameraMs = (ms: number) => (reducedMotion() ? 0 : ms)
+
 /** Cadre la carte sur des points (un seul point : zoom de quartier). */
 export function fitPoints(map: MapLibreMap, points: LatLng[], padding: number | { top: number; bottom: number; left: number; right: number } = 32, animate = false, camera: { pitch?: number; bearing?: number } = {}): void {
   if (points.length === 0) return
   if (points.length === 1) return void map.jumpTo({ center: lngLat(points[0]!), zoom: 16, ...camera })
   const bounds = points.reduce((b, p) => b.extend(lngLat(p)), new LngLatBounds(lngLat(points[0]!), lngLat(points[0]!)))
-  map.fitBounds(bounds, { padding, maxZoom: 17, animate, ...camera })
+  map.fitBounds(bounds, { padding, maxZoom: 17, animate: animate && !reducedMotion(), ...camera })
 }
 
 /** Un toucher sur un repère ne compte pas comme un toucher sur la carte. */
@@ -92,11 +98,11 @@ export function set3D(map: MapLibreMap, on: boolean): void {
       if (!map.getSource('relief')) map.addSource('relief', { type: 'raster-dem', tiles: [TERRAIN_TILES], encoding: 'terrarium', tileSize: 256, maxzoom: 15, attribution: 'Relief : Mapzen, AWS Terrain Tiles' })
       map.setTerrain({ source: 'relief', exaggeration: 1.2 })
       map.dragRotate.enable()
-      map.easeTo({ pitch: 60, duration: 800 })
+      map.easeTo({ pitch: 60, duration: cameraMs(800) })
     } else {
       map.setTerrain(null)
       map.dragRotate.disable()
-      map.easeTo({ pitch: 0, bearing: 0, duration: 600 })
+      map.easeTo({ pitch: 0, bearing: 0, duration: cameraMs(600) })
     }
   })
 }

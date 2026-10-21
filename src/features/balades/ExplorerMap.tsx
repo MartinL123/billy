@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GeoJSONSource } from 'maplibre-gl'
-import { addMarker, createMap, dot, fitPoints, lngLat, onMarker, set3D, setSatellite, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
+import { addMarker, cameraMs, createMap, dot, fitPoints, lngLat, onMarker, set3D, setSatellite, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
 import { fogLayout, type FogLayout } from '../../lib/fogCanvas'
 import { distanceToRoute, NEAR_ROUTE, type Route } from '../../lib/route'
 import { replayWalk, showWalk, type WalkPhoto } from './walkLayer'
@@ -290,7 +290,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     if (!m || walk || frameKey === lastFrameKey.current) return
     lastFrameKey.current = frameKey
     if (framePoints.length) whenReady(m, () => fitPoints(m, framePoints, frameOf(m), true))
-    else if (me) whenReady(m, () => m.easeTo({ center: [me[1], me[0]], zoom: 15 }))
+    else if (me) whenReady(m, () => m.easeTo({ center: [me[1], me[0]], zoom: 15, duration: cameraMs(500) }))
   }, [frameKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Ma position : un point bleu.
@@ -303,11 +303,11 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
 
   useEffect(() => {
     const m = map.current
-    if (m && zoom?.n) m.easeTo({ zoom: m.getZoom() + zoom.delta, duration: 300 })
+    if (m && zoom?.n) m.easeTo({ zoom: m.getZoom() + zoom.delta, duration: cameraMs(300) })
   }, [zoom?.n]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (map.current && north) map.current.easeTo({ bearing: 0, duration: 500 })
+    if (map.current && north) map.current.easeTo({ bearing: 0, duration: cameraMs(500) })
   }, [north])
 
   // La balade mise en avant, redessinée quand ses repères ou ses photos changent.
@@ -355,7 +355,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
   useEffect(() => {
     const m = map.current
     if (!m || !focus) return
-    whenReady(m, () => m.easeTo({ center: [focus[1], focus[0]], zoom: Math.max(m.getZoom(), 16), padding: { top: 60, bottom: 320, left: 0, right: 0 }, duration: 700 }))
+    whenReady(m, () => m.easeTo({ center: [focus[1], focus[0]], zoom: Math.max(m.getZoom(), 16), padding: { top: 60, bottom: 320, left: 0, right: 0 }, duration: cameraMs(700) }))
   }, [focus?.[0], focus?.[1]]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -426,7 +426,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     })
   }, [cells, tracks, sat, Boolean(walkRoute)]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Les lieux : leur icône et leur nom. Ils restent droits en 3D.
+  // Les lieux : leur icône et leur nom. Ils restent droits en 3D. Zone tactile de 44 px de haut pour une icône de 34 px (R-067).
   useEffect(() => {
     const m = map.current
     if (!m) return
@@ -435,7 +435,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
       const el = document.createElement('button')
       el.type = 'button'
       el.setAttribute('aria-label', place.name)
-      el.style.cssText = 'display:flex;align-items:center;gap:6px;background:none;border:0;padding:0;cursor:pointer'
+      el.style.cssText = 'display:flex;align-items:center;gap:6px;min-height:44px;min-width:44px;background:none;border:0;padding:0;cursor:pointer'
       el.innerHTML = `<span style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);font-size:18px">${place.icon}</span><span style="background:#fff;border-radius:12px;padding:3px 8px;font:700 13px Figtree,sans-serif;color:#18201E;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2)">${place.name.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)}</span>`
       el.addEventListener('click', (e) => {
         e.stopPropagation()

@@ -248,8 +248,9 @@ export default function Explorer() {
         </div>
         <div className="flex flex-col items-end gap-2">
           {/* Me situer (T-020) : la carte et la commune suivent l’endroit où l’on est. */}
-          <button type="button" onClick={locate} aria-label="Me situer : les balades du coin où je suis" className={`tap ${pill} ${myPos ? 'text-[#2F7BF6]' : ''}`}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true" className={locating ? 'animate-pulse' : ''}>
+          <button type="button" onClick={locate} aria-label="Me situer : les balades du coin où je suis" className={`tap ${pill}`}>
+            {/* Actif : seule l’icône passe en bleu, le texte garde sa couleur (contraste, R-067). */}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true" className={`${locating ? 'animate-pulse' : ''} ${myPos ? 'text-[#2F7BF6]' : ''}`}>
               <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
               <circle cx="12" cy="12" r="6" />
               <circle cx="12" cy="12" r="2" fill="currentColor" />

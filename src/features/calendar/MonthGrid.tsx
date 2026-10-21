@@ -63,12 +63,13 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
           </button>
         )}
       </div>
-      <div aria-hidden="true" className="grid grid-cols-7 text-center text-xs font-semibold text-muted">
+      {/* Les 7 colonnes prennent toute la largeur de la carte (R-067) : 44 px par jour dès 360 px d’écran. */}
+      <div aria-hidden="true" className="-mx-3 grid grid-cols-7 text-center text-xs font-semibold text-muted">
         {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((d, i) => (
           <div key={i}>{d}</div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-y-0.5">
+      <div className="-mx-3 grid grid-cols-7 gap-y-0.5">
         {(collapsed ? weekOf(selected ?? today) : gridDays(month)).map((day) => {
           const inMonth = day.slice(0, 7) === month.slice(0, 7)
           const isToday = day === today

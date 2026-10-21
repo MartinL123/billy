@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { CloseIcon } from '../../components/Icons'
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from '../../components/Icons'
 import { useFileUrl } from '../../firebase/files'
 import type { EntryPhoto } from '../../firebase/types'
 
@@ -44,6 +44,13 @@ export function PhotoViewer({ photos, start, onClose }: PhotoViewerProps) {
     }
   }, [start, onClose])
 
+  // Boutons précédent / suivant (R-067) : le balayage n’est pas le seul moyen de changer de photo.
+  const go = (i: number) => {
+    const el = scroller.current
+    if (el) el.scrollTo({ left: i * el.clientWidth, behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  }
+  const arrow = 'absolute top-1/2 flex size-12 -translate-y-1/2 items-center justify-center rounded-full border-2 border-solid border-white/70 bg-black/40 p-0 text-white'
+
   return createPortal(
     <div role="dialog" aria-modal="true" aria-label="Photos du souvenir" className="fixed inset-0 z-50 animate-fade bg-black">
       <div
@@ -67,6 +74,16 @@ export function PhotoViewer({ photos, start, onClose }: PhotoViewerProps) {
         )}
         <span className="w-[110px]" />
       </div>
+      {index > 0 && (
+        <button type="button" aria-label="Photo précédente" onClick={() => go(index - 1)} className={`${arrow} left-3`}>
+          <ChevronLeftIcon />
+        </button>
+      )}
+      {index < photos.length - 1 && (
+        <button type="button" aria-label="Photo suivante" onClick={() => go(index + 1)} className={`${arrow} right-3`}>
+          <ChevronRightIcon />
+        </button>
+      )}
     </div>,
     document.body,
   )

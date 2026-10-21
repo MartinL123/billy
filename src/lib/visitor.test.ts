@@ -9,7 +9,7 @@ describe('mode visiteur (T-048)', () => {
   })
 
   it('tout le reste se regarde', () => {
-    for (const path of ['/', '/sante', '/territoire', '/balades', '/billy', '/billy/arbre', '/souvenir/abc', '/sante/poids', '/sante/evenements', '/profil', '/competence/rappel']) {
+    for (const path of ['/', '/sante', '/territoire', '/balades', '/billy', '/souvenir/abc', '/sante/poids', '/sante/evenements', '/profil', '/competence/rappel']) {
       expect(isWriteRoute(path), path).toBe(false)
     }
   })

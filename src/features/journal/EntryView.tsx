@@ -20,7 +20,7 @@ import { useReadOnly } from '../../firebase/viewer'
 export default function EntryView() {
   const readOnly = useReadOnly()
   const { id } = useParams()
-  const { entries, dog } = useData()
+  const { entries } = useData()
   const back = useBack('/balades')
   const [viewer, setViewer] = useState<number | null>(null)
   const found = entries.find((e) => e.id === id)
@@ -64,7 +64,7 @@ export default function EntryView() {
         {/* Visiteur (T-048) : il regarde le souvenir, sans le partager ni le modifier. */}
         {!readOnly && (
           <>
-            <SharedWithPack entry={entry} dogName={dog.name} />
+            {/* Gelé (T-072) : « Partager avec la meute » n’est plus proposé (SharedWithPack reste plus bas). */}
             <Link to={`/souvenir/${entry.id}/modifier`} className="btn btn-outline mt-2">
               Modifier
             </Link>
@@ -77,10 +77,10 @@ export default function EntryView() {
 }
 
 /**
- * Partager avec la meute, toujours par un choix explicite (désactivé par défaut) : le texte, le jour et la miniature
+ * Gelé (T-072) : plus affiché. Partager avec la meute, toujours par un choix explicite (désactivé par défaut) : le texte, le jour et la miniature
  * de la première photo. Ni heure, ni lieu, ni ressenti, ni trajet. On peut le retirer d’un toucher.
  */
-function SharedWithPack({ entry, dogName }: { entry: { id: string; date: string; text: string; photos: { thumbFileId: string }[] }; dogName: string }) {
+export function SharedWithPack({ entry, dogName }: { entry: { id: string; date: string; text: string; photos: { thumbFileId: string }[] }; dogName: string }) {
   const [shared, setShared] = useState(false)
   const [busy, setBusy] = useState(false)
   useEffect(() => watchShared(entry.id, setShared), [entry.id])

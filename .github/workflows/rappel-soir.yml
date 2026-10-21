@@ -3,9 +3,11 @@ name: Rappel du soir
 # Envoie la notification « carnet du soir » aux appareils qui l'ont activée (Profil › Rappel du soir).
 # Les tâches planifiées GitHub peuvent avoir plusieurs minutes de retard : le script envoie encore jusqu'à 3 h après
 # l'heure choisie, jamais avant. Secrets du repo : FIREBASE_SERVICE_ACCOUNT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY.
+# Gelé (T-072) : plus de déclenchement planifié (l'app iPhone a ses notifications locales ; c'était le plus gros poste
+# de lectures Firestore hors de l'app). Le lancement à la main reste possible.
 on:
-  schedule:
-    - cron: '*/15 * * * *'
+  # schedule:
+  #   - cron: '*/15 * * * *'
   workflow_dispatch:
 
 permissions:

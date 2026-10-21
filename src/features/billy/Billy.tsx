@@ -1,11 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { BoneIcon } from '../../components/BoneIcon'
 import { ChevronLeftIcon, TargetIcon } from '../../components/Icons'
 import { MAX_LEVEL } from '../../content/training'
 import { bossById } from '../../content/training'
-import { auth } from '../../firebase/app'
-import { watchMembers } from '../../firebase/community'
 import { useData } from '../../firebase/store'
 import { activeSkills } from '../../lib/active'
 import { formatAgeShort, nextLifeStep } from '../../lib/age'
@@ -13,7 +10,6 @@ import { formatLong } from '../../lib/dates'
 import { pawsLabel, skillPaws, STEPS, type PawState } from '../../lib/skillPaws'
 import { stepPhrase } from '../../content/phrases'
 import { useQuest } from '../today/useQuest'
-import { balance } from '../../lib/bones'
 import { reactionsFromFears } from '../../lib/questionnaire'
 import { useBack } from '../../lib/useBack'
 import { place, placeSkill } from '../../lib/garden'
@@ -45,16 +41,14 @@ function Paw({ state, trophy }: { state: PawState; trophy: boolean }) {
 
 /**
  * Billy (V5, T-052, maquette V5-Billy), ouvert depuis sa photo : ce qu’il apprend, en pattes et en prochaine étape
- * (jamais « 3 sur 5 ») ; une carte ouverte à la fois ; 4 tuiles ; « S’entraîner » fixé en bas.
+ * (jamais « 3 sur 5 ») ; une carte ouverte à la fois ; 2 tuiles ; « S’entraîner » fixé en bas.
  */
 export default function Billy() {
   const readOnly = useReadOnly()
-  const { dog, bossProgress, bones } = useData()
+  const { dog, bossProgress } = useData()
   const today = useToday()
   const back = useBack('/')
   const { quest, minutes } = useQuest()
-  const [friends, setFriends] = useState(0)
-  useEffect(() => watchMembers((members) => setFriends(members.filter((m) => m.id !== auth.currentUser?.uid).length)), [])
 
   const learning = activeSkills(dog.activeSkills, dog.traits ?? [], bossProgress).slice(0, 3)
   // La première carte est ouverte par défaut ; une seule ouverte à la fois.
@@ -62,9 +56,8 @@ export default function Billy() {
   const worries = (dog.reactions ?? reactionsFromFears(dog.fears ?? [])).filter((r) => r.reaction === 'peur' || r.reaction === 'inquiet').map((r) => r.situation)
   const step = dog.birthDate ? nextLifeStep(dog.birthDate, today) : undefined
   const age = [dog.birthDate ? formatAgeShort(dog.birthDate, today) : '', step ? `${step.label} le ${formatLong(step.date)}` : ''].filter(Boolean).join(' · ')
+  // Gelé (T-072) : les tuiles « La boutique » et « La meute » sont retirées ; le code des deux écrans reste.
   const tiles = [
-    { to: '/boutique', title: 'La boutique', detail: `${balance(bones)}\u00a0os à dépenser` },
-    { to: '/meute', title: 'La meute', detail: friends ? `${friends} ami${friends > 1 ? 's' : ''} · les spots` : 'Les spots et les amis' },
     { to: '/profil', title: place('Ce qui l’inquiète'), detail: worries.length ? capital(worries.slice(0, 2).join(', ')) : 'Rien de noté' },
     { to: '/profil', title: 'Son profil', detail: 'Puce, véto, réglages' },
   ]
@@ -78,18 +71,7 @@ export default function Billy() {
           <ChevronLeftIcon size={20} />
           Accueil
         </button>
-        {/* Visiteur (R-073) : le solde se voit, la boutique reste au propriétaire. */}
-        {readOnly ? (
-          <span aria-label={`${balance(bones)} os`} className="flex min-h-11 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[1rem] font-extrabold text-gold-dark">
-            <BoneIcon size={20} />
-            {balance(bones)}
-          </span>
-        ) : (
-          <Link to="/boutique" data-bones-counter aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[1rem] font-extrabold text-gold-dark no-underline">
-            <BoneIcon size={20} />
-            {balance(bones)}
-          </Link>
-        )}
+        {/* Gelé (T-072) : la pastille d’os vers la boutique est retirée. */}
       </div>
       <div className="flex flex-col items-center gap-1.5 text-center">
         <span className="overflow-hidden rounded-full border-4 border-solid border-milestone">
@@ -142,7 +124,7 @@ export default function Billy() {
       </section>
 
       <nav aria-label={`Tout sur ${dog.name}`} className="grid grid-cols-2 gap-3">
-        {tiles.filter((tile) => !readOnly || (tile.to !== '/boutique' && tile.to !== '/meute')).map((tile) => (
+        {tiles.map((tile) => (
           <Link key={tile.title} to={tile.to} className="card tap flex min-h-[88px] flex-col gap-1 rounded-[20px] p-3.5 text-text no-underline">
             <span className="text-[0.9412rem] font-bold">{tile.title}</span>
             <span className="text-[0.8235rem] leading-snug text-[#3F4946]">{tile.detail}</span>

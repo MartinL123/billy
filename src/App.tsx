@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { HashRouter, Navigate, Route, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom'
 import { TabLayout } from './components/TabBar'
 import { ToastProvider } from './components/Toast'
@@ -9,7 +9,6 @@ import EventForm from './features/calendar/EventForm'
 import EntryForm from './features/journal/EntryForm'
 import EntryView from './features/journal/EntryView'
 import Billy from './features/billy/Billy'
-import Shop from './features/shop/Shop'
 import Explorer from './features/balades/Explorer'
 import Walks from './features/balades/Walks'
 import ImportStrava from './features/balades/ImportStrava'
@@ -20,7 +19,6 @@ import HealthMeals from './features/calendar/HealthMeals'
 import HealthDocuments from './features/calendar/HealthDocuments'
 import ImportResult from './features/balades/ImportResult'
 import LiveWalk from './features/balades/LiveWalk'
-import { CommunitySync } from './features/meute/CommunitySync'
 import { BonesBackfill } from './features/shop/BonesBackfill'
 import { FogBackfill } from './features/balades/FogBackfill'
 import { FilesKindBackfill } from './features/profile/FilesKindBackfill'
@@ -28,9 +26,6 @@ import { MilestonesFix } from './features/calendar/MilestonesFix'
 import { WatchSync } from './features/balades/WatchSync'
 import { PendingWalksSync } from './features/balades/PendingWalksSync'
 import { NotificationScheduler } from './features/notifications/NotificationScheduler'
-import DogPublic from './features/meute/DogPublic'
-// La carte (Leaflet) n’est chargée qu’en ouvrant l’onglet Meute.
-const Meute = lazy(() => import('./features/meute/Meute'))
 import { AppTheme } from './features/shop/Theme'
 import { InstallGuide } from './features/account/Install'
 import { useBack } from './lib/useBack'
@@ -53,7 +48,7 @@ import { ReadOnlyContext, useReadOnly, viewedOwnerOf } from './firebase/viewer'
 import { isWriteRoute } from './lib/visitor'
 import Invitation from './features/visitor/Invitation'
 import Mesure, { JournalOpen } from './features/mesure/Mesure'
-import { SkeletonList, SkeletonScreen } from './components/Skeleton'
+import { SkeletonScreen } from './components/Skeleton'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -177,10 +172,10 @@ export default function App() {
     >
       <ToastProvider>
         <AppTheme />
-        {/* Un visiteur ne fait rien partir : ni récompenses, ni meute, ni rattrapages, ni Watch, ni rappels. */}
+        {/* Un visiteur ne fait rien partir : ni rattrapages, ni Watch, ni rappels. */}
         {!visitor && (
           <>
-            <CommunitySync />
+            {/* Gelé (T-072) : CommunitySync (publication du profil dans la meute à chaque ouverture) n’est plus monté. */}
             <BonesBackfill />
             <FogBackfill />
             <FilesKindBackfill />
@@ -205,14 +200,7 @@ export default function App() {
               <Route index element={<Today />} />
               <Route path="sante" element={<Calendar />} />
               <Route path="billy" element={<Billy />} />
-              <Route
-                path="meute"
-                element={
-                  <Suspense fallback={<SkeletonList />}>
-                    <Meute />
-                  </Suspense>
-                }
-              />
+              {/* Gelé (T-072) : routes de la meute et de la boutique retirées ; les écrans restent dans features/meute et features/shop. */}
               <Route path="territoire" element={<Explorer />} />
               <Route path="journal" element={<Navigate to="/balades" replace />} />
               <Route path="carnet" element={<Navigate to="/balades" replace />} />
@@ -227,8 +215,6 @@ export default function App() {
             <Route path="raconter" element={<Navigate to="/noter" replace />} />
             <Route path="competence/:id" element={<Skill />} />
             <Route path="en-cours" element={<EnCours />} />
-            <Route path="boutique" element={<Shop />} />
-            <Route path="meute/chien/:id" element={<DogPublic />} />
             <Route path="balades" element={<Walks />} />
             <Route path="exploration" element={<Navigate to="/territoire" replace />} />
             <Route path="ajouter-balade" element={<Navigate to="/territoire" replace />} />

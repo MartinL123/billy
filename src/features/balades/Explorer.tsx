@@ -4,7 +4,7 @@ import { isNative } from '../../native'
 import { ChevronRightIcon, PlusIcon } from '../../components/Icons'
 import { auth } from '../../firebase/app'
 import { fetchCommune } from '../../firebase/communes'
-import { removeSpot, watchMarks, watchSpots, type Mark, type Spot, type WithId } from '../../firebase/community'
+import { removeSpot, type Mark, type Spot, type WithId } from '../../firebase/community'
 import { useData } from '../../firebase/store'
 import { communeAt } from '../../lib/commune'
 import { discoveredShare, inPolygon, knownFog, shareLabel } from '../../lib/fog'
@@ -69,15 +69,11 @@ export default function Explorer() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const [filter, setFilter] = useState<WalkFilter>(() => (params.get('filtre') as WalkFilter | null) ?? 'toutes')
-  // « Spots de la meute » : un calque de la carte (spec V4 § 1), activé d’un toucher.
-  // Depuis la meute : « Voir sur la carte » (?meute=1) ou un spot précis (?spot=…).
-  const [packLayer, setPackLayer] = useState(() => params.has('meute') || params.has('spot'))
-  const [spots, setSpots] = useState<WithId<Spot>[]>([])
-  const [marks, setMarks] = useState<WithId<Mark>[]>([])
-  useEffect(() => {
-    const stops = [watchSpots(setSpots), watchMarks(setMarks)]
-    return () => stops.forEach((stop) => stop())
-  }, [])
+  // Gelé (T-072) : la carte ne lit plus la meute (ni spots, ni marques) et n’a plus le calque « Spots de la meute ».
+  // Le code des spots reste en place, branché sur des listes vides.
+  const packLayer = false
+  const spots = useMemo<WithId<Spot>[]>(() => [], [])
+  const marks = useMemo<WithId<Mark>[]>(() => [], [])
 
   const cells = useMemo(() => knownFog(fog), [fog])
   const walks = useMemo(() => walkItems(entries), [entries])
@@ -333,13 +329,7 @@ export default function Explorer() {
                     {f.label}
                   </button>
                 ))}
-                {/* Les spots de la meute, avec les filtres (T-031) ; pas chez un visiteur (R-073), qui n’est pas de la meute. */}
-                {!readOnly && (
-                  <button type="button" aria-pressed={packLayer} onClick={() => setPackLayer(!packLayer)} className={`flex items-center gap-1.5 ${chip(packLayer)}`}>
-                    <span className="size-2.5 rounded-full bg-[#2559A8]" aria-hidden="true" />
-                    Spots de la meute
-                  </button>
-                )}
+                {/* Gelé (T-072) : le bouton « Spots de la meute » est retiré. */}
               </div>
               {/* Les balades en cartes, à l’horizontale : un toucher la met en avant sur la carte, un autre la relâche. */}
               {shown.length === 0 ? (

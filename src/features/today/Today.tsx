@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { BoneIcon } from '../../components/BoneIcon'
 import { setEventDone } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { useReadOnly } from '../../firebase/viewer'
 import { completeQuest, skipQuest } from '../../firebase/training'
 import { QUEST_XP } from '../../lib/quest'
-import { balance } from '../../lib/bones'
 import { formatDayHeading, formatLong } from '../../lib/dates'
 import { portion, sortMeals } from '../../lib/feeding'
 import { nowCard, type NowCard, type NowInput, needsVet } from '../../lib/nowCard'
@@ -240,7 +238,7 @@ function useCardContent(card: NowCard, onWeighLater: () => void, onNote: (slot: 
  * questionnaire n’est pas fini, puis « Sa vie avec vous » en 4 lignes.
  */
 export default function Today() {
-  const { dog, events, bones, walks, weights, entries, online } = useData()
+  const { dog, events, walks, weights, entries, online } = useData()
   // Visiteur (T-048) : pas de carte du moment, rien à faire, tout à regarder.
   const readOnly = useReadOnly()
   const today = useToday()
@@ -328,18 +326,7 @@ export default function Today() {
             <span className="font-display text-[clamp(21px,7vw,26px)] leading-tight font-extrabold break-words">Bonjour, {dog.name}</span>
           </span>
         </Link>
-        {/* Visiteur (R-073) : le solde se voit, la boutique reste au propriétaire. */}
-        {readOnly ? (
-          <span aria-label={`${balance(bones)} os`} className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[1rem] font-extrabold text-gold-dark">
-            <BoneIcon size={20} />
-            {balance(bones)}
-          </span>
-        ) : (
-          <Link to="/boutique" aria-label={`${balance(bones)} os. Ouvrir la boutique`} className="tap flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-gold-soft px-3.5 text-[1rem] font-extrabold text-gold-dark no-underline">
-            <BoneIcon size={20} />
-            {balance(bones)}
-          </Link>
-        )}
+        {/* Gelé (T-072) : la pastille d’os vers la boutique est retirée ; les os restent en base. */}
       </header>
 
       {/* Une nouvelle carte du moment (soin fait, mission faite…) monte à la place de l’ancienne (T-033). */}

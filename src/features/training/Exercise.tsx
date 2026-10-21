@@ -19,8 +19,6 @@ import { BONES } from '../../lib/bones'
 import { SkillPill } from '../billy/SkillPill'
 import { useQuest } from '../today/useQuest'
 import { Illustration } from './Illustration'
-import { needsCalmPlace } from '../../lib/community'
-import { CalmSpotCard } from '../meute/CalmSpotCard'
 import { place } from '../../lib/garden'
 import { sessionStart } from '../../firebase/journal'
 
@@ -230,7 +228,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
           </p>
         </section>
 
-        {needsCalmPlace(setting) && <CalmSpotCard />}
+        {/* Gelé (T-072) : « Un spot calme pour ça » lisait les spots de la meute et menait à la meute. */}
 
         <section className="card flex flex-col gap-3 p-4">
           <h2 className={sectionTitle}>Comment faire</h2>

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import type { Mark, Spot, WithId } from '../../firebase/community'
 import { categoryInfo, distanceMeters } from '../../lib/community'
 import { formatLong } from '../../lib/dates'
@@ -72,9 +71,7 @@ export function PlaceCard({ selected, here, me, onClose, onRemove }: Props) {
           <a href={directionsUrl(at.lat, at.lng)} target="_blank" rel="noopener noreferrer" className="btn btn-main min-h-[52px] flex-1">
             Y aller
           </a>
-          <Link to={`/meute?spot=${selected.spot.id}`} className="btn btn-outline min-h-[52px] flex-1">
-            Voir le spot
-          </Link>
+          {/* Gelé (T-072) : « Voir le spot » menait à la meute. */}
         </div>
       )}
     </section>

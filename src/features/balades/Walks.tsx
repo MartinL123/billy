@@ -152,7 +152,7 @@ export default function Walks() {
               <circle cx="22" cy="66" r="7" fill="#1E5A50" stroke="#fff" strokeWidth="3" />
             </svg>
             <h2 className="title-section">Pas encore de balade</h2>
-            <p className="text-[1rem] leading-snug text-[#3F4946]">{isNative() ? 'Vos marches de l’Apple Watch arrivent ici toutes seules' : 'Importez vos balades Strava : elles arrivent ici'}, et le brouillard se lève sur la carte {ofName(dog.name)}.</p>
+            <p className="text-[1rem] leading-snug text-[#3F4946]">{isNative() ? 'Vos marches de l’Apple Watch arrivent ici toutes seules' : 'Importez vos balades Strava : elles arrivent ici'}, et s’affichent sur la carte {ofName(dog.name)}.</p>
             {!readOnly && (
               <Link to="/importer" className={`btn ${isNative() ? 'btn-outline min-h-12' : 'btn-main min-h-[56px]'} self-stretch`}>
                 {isNative() ? 'Importer un fichier GPX' : 'Importer mes balades'}

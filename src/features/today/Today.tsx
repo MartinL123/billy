@@ -176,7 +176,7 @@ function useCardContent(card: NowCard, onWeighLater: () => void, onNote: (slot: 
       return {
         badge: `${name} · ${formatHour(card.time)}`,
         title: `C’est l’heure de sortir ${dogName(dog)}`,
-        text: `${advised ? `${advised}\u00a0min conseillées. ` : ''}${isNative() ? 'Le tracé lève le brouillard sur la carte.' : 'Une fois rentrés, notez-la en un toucher.'}`,
+        text: `${advised ? `${advised}\u00a0min conseillées. ` : ''}${isNative() ? 'Le tracé s’ajoute à sa carte.' : 'Une fois rentrés, notez-la en un toucher.'}`,
         scene: 'laisse',
         action: isNative() ? ({ label: 'Partir en balade', to: '/balade-en-cours?depart=1' } as Action) : ({ label: 'Je l’ai faite', run: () => onNote(card.slot) } as Action),
         other: isNative() ? ({ label: 'Déjà faite', run: () => onNote(card.slot) } as Action) : undefined,

@@ -8,6 +8,7 @@ import { auth } from '../../firebase/app'
 import { removeSpot, type Mark, type Spot, type WithId } from '../../firebase/community'
 import { useData } from '../../firebase/store'
 import { knownFog } from '../../lib/fog'
+import { readMapPrefs, writeMapPrefs } from '../../lib/mapPrefs'
 import { useToday } from '../../lib/useToday'
 import { filterWalks, walkColors, walkItems, walksNear, walksTotals, type WalkFilter, type WalkItem } from '../../lib/walkList'
 import type { MapPlace, MapWalk } from './ExplorerMap'
@@ -28,23 +29,6 @@ import { WatchOptIn } from './WatchOptIn'
 import { ROUTE_COLOR } from '../../components/maplibre'
 
 const ExplorerMap = lazy(() => import('./ExplorerMap').then((m) => ({ default: m.ExplorerMap })))
-
-// Choix gardés sur cet appareil : plan et 2D par défaut (V5, T-054 ; nouvelle clé pour que le plan revienne une fois).
-const PREFS_KEY = 'billy-carte-v5'
-function readPrefs(): { satellite: boolean; three: boolean } {
-  try {
-    return { satellite: false, three: false, ...JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}') }
-  } catch {
-    return { satellite: false, three: false }
-  }
-}
-function writePrefs(prefs: { satellite: boolean; three: boolean }) {
-  try {
-    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs))
-  } catch {
-    // Stockage indisponible : le choix vaut pour cette fois.
-  }
-}
 
 const chip = (on: boolean) => `min-h-11 shrink-0 rounded-full border-0 px-3 text-[0.8235rem] font-bold ${on ? 'bg-primary text-white' : 'bg-bg text-text'}`
 
@@ -72,7 +56,7 @@ export default function Explorer() {
   const { dog, entries, fog } = useData()
   const today = useToday()
   const readOnly = useReadOnly()
-  const [prefs, setPrefs] = useState(readPrefs)
+  const [prefs, setPrefs] = useState(() => readMapPrefs())
   // « Voir ces balades sur la carte » garde le filtre choisi dans la liste.
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
@@ -86,9 +70,9 @@ export default function Explorer() {
   const cells = useMemo(() => knownFog(fog), [fog])
   const walks = useMemo(() => walkItems(entries), [entries])
   const shown = useMemo(() => filterWalks(walks, filter, today), [walks, filter, today])
-  // Une couleur par balade, la même sur la carte et dans la liste.
-  const colors = useMemo(() => walkColors(walks), [walks])
-  // Une balade touchée dans le panneau : son trait s’épaissit, les autres passent à 25 % ; un autre toucher la relâche.
+  // Une couleur par balade, la même sur la carte et dans la liste. Brouillard éteint (V6.1 § 2) : toutes en vert carte.
+  const colors = useMemo(() => (prefs.fog ? walkColors(walks) : new Map(walks.map((w) => [w.id, ROUTE_COLOR]))), [walks, prefs.fog])
+  // Une balade touchée : son trait s’épaissit, les autres passent à 40 % ; un autre toucher la relâche.
   const [highlight, setHighlight] = useState<string>()
   const tracks = useMemo<MapWalk[]>(() => {
     const all = shown.map((w) => ({ id: w.id, color: colors.get(w.id) ?? ROUTE_COLOR, points: w.route.points, bold: w.id === highlight, faded: Boolean(highlight) && w.id !== highlight }))
@@ -222,7 +206,7 @@ export default function Explorer() {
   // La boussole : l’aiguille suit la carte ; un toucher la remet face au nord.
   const [bearing, setBearing] = useState(0)
   const [north, setNorth] = useState(0)
-  // « Affichage » : un petit panneau Plan / Satellite, 2D / 3D.
+  // « Affichage » : un petit panneau Plan / Satellite, 2D / 3D, Brouillard (V6.1 § 2).
   const [display, setDisplay] = useState(false)
   const turned = Math.round(((bearing % 360) + 360) % 360) % 360 !== 0
   const highlighted = shown.find((w) => w.id === highlight)
@@ -235,13 +219,13 @@ export default function Explorer() {
   const setPref = (next: Partial<typeof prefs>) => {
     const value = { ...prefs, ...next }
     setPrefs(value)
-    writePrefs(value)
+    writeMapPrefs(value)
   }
 
   return (
     <div className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
-        <ExplorerMap cells={cells} tracks={tracks} frame={frame} frameKey={frameKey} me={myPos ? [myPos.lat, myPos.lng] : undefined} onWalk={onTrack} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={onMapTap} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} />
+        <ExplorerMap cells={cells} tracks={tracks} frame={frame} frameKey={frameKey} me={myPos ? [myPos.lat, myPos.lng] : undefined} onWalk={onTrack} places={places} satellite={prefs.satellite} three={prefs.three} fog={prefs.fog} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={onMapTap} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} />
       </Suspense>
 
       {/* En haut, 2 pilules seulement (V5) : « Affichage » à gauche, « Me situer » à droite. Pincer pour zoomer. */}
@@ -272,6 +256,7 @@ export default function Explorer() {
                   3D
                 </button>
               </div>
+              <Switch label="Brouillard" hint="Les zones où vous n’êtes jamais allés restent dans la brume" on={prefs.fog} onChange={(fog) => setPref({ fog })} />
             </div>
           )}
         </div>
@@ -472,5 +457,20 @@ function WalksSummary({ items }: { items: WalkItem[] }) {
         </span>
       )}
     </p>
+  )
+}
+
+/** Un interrupteur d’« Affichage » (V6.1 § 2) : toute la ligne se touche, 44 px au moins. */
+function Switch({ label, hint, on, onChange }: { label: string; hint: string; on: boolean; onChange: (on: boolean) => void }) {
+  return (
+    <button type="button" role="switch" aria-checked={on} onClick={() => onChange(!on)} className="flex min-h-11 w-[15.5rem] max-w-full items-center gap-3 rounded-[14px] border-0 bg-transparent px-2 py-1.5 text-left text-text">
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-[0.8824rem] font-bold">{label}</span>
+        <span className="text-[0.7647rem] leading-snug text-[#3F4946]">{hint}</span>
+      </span>
+      <span aria-hidden="true" className={`relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-150 motion-reduce:transition-none ${on ? 'bg-primary' : 'bg-line-strong'}`}>
+        <span className={`absolute top-[2px] left-[2px] size-[27px] rounded-full bg-white shadow-[0_2px_4px_rgba(0,0,0,0.2)] transition-transform duration-150 motion-reduce:transition-none ${on ? 'translate-x-5' : ''}`} />
+      </span>
+    </button>
   )
 }

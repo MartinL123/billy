@@ -9,6 +9,7 @@ import { waitForPendingWrites } from 'firebase/firestore'
 import { db } from '../../firebase/app'
 import { knownImportKeys, parisMinutes } from '../../lib/activity'
 import { knownFog, revealedCells } from '../../lib/fog'
+import { readMapPrefs } from '../../lib/mapPrefs'
 import { doubtfulSegments, durationParts, elapsedMs, gpsActivity, gpsDistance, tooShort, weakSignal, type GpsPoint } from '../../lib/gpsWalk'
 import { dayBudget, minutesOfDay, walksOfDay } from '../../lib/walkDay'
 import { formatRouteDistance, readRoute } from '../../lib/route'
@@ -319,6 +320,8 @@ export default function LiveWalk() {
   const latLngs = useMemo(() => points.map((p): [number, number] => [p.lat, p.lng]), [points])
   // Le brouillard (s’il est affiché, T-095 V6.1) se lève sous le tracé. V6.1 § 1 : plus de « bouts de territoire »
   // comptés ni annoncés (ni ici, ni dans la Live Activity).
+  // T-095 : le même réglage que la carte des Balades (« Affichage », éteint par défaut).
+  const [fogShown] = useState(() => readMapPrefs().fog)
   const cells = useMemo(() => {
     const all = knownFog(fog)
     for (const cell of revealedCells(points)) all.add(cell)
@@ -371,7 +374,7 @@ export default function LiveWalk() {
     <main className="fixed inset-0 flex flex-col bg-bg">
       <div className="relative min-h-0 flex-1">
         {/* La carte suit le chien : centrée sur le dernier point, au-dessus du panneau. */}
-        <ExplorerMap cells={cells} tracks={tracks} me={here} center={here} focus={here} places={[]} satellite={false} three={false} dogName={dog.name} />
+        <ExplorerMap cells={cells} tracks={tracks} me={here} center={here} focus={here} places={[]} satellite={false} three={false} fog={fogShown} dogName={dog.name} />
         <div className="pointer-events-none absolute inset-x-4 top-[calc(env(safe-area-inset-top)+12px)] flex flex-col items-start gap-2.5">
           {/* « Ne pas garder » quitte le bas de l’écran (V5) : une pilule en haut à gauche. */}
           {!ended && !gone && phase === 'walking' && (
@@ -484,7 +487,7 @@ export default function LiveWalk() {
         // « Continuer la balade » en orange, « Ne pas la garder » en contour rouge : plus de « Annuler » ambigu (V5).
         <Sheet label="Ne pas garder cette balade ?" onClose={() => setConfirmCancel(false)}>
           <h2 className="title-section mt-1">Ne pas garder cette balade ?</h2>
-          <p className="text-[0.9412rem] leading-snug text-[#3F4946]">Le tracé sera effacé : pas de brouillard levé, pas d’os.</p>
+          <p className="text-[0.9412rem] leading-snug text-[#3F4946]">Le tracé sera effacé, sans os.</p>
           <button type="button" onClick={() => setConfirmCancel(false)} className="btn btn-main min-h-14">
             Continuer la balade
           </button>

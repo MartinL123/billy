@@ -84,7 +84,7 @@ export function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void
           Entrez une durée entre 1 et 300{'\u00a0'}min
         </p>
       )}
-      <p className="text-[0.8235rem] leading-snug text-[#3F4946]">Sans tracé, le brouillard ne bouge pas. Pour le lever, lancez la marche sur la Watch ou importez-la.</p>
+      <p className="text-[0.8235rem] leading-snug text-[#3F4946]">Sans tracé, la balade n’est pas sur la carte. Pour l’y voir, lancez la marche sur la Watch ou importez-la.</p>
       <button type="button" onClick={save} className="btn btn-main min-h-[56px]">
         C’est noté
       </button>

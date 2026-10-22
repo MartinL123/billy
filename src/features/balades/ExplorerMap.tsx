@@ -22,7 +22,7 @@ export interface MapWalk {
   points: LatLng[]
   /** Une portion douteuse (GPS faible) : tracé en pointillés (T-051). */
   dashed?: boolean
-  /** Touchée dans le panneau (T-054) : trait plus épais ; les autres passent à 25 %. */
+  /** Touchée dans le panneau (T-054) : trait plus épais ; les autres passent à 40 % (V6.1 § 2). */
   bold?: boolean
   faded?: boolean
 }
@@ -41,6 +41,8 @@ interface Props {
   places: MapPlace[]
   satellite: boolean
   three: boolean
+  /** V6.1 § 2 (T-095) : le brouillard, en option (« Affichage ») ; éteint, la carte reste nette. */
+  fog?: boolean
   /** Sans balade : la position (si autorisée) ou Paris. */
   center?: LatLng
   /** Le lieu ouvert dans la petite fenêtre : la carte s’y centre, au-dessus de la fenêtre. */
@@ -97,9 +99,9 @@ function drawWalks(m: MapLibreMap, walks: MapWalk[], dimmed: boolean) {
     m.addLayer({ id: 'trajets-pointilles', type: 'line', source: 'trajets', filter: ['==', ['get', 'dashed'], true], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 4, 'line-dasharray': [0.5, 2] } })
   }
   // Une balade mise en avant : les autres s’effacent.
-  m.setPaintProperty('trajets', 'line-opacity', dimmed ? 0.3 : ['case', ['get', 'faded'], 0.25, 1])
-  m.setPaintProperty('trajets-liseré', 'line-opacity', dimmed ? 0.15 : ['case', ['get', 'faded'], 0.15, 0.85])
-  m.setPaintProperty('trajets-pointilles', 'line-opacity', dimmed ? 0.3 : ['case', ['get', 'faded'], 0.25, 1])
+  m.setPaintProperty('trajets', 'line-opacity', dimmed ? 0.3 : ['case', ['get', 'faded'], 0.4, 1])
+  m.setPaintProperty('trajets-liseré', 'line-opacity', dimmed ? 0.15 : ['case', ['get', 'faded'], 0.25, 0.85])
+  m.setPaintProperty('trajets-pointilles', 'line-opacity', dimmed ? 0.3 : ['case', ['get', 'faded'], 0.4, 1])
   // Les trajets restent au-dessus du brouillard, la balade mise en avant au-dessus de tout.
   m.moveLayer('trajets-liseré')
   m.moveLayer('trajets')
@@ -186,10 +188,10 @@ function innerBox(layout: FogLayout): [number, number, number, number] {
 }
 
 /**
- * La carte qui se découvre : le brouillard (un seul polygone troué, bords adoucis), les trajets en pointillés,
- * les spots. Plan ou satellite, 2D ou 3D.
+ * La carte qui se découvre : le brouillard (un seul polygone troué, bords adoucis ; en option depuis la V6.1), les
+ * trajets, les spots. Plan ou satellite, 2D ou 3D.
  */
-export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places, satellite, three, center, focus, onPlace, onMapTap, onBearing, north, zoom, walk, dogName }: Props) {
+export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places, satellite, three, fog = true, center, focus, onPlace, onMapTap, onBearing, north, zoom, walk, dogName }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const markers = useRef<Marker[]>([])
@@ -372,6 +374,16 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     if (!m) return
     whenReady(m, () => {
       const mode = sat ? 'satellite' : 'plan'
+      // Brouillard éteint (V6.1 § 2) : on retire ses calques, la carte reste nette ; seuls les trajets sont dessinés.
+      if (!fog) {
+        for (const id of ['brouillard-ancien', 'brouillard-image', 'brouillard']) {
+          if (m.getLayer(id)) m.removeLayer(id)
+          if (m.getSource(id)) m.removeSource(id)
+        }
+        lastFog.current = null
+        drawWalks(m, tracks, Boolean(walkRoute))
+        return
+      }
       const layout = fogLayout(cells)
       // De nouvelles zones découvertes (après un import) : l’ancien brouillard reste par-dessus et s’efface en fondu
       // (T-033). Pas au premier dessin, ni en changeant de fond de carte.
@@ -424,7 +436,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
       lastFog.current = { mode, cells: cells.size, canvas: image?.getCanvas?.(), coordinates: (image?.coordinates ?? []) as [[number, number], [number, number], [number, number], [number, number]] }
       drawWalks(m, tracks, Boolean(walkRoute))
     })
-  }, [cells, tracks, sat, Boolean(walkRoute)]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [cells, tracks, sat, fog, Boolean(walkRoute)]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Les lieux : leur icône et leur nom. Ils restent droits en 3D. Zone tactile de 44 px de haut pour une icône de 34 px (R-067).
   useEffect(() => {

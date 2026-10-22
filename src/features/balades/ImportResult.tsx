@@ -29,8 +29,8 @@ export default function ImportResult() {
     <div className="mx-auto min-h-dvh max-w-[430px]">
       <main className="flex flex-col gap-4 px-5 pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+120px)]">
         <div className="flex flex-col gap-1">
-          <h1 className="title-screen">{nothing ? `Tout était déjà dans ${APP_NAME}` : 'Le brouillard s’est levé !'}</h1>
-          <p className="text-[1rem] text-muted">{nothing ? 'Aucune nouvelle balade dans ces fichiers.' : `Elles sont sur la carte ${ofDog(dog)}.`}</p>
+          <h1 className="title-screen">{nothing ? `Tout était déjà dans ${APP_NAME}` : result.walks.length > 1 ? 'Balades ajoutées !' : 'Balade ajoutée !'}</h1>
+          <p className="text-[1rem] text-muted">{nothing ? 'Aucune nouvelle balade dans ces fichiers.' : `${result.walks.length > 1 ? 'Elles sont' : 'Elle est'} sur la carte ${ofDog(dog)}.`}</p>
         </div>
         {!nothing && (
           <>

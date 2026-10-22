@@ -157,7 +157,8 @@ export default function Calendar() {
           <Link key={line.title} to={line.to} className={`tap flex min-h-[60px] items-center gap-3 px-4 py-2.5 text-text no-underline ${i ? 'border-t border-divider' : ''}`}>
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="title-card">{line.title}</span>
-              <span className={`truncate text-[0.8824rem] ${line.late ? 'font-semibold text-danger' : 'text-[#3F4946]'}`}>{line.detail}</span>
+              {/* R-083 : le détail passe à la ligne, jamais coupé en « … » à côté de « Le prévoir ». */}
+              <span className={`text-[0.8824rem] leading-snug [overflow-wrap:anywhere] ${line.late ? 'font-semibold text-danger' : 'text-[#3F4946]'}`}>{line.detail}</span>
             </span>
             {line.ok && <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-1 text-[0.7647rem] font-bold text-primary-dark">À jour</span>}
             {line.action && <span className="shrink-0 rounded-full border-2 border-solid border-primary px-2.5 py-0.5 text-[0.7647rem] font-bold text-primary">{line.action}</span>}

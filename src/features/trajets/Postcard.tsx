@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CloseIcon } from '../../components/Icons'
 import { isNative } from '../../native'
@@ -16,6 +16,8 @@ export function Postcard({ input, date, onClose }: { input: PostcardInput; date:
   const [failed, setFailed] = useState(false)
   const [note, setNote] = useState<string>()
   const fileName = postcardFileName(date)
+  // VoiceOver et clavier : le focus entre dans la fenêtre à l’ouverture, et revient au bouton « Partager » à la fermeture.
+  const closeRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     let live = true
@@ -37,14 +39,19 @@ export function Postcard({ input, date, onClose }: { input: PostcardInput; date:
 
   useEffect(() => {
     const previous = document.body.style.overflow
+    const opener = document.activeElement as HTMLElement | null
     document.body.style.overflow = 'hidden'
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    closeRef.current?.focus()
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && closeRef.current?.click()
     window.addEventListener('keydown', onKey)
     return () => {
       document.body.style.overflow = previous
       window.removeEventListener('keydown', onKey)
+      opener?.focus?.()
     }
-  }, [onClose])
+    // Une fois, à l’ouverture.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const file = image ? new File([image.blob], fileName, { type: 'image/jpeg' }) : undefined
   // La feuille de partage d’iOS (WKWebView, iOS 15 et plus) ; sans elle, on fait comme sur le web.
@@ -61,7 +68,7 @@ export function Postcard({ input, date, onClose }: { input: PostcardInput; date:
   return createPortal(
     <div role="dialog" aria-modal="true" aria-label="Carte postale de la balade" className="fixed inset-0 z-50 flex animate-fade flex-col bg-[#0F1412]">
       <div className="flex items-center px-3 pt-[calc(env(safe-area-inset-top)+8px)]">
-        <button type="button" onClick={onClose} className="flex min-h-12 items-center gap-2 rounded-full border-2 border-solid border-white/70 bg-black/40 px-4 text-[1rem] font-bold text-white">
+        <button ref={closeRef} type="button" onClick={onClose} className="flex min-h-12 items-center gap-2 rounded-full border-2 border-solid border-white/70 bg-black/40 px-4 text-[1rem] font-bold text-white">
           <CloseIcon size={20} />
           Fermer
         </button>

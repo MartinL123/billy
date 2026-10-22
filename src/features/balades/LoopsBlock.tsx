@@ -34,7 +34,7 @@ export function LoopsBlock({ walks, here, known, dogName, birthDate, today }: { 
                 <span className="title-card truncate">{loop.item.name}</span>
                 <Stats items={[{ value: formatRouteDistance(loop.item.route.distanceM), label: 'Distance' }, { value: formatDuration(loop.minutes), label: 'Durée' }]} />
               </span>
-              <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
+              <ChevronRightIcon size={20} className="shrink-0 text-[#5A6662]" />
             </Link>
           </li>
         ))}

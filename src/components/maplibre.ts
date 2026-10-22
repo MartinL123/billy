@@ -20,9 +20,31 @@ export const lngLat = ([lat, lng]: LatLng): [number, number] => [lng, lat]
 
 export const PARIS: LatLng = [48.8566, 2.3522]
 
+/** Couleurs des tracés (V6 § 1, tokens --color-route… de index.css) : MapLibre veut la valeur, pas la variable CSS. */
+export const ROUTE_COLOR = '#2F8F6B'
+export const ROUTE_FAST_COLOR = '#E0A12E'
+export const ROUTE_STOP_COLOR = '#9AA5A0'
+
 export function createMap(
   container: HTMLElement,
-  { center = PARIS, zoom = 15, interactive = true, bounds }: { center?: LatLng; zoom?: number; interactive?: boolean; bounds?: { points: LatLng[]; padding: { top: number; bottom: number; left: number; right: number } } } = {},
+  {
+    center = PARIS,
+    zoom = 15,
+    interactive = true,
+    bounds,
+    attribution = true,
+    preserveDrawingBuffer = false,
+    pixelRatio,
+  }: {
+    center?: LatLng
+    zoom?: number
+    interactive?: boolean
+    bounds?: { points: LatLng[]; padding: { top: number; bottom: number; left: number; right: number } }
+    /** Mini-cartes (T-077) : sans attribution (elle est sur la grande carte), image lisible (preserveDrawingBuffer). */
+    attribution?: boolean
+    preserveDrawingBuffer?: boolean
+    pixelRatio?: number
+  } = {},
 ): MapLibreMap {
   // Cadrée dès la création sur des points : les tuiles ne se chargent qu’une fois, au bon endroit (audit R-032).
   const box = bounds && bounds.points.length > 1 ? bounds.points.reduce((b, p) => b.extend(lngLat(p)), new LngLatBounds(lngLat(bounds.points[0]!), lngLat(bounds.points[0]!))) : undefined
@@ -31,7 +53,9 @@ export function createMap(
     style: MAP_STYLE,
     ...(box ? { bounds: box, fitBoundsOptions: { padding: bounds!.padding, maxZoom: 17 } } : { center: lngLat(center), zoom }),
     interactive,
-    attributionControl: { compact: true },
+    attributionControl: attribution ? { compact: true } : false,
+    ...(preserveDrawingBuffer ? { canvasContextAttributes: { preserveDrawingBuffer: true } } : {}),
+    ...(pixelRatio ? { pixelRatio } : {}),
     // Au doigt : pas de rotation par erreur en 2D ; la 3D se met avec le bouton.
     dragRotate: false,
     pitchWithRotate: false,

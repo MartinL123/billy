@@ -46,6 +46,11 @@
   --color-care: #7b4fc9;
   --color-vaccine: #2f6fd0;
   --color-vet: #c4423a;
+  /* V6 § 1 (T-077) : les tracés de balade en vert carte ; l’orange reste réservé à l’action. « Rapide » et « arrêt »
+     servent à colorer l’allure (fiche de balade). */
+  --color-route: #2f8f6b;
+  --color-route-fast: #e0a12e;
+  --color-route-stop: #9aa5a0;
 
   --font-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
   --font-sans: 'Figtree Variable', system-ui, sans-serif;
@@ -88,6 +93,45 @@
   background: var(--color-surface);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
+}
+
+/*
+ * Titres façon Komoot (V6 § 1, T-077) : graisse moyenne, jamais de 800.
+ * Écran : Bricolage 600, 28 px · section : 600, 22 px · carte : Bricolage 500, 17 px.
+ */
+@utility title-screen {
+  font-family: var(--font-display);
+  font-size: 1.6471rem;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.2px;
+}
+@utility title-section {
+  font-family: var(--font-display);
+  font-size: 1.2941rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+@utility title-card {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+/* Surtitre : Figtree 700, 12 px, majuscules, +0,6 px. La couleur vient du contexte. */
+@utility surtitre {
+  font-family: var(--font-sans);
+  font-size: 0.7059rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+/* Source d’une donnée (« Enregistré par l’Apple Watch », « Lieux © OpenStreetMap ») : 12 px, gris. */
+@utility source-note {
+  font-size: 0.7059rem;
+  line-height: 1.35;
+  color: var(--color-muted);
 }
 
 /* Champ de saisie : 52 px de haut, 16 px de texte (sinon Safari zoome au focus) */
@@ -138,6 +182,31 @@
   background: var(--color-surface);
   border-color: var(--color-primary);
   color: var(--color-primary);
+}
+/*
+ * Action secondaire en texte (V6 § 1) : vert, gras, 16 px, sans contour ni fond, 44 px de zone tactile.
+ * Le contour (btn-outline) reste pour UN choix secondaire important par écran.
+ */
+@utility btn-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 0.9412rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity var(--dur-tap) var(--ease-out);
+  &:active {
+    opacity: 0.55;
+  }
 }
 /* Annuler, fermer : contour neutre. */
 @utility btn-quiet {
@@ -195,7 +264,7 @@ html {
 }
 
 /* Tailles d'accessibilité : comme dans iOS, les titres grandissent moins que le texte (sinon trois mots par écran). */
-.texte-tres-grand :is(h1, h2).font-display {
+.texte-tres-grand :is(h1, h2):is(.font-display, .title-screen, .title-section) {
   font-size: 1.15rem;
 }
 

@@ -26,6 +26,7 @@ l'arrêter après un changement du code de l'app pour que les tests voient la no
 | 5 · Réseau qui revient pendant l'enregistrement | Terminer hors ligne, réseau rétabli tout de suite | Une seule balade au serveur, copie effacée |
 | 9 · Rechargement du site | Pendant la balade ; après « Belle balade ! » ; juste après une fin hors ligne | Pendant : l'écran revient avec le tracé, pas de nouveau départ. Après : plus de `?depart=1`, retour à l'accueil, aucun second `startWalk` |
 | 11 · Position refusée | `startWalk` rejeté avec le code `denied` | « La position n'est pas autorisée », le chemin Réglages › Flair › Position, retour à l'accueil |
+| T-087 · Partage en direct | Pendant la balade : « Partager en direct », un proche ajouté, « Partager » (feuille de partage simulée) ; le lien ouvert dans un autre navigateur, sans compte | `live/{jeton}` au serveur (seulement les champs prévus), « … est en balade depuis … · 100 m », « Mis à jour … » ; Terminer → `terminée`, position effacée, « Balade terminée à … » ; lien coupé → message calme |
 | 13 · Deux balades le même jour | A (partie il y a 60 min), puis B (il y a 15 min) | Deux balades au serveur, clés d'import différentes, pas d'os en double |
 
 ## Ce qui reste manuel (sur l'iPhone de Martin)

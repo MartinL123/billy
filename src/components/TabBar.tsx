@@ -5,6 +5,7 @@ import { useToday } from '../lib/useToday'
 import { HeartIcon, HomeIcon, MapIcon, PlusIcon } from './Icons'
 import { OfflineBanner } from './OfflineBanner'
 import { VisitorBanner } from '../features/visitor/VisitorBanner'
+import { LiveShareBanner } from '../features/live/LiveShare'
 
 /** Hauteur de la barre (hors zone sûre) et dépassement du rond de l’accueil au-dessus d’elle. */
 const BAR = 88
@@ -69,6 +70,8 @@ export function TabLayout() {
       <main className="mx-auto max-w-[430px] pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+200px)]">
         <OfflineBanner />
         <VisitorBanner />
+        {/* T-087 : tant qu’une balade est partagée en direct (app iOS). */}
+        <LiveShareBanner className="mx-4 mb-3" />
         <Outlet />
       </main>
       <TabBar />

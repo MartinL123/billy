@@ -2,6 +2,7 @@ rules_version = '2';
 
 // Billy — règles de sécurité Firestore.
 // Chaque utilisateur ne peut lire et écrire que ses propres données, sous users/{uid}/…
+// Exceptions : la meute, les invitations de la famille et le partage en direct (live/{jeton}, T-087).
 // Tout le reste est refusé.
 
 service cloud.firestore {
@@ -75,6 +76,32 @@ service cloud.firestore {
     match /community/meute/challenges/{week}/rows/{memberId} {
       allow read: if signedIn();
       allow write: if isOwner(memberId);
+    }
+
+    // Partage en direct (T-087, spec V6 § 7) : live/{jeton}, lu sans compte par qui a le lien (le jeton de 128 bits
+    // fait office de clé), jamais listé. Seul son propriétaire l'écrit ; un visiteur (T-048) n'en crée pas.
+    // Aucune autre donnée que celles-ci : chien, prénom, heures, position du moment, distance, statut.
+    function validLive(d) {
+      return d.keys().hasOnly(['ownerUid', 'dogName', 'ownerName', 'startedAt', 'updatedAt', 'lat', 'lng', 'distanceM', 'status', 'endsAt'])
+        && d.ownerUid is string && d.dogName is string && d.dogName.size() <= 60
+        && (!('ownerName' in d) || (d.ownerName is string && d.ownerName.size() <= 40))
+        && d.startedAt is string && d.updatedAt is string
+        && (!('lat' in d) || d.lat is number) && (!('lng' in d) || d.lng is number)
+        && d.distanceM is number
+        && d.status in ['en cours', 'pause', 'terminée']
+        && (!('endsAt' in d) || d.endsAt is string);
+    }
+    match /live/{token} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if signedIn() && token.size() >= 22
+        && request.resource.data.ownerUid == request.auth.uid
+        && !exists(/databases/$(database)/documents/viewers/$(request.auth.uid))
+        && validLive(request.resource.data);
+      allow update: if signedIn() && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == request.auth.uid
+        && validLive(request.resource.data);
+      allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
     }
 
     // Le compte lui-même (users/{uid}) : son propriétaire, et ses spectateurs en lecture.

@@ -1,6 +1,6 @@
 import { test as base, expect, type Page } from '@playwright/test'
 import { bravo, finishButton, goHash, login, skipOpening, startWalk } from './app'
-import { newUser, profileOnServer, serverDocs, serverWalks, type TestUser } from './emulator'
+import { newUser, profileOnServer, serverDocs, serverLive, serverWalks, type TestUser } from './emulator'
 import { FakeIphone } from './fakeIphone'
 
 // Protocole de casse de la balade (docs/profondeur/03-protocole-casse.md), cas 3, 4, 5, 9, 11 et 13.
@@ -207,3 +207,56 @@ base('T-074 · compte neuf hors ligne avant l’envoi du profil : l’app reste 
   expect(fake.count('FlairNative.currentWalk') - before).toBeLessThan(5)
   await expect(page.getByText('Ses sorties du jour')).toBeVisible()
 })
+
+// T-087 : partage en direct. Le lien s'ouvre sans compte, dans un autre navigateur ; la fin efface la position.
+test('T-087 · partager en direct : le lien montre la balade sans compte, puis « Balade terminée »', async ({ browser, fake, user, app }) => {
+  // La feuille de partage d'iOS : on garde ce qui lui est donné.
+  await app.evaluate(() => {
+    Object.defineProperty(navigator, 'share', {
+      configurable: true,
+      value: (data: ShareData) => {
+        ;(window as unknown as { __shared?: ShareData }).__shared = data
+        return Promise.resolve()
+      },
+    })
+  })
+  await startWalk(app)
+  await fake.walkPoints(app, 6)
+  await app.getByRole('switch', { name: 'Partager en direct' }).click()
+  // Aucun proche encore : on en ajoute un, choisi d'office.
+  await app.getByLabel('Prénom').fill('Coralie')
+  await app.getByRole('button', { name: 'Ajouter ce proche' }).click()
+  await expect(app.getByRole('checkbox', { name: /Coralie/ })).toBeChecked()
+  await app.getByRole('button', { name: 'Partager', exact: true }).click()
+  await expect(app.getByText('Partagé en direct avec Coralie')).toBeVisible()
+
+  const url = await app.evaluate(() => (window as unknown as { __shared?: ShareData }).__shared?.url ?? '')
+  const token = /#\/suivre\/([A-Za-z0-9_-]{22})$/.exec(url)?.[1]
+  expect(token, url).toBeTruthy()
+  await expect.poll(async () => (await serverLive(token!))?.status, { message: 'partage au serveur' }).toEqual({ stringValue: 'en cours' })
+  const live = (await serverLive(token!))!
+  expect(live.ownerUid).toEqual({ stringValue: user.uid })
+  expect(live).toHaveProperty('lat')
+  // Rien d'autre que ce qu'il faut : ni tracé, ni proches.
+  expect(Object.keys(live).sort()).toEqual(['distanceM', 'dogName', 'lat', 'lng', 'ownerUid', 'startedAt', 'status', 'updatedAt'])
+
+  // Un proche ouvre le lien sur son téléphone, sans compte.
+  const other = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR', timezoneId: 'Europe/Paris', serviceWorkers: 'block' })
+  const follow = await other.newPage()
+  await follow.goto(url)
+  await expect(follow.getByRole('heading', { name: /est en balade depuis \d+\smin · 100 m/ })).toBeVisible()
+  await expect(follow.getByText(/^Mis à jour/)).toBeVisible()
+
+  // Fin de la balade : « terminée », position effacée, et la page le dit.
+  await finishButton(app).click()
+  await expect(bravo(app)).toBeVisible()
+  await expect.poll(async () => (await serverLive(token!))?.status, { message: 'partage terminé' }).toEqual({ stringValue: 'terminée' })
+  expect(await serverLive(token!)).not.toHaveProperty('lat')
+  await expect(follow.getByRole('heading', { name: /^Balade terminée à \d+\sh\s\d{2}$/ })).toBeVisible()
+
+  // Un lien coupé : un message calme, pas l'écran de connexion.
+  await follow.goto(url.replace(/.{4}$/, ''))
+  await expect(follow.getByRole('heading', { name: 'Ce lien ne mène plus à une balade' })).toBeVisible()
+  await other.close()
+})
+

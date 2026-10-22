@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { assertFails, assertSucceeds, initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/rules-unit-testing'
-import { deleteDoc, doc, getDoc, getDocs, collection, query, setDoc, Timestamp, where } from 'firebase/firestore'
+import { deleteDoc, deleteField, doc, getDoc, getDocs, collection, query, setDoc, Timestamp, updateDoc, where } from 'firebase/firestore'
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest'
 
 // Règles de sécurité : chaque compte ne lit et n'écrit que users/{son uid}/…
@@ -10,7 +10,8 @@ let env: RulesTestEnvironment
 
 beforeAll(async () => {
   env = await initializeTestEnvironment({
-    projectId: 'demo-billy',
+    // RULES_PROJECT_ID : lancer ces tests sur un émulateur déjà ouvert sans effacer les données de demo-billy.
+    projectId: process.env.RULES_PROJECT_ID ?? 'demo-billy',
     firestore: { rules: readFileSync('firestore.rules', 'utf8'), host: '127.0.0.1', port: 8080 },
   })
 })
@@ -218,5 +219,60 @@ describe('firestore.rules : mode visiteur (T-048)', () => {
     for (const d of mine.docs) await assertSucceeds(deleteDoc(d.ref))
     const bob = env.authenticatedContext('bob').firestore()
     await assertFails(getDocs(query(collection(bob, 'invites'), where('owner', '==', 'alice'))))
+  })
+})
+
+describe('T-087 : partage en direct (live/{jeton})', () => {
+  const TOKEN = 'AbCdEfGhIjKlMnOpQrStUv'
+  const live = (extra: Record<string, unknown> = {}) => ({ ownerUid: 'alice', dogName: 'Billy', ownerName: 'Martin', startedAt: '2026-10-22T08:00:00Z', updatedAt: '2026-10-22T08:10:00Z', lat: 48.85, lng: 2.35, distanceM: 1400, status: 'en cours', ...extra })
+
+  it('le propriétaire crée, met à jour, termine et supprime son partage', async () => {
+    const alice = env.authenticatedContext('alice').firestore()
+    await assertSucceeds(setDoc(doc(alice, `live/${TOKEN}`), live()))
+    await assertSucceeds(updateDoc(doc(alice, `live/${TOKEN}`), { lat: 48.86, distanceM: 1500, updatedAt: '2026-10-22T08:11:00Z' }))
+    await assertSucceeds(updateDoc(doc(alice, `live/${TOKEN}`), { status: 'terminée', lat: deleteField(), lng: deleteField(), endsAt: '2026-10-22T08:44:00Z' }))
+    await assertSucceeds(deleteDoc(doc(alice, `live/${TOKEN}`)))
+  })
+
+  it('sans compte : lire par le jeton oui, lister jamais, écrire jamais', async () => {
+    const alice = env.authenticatedContext('alice').firestore()
+    await assertSucceeds(setDoc(doc(alice, `live/${TOKEN}`), live()))
+    const anonyme = env.unauthenticatedContext().firestore()
+    await assertSucceeds(getDoc(doc(anonyme, `live/${TOKEN}`)))
+    // Un jeton inconnu se lit aussi (document absent) : rien ne dit s'il existe un autre partage.
+    await assertSucceeds(getDoc(doc(anonyme, 'live/inconnuinconnuinconnu1')))
+    await assertFails(getDocs(collection(anonyme, 'live')))
+    await assertFails(getDocs(query(collection(anonyme, 'live'), where('ownerUid', '==', 'alice'))))
+    await assertFails(setDoc(doc(anonyme, `live/${TOKEN}`), live()))
+    await assertFails(deleteDoc(doc(anonyme, `live/${TOKEN}`)))
+    // Même le propriétaire ne liste pas : il garde ses jetons dans son profil.
+    await assertFails(getDocs(query(collection(alice, 'live'), where('ownerUid', '==', 'alice'))))
+  })
+
+  it('un autre compte ne modifie ni ne supprime le partage d’alice', async () => {
+    const alice = env.authenticatedContext('alice').firestore()
+    await assertSucceeds(setDoc(doc(alice, `live/${TOKEN}`), live()))
+    const bob = env.authenticatedContext('bob').firestore()
+    await assertSucceeds(getDoc(doc(bob, `live/${TOKEN}`)))
+    await assertFails(updateDoc(doc(bob, `live/${TOKEN}`), { lat: 0 }))
+    await assertFails(setDoc(doc(bob, `live/${TOKEN}`), live({ ownerUid: 'bob' })))
+    await assertFails(deleteDoc(doc(bob, `live/${TOKEN}`)))
+    // Ni à son nom à elle.
+    await assertFails(setDoc(doc(bob, 'live/BobBobBobBobBobBobBob1'), live()))
+  })
+
+  it('le propriétaire ne change pas ownerUid ; champs et jeton vérifiés ; un visiteur ne crée rien', async () => {
+    const alice = env.authenticatedContext('alice').firestore()
+    await assertSucceeds(setDoc(doc(alice, `live/${TOKEN}`), live()))
+    await assertFails(updateDoc(doc(alice, `live/${TOKEN}`), { ownerUid: 'bob' }))
+    await assertFails(setDoc(doc(alice, 'live/court'), live()))
+    await assertFails(setDoc(doc(alice, 'live/AutreAutreAutreAutre12'), live({ route: 'tracé' })))
+    await assertFails(setDoc(doc(alice, 'live/AutreAutreAutreAutre12'), live({ status: 'perdue' })))
+    await assertFails(setDoc(doc(alice, 'live/AutreAutreAutreAutre12'), live({ lat: 'ici' })))
+    await env.withSecurityRulesDisabled(async (admin) => {
+      await setDoc(doc(admin.firestore(), 'viewers/parent'), { owner: 'alice', code: 'abcdefghjkmn' })
+    })
+    const parent = env.authenticatedContext('parent').firestore()
+    await assertFails(setDoc(doc(parent, 'live/ParentParentParentPare'), live({ ownerUid: 'parent' })))
   })
 })

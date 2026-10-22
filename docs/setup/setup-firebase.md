@@ -66,6 +66,17 @@ firebase login
 Claude Code s'occupe ensuite de `firebase init`, des émulateurs et du déploiement des règles
 (`firebase deploy --only firestore:rules`).
 
+Après chaque changement de `firestore.rules` (dernier : T-087, partage en direct `live/{jeton}` lisible sans compte
+par qui a le lien, jamais listé, écrit par son seul propriétaire) :
+
+```bash
+npx firebase deploy --only firestore:rules --project billy-suivi-chien
+```
+
+Tests des règles : `npm run test:rules` (démarre son propre émulateur). Si les émulateurs tournent déjà sur 8080 :
+`RULES_PROJECT_ID=demo-billy-rules npx vitest run --config vitest.rules.config.ts` (un autre projet : les données de
+`demo-billy` ne sont pas effacées).
+
 ## 7. Vérifier que tout est en place
 
 - [ ] Le projet affiche **Spark** en bas à gauche de la console.

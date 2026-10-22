@@ -58,3 +58,12 @@ export async function profileOnServer(uid: string, { backfills = true } = {}): P
   if (!backfills) return true
   return ['bonesBackfilled', 'fog25Backfilled', 'filesKindBackfilled'].every((key) => key in fields)
 }
+
+/** T-087 : le partage en direct live/{jeton} tel que le serveur l'a reçu (undefined s'il n'existe pas). */
+export async function serverLive(token: string): Promise<Record<string, unknown> | undefined> {
+  const response = await fetch(`${FIRESTORE_URL}/v1/projects/${PROJECT}/databases/(default)/documents/live/${token}`, {
+    headers: { Authorization: 'Bearer owner' },
+  })
+  if (!response.ok) return undefined
+  return ((await response.json()) as FirestoreDoc).fields
+}

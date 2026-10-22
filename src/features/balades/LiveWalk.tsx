@@ -30,6 +30,9 @@ import { importActivities } from './importRun'
 import { logEvent } from '../../firebase/journal'
 import { haptic } from '../../native/flair'
 import { WalkRecap } from '../trajets/WalkRecap'
+import { LiveShareLine } from '../live/LiveShare'
+import { endLiveShare } from '../../firebase/live'
+import { activeShare } from '../../lib/liveShare'
 
 const toMin = (time: string) => {
   const [h, m] = time.split(':').map(Number)
@@ -286,6 +289,13 @@ export default function LiveWalk() {
     }
   }, [])
 
+  // T-087 : la balade enregistrée ou pas gardée, le partage en direct s’arrête tout de suite (position effacée).
+  useEffect(() => {
+    if (!ended && !gone) return
+    const share = activeShare(data.current.dog.liveShares, Date.now())
+    if (share) endLiveShare(share.token, data.current.dog.liveShares, ended?.distanceM)
+  }, [ended, gone])
+
   const latLngs = useMemo(() => points.map((p): [number, number] => [p.lat, p.lng]), [points])
   // Le territoire connu avant la balade : ce que le tracé découvre en plus compte en « bouts de territoire ».
   const knownBefore = useRef<Set<string> | undefined>(undefined)
@@ -418,6 +428,8 @@ export default function LiveWalk() {
               Durée conseillée atteinte pour la sortie {slotLabel.replace(/^Sortie /, '')}
             </span>
           )}
+          {/* T-087 : « Partager en direct » (éteint par défaut), ou « Partagé en direct avec Coralie · Arrêter ». */}
+          {startedAt && phase === 'walking' && <LiveShareLine startedAt={startedAt} points={points} />}
           {phase === 'failed' ? (
             <>
               <p role="alert" className="text-[0.8824rem] leading-snug font-semibold text-danger">

@@ -32,6 +32,7 @@ import { FamilySection, VisitorAccount } from '../visitor/Family'
 import { ExportButton } from './ExportButton'
 import { WatchOptIn } from '../balades/WatchOptIn'
 import { MotionSetting } from '../motion/MotionSetting'
+import { ProchesSection } from '../live/Proches'
 
 
 function InfoRow({ label, value, first }: { label: string; value: string; first?: boolean }) {
@@ -270,6 +271,9 @@ export default function Profile() {
 
       {/* App iOS : les notifications locales (T-042). Gelé (T-072) : le rappel du soir en web push (EveningReminder) n’est plus proposé. */}
       {isNative() && <NotificationSettings />}
+
+      {/* T-087 : à qui partager une balade en direct (app iOS). */}
+      {isNative() && <ProchesSection />}
 
       {/* Une fois terminé, on arrive sur le résultat : c’est là qu’on corrige ce qu’il savait déjà faire. */}
       <Link to={status.complete ? '/questionnaire?etape=fin' : '/questionnaire'} className="card-link min-h-16">

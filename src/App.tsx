@@ -54,6 +54,9 @@ import { isWriteRoute } from './lib/visitor'
 import Invitation from './features/visitor/Invitation'
 import Mesure, { JournalOpen } from './features/mesure/Mesure'
 import { SkeletonScreen } from './components/Skeleton'
+import Follow from './features/live/Follow'
+import { LiveShareSync } from './features/live/LiveShare'
+import { followTokenFromHash } from './lib/liveShare'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -158,6 +161,15 @@ export default function App() {
     }
   }, [user])
 
+  // T-087 : « Suivre » une balade partagée en direct s’ouvre sans compte (le jeton du lien est la clé).
+  const [followToken, setFollowToken] = useState(() => followTokenFromHash(window.location.hash))
+  useEffect(() => {
+    const read = () => setFollowToken(followTokenFromHash(window.location.hash))
+    window.addEventListener('hashchange', read)
+    return () => window.removeEventListener('hashchange', read)
+  }, [])
+
+  if (followToken !== undefined) return <Follow token={followToken} />
   if (user === undefined || (user && owner === undefined)) return <Splash />
   if (!user) return <Login />
   const visitor = Boolean(owner)
@@ -198,6 +210,7 @@ export default function App() {
               <WatchArrivalBridge />
               <PendingWalksSync />
               <NotificationScheduler />
+              <LiveShareSync />
             </>
           )}
           <ScrollToTop />

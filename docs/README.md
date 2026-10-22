@@ -1,6 +1,7 @@
 # Documentation de l'app Billy
 
-**Commencer ici.** La spec en cours est `specs/spec-v3-simplification.md` : elle fait foi en cas de divergence.
+**Commencer ici.** Pour les balades et le style des écrans, la spec en cours est `specs/spec-v6-balades-komoot.md` (22 oct.) :
+elle fait foi. Pour le reste, `specs/spec-v3-simplification.md` fait foi en cas de divergence.
 
 ## Organisation
 
@@ -10,6 +11,7 @@ docs/
   style-guide.html                ← STYLE GUIDE : couleurs, typo, composants, éléments de jeu, écriture
   arborescence.md                 ← ARBORESCENCE : tous les écrans et leurs liens, relevés dans le code
   specs/
+    spec-v6-balades-komoot.md     ← EN COURS · les balades façon Komoot (rendu, fiche, arrêts, données Watch, partage en direct)
     spec-v3-simplification.md     ← EN COURS · refonte « Billy, le jeu »
     questionnaire-depart.md       ← EN COURS · questionnaire de départ, question par question
     arbre-competences.md          ← EN COURS · l'arbre complet : 3 étages, 10 compétences, 50 étapes
@@ -38,6 +40,7 @@ docs/
     audit-ux.md                   ← audit de l'app + 4 personas
     audit-ux-v3.md                ← audit UX du 17 oct. : app trop chargée, direction « une chose à la fois »
     recherche-dressage.md         ← Esprit Dog, éducateurs, exercices, sources
+    komoot-flair.html             ← étude « Komoot × Flair » (22 oct.) : planches de référence de la V6
     etude-ux-business-plan.md     ← marché, concurrence, personas, étude utilisateur, modèle éco (+ .pdf, .docx)
   setup/
     setup-firebase.md             ← mise en place Firebase (plan gratuit)

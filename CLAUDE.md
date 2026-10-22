@@ -23,6 +23,7 @@ Ne jamais passer en Done ce qui doit être vérifié sur l'iPhone de Martin. Les
   Le service worker reste actif (hors ligne), sauf pour le paquet de secours embarqué (`capacitor://`).
 
 Lire avant toute nouvelle fonctionnalité (l'index complet est dans `docs/README.md`) :
+- **`docs/specs/spec-v6-balades-komoot.md` : la spec en cours pour les balades et le style des écrans (rendu façon Komoot, fiche de balade, arrêts, données Watch, partage en direct). Elle fait foi sur la V5, la V4 et la V3 pour ces sujets.**
 - **`docs/design/contexte-flair.md` : le contexte du produit (personas, règles, décisions, où vivent les choses). À lire en premier.**
 - **`docs/specs/spec-v3-simplification.md` : la spec en cours (refonte « Billy, le jeu »). Elle fait foi sur toutes les autres en cas de divergence.**
 - `docs/specs/arbre-competences.md` : les 10 compétences, leurs 5 étapes, les exercices de chaque étape et le rythme des séances

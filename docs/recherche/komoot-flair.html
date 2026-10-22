@@ -1,0 +1,595 @@
+<title>Komoot × Flair</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout : une colonne de lecture (720 px) + des planches d'écrans iPhone en Flair, qui défilent à l'horizontale sur mobile. */
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --text:#18201E; --muted:#5A6662; --line:#E1E6E2;
+  --primary:#1E5A50; --primary-soft:#DCEBE6; --action:#BF5519; --gold:#F2B544; --gold-soft:#FCEFD3; --gold-text:#8A6514;
+  --info:#2559A8; --info-soft:#E3EAF8; --danger:#B3261E; --danger-soft:#FDF1F0;
+  --kmt:#4F6814; --kmt-soft:#E7E8D1;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:Figtree, "Helvetica Neue", system-ui, sans-serif;
+  /* écran d'app : toujours clair, comme Flair aujourd'hui */
+  --app-bg:#F3F5F2; --app-surface:#FFFFFF; --app-text:#18201E; --app-muted:#5A6662; --app-line:#E6EAE7;
+  --app-primary:#1E5A50; --app-primary-soft:#DCEBE6; --app-action:#BF5519; --app-gold:#F2B544; --app-gold-soft:#FCEFD3;
+  --app-map:#E9ECE6; --app-street:#FFFFFF; --app-park:#CFE3C9; --app-water:#BFD6EC; --app-fog:#22332F;
+  --frame:#18201E;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121816; --surface:#1B2320; --text:#E8EEEA; --muted:#A3B0AB; --line:#2C3632;
+  --primary:#7FC3B4; --primary-soft:#1F3631; --action:#F08A4B; --gold:#F2B544; --gold-soft:#3A3220; --gold-text:#F2C96F;
+  --info:#8EB1EC; --info-soft:#1E2A3D; --danger:#F08C84; --danger-soft:#3A1F1D; --kmt:#B5C97A; --kmt-soft:#2A2E1C;
+  --frame:#000; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#121816; --surface:#1B2320; --text:#E8EEEA; --muted:#A3B0AB; --line:#2C3632;
+  --primary:#7FC3B4; --primary-soft:#1F3631; --action:#F08A4B; --gold:#F2B544; --gold-soft:#3A3220; --gold-text:#F2C96F;
+  --info:#8EB1EC; --info-soft:#1E2A3D; --danger:#F08C84; --danger-soft:#3A1F1D; --kmt:#B5C97A; --kmt-soft:#2A2E1C;
+  --frame:#000; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font:400 16px/1.55 var(--body);margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 80px}
+.read{max-width:720px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-size:clamp(36px,6vw,56px);font-weight:700;line-height:1.02;letter-spacing:-.02em}
+h2{font-size:clamp(26px,3.6vw,34px);font-weight:700;line-height:1.1;letter-spacing:-.01em}
+h3{font-size:20px;font-weight:700;line-height:1.2}
+p{margin:0}
+.eyebrow{font:800 12px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:19px;color:var(--muted);margin-top:16px;max-width:640px}
+section{margin-top:72px}
+section>.head{display:grid;gap:10px;margin-bottom:24px;max-width:720px}
+.stack{display:grid;gap:14px}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+a{color:var(--primary);text-underline-offset:3px}
+
+/* sommaire */
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}
+.toc a{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--text);text-decoration:none;font-weight:600;font-size:14px}
+.toc a:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
+/* trois choses */
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:36px}
+.three>div{background:var(--surface);border-radius:20px;padding:20px;display:grid;gap:8px;align-content:start}
+.three b{font-family:var(--display);font-size:19px;line-height:1.2}
+@media (max-width:760px){.three{grid-template-columns:1fr}}
+
+/* tableau de diagnostic */
+.tbl{overflow-x:auto;background:var(--surface);border-radius:20px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:15px}
+th,td{text-align:left;vertical-align:top;padding:14px 16px;border-bottom:1px solid var(--line)}
+th{font:800 12px/1.2 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:700;width:22%}
+
+/* idée */
+.idea{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:32px;align-items:start;background:var(--surface);border-radius:26px;padding:28px}
+.idea+.idea{margin-top:16px}
+@media (max-width:860px){.idea{grid-template-columns:1fr}}
+.pair{display:grid;gap:12px}
+.from,.to{display:grid;grid-template-columns:72px minmax(0,1fr);gap:12px}
+.tag{font:800 11px/1 var(--body);letter-spacing:.06em;text-transform:uppercase;padding:6px 0 0}
+.from .tag{color:var(--kmt)} .to .tag{color:var(--action)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 10px;border-radius:999px;font-size:13px;font-weight:700;background:var(--primary-soft);color:var(--primary)}
+.chip.p1{background:var(--action);color:#fff}
+.chip.gold{background:var(--gold-soft);color:var(--gold-text)}
+.chip.info{background:var(--info-soft);color:var(--info)}
+.chip.warn{background:var(--danger-soft);color:var(--danger)}
+ul.clean{margin:0;padding-left:18px;display:grid;gap:6px}
+.note{border-left:3px solid var(--gold);padding:4px 0 4px 14px;font-size:15px;color:var(--muted)}
+
+/* planche d'écrans */
+.board{display:flex;gap:20px;overflow-x:auto;padding:4px 2px 12px;scrollbar-width:none}
+.board::-webkit-scrollbar{display:none}
+.shot{display:grid;gap:10px;flex:0 0 auto}
+.cap{font-size:13px;color:var(--muted);max-width:290px}
+.phone{width:290px;height:600px;border-radius:44px;background:var(--frame);padding:9px;flex:0 0 auto}
+.scr{width:100%;height:100%;border-radius:36px;overflow:hidden;background:var(--app-bg);color:var(--app-text);position:relative;font-family:var(--body);font-size:13px;line-height:1.4}
+.scr .sb{height:34px;display:flex;justify-content:space-between;align-items:center;padding:0 22px;font-weight:700;font-size:12px}
+.scr .body{padding:0 14px;display:grid;gap:10px}
+.scr h4{font:700 21px/1.1 var(--display);margin:0;letter-spacing:-.01em}
+.scr h5{font:700 15px/1.2 var(--display);margin:0}
+.scr .ov{font:800 9.5px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--app-muted)}
+.scr .mut{color:var(--app-muted)}
+.scr .card{background:var(--app-surface);border-radius:16px;padding:12px}
+.scr .back{display:flex;align-items:center;gap:2px;color:var(--app-primary);font-weight:700;font-size:13px;height:30px}
+.btn{display:flex;align-items:center;justify-content:center;height:44px;border-radius:999px;background:var(--app-action);color:#fff;font-weight:700;font-size:14px}
+.btn.ghost{background:transparent;color:var(--app-primary);height:36px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.stats.three-c{grid-template-columns:repeat(3,minmax(0,1fr))}
+.stat b{display:block;font:700 17px/1.1 var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.stat span{font-size:10.5px;color:var(--app-muted)}
+.row{display:flex;align-items:center;gap:10px}
+.dot{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:800 11px/1 var(--body);color:#fff;flex:0 0 auto}
+.tl{display:grid;gap:0}
+.tl .ev{display:grid;grid-template-columns:38px 22px minmax(0,1fr);gap:8px;align-items:start;padding:7px 0;border-top:1px solid var(--app-line)}
+.tl .ev:first-child{border-top:0}
+.tl time{font-size:11px;font-weight:700;color:var(--app-muted);font-variant-numeric:tabular-nums;padding-top:3px}
+.pill{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;font-size:10.5px;font-weight:700;background:var(--app-primary-soft);color:var(--app-primary)}
+.pill.o{background:#FBE6D4;color:#8A3E0C}
+.pill.g{background:var(--app-gold-soft);color:#8A6514}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.tiles div{background:var(--app-bg);border-radius:12px;padding:8px 4px;text-align:center;font-size:10.5px;font-weight:700}
+.map{position:relative;overflow:hidden}
+.map svg{display:block;width:100%;height:100%}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--app-surface);border-radius:24px 24px 0 0;padding:8px 14px 16px;display:grid;gap:10px;box-shadow:0 -6px 20px rgba(0,0,0,.12)}
+.grab{width:36px;height:4px;border-radius:4px;background:#D3D9D6;margin:0 auto 2px}
+.notif{margin:10px;background:rgba(255,255,255,.86);border-radius:18px;padding:10px 12px;display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;backdrop-filter:blur(10px)}
+.appicon{width:30px;height:30px;border-radius:8px;background:var(--app-primary);display:grid;place-items:center}
+.lock{background:linear-gradient(160deg,#36574F,#1B2B27);height:100%;color:#fff}
+.lock .clock{font:500 64px/1 var(--display);text-align:center;margin-top:30px;letter-spacing:-.02em}
+.lock .date{text-align:center;font-weight:600;font-size:13px;margin-top:4px;opacity:.85}
+.chart{height:70px}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:10px;color:var(--app-muted)}
+.legend i{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:4px;vertical-align:middle}
+
+/* données */
+.data{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.data{grid-template-columns:1fr}}
+.data>div{background:var(--surface);border-radius:20px;padding:18px;display:grid;gap:6px;align-content:start}
+.data b{font-size:16px}
+
+/* feuille de route */
+.lots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:860px){.lots{grid-template-columns:1fr}}
+.lot{background:var(--surface);border-radius:20px;padding:20px;display:grid;gap:10px;align-content:start}
+.lot ol{margin:0;padding-left:20px;display:grid;gap:6px;font-size:15px}
+.no{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.no{grid-template-columns:1fr}}
+.no>div{border:1px dashed var(--line);border-radius:20px;padding:18px;display:grid;gap:6px}
+.sources{font-size:14px;columns:2;column-gap:32px}
+.sources li{break-inside:avoid;margin-bottom:6px}
+@media (max-width:760px){.sources{columns:1}}
+.questions{background:var(--primary-soft);border-radius:24px;padding:24px;display:grid;gap:12px}
+.questions ol{margin:0;padding-left:20px;display:grid;gap:8px}
+@media (prefers-reduced-motion:no-preference){.toc a{transition:transform .15s cubic-bezier(.2,.8,.3,1)}.toc a:active{transform:scale(.96)}}
+</style>
+
+<div class="wrap">
+<header class="read">
+  <p class="eyebrow">Étude du 22 octobre 2026 · pour Flair</p>
+  <h1 style="margin-top:14px">Komoot × Flair</h1>
+  <p class="lede">Ce que l'app de randonnée la plus utilisée d'Europe fait bien, pourquoi elle paraît si aboutie, et comment le refaire dans Flair, avec les règles et le style guide de Flair. Les écrans dessinés ici sont des propositions, pas encore des maquettes validées.</p>
+  <nav class="toc" aria-label="Sommaire">
+    <a href="#pro">Pourquoi Komoot fait « pro »</a>
+    <a href="#auto">Balades détectées seules</a>
+    <a href="#detail">La balade en détail</a>
+    <a href="#idees">Les autres idées</a>
+    <a href="#non">À ne pas copier</a>
+    <a href="#lots">Ordre proposé</a>
+  </nav>
+  <div class="three">
+    <div><span class="eyebrow">1 · Le plus visible</span><b>Une fiche de balade riche</b><p class="small muted">Komoot fait de chaque sortie une vraie page : carte, chiffres alignés, frise, photos. Chez Flair, c'est aujourd'hui une date et « 2,0 km · 30 min ».</p></div>
+    <div><span class="eyebrow">2 · Le plus magique</span><b>Rien à ouvrir</b><p class="small muted">La Watch enregistre la marche, Flair la récupère, et une notification annonce la balade. L'utilisateur n'a rien à faire.</p></div>
+    <div><span class="eyebrow">3 · Le plus Flair</span><b>Les arrêts racontent la balade</b><p class="small muted">Chaque arrêt détecté devient une question : « 4 min rue des Lilas. Que s'est-il passé ? » La réponse, en un toucher, nourrit le profil de Billy.</p></div>
+  </div>
+</header>
+
+<!-- ======================= PRO ======================= -->
+<section id="pro">
+  <div class="head">
+    <p class="eyebrow">Diagnostic visuel</p>
+    <h2>Pourquoi Komoot paraît plus abouti</h2>
+    <p class="muted">Comparaison faite sur six captures de Flair du 19 octobre et sur la refonte de Komoot de septembre 2025, qui s'appuie sur 110 entretiens et plus de 3 000 questionnaires. Le problème de Flair n'est pas sa palette, qui est bonne. C'est l'échelle : tout est gros et gras, donc rien ne ressort.</p>
+  </div>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Sujet</th><th>Komoot</th><th>Flair aujourd'hui</th><th>Proposition</th></tr></thead>
+      <tbody>
+        <tr><td>Titres</td><td>Graisse moyenne (Nohemi 500) : ton éditorial, calme.</td><td>Bricolage 800 partout, jusque dans les noms de balades.</td><td>Comme Komoot, en graisse moyenne : Bricolage 600 pour les titres d'écran, 500 pour les titres de carte. Le 700 seulement pour les gros chiffres. Le 800 disparaît.</td></tr>
+        <tr><td>Boutons</td><td>Un seul bouton plein par objet (« Take Me There »). Le reste est en texte ou en icône.</td><td>Retour « ‹ Accueil » en grosse pilule bordée, « Une autre idée » en pilule, contours de 2 px.</td><td>Retour en chevron + texte, sans cadre. Actions secondaires en texte vert. Contour réservé à un seul bouton secondaire par écran.</td></tr>
+        <tr><td>Chiffres</td><td>Rangée de stats : chiffre en gras, libellé petit en dessous, chiffres de même largeur.</td><td>« 15:17 » énorme à côté de « 1,0 km » petit ; « 2,0 km · 30 min » perdu dans une phrase.</td><td>Un composant « Stats » de 3 ou 4 colonnes, partout : balade en cours, fin, fiche, liste.</td></tr>
+        <tr><td>Densité</td><td>La fiche d'un parcours est la page la plus riche de l'app : 8 blocs ordonnés.</td><td>La fiche d'une balade tient en 4 lignes, avec 60 % de vide.</td><td>La fiche de balade décrite plus bas : carte, stats, frise, réactions, photos.</td></tr>
+        <tr><td>Images</td><td>Photos en grand et vraies cartes (relief, sentiers).</td><td>Lettre « O » à la place de la photo du chien, carré beige pour un souvenir, cercles sans fond de carte.</td><td>Mini-carte avec un vrai fond OpenFreeMap. Sans photo : la carte du trajet. La lettre seulement avant la première photo.</td></tr>
+        <tr><td>Données sourcées</td><td>« Météo par Foreca », « mis à jour le… », légende de la difficulté.</td><td>Peu de sources visibles.</td><td>« Enregistré par l'Apple Watch », « Météo Open-Meteo », « Lieux © OpenStreetMap » sous les blocs concernés.</td></tr>
+        <tr><td>Neutres</td><td>Blanc cassé et sable teintés, un seul accent orange, rare.</td><td>Même logique (vert, orange rare). Bon point.</td><td>Garder. Ajouter un « vert carte » pour les tracés afin que l'orange reste réservé à l'action.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note" style="margin-top:16px">Décidé le 22 octobre : on suit le rendu de Komoot sur toute la colonne « Proposition ». Première étape : mettre à jour le style guide et le design system Flair, puis les maquettes V5, puis le code.</p>
+</section>
+
+<!-- ======================= AUTO ======================= -->
+<section id="auto">
+  <div class="head">
+    <p class="eyebrow">Idée 1 · Priorité haute</p>
+    <h2>Les balades arrivent seules</h2>
+    <p class="muted">Ce que tu as vu chez Komoot vient de la Watch. Elle propose « Commencer une marche ? » quand tu marches, enregistre la séance avec son tracé dans l'app Santé, et Komoot la lit. Son aide officielle précise que l'import se fait quand l'app est ouverte et en ligne. La notification reçue sans ouvrir l'app vient d'un réveil en arrière-plan quand Santé reçoit une nouvelle séance.</p>
+  </div>
+  <div class="idea">
+    <div class="stack">
+      <div class="pair">
+        <div class="from"><span class="tag">Komoot</span><p>Lit les marches, randonnées et sorties à vélo en extérieur avec tracé, ignore celles en intérieur, ne crée jamais de doublon, puis envoie « Votre tour a été importé ».</p></div>
+        <div class="to"><span class="tag">Flair</span><p>Flair lit déjà les marches de la Watch, mais seulement à l'ouverture. On ajoute le réveil en arrière-plan : iOS prévient Flair dès qu'une marche arrive dans Santé, Flair la garde de côté et envoie une notification locale. À l'ouverture, l'import existant la range dans les souvenirs, lève le brouillard, donne les +3 os et ouvre « Belle balade ! ».</p></div>
+      </div>
+      <ul class="clean small">
+        <li><b>Texte de la notification</b> : « Belle balade avec Billy&nbsp;! 2,1 km · 32 min. Touchez pour voir ce qu'il a découvert. » Une seule par balade, jamais de reproche.</li>
+        <li><b>Sans Watch</b> (Josiane, les Moreau) : l'iPhone garde l'historique de ses marches, sans position. À l'ouverture : « Vous avez marché 35 min vers 8 h. C'était une sortie avec Billy&nbsp;? » La sortie est notée en un toucher, sans tracé. Nouvel accès « Mouvements et forme » validé le 22 octobre.</li>
+        <li><b>Coût</b> : 0 €, pas de serveur, du Swift dans <code>FlairNativePlugin.swift</code>.</li>
+      </ul>
+      <p class="note">À tester d'abord, en 30 minutes dans Xcode : le réveil en arrière-plan par Santé avec ton compte Apple gratuit. Sur la Watch, le réglage « Rappel pour commencer un exercice » doit être activé.</p>
+      <div class="meta"><span class="chip p1">Priorité haute</span><span class="chip">iOS seulement</span><span class="chip info">Test Xcode avant de coder</span></div>
+    </div>
+    <div class="shot">
+      <div class="phone"><div class="scr lock">
+        <div class="sb" style="color:#fff"><span>9:41</span><span>●●●</span></div>
+        <div class="clock">8:47</div>
+        <div class="date">jeudi 22 octobre</div>
+        <div class="notif" style="margin-top:40px;color:#18201E">
+          <div class="appicon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M4 18c3-6 6-9 8-9s5 3 8 9"/><circle cx="12" cy="5" r="1.6" fill="#fff"/></svg></div>
+          <div><div class="row" style="justify-content:space-between"><b style="font-size:12px">FLAIR</b><span class="mut" style="font-size:11px">maintenant</span></div>
+          <div style="font-weight:700;font-size:13px">Belle balade avec Billy&nbsp;!</div>
+          <div style="font-size:12.5px">2,1 km · 32 min. Touchez pour voir ce qu'il a découvert.</div></div>
+        </div>
+        <div class="notif" style="color:#18201E;opacity:.75">
+          <div class="appicon" aria-hidden="true" style="background:#F3F5F2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E5A50" stroke-width="2.4" stroke-linecap="round"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg></div>
+          <div><div class="row" style="justify-content:space-between"><b style="font-size:12px">SANTÉ</b><span class="mut" style="font-size:11px">il y a 2 min</span></div>
+          <div style="font-size:12.5px">Marche en extérieur enregistrée · 32 min</div></div>
+        </div>
+      </div></div>
+      <p class="cap">L'iPhone verrouillé, deux minutes après la fin de la marche sur la Watch.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DETAIL ======================= -->
+<section id="detail">
+  <div class="head">
+    <p class="eyebrow">Idée 2 · Le cœur de la proposition</p>
+    <h2>La balade en détail</h2>
+    <p class="muted">Ta demande : voir exactement ce qui s'est passé pendant la balade. La Watch et l'iPhone enregistrent bien plus que ce que Flair garde aujourd'hui (200 points, sans heure). En gardant l'heure de chaque point, on peut reconstituer la balade minute par minute.</p>
+  </div>
+
+  <div class="data">
+    <div><b>Le tracé daté</b><p class="small muted">Chaque point GPS avec son heure, sa vitesse, son altitude et sa précision. C'est la base de tout : les arrêts, l'allure, le dénivelé. Source : séance de la Watch ou GPS de Flair.</p></div>
+    <div><b>Les arrêts</b><p class="small muted">Calculés à partir du tracé : vitesse sous 0,4 m/s pendant plus de 30 s. Chaque arrêt a une heure, une durée et un nom de rue (OpenStreetMap). Les pauses faites sur la Watch s'y ajoutent.</p></div>
+    <div><b>L'allure</b><p class="small muted">La vitesse minute par minute, et le tracé coloré par allure, comme Komoot colore la pente. On voit où Billy a tiré, où il a reniflé, où vous avez couru.</p></div>
+    <div><b>Le cœur (le tien)</b><p class="small muted">Le rythme cardiaque de la Watch pendant la balade. Un pic sans accélération signale souvent un moment de stress, pour toi ou pour Billy. <b style="color:var(--primary);font-size:inherit">Décidé le 22 octobre :</b> on le garde, une valeur par minute, privé.</p></div>
+    <div><b>Les pas et le dénivelé</b><p class="small muted">Nombre de pas, montée et descente. Utile pour un chiot : « 120 m de montée » dit plus que « 2 km ».</p></div>
+    <div><b>La météo du moment</b><p class="small muted">Température et humidité, fournies par la Watch quand elle les a, sinon par Open-Meteo (gratuit, sans clé). Pour comprendre une balade difficile par 28 °C.</p></div>
+  </div>
+
+  <div class="idea" style="margin-top:20px">
+    <div class="stack">
+      <h3>La fiche de balade, construite comme celle de Komoot</h3>
+      <p class="muted small">Ordre des blocs repris de la fiche d'un parcours Komoot, adapté au chien : d'abord la carte, puis les chiffres, puis l'histoire.</p>
+      <ol class="clean small" style="padding-left:20px">
+        <li><b>Carte en haut</b>, tracé coloré par allure, arrêts numérotés. « Revoir la balade » rejoue le tracé (l'équivalent gratuit du survol 3D de Komoot).</li>
+        <li><b>Titre et sous-titre</b> : « Balade du matin », « Jeudi 22 octobre · 8 h 12 → 8 h 44 · Vertbois ».</li>
+        <li><b>Stats en rangée</b> : durée, distance, en marche, arrêts.</li>
+        <li><b>Courbe d'allure</b> avec les arrêts en creux ; un glissement du doigt montre l'heure et la rue, comme le profil d'altitude de Komoot.</li>
+        <li><b>Ce qui s'est passé</b> : la frise des arrêts et des repères. Un arrêt sans repère pose la question « Que s'est-il passé ici&nbsp;? » avec les tuiles de repères qui existent déjà.</li>
+        <li><b>Ce qu'il a découvert</b> : rues et lieux sortis du brouillard, « +1 % de Vertbois ».</li>
+        <li><b>Tous les chiffres</b>, replié par défaut : allure moyenne, km par km, pas, dénivelé, calories, cœur moyen et maximum. Pour Martin et Léo, sans encombrer l'écran de Josiane.</li>
+        <li><b>Photos</b> de la balade, puis les sources en petit : « Enregistré par l'Apple Watch · Météo Open-Meteo ».</li>
+      </ol>
+      <div class="meta"><span class="chip p1">Priorité haute</span><span class="chip">Web et iOS</span><span class="chip gold">Données : trajet daté</span></div>
+    </div>
+    <div class="board">
+      <div class="shot">
+        <div class="phone"><div class="scr">
+          <div class="map" style="height:230px" data-map="pace"></div>
+          <div class="body" style="margin-top:-18px;position:relative;background:var(--app-bg);border-radius:20px 20px 0 0;padding-top:14px">
+            <div><div class="ov">Balade avec Billy</div><h4 style="margin-top:4px">Balade du matin</h4><div class="mut" style="margin-top:3px">Jeudi 22 octobre · 8 h 12 → 8 h 44</div></div>
+            <div class="stats card">
+              <div class="stat"><b>32 min</b><span>durée</span></div>
+              <div class="stat"><b>2,1 km</b><span>distance</span></div>
+              <div class="stat"><b>24 min</b><span>en marche</span></div>
+              <div class="stat"><b>4</b><span>arrêts</span></div>
+            </div>
+            <div class="card" style="display:grid;gap:6px">
+              <div class="row" style="justify-content:space-between"><h5>Allure</h5><span class="mut" style="font-size:11px">glissez pour revoir</span></div>
+              <div class="chart" data-chart="pace"></div>
+              <div class="legend"><span><i style="background:#2F8F6B"></i>marche tranquille</span><span><i style="background:#E0A12E"></i>rapide</span><span><i style="background:#9AA5A0"></i>arrêt</span></div>
+            </div>
+          </div>
+        </div></div>
+        <p class="cap">Haut de la fiche : carte colorée par allure, arrêts numérotés, stats alignées.</p>
+      </div>
+      <div class="shot">
+        <div class="phone"><div class="scr">
+          <div class="sb"><span>9:41</span><span>●●●</span></div>
+          <div class="body">
+            <div class="back">‹ Balade du matin</div>
+            <h4>Ce qui s'est passé</h4>
+            <div class="card tl">
+              <div class="ev"><time>8 h 12</time><span class="dot" style="background:#1E5A50">▶</span><div><b>Départ</b><div class="mut">Rue Anselme · 14 °C</div></div></div>
+              <div class="ev"><time>8 h 17</time><span class="dot" style="background:#9AA5A0">1</span><div><b>Arrêt de 3 min</b><div class="mut">Square Ampère</div><span class="pill" style="margin-top:4px">Jeu</span></div></div>
+              <div class="ev"><time>8 h 24</time><span class="dot" style="background:#C4423A">2</span><div><b>Arrêt de 1 min</b><div class="mut">Rue de l'Hermet · votre cœur à 118</div><span class="pill o" style="margin-top:4px">Moment de stress</span></div></div>
+              <div class="ev"><time>8 h 31</time><span class="dot" style="background:#9AA5A0">3</span><div><b>Arrêt de 4 min</b><div class="mut">Allée Bachelet</div>
+                <div style="margin-top:6px;font-weight:700">Que s'est-il passé ici&nbsp;?</div>
+                <div class="tiles" style="margin-top:6px"><div>Pipi</div><div>Rencontre</div><div>Reniflage</div></div></div></div>
+              <div class="ev"><time>8 h 40</time><span class="dot" style="background:#E0A12E">↑</span><div><b>Plus rapide</b><div class="mut">6,1 km/h sur 300 m · il a tiré&nbsp;?</div></div></div>
+              <div class="ev"><time>8 h 44</time><span class="dot" style="background:#1E5A50">■</span><div><b>Retour</b></div></div>
+            </div>
+          </div>
+        </div></div>
+        <p class="cap">La frise : chaque arrêt a son heure, sa rue et sa durée. Un toucher pour dire ce qui s'est passé.</p>
+      </div>
+      <div class="shot">
+        <div class="phone"><div class="scr">
+          <div class="map" style="height:100%" data-map="end"></div>
+          <div class="sheet">
+            <div class="grab"></div>
+            <div style="text-align:center"><div class="ov" style="color:#8A3E0C">Arrivée de l'Apple Watch</div><h4 style="margin-top:6px;font-size:24px">Belle balade&nbsp;!</h4><div class="mut" style="margin-top:2px">Billy a découvert 3 nouvelles rues</div></div>
+            <div class="stats three-c card" style="background:var(--app-bg)">
+              <div class="stat"><b>2,1 km</b><span>ensemble</span></div>
+              <div class="stat"><b>+1 %</b><span>de Vertbois</span></div>
+              <div class="stat"><b>+3</b><span>os</span></div>
+            </div>
+            <div style="font-weight:700">4 arrêts. Que s'est-il passé&nbsp;?</div>
+            <div class="row" style="gap:6px"><span class="pill">Jeu · 8 h 17</span><span class="pill o">Stress · 8 h 24</span><span class="pill g">2 à raconter</span></div>
+            <div class="btn">Raconter la balade</div>
+            <div class="btn ghost">Plus tard</div>
+          </div>
+        </div></div>
+        <p class="cap">Le récap de fin, version Komoot : chiffres, découverte, et une seule invitation à raconter.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="data" style="margin-top:16px">
+    <div><b>Ce qu'il faut changer dans les données</b><p class="small muted">Garder l'heure de chaque point (un point toutes les 5 s, soit environ 400 points et 15 Ko pour 30 min, sous la limite de 900 Ko). Ajouter <code>route.stops[]</code> (heure, durée, rue), <code>route.pace[]</code> (une valeur par minute), <code>steps</code>, <code>ascentM</code>, <code>weather</code> ; et <code>hr[]</code> (une valeur par minute, validé le 22 octobre). Tous les champs sont optionnels : les anciennes balades restent lisibles.</p></div>
+    <div><b>Ce qui en sort pour Billy</b><p class="small muted">Balade après balade, les arrêts racontés construisent une carte de ses réactions : où il a peur, où il joue, où il marque. On peut alors dire « Rue de l'Hermet : 3 moments de stress en 2 semaines » et proposer un autre chemin. C'est ce que Komoot ne fait pas, et ce qui rend Flair utile au-delà du sport.</p></div>
+  </div>
+</section>
+
+<!-- ======================= IDÉES ======================= -->
+<section id="idees">
+  <div class="head">
+    <p class="eyebrow">Idées 3 à 9</p>
+    <h2>Les autres idées à reprendre</h2>
+    <p class="muted">Triées de la plus utile à la plus coûteuse. Chacune respecte les règles de Flair : 0 €, pas d'IA, rien de public, rien qui baisse.</p>
+  </div>
+
+  <div class="idea">
+    <div class="stack">
+      <h3>3 · Les spots deviennent des « Highlights » pour chiens</h3>
+      <div class="pair">
+        <div class="from"><span class="tag">Komoot</span><p>Un Highlight se crée seulement là où l'on est passé. Les doublons sont fusionnés, chaque fiche a une note, des conseils, des photos et un seul bouton « Take Me There ».</p></div>
+        <div class="to"><span class="tag">Flair</span><p>La fiche d'un spot de la meute reprend cet ordre : photo, catégorie, calme par moment de la journée, conseils des maîtres (« eau à l'entrée », « laisse obligatoire »), qui est passé cette semaine, et « Y aller ». Proposer un spot seulement sur un trajet déjà fait, avec les spots proches suggérés d'abord pour éviter les doublons.</p></div>
+      </div>
+      <div class="meta"><span class="chip">Priorité moyenne</span><span class="chip">Améliore l'existant</span></div>
+    </div>
+    <div class="shot">
+      <div class="phone"><div class="scr">
+        <div class="map" style="height:170px" data-map="spot"></div>
+        <div class="body" style="margin-top:12px">
+          <div><div class="ov">Parc · Spot de la meute</div><h4 style="margin-top:4px">Grand Parc des Docks</h4></div>
+          <div class="stats three-c card">
+            <div class="stat"><b>Calme</b><span>le matin</span></div>
+            <div class="stat"><b>6</b><span>chiens cette semaine</span></div>
+            <div class="stat"><b>650 m</b><span>d'ici</span></div>
+          </div>
+          <div class="card" style="display:grid;gap:8px">
+            <h5>Conseils de la meute</h5>
+            <div>« Point d'eau à l'entrée nord. Plein de joggeurs après 18 h. »<div class="mut" style="font-size:11px">Oslo · il y a 3 jours</div></div>
+            <div class="row" style="gap:6px;flex-wrap:wrap"><span class="pill">Eau</span><span class="pill">Ombre</span><span class="pill o">Laisse obligatoire</span></div>
+          </div>
+          <div class="btn" style="margin-top:4px">Y aller · 8 min à pied</div>
+        </div>
+      </div></div>
+      <p class="cap">Une fiche de spot ordonnée comme un Highlight : chiffres, conseils, une seule action.</p>
+    </div>
+  </div>
+
+  <div class="idea">
+    <div class="stack">
+      <h3>4 · « Boucles pour Billy » : des balades proposées</h3>
+      <div class="pair">
+        <div class="from"><span class="tag">Komoot</span><p>Propose des boucles autour de vous, avec trois niveaux de difficulté codés en couleur (facile, modéré, difficile) et une phrase claire : « Convient à tous les niveaux ».</p></div>
+        <div class="to"><span class="tag">Flair</span><p>Trois boucles au départ de la maison : 15, 30 et 45 min, qui passent par du brouillard à lever ou un spot calme. Un niveau pensé pour le chien : « Facile · chiot » (moins de 1 km, peu de grandes rues), « Moyen », « Long ». La boucle se suit dans Flair, puis lève le brouillard.</p></div>
+      </div>
+      <p class="note">Il faut un calcul d'itinéraire. Gratuit : openrouteservice (2 000 calculs par jour avec une clé). Version plus simple pour commencer : proposer tes propres balades passées qui frôlent du brouillard, sans aucun calcul.</p>
+      <div class="meta"><span class="chip">Priorité moyenne</span><span class="chip info">Version simple possible</span></div>
+    </div>
+    <div class="shot">
+      <div class="phone"><div class="scr">
+        <div class="sb"><span>9:41</span><span>●●●</span></div>
+        <div class="body">
+          <div><div class="ov">Autour de chez vous</div><h4 style="margin-top:4px">Boucles pour Billy</h4><div class="mut" style="margin-top:3px">Choisies pour un chiot de 5 mois : d'abord le calme.</div></div>
+          <div class="card" style="padding:0;overflow:hidden"><div class="map" style="height:92px" data-map="loop1"></div><div style="padding:10px 12px;display:grid;gap:4px"><div class="row" style="justify-content:space-between"><h5>Par le square Ampère</h5><span class="pill">Facile · chiot</span></div><div class="mut">15 min · 0,9 km · 2 rues à découvrir</div></div></div>
+          <div class="card" style="padding:0;overflow:hidden"><div class="map" style="height:92px" data-map="loop2"></div><div style="padding:10px 12px;display:grid;gap:4px"><div class="row" style="justify-content:space-between"><h5>Les quais jusqu'aux Docks</h5><span class="pill g">Moyen</span></div><div class="mut">30 min · 2,0 km · spot calme le matin</div></div></div>
+        </div>
+      </div></div>
+      <p class="cap">Deux boucles par distance, avec un niveau adapté à l'âge du chien.</p>
+    </div>
+  </div>
+
+  <div class="idea">
+    <div class="stack">
+      <h3>5 · Pendant la balade : la frise se remplit en direct</h3>
+      <div class="pair">
+        <div class="from"><span class="tag">Komoot</span><p>Widget sur l'écran verrouillé avec les chiffres clés, « À venir » qui annonce les Highlights proches, et un rappel « Vous enregistrez encore&nbsp;? » quand la sortie semble finie.</p></div>
+        <div class="to"><span class="tag">Flair</span><p>La Live Activity déjà prévue affiche durée, distance et rues découvertes. Un bouton « Repère » sur l'écran verrouillé note un moment (peur, jeu, pipi) à l'endroit exact, sans ouvrir l'app. Si vous êtes immobiles depuis 10 min près de chez vous : « Balade finie&nbsp;? Terminer », au lieu d'un tracé qui continue toute la journée.</p></div>
+      </div>
+      <div class="meta"><span class="chip">Priorité moyenne</span><span class="chip">iOS seulement</span><span class="chip info">Déjà au plan natif</span></div>
+    </div>
+  </div>
+
+  <div class="idea">
+    <div class="stack">
+      <h3>6 · Recadrer le début et la fin</h3>
+      <div class="pair">
+        <div class="from"><span class="tag">Komoot</span><p>Depuis septembre 2026, on coupe le début ou la fin d'une sortie (oubli d'arrêter l'enregistrement) et les chiffres se recalculent.</p></div>
+        <div class="to"><span class="tag">Flair</span><p>Dans la fiche : « Ajuster le début et la fin », deux poignées sur la courbe d'allure. Ce n'est pas tracer à la main (décision du 17 octobre) : on enlève seulement ce qui est en trop.</p></div>
+      </div>
+      <div class="meta"><span class="chip">Priorité basse</span><span class="chip">Petit</span></div>
+    </div>
+  </div>
+
+  <div class="idea">
+    <div class="stack">
+      <h3>7 · « Revoir la balade » qui se partage</h3>
+      <div class="pair">
+        <div class="from"><span class="tag">Komoot</span><p>Le bouton Partager d'une sortie génère une vidéo de survol 3D : satellite, profil, stats et photos.</p></div>
+        <div class="to"><span class="tag">Flair</span><p>La carte postale de balade déjà sur la toile : une image avec le tracé, la photo de Billy, « 2,1 km · 3 rues découvertes ». Jamais l'adresse ni le départ exact : on coupe les 200 premiers mètres du tracé, comme les zones de confidentialité de Strava.</p></div>
+      </div>
+      <div class="meta"><span class="chip">Priorité basse</span><span class="chip gold">Fidélisation</span></div>
+    </div>
+  </div>
+
+  <div class="idea">
+    <div class="stack">
+      <h3>8 · Le profil : la frise et le bilan</h3>
+      <div class="pair">
+        <div class="from"><span class="tag">Komoot</span><p>Profil avec stats, toutes les photos, recherche dans ses sorties, accès direct à une année. Défis du mois gratuits (« 4 sorties en juin »).</p></div>
+        <div class="to"><span class="tag">Flair</span><p>Dans Billy › Ses balades : « 42 balades · 61 km · 18 % de Vertbois », toutes les photos, et un bilan du mois (le récap du dimanche, en plus grand). Un défi du mois devient une mission qui rapporte des os, pas un badge : règle V4 « un seul système de récompense ».</p></div>
+      </div>
+      <div class="meta"><span class="chip">Priorité basse</span></div>
+    </div>
+  </div>
+
+  <div class="idea">
+    <div class="stack">
+      <h3>9 · « Suivre la balade » : le partage en direct, avec des proches choisis</h3>
+      <div class="pair">
+        <div class="from"><span class="tag">Komoot</span><p>Le suivi en direct (Premium) envoie un lien à des contacts de confiance : position mise à jour toutes les 5 s quand quelqu'un regarde, sinon toutes les minutes, avec statut (en cours, en pause, terminé), distance et batterie. Le lien expire au bout de 28 jours.</p></div>
+        <div class="to"><span class="tag">Flair</span><p>Au départ d'une balade, un interrupteur « Partager la balade en direct » (éteint par défaut). Il envoie un lien à une ou deux personnes choisies : le conjoint qui veut savoir quand rentrer, la famille de Josiane si elle sort seule, la personne qui garde Billy. Le lien montre la position, la durée et « Balade terminée », puis s'éteint à la fin de la balade.</p></div>
+      </div>
+      <ul class="clean small">
+        <li><b>Garde-fous</b> : jamais vers la meute ni en public. Un bandeau « Partagé en direct avec Coralie » reste visible pendant toute la balade et l'arrête en un toucher. La position n'est pas gardée après la fin.</li>
+        <li><b>Coût</b> : une écriture Firestore par minute, soit environ 60 pour une heure. Le lien ouvre une page du site, lisible sans compte grâce à un jeton secret.</li>
+      </ul>
+      <p class="note">Décidé le 22 octobre : la spec de la meute passe de « jamais de position en direct » à « jamais sans un choix explicite ». D'autres cas pourront s'ajouter, toujours activés par l'utilisateur.</p>
+      <div class="meta"><span class="chip">Priorité moyenne</span><span class="chip">iOS (GPS en arrière-plan)</span><span class="chip warn">Change une règle</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= NON ======================= -->
+<section id="non">
+  <div class="head">
+    <p class="eyebrow">À éviter</p>
+    <h2>Ce qu'il ne faut pas copier</h2>
+    <p class="muted">Les avis Trustpilot (3,7 sur 5, 2 040 avis, 30 % à une étoile) et les critiques de 2025–2026 montrent les limites de Komoot.</p>
+  </div>
+  <div class="no">
+    <div><b>La série qui retombe à zéro</b><p class="small muted">La série d'aventures de Komoot repart de zéro après une semaine sans sortie. Contraire à la règle « rien ne baisse ». Si on compte, on compte seulement ce qui monte : « 12 semaines de balades cette année ».</p></div>
+    <div><b>Le partage en direct ouvert à tous</b><p class="small muted">Le suivi en direct est repris (idée 9), mais jamais vers la meute ni en public : seulement vers les personnes que vous choisissez, et seulement pendant la balade.</p></div>
+    <div><b>Le réseau social envahissant</b><p class="small muted">Un avis de septembre 2026 parle de « TikTok wannabe ». Flair garde la meute petite et privée.</p></div>
+    <div><b>Trop d'options</b><p class="small muted">Courbe d'apprentissage longue, démarrer et finir une sortie jugé « inutilement compliqué ». Une action par écran, toujours.</p></div>
+    <div><b>Le paiement piège</b><p class="small muted">Abonnement à 4,99 € par semaine découvert trop tard, essai difficile à annuler. Pour le futur freemium de Flair : prix annuel affiché d'abord, annulation en deux touchers.</p></div>
+    <div><b>Les records et les comparaisons</b><p class="small muted">Les chiffres détaillés sont gardés (bloc « Tous les chiffres » de la fiche), mais jamais de record à battre, de classement ni de « moins bien que la semaine dernière ». Règle « rien ne baisse ».</p></div>
+  </div>
+</section>
+
+<!-- ======================= LOTS ======================= -->
+<section id="lots">
+  <div class="head">
+    <p class="eyebrow">Proposition</p>
+    <h2>Dans quel ordre</h2>
+  </div>
+  <div class="lots">
+    <div class="lot"><span class="chip p1" style="justify-self:start">Lot 1</span><h3>La balade en détail</h3><ol><li>Garder l'heure de chaque point, à la Watch comme au GPS de Flair.</li><li>Calcul des arrêts et de l'allure dans <code>src/lib/</code>, avec des tests.</li><li>Nouvelle fiche de balade et frise « Ce qui s'est passé ».</li><li>Récap « Belle balade&nbsp;! » avec « Raconter la balade ».</li><li>Composant « Stats » et retours en chevron.</li></ol></div>
+    <div class="lot"><span class="chip" style="justify-self:start">Lot 2</span><h3>Rien à ouvrir</h3><ol><li>Test de 30 min dans Xcode (réveil par Santé, compte gratuit).</li><li>Réveil en arrière-plan et notification locale.</li><li>Sans Watch : « C'était une sortie avec Billy&nbsp;? ».</li><li>Bouton « Repère » dans la Live Activity.</li></ol></div>
+    <div class="lot"><span class="chip" style="justify-self:start">Lot 3</span><h3>Découvrir</h3><ol><li>Fiches de spots façon Highlight.</li><li>Boucles pour Billy, version simple (ses propres balades).</li><li>Recadrage début et fin.</li><li>Carte postale de balade.</li></ol></div>
+  </div>
+
+  <div class="questions" style="margin-top:20px">
+    <h3>Tes décisions <span class="chip">Tout validé le 22 octobre</span></h3>
+    <ol>
+      <li><b>Le cœur</b> : <span class="chip">Décidé le 22 octobre</span> on garde ton rythme cardiaque pendant les balades, une valeur par minute, privé. La spec Strava (« jamais ») sera mise à jour.</li>
+      <li><b>Le style guide</b> : <span class="chip">Décidé le 22 octobre</span> on suit le rendu de Komoot. Titres en graisse moyenne, retours en chevron sans pilule, actions secondaires en texte, rangée de stats. Le style guide et les maquettes V5 sont à mettre à jour avant le code.</li>
+      <li><b>Sans Watch</b> : <span class="chip">Décidé le 22 octobre</span> on demande l'accès « Mouvements et forme », avec une phrase qui explique pourquoi, pour proposer « C'était une sortie avec Billy&nbsp;? ».</li>
+      <li><b>Le partage en direct</b> : pendant une balade, tu peux envoyer un lien à une ou deux personnes (ta copine, la famille de Josiane). Elles voient où tu es sur une carte jusqu'à la fin de la balade. <span class="chip">Décidé le 22 octobre</span> oui, et pour d'autres cas si besoin. La règle de la meute devient : jamais de position en direct sans un choix explicite de l'utilisateur, toujours avec un bandeau visible et un arrêt en un toucher.</li>
+      <li><b>L'ordre</b> : <span class="chip">Décidé le 22 octobre</span> les trois lots d'un coup, enchaînés sans attendre de validation entre eux. Les tests sur iPhone (Xcode et recette) se feront ensemble, à la fin. <s class="muted">Avant : Lot 1 d'abord, ou le Lot 2 parce que c'est le plus visible pour toi ?</s></li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="head"><p class="eyebrow">Sources</p><h2>D'où viennent les infos</h2>
+  <p class="muted small">Les informations sur Komoot viennent de son site, de son aide et de la presse : je n'ai pas vu de capture de l'app elle-même. La typographie de l'app native, l'ordre exact de l'écran de fin et l'éventuel popup de célébration n'ont pas pu être vérifiés.</p></div>
+  <ul class="sources">
+    <li><a href="https://support.komoot.com/hc/en-us/articles/7014828600730-Sync-between-komoot-and-Apple-Health">Sync between komoot and Apple Health</a></li>
+    <li><a href="https://support.komoot.com/hc/en-us/articles/10621431252250-All-komoot-Feature-Releases-2026">All komoot Feature Releases 2026</a></li>
+    <li><a href="https://www.komoot.com/features">komoot · Features</a></li>
+    <li><a href="https://www.komoot.com/whats-new">komoot · What's new</a></li>
+    <li><a href="https://www.komoot.com/tour-characteristics">Tour characteristics (difficulté)</a></li>
+    <li><a href="https://support.komoot.com/hc/en-us/articles/360023748132-Creating-Highlights">Creating Highlights</a></li>
+    <li><a href="https://support.komoot.com/hc/en-us/articles/360058904532-Highlights-displayed-on-the-map">Highlights displayed on the map</a></li>
+    <li><a href="https://support.komoot.com/hc/en-us/articles/10360857667226-Track-your-adventure-streak">Track your adventure streak</a></li>
+    <li><a href="https://support.komoot.com/hc/en-us/articles/10163258809626-komoot-plans-Maps-and-Premium">komoot plans: Maps and Premium</a></li>
+    <li><a href="https://support.komoot.com/hc/en-us/articles/360023107432-Use-komoot-on-your-Apple-Watch">Use komoot on your Apple Watch</a></li>
+    <li><a href="https://newsroom.komoot.com/254252-komoot-unveils-modern-design-as-part-of-ambitious-product-roadmap/">komoot unveils modern design (2025)</a></li>
+    <li><a href="https://www.bikeradar.com/news/komoot-redesign-2025">BikeRadar · Komoot redesign 2025</a></li>
+    <li><a href="https://www.bikeradar.com/advice/buyers-guides/guide-to-using-komoot">BikeRadar · Guide to using Komoot</a></li>
+    <li><a href="https://www.bikeradar.com/news/komoot-acquisition">BikeRadar · Komoot acquisition</a></li>
+    <li><a href="https://www.dcrainmaker.com/2026/01/komoots-offline-routing.html">DC Rainmaker · Komoot offline routing</a></li>
+    <li><a href="https://www.trustpilot.com/review/www.komoot.com">Trustpilot · komoot</a></li>
+    <li><a href="https://www.traversing.ca/blog/2026/2/20/komoot-app-adds-full-apple-watch-support">Traversing · Komoot full Apple Watch support</a></li>
+    <li><a href="https://apps.apple.com/FR/app/id447374873">App Store · komoot</a></li>
+    <li><a href="https://ixd.prattsi.org/2020/09/design-critique-komoot-mobile-app/">Pratt · Design critique of Komoot (2020)</a></li>
+    <li><a href="https://borncity.com/news/komoot-liefert-100-updates-nach-radikaler-restrukturierung/">Borncity · 100 updates after restructuring</a></li>
+  </ul>
+</section>
+</div>
+
+<script>
+(function(){
+  // Petites cartes dessinées : rues, parc, eau, brouillard, tracé. Toujours en clair (écran d'app).
+  var W=300,H=240;
+  function streets(seed){
+    var s='';
+    var lines=[[0,60,300,40],[0,150,300,175],[0,215,300,200],[60,0,40,240],[150,0,170,240],[240,0,230,240],[0,105,300,110],[100,0,110,240]];
+    lines.forEach(function(l,i){s+='<line x1="'+l[0]+'" y1="'+l[1]+'" x2="'+l[2]+'" y2="'+l[3]+'" stroke="#FFFFFF" stroke-width="'+(i%3===0?9:5)+'" stroke-linecap="round"/>';});
+    return s;
+  }
+  function base(extra,fog){
+    return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'+
+      '<defs><filter id="blur'+fog+'"><feGaussianBlur stdDeviation="9"/></filter>'+
+      '<mask id="m'+fog+'"><rect width="300" height="240" fill="#fff"/><g filter="url(#blur'+fog+')">'+(fog?fog_holes[fog]:'')+'</g></mask></defs>'+
+      '<rect width="300" height="240" fill="#E9ECE6"/>'+
+      '<path d="M170 120 Q220 110 240 150 Q250 190 200 200 Q160 195 165 160Z" fill="#CFE3C9"/>'+
+      '<path d="M0 225 Q120 205 300 232 L300 240 L0 240Z" fill="#BFD6EC"/>'+
+      streets()+
+      (fog?'<rect width="300" height="240" fill="#22332F" opacity=".78" mask="url(#m'+fog+')"/>':'')+
+      extra+'</svg>';
+  }
+  var route='M70 175 C70 120 95 75 140 70 C185 66 215 95 220 130 C224 165 200 190 160 192 C120 194 72 205 70 175Z';
+  var fog_holes={
+    a:'<path d="'+route+'" stroke="#000" stroke-width="60" fill="none"/>',
+    b:'<circle cx="200" cy="150" r="70" fill="#000"/>',
+    c:'<path d="M40 180 C90 120 160 140 230 70" stroke="#000" stroke-width="60" fill="none"/>'
+  };
+  function pace(){
+    var segs=[
+      ['M70 175 C70 140 78 110 95 92','#2F8F6B'],
+      ['M95 92 C110 78 125 71 140 70','#E0A12E'],
+      ['M140 70 C185 66 215 95 220 130','#2F8F6B'],
+      ['M220 130 C224 165 200 190 160 192','#2F8F6B'],
+      ['M160 192 C120 194 72 205 70 175','#E0A12E']];
+    var p='<path d="'+route+'" stroke="#fff" stroke-width="9" fill="none"/>';
+    segs.forEach(function(s){p+='<path d="'+s[0]+'" stroke="'+s[1]+'" stroke-width="5" fill="none" stroke-linecap="round"/>';});
+    var stops=[[122,72,'1','#7E8A85'],[216,112,'2','#C4423A'],[186,190,'3','#7E8A85'],[90,198,'4','#7E8A85']];
+    stops.forEach(function(s){p+='<circle cx="'+s[0]+'" cy="'+s[1]+'" r="10" fill="'+s[3]+'" stroke="#fff" stroke-width="2.5"/><text x="'+s[0]+'" y="'+(s[1]+4)+'" text-anchor="middle" font-family="Figtree,sans-serif" font-weight="800" font-size="11" fill="#fff">'+s[2]+'</text>';});
+    p+='<circle cx="70" cy="175" r="7" fill="#1E5A50" stroke="#fff" stroke-width="2.5"/>';
+    return p;
+  }
+  var maps={
+    pace:function(){return base(pace(),'a');},
+    end:function(){return base('<path d="'+route+'" stroke="#fff" stroke-width="9" fill="none"/><path d="'+route+'" stroke="#2F8F6B" stroke-width="5" fill="none"/><circle cx="70" cy="175" r="7" fill="#1E5A50" stroke="#fff" stroke-width="2.5"/>','a');},
+    spot:function(){return base('<circle cx="200" cy="150" r="16" fill="#1E5A50" stroke="#fff" stroke-width="3"/><path d="M193 152 l5 5 l9 -11" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="110" cy="105" r="6" fill="#2559A8" stroke="#fff" stroke-width="2.5"/>','b');},
+    loop1:function(){return base('<path d="M110 105 C130 80 175 85 185 120 C190 150 140 150 110 105Z" stroke="#fff" stroke-width="8" fill="none"/><path d="M110 105 C130 80 175 85 185 120 C190 150 140 150 110 105Z" stroke="#1E5A50" stroke-width="4" fill="none" stroke-dasharray="1 7" stroke-linecap="round"/>','c');},
+    loop2:function(){return base('<path d="M60 170 C90 120 160 140 230 70 C250 120 200 200 60 170Z" stroke="#fff" stroke-width="8" fill="none"/><path d="M60 170 C90 120 160 140 230 70 C250 120 200 200 60 170Z" stroke="#1E5A50" stroke-width="4" fill="none" stroke-dasharray="1 7" stroke-linecap="round"/>','c');}
+  };
+  document.querySelectorAll('[data-map]').forEach(function(el){var f=maps[el.getAttribute('data-map')];if(f)el.innerHTML=f();});
+
+  // Courbe d'allure (km/h par minute, 32 minutes) avec arrêts en creux.
+  var v=[3.8,4.2,4.4,4.1,4.3,0,0,0,4.6,5.4,5.8,4.4,0,4.2,4.0,4.5,4.3,4.1,4.4,0,0,0,0,4.0,4.2,4.6,4.4,6.1,5.9,4.3,4.0,3.6];
+  document.querySelectorAll('[data-chart="pace"]').forEach(function(el){
+    var w=260,h=70,max=6.5,bw=w/v.length,s='<svg viewBox="0 0 '+w+' '+h+'" width="100%" height="100%" preserveAspectRatio="none" role="img" aria-label="Allure minute par minute, avec quatre arrêts">';
+    s+='<line x1="0" y1="'+(h-1)+'" x2="'+w+'" y2="'+(h-1)+'" stroke="#E6EAE7"/>';
+    v.forEach(function(x,i){
+      var bh=x===0?4:Math.max(4,(x/max)*(h-6));
+      var c=x===0?'#9AA5A0':(x>=5.4?'#E0A12E':'#2F8F6B');
+      s+='<rect x="'+(i*bw+1)+'" y="'+(h-bh)+'" width="'+(bw-2)+'" height="'+bh+'" rx="2" fill="'+c+'"/>';
+    });
+    el.innerHTML=s+'</svg>';
+  });
+})();
+</script>

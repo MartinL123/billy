@@ -19,7 +19,9 @@ Parcours : `V3-ParcoursMeute` (7 parcours, à lire en premier). Maquettes : `V3-
 - **On compare l'effort, jamais le chien** : pas de classement de territoire, pas de « qui a le plus de marques ».
 - **Pas d'inscription, pas de QR code** : Martin montre l'app, et crée le compte de ceux qui veulent (§ 2).
 - **Gratuit** : Firebase Spark + OpenStreetMap (Leaflet). Pas de Google Maps.
-- **Pas de position en direct**, jamais.
+- **Pas de position en direct**, jamais. → **Remplacé par la V6 (22 octobre, `spec-v6-balades-komoot.md` § 7)** : jamais de
+  position en direct sans un choix explicite, seulement avec des proches choisis, bandeau visible et arrêt en un toucher ;
+  jamais vers la meute.
 
 ## 2. Comptes et installation (décision du 14 octobre)
 
@@ -92,7 +94,7 @@ De haut en bas :
 ## 6. Vie privée (non négociable)
 
 - Tout est visible **uniquement par les comptes de l'app** (10 max) ; rien n'est public.
-- Pas de position en direct ; les marques affichent le jour (« aujourd'hui », « hier »), **jamais l'heure**.
+- Pas de position en direct pour la meute (le partage en direct de la V6, § 7, ne va qu'à des proches choisis) ; les marques affichent le jour (« aujourd'hui », « hier »), **jamais l'heure**.
 - On ne marque que des spots publics ; pas de spot « Maison ».
 - Le profil public d'un chien ne montre ni santé, ni documents, ni Carnet (sauf moments que le maître partage).
 - Partager un moment avec la meute = choix explicite à chaque fois (interrupteur « Partager avec la meute » dans

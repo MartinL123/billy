@@ -105,6 +105,10 @@ Maquettes (canvas, section « Balades — la carte qui se découvre ») : `V3-Ex
   `.fit` et leurs versions `.gz`).
 
 ## 6. Ce que fait l'import
+
+> **Remplacé en partie par la V6 (22 octobre, `spec-v6-balades-komoot.md` § 2)** : on garde désormais le rythme
+> cardiaque (une valeur par minute, privé), l'altitude et l'heure de chaque point (`route.track`). La phrase « Jamais le
+> rythme cardiaque… » ci-dessous et la note vie privée du § 5 ne valent plus.
 - **Formats** : GPX (vérifié sur un vrai export Strava : `<name>`, `<type>walking</type>`, points avec `ele`, `time`
   et `gpxtpx:hr`). Les fichiers `.gz` sont décompressés avec `DecompressionStream('gzip')` (natif, pas de
   dépendance). TCX et FIT : seulement si la vraie archive de Martin en contient (à vérifier sur l'archive avant de les

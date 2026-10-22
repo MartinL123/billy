@@ -119,6 +119,7 @@ export default function EventForm() {
       <FormScreen title={existing ? "Modifier l’événement" : 'Nouvel événement'} submitLabel="Enregistrer" onCancel={back} onSubmit={save}>
         <fieldset className="m-0 border-0 p-0">
           <legend className="mb-2.5 p-0 text-[1rem] font-semibold">Type</legend>
+          {/* T-111 : les pastilles communes (« chip »), chacune sur une ligne, jamais compressées ; les rangées passent à la ligne comme sur la maquette. */}
           <div className="flex flex-wrap gap-2">
             {EVENT_TYPE_ORDER.map((value) => {
               const active = value === type
@@ -128,9 +129,7 @@ export default function EventForm() {
                   type="button"
                   aria-pressed={active}
                   onClick={() => chooseType(value)}
-                  className={`flex min-h-12 items-center gap-1.5 rounded-full border-2 px-3.5 text-[1rem] whitespace-nowrap ${
-                    active ? 'border-primary bg-primary font-bold text-white' : 'border-border bg-surface font-medium text-text'
-                  }`}
+                  className={`chip ${active ? 'chip-on' : ''}`}
                 >
                   <span className="size-2 rounded-full" style={{ background: active ? '#FFFFFF' : EVENT_TYPES[value].color }} />
                   {EVENT_TYPES[value].label}

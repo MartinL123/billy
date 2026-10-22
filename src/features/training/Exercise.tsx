@@ -201,7 +201,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
         <BackLink label={fromQuest ? 'Accueil' : 'Retour'} onClick={back} onDark />
         {fromQuest && <p className="surtitre">Mission du jour</p>}
         <h1 className="title-screen">{exercise.name}</h1>
-        <SkillPill bossId={skill} onDark />
+        <SkillPill bossId={skill} onDark see />
         <p className="text-[0.8824rem] leading-snug text-white/90">Étape « {stepPhrase(skill, step)} »</p>
         <div className="flex flex-wrap gap-2">
           <span className={pill} style={{ background: 'rgba(255,255,255,0.16)' }}>

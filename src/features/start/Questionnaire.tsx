@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { BackLink } from '../../components/BackLink'
-import { NativePickerInput } from '../../components/Form'
+import { NativePickerInput, Segmented } from '../../components/Form'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { FilePicker } from '../../components/FilePicker'
-import { CheckIcon, TrashIcon } from '../../components/Icons'
+import { CheckIcon } from '../../components/Icons'
 import { SKILLS } from '../../content/phrases'
 import { answerQuestion, ensureMilestones, recordCare, saveEvent, saveWeight, updateDog } from '../../firebase/db'
 import { deleteFile, saveImage } from '../../firebase/files'
@@ -13,7 +13,7 @@ import { useData } from '../../firebase/store'
 import { declarePreApp } from '../../firebase/training'
 import type { Dog } from '../../firebase/types'
 import { isValidISO } from '../../lib/dates'
-import { sortMeals, type Meal } from '../../lib/feeding'
+import { MEAL_COUNTS, mealPortion, resizeMeals, sortMeals, type Meal } from '../../lib/feeding'
 import { nextTrainerSession, STERILISATION_PLANNED, sterilisationReminder, trainerSession } from '../../lib/events'
 import { lastDone } from '../../lib/health'
 import { agree, forSex, ofName } from '../../lib/gender'
@@ -448,23 +448,24 @@ export default function Questionnaire() {
               <span className={label}>Grammes par jour</span>
               <input inputMode="numeric" value={grams} onChange={(e) => setGrams(e.target.value.replace(/[^\d]/g, ''))} autoComplete="off" className={input} />
             </label>
-            <div className="flex flex-col gap-2">
-              <span className={label}>Ses repas</span>
-              {meals.map((meal, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <NativePickerInput aria-label={`Heure du repas ${i + 1}`} type="time" value={meal.time} onChange={(e) => setMeals(meals.map((m, j) => (j === i ? { time: e.target.value, label: mealLabel(e.target.value) } : m)))} className={`${input} min-w-0 flex-1 px-3`} />
-                  <button type="button" aria-label={`Retirer le repas ${i + 1}`} onClick={() => setMeals(meals.filter((_, j) => j !== i))} className="btn btn-tertiary min-h-14 shrink-0 px-4">
-                    <TrashIcon size={20} />
-                    Retirer
-                  </button>
-                </div>
-              ))}
-              {meals.length < 4 && (
-                <button type="button" onClick={() => setMeals([...meals, { time: '12:00', label: mealLabel('12:00') }])} className="btn btn-tertiary">
-                  Ajouter un repas
-                </button>
-              )}
-            </div>
+            {/* T-111 : 1, 2, 3 ou 4 repas par jour (1 est possible), leurs heures, puis la portion de chacun. */}
+            <Segmented legend={<span className={label}>Repas par jour</span>} options={MEAL_COUNTS.map((n) => ({ value: String(n), label: String(n) }))} value={String(meals.length)} onChange={(n) => setMeals(resizeMeals(meals, Number(n), mealLabel))} />
+            {meals.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <span className={label}>{meals.length > 1 ? 'Leurs heures' : 'Son heure'}</span>
+                {meals.map((meal, i) => (
+                  <label key={i} className="flex items-center gap-3">
+                    <span className="w-24 shrink-0 text-[1rem] font-semibold">{meal.label}</span>
+                    <NativePickerInput aria-label={`Heure du repas ${i + 1}`} type="time" value={meal.time} onChange={(e) => setMeals(meals.map((m, j) => (j === i ? { time: e.target.value, label: mealLabel(e.target.value) } : m)))} className={`${input} min-w-0 flex-1 px-3`} />
+                  </label>
+                ))}
+              </div>
+            )}
+            {mealPortion(Number(grams), meals.length) !== undefined && (
+              <p role="status" className="rounded-field bg-primary-soft px-4 py-3 text-[1rem] font-semibold text-primary-dark">
+                Soit {mealPortion(Number(grams), meals.length)} g par repas
+              </p>
+            )}
           </>
         )}
 

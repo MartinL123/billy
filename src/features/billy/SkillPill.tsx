@@ -11,7 +11,7 @@ import { placeSkill } from '../../lib/garden'
  * « Revient quand on l’appelle… » : une pastille-bouton qui ouvre le chemin de la compétence par-dessus l’écran en cours.
  * L’écran d’origine reste en place derrière : au retour, rien de ce qui était saisi n’est perdu.
  */
-export function SkillPill({ bossId, onDark = false }: { bossId: string; onDark?: boolean }) {
+export function SkillPill({ bossId, onDark = false, see = false }: { bossId: string; onDark?: boolean; /** T-111 (maquette Exercice) : « Voir la compétence « Le Lien » › », sur une ligne. */ see?: boolean }) {
   const [open, setOpen] = useState(false)
   const skill = SKILLS.find((s) => s.id === bossId)
   const territory = territoryOf(bossId)
@@ -28,8 +28,21 @@ export function SkillPill({ bossId, onDark = false }: { bossId: string; onDark?:
   if (!skill) return null
   // Spec V4 § 8 : une phrase plutôt qu’un nom de catégorie (« Répond à son nom… » plutôt que « Le Lien »).
   const goal = placeSkill((bossById(bossId)?.goal ?? skill.name).replace(/\.$/, ''))
+  const label = `Voir la compétence «\u00a0${skill.name}\u00a0»`
   return (
     <>
+      {see ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label={`${label}, pour : ${goal}`}
+          className="flex min-h-11 max-w-full items-center gap-1.5 self-start rounded-full border-2 border-solid px-4 text-[0.8824rem] font-bold whitespace-nowrap"
+          style={onDark ? { background: 'transparent', borderColor: 'rgba(255,255,255,0.6)', color: '#FFFFFF' } : { background: territory.soft, borderColor: territory.color, color: inkOn(territory) }}
+        >
+          <span className="min-w-0 truncate">{label}</span>
+          <ChevronRightIcon size={16} className="shrink-0" />
+        </button>
+      ) : (
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -41,6 +54,7 @@ export function SkillPill({ bossId, onDark = false }: { bossId: string; onDark?:
         <span>{goal}</span>
         <ChevronRightIcon size={18} className="shrink-0" />
       </button>
+      )}
       {open &&
         createPortal(
           <div role="dialog" aria-modal="true" aria-label={`Le chemin : ${skill.name}`} className="fixed inset-0 z-30 animate-fade overflow-y-auto bg-bg">

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nextMealIndex, portion, sortMeals } from './feeding'
+import { mealPortion, nextMealIndex, portion, resizeMeals, sortMeals } from './feeding'
 
 const meals = [
   { label: 'Réveil', time: '08:00' },
@@ -23,5 +23,27 @@ describe('repas', () => {
 
   it('range les repas par heure', () => {
     expect(sortMeals([meals[2]!, meals[0]!, meals[1]!]).map((m) => m.time)).toEqual(['08:00', '14:00', '21:00'])
+  })
+})
+
+describe('« Indiquer ses repas » : 1 à 4 repas par jour (T-111)', () => {
+  const label = (time: string) => (time < '12:00' ? 'Matin' : 'Soir')
+
+  it('un seul repas est possible ; les repas en plus prennent les heures proposées', () => {
+    expect(resizeMeals([], 1, label)).toEqual([{ time: '08:00', label: 'Matin' }])
+    expect(resizeMeals([], 3, label).map((m) => m.time)).toEqual(['08:00', '12:30', '19:00'])
+    expect(resizeMeals([], 4, label)).toHaveLength(4)
+  })
+
+  it('les heures déjà choisies restent, les premières de la journée quand on en retire', () => {
+    const two = [{ time: '18:30', label: 'Soir' }, { time: '07:15', label: 'Matin' }]
+    expect(resizeMeals(two, 1, label)).toEqual([{ time: '07:15', label: 'Matin' }])
+    expect(resizeMeals(two, 3, label).map((m) => m.time)).toEqual(['07:15', '12:30', '18:30'])
+  })
+
+  it('calcule la portion par repas', () => {
+    expect(mealPortion(350, 3)).toBe(117)
+    expect(mealPortion(300, 1)).toBe(300)
+    expect(mealPortion(0, 2)).toBeUndefined()
   })
 })

@@ -4,6 +4,7 @@ import Capacitor
 import CoreLocation
 import HealthKit
 import UserNotifications
+import CoreMotion
 
 /// Le pont entre l'app web et l'iPhone (phase 2, docs/ios.md) : les marches de l'Apple Watch (HealthKit, T-001) et la
 /// balade enregistrée par le GPS de l'iPhone (T-036). Côté JS : `src/native/flair.ts`. Rien n'est écrit dans Santé.
@@ -25,7 +26,9 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         CAPPluginMethod(name: "clearSent", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setBackGesture", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "haptic", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "setWatchNotify", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "setWatchNotify", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "motionStatus", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "motionWalks", returnType: CAPPluginReturnPromise)
     ]
 
     private let health = HKHealthStore()
@@ -42,6 +45,58 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
     @objc func setWatchNotify(_ call: CAPPluginCall) {
         WatchArrivals.shared.configure(optedIn: call.getBool("optedIn") ?? false, enabled: call.getBool("enabled") ?? true, dogName: call.getString("dogName") ?? "")
         call.resolve()
+    }
+
+    // MARK: - Mouvements et forme (T-085, V6 § 5)
+    //
+    // Sans Watch : l'iPhone sait quand on a marché, jamais où (aucune position). Le JS choisit la marche à proposer
+    // (`src/lib/motionWalks.ts`) : « Vous avez marché 35 min vers 8 h. C'était une sortie avec Billy ? ».
+
+    private let motion = CMMotionActivityManager()
+
+    /// `motionStatus()` : `{ available, status: 'granted' | 'denied' | 'prompt' }`, sans rien demander.
+    @objc func motionStatus(_ call: CAPPluginCall) {
+        guard CMMotionActivityManager.isActivityAvailable() else {
+            call.resolve(["available": false, "status": "denied"])
+            return
+        }
+        let status: String
+        switch CMMotionActivityManager.authorizationStatus() {
+        case .authorized: status = "granted"
+        case .notDetermined: status = "prompt"
+        default: status = "denied"
+        }
+        call.resolve(["available": true, "status": status])
+    }
+
+    /// `motionWalks({ since })` : les périodes « à pied » (confiance moyenne ou haute) depuis `since`, brutes, en heures ISO :
+    /// `{ periods: [{ start, end }] }`. La première fois, iOS demande l'accès (texte `NSMotionUsageDescription`) ; refusé :
+    /// aucune période, jamais d'erreur.
+    @objc func motionWalks(_ call: CAPPluginCall) {
+        guard CMMotionActivityManager.isActivityAvailable() else {
+            call.resolve(["periods": []])
+            return
+        }
+        let now = Date()
+        let since = call.getString("since").flatMap(FlairNativePlugin.parseDate) ?? now.addingTimeInterval(-7 * 86400)
+        motion.queryActivityStarting(from: since, to: now, to: OperationQueue.main) { activities, error in
+            guard error == nil, let activities = activities else {
+                call.resolve(["periods": []])
+                return
+            }
+            var periods: [[String: String]] = []
+            var walkingSince: Date?
+            for activity in activities {
+                let walking = activity.walking && activity.confidence != .low
+                if walking, walkingSince == nil { walkingSince = activity.startDate }
+                if !walking, let start = walkingSince {
+                    periods.append(["start": FlairNativePlugin.format(start), "end": FlairNativePlugin.format(activity.startDate)])
+                    walkingSince = nil
+                }
+            }
+            if let start = walkingSince { periods.append(["start": FlairNativePlugin.format(start), "end": FlairNativePlugin.format(now)]) }
+            call.resolve(["periods": periods])
+        }
     }
 
     /// Un point n'est gardé qu'à 5 m ou plus du précédent : assez pour le brouillard, sans noyer le pont JS.

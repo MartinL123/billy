@@ -4,6 +4,9 @@ import type { GpsPoint } from '../lib/gpsWalk'
 import type { WatchWalk } from '../lib/watch'
 import type { HealthExtras } from '../lib/walkHealth'
 import { withTimeout } from '../lib/timeout'
+import type { MotionPeriod } from '../lib/motionWalks'
+
+export type MotionStatus = 'granted' | 'denied' | 'prompt'
 
 // Le plugin local de l'app iOS (`ios/App/App/FlairNativePlugin.swift`). À n'appeler que derrière `isNative()` :
 // sur le web, il n'existe pas.
@@ -64,6 +67,10 @@ interface FlairNativePlugin {
    * la lecture des marches est choisie (R-079), la notification est voulue (Profil › Notifications), le prénom du chien.
    */
   setWatchNotify(options: { optedIn: boolean; enabled: boolean; dogName: string }): Promise<void>
+  /** T-085 : l’accès à Mouvements et forme, sans rien demander. */
+  motionStatus(): Promise<{ available: boolean; status: MotionStatus }>
+  /** T-085 : les périodes « à pied » brutes depuis `since` (la première fois, iOS demande l’accès). */
+  motionWalks(options: { since: string }): Promise<{ periods: MotionPeriod[] }>
   addListener(event: 'walkPoint', listener: (point: GpsPoint) => void): Promise<PluginListenerHandle>
   addListener(event: 'walkStopped', listener: (data: { stoppedAt?: string }) => void): Promise<PluginListenerHandle>
   /** La précision du GPS à chaque mise à jour (même pour un point écarté) : signal faible (T-051). */
@@ -99,4 +106,27 @@ export async function readHealthWindow(start: string, end: string): Promise<Heal
 export function setWatchNotify(options: { optedIn: boolean; enabled: boolean; dogName: string }): void {
   if (!isNative()) return
   FlairNative.setWatchNotify(options).catch(() => undefined)
+}
+
+/** T-085 : l’accès à Mouvements et forme. `unavailable` sur le web, sur un iPhone sans capteur ou une app plus ancienne. */
+export async function motionStatus(): Promise<MotionStatus | 'unavailable'> {
+  if (!isNative()) return 'unavailable'
+  try {
+    const answer = await withTimeout(FlairNative.motionStatus(), 5_000, 'motionStatus')
+    return answer.available ? answer.status : 'unavailable'
+  } catch {
+    return 'unavailable'
+  }
+}
+
+/** T-085 : les marches vues par l’iPhone depuis `since` ; rien si l’accès est refusé ou si l’iPhone ne répond pas. */
+export async function readMotionWalks(since: string): Promise<MotionPeriod[]> {
+  if (!isNative()) return []
+  try {
+    // Pas de délai court : la première fois, la fenêtre d’iOS attend la réponse de la personne.
+    const answer = await withTimeout(FlairNative.motionWalks({ since }), 120_000, 'motionWalks')
+    return Array.isArray(answer.periods) ? answer.periods : []
+  } catch {
+    return []
+  }
 }

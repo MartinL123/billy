@@ -22,7 +22,7 @@ interface Walk {
 
 type Reply = { ok: true; data?: unknown } | { ok: false; error: { message: string; code?: string } }
 
-const FLAIR_METHODS = ['getWalks', 'healthWindow', 'startWalk', 'stopWalk', 'clearWalk', 'cancelWalk', 'currentWalk', 'keepAwake', 'markSaved', 'pendingSent', 'clearSent', 'setBackGesture', 'haptic', 'setWatchNotify']
+const FLAIR_METHODS = ['getWalks', 'healthWindow', 'startWalk', 'stopWalk', 'clearWalk', 'cancelWalk', 'currentWalk', 'keepAwake', 'markSaved', 'pendingSent', 'clearSent', 'setBackGesture', 'haptic', 'setWatchNotify', 'motionStatus', 'motionWalks']
 const NOTIFICATION_METHODS = ['checkPermissions', 'requestPermissions', 'getPending', 'cancel', 'schedule', 'getDeliveredNotifications', 'removeAllDeliveredNotifications', 'createChannel', 'listChannels', 'areEnabled']
 
 /**
@@ -85,6 +85,8 @@ export class FakeIphone {
   denied = false
   /** L'heure de départ d'une nouvelle balade, en minutes avant maintenant (une balade de test dure plus de 2 min). */
   startMinutesAgo = 20
+  /** T-085 : Mouvements et forme (absent : iPhone sans capteur). */
+  motion?: { status: 'granted' | 'denied' | 'prompt'; periods: { start: string; end: string }[] }
   /** Chaque appel reçu, pour vérifier par exemple qu'aucune balade ne redémarre. */
   calls: { method: string; options: unknown }[] = []
 
@@ -188,6 +190,11 @@ export class FakeIphone {
       case 'haptic':
       case 'setWatchNotify':
         return { ok: true }
+      // T-085 : par défaut, pas de capteur de mouvement (aucune carte « C’était une sortie ? »).
+      case 'motionStatus':
+        return { ok: true, data: this.motion ? { available: true, status: this.motion.status } : { available: false, status: 'denied' } }
+      case 'motionWalks':
+        return { ok: true, data: { periods: this.motion?.status === 'granted' ? this.motion.periods : [] } }
       default:
         return { ok: false, error: { message: `FlairNative.${method} inconnu`, code: 'UNIMPLEMENTED' } }
     }

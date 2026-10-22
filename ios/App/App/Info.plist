@@ -35,6 +35,8 @@
 		<key>balade</key>
 		<string>La position exacte permet de tracer la balade de votre chien sur la carte.</string>
 	</dict>
+	<key>NSMotionUsageDescription</key>
+	<string>Flair regarde seulement quand vous marchez, jamais où.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Flair enregistre le tracé de la balade, même écran verrouillé.</string>
 	<key>UIApplicationSceneManifest</key>

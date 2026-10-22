@@ -23,6 +23,7 @@ import { weighingDue } from '../../lib/weighing'
 import { dayBudget, minutesOfDay, walkDayPlan, walksOfDay, walksSentence, yesterdayOpenSlots } from '../../lib/walkDay'
 import { addDays } from '../../lib/dates'
 import { KnowCard } from './KnowCard'
+import { MotionCard } from '../motion/MotionCard'
 import { NoteSheet, WalkDayCard, type ToNote } from './WalkDayCard'
 import { LifeTiles } from './LifeTiles'
 import { useCurrentWalk } from '../balades/useCurrentWalk'
@@ -353,6 +354,9 @@ export default function Today() {
         showStart={card.kind !== 'sortie'}
         pending={!online}
       />
+
+      {/* T-085 (app iOS) : une marche vue par l’iPhone, « C’était une sortie avec Billy ? ». */}
+      {!readOnly && <MotionCard />}
 
       {/* Faisons connaissance (V5) : tant que le questionnaire n’est pas fini, une partie à la fois, contre des os. */}
       {!readOnly && !questionnaire.complete && <KnowCard />}

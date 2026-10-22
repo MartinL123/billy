@@ -31,6 +31,7 @@ import { useReadOnly } from '../../firebase/viewer'
 import { FamilySection, VisitorAccount } from '../visitor/Family'
 import { ExportButton } from './ExportButton'
 import { WatchOptIn } from '../balades/WatchOptIn'
+import { MotionSetting } from '../motion/MotionSetting'
 
 
 function InfoRow({ label, value, first }: { label: string; value: string; first?: boolean }) {
@@ -263,6 +264,9 @@ export default function Profile() {
           <WatchOptIn />
         </section>
       )}
+
+      {/* T-085 : sans montre, Mouvements et forme (app iOS). */}
+      {isNative() && <MotionSetting />}
 
       {/* App iOS : les notifications locales (T-042). Gelé (T-072) : le rappel du soir en web push (EveningReminder) n’est plus proposé. */}
       {isNative() && <NotificationSettings />}

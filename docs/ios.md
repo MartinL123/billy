@@ -101,6 +101,15 @@ appelé depuis `src/native/flair.ts`, toujours derrière `isNative()`. Le site w
   Le JS confie à l'iPhone le choix « lire mes marches », le réglage « Quand une balade de la Watch arrive » et le prénom
   (`setWatchNotify`). Sans réveil (refus, profil sans l'entitlement) : rien d'affiché, l'import à l'ouverture reste.
   Si un jour Xcode refuse de signer à cause de l'entitlement, l'enlever de `App.entitlements` : le code continue sans.
+- **Mouvements et forme (T-085, V6 § 5)** : `motionStatus` / `motionWalks` (`CMMotionActivityManager`, 7 jours, aucune
+  position ; texte `NSMotionUsageDescription`). Le choix de la marche à proposer est en JS (`src/lib/motionWalks.ts`).
+- **« Balade finie ? » (T-086)** : pendant une balade du GPS de Flair, revenu à moins de 50 m du départ (après s'en être
+  éloigné de plus de 100 m), une notification locale est programmée 10 min plus tard, annulée si on repart ou à la fin
+  de la balade ; la toucher ouvre « Balade en cours ». Il faut que les notifications de Flair soient autorisées.
+  **Live Activity (écran verrouillé, bouton « Repère ») : pas faite.** Elle demande une cible « Widget Extension »
+  (nouvel identifiant d'app `fr.lanrezac.billy.*`, son propre profil gratuit) : à créer avec Martin dans Xcode
+  (File › New › Target › Widget Extension) plutôt qu'à la main dans `project.pbxproj`, pour ne pas risquer de casser
+  la relance hebdomadaire. Voir T-086 dans Notion.
 
 Ne jamais perdre une balade (R-042) : « Terminer » arrête le GPS mais garde la balade sur l'iPhone ; elle n'est
 effacée (`clearWalk`) qu'une fois enregistrée. Chaque étape a un délai maximum ; en cas d'échec, « Réessayer » et

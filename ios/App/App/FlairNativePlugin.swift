@@ -491,6 +491,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         manager.showsBackgroundLocationIndicator = true
         manager.startUpdatingLocation()
         recording = true
+        resetFinishWatch()
         scheduleAutoStop()
         call.resolve(walkSummary())
     }
@@ -509,11 +510,80 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
                 continue
             }
             notifyListeners("walkPoint", data: FlairNativePlugin.pointData(point))
+            watchForFinish(point)
         }
         if Date() > limit { autoStop() }
     }
 
     private var autoStopTimer: Timer?
+
+    // MARK: « Balade finie ? » (T-086)
+    //
+    // Revenu à moins de 50 m du départ (après s'en être éloigné de plus de 100 m) : une notification locale programmée
+    // 10 min plus tard, annulée si on repart ou si la balade s'arrête. Programmée d'avance parce qu'un iPhone immobile
+    // n'envoie plus de positions. Miroir testé : `src/lib/finishPrompt.ts`.
+
+    private static let finishId = "balade-finie"
+    private var walkStart: CLLocation?
+    private var leftStart = false
+    private var nearSince: Date?
+    /// L'heure prévue de la dernière notification : passée, elle a été montrée, on ne redemande pas pour cette balade.
+    private var finishPromptAt: Date?
+
+    /// Au départ (ou à la reprise d'une balade après une fermeture de l'app), à partir des points déjà gardés.
+    private func resetFinishWatch() {
+        walkStart = nil
+        leftStart = false
+        nearSince = nil
+        finishPromptAt = nil
+        let stored = readPoints().compactMap { point -> CLLocation? in
+            guard let lat = point["lat"] as? Double, let lng = point["lng"] as? Double else { return nil }
+            return CLLocation(latitude: lat, longitude: lng)
+        }
+        walkStart = stored.first
+        if let start = walkStart { leftStart = stored.contains { $0.distance(from: start) > 100 } }
+    }
+
+    private func watchForFinish(_ point: CLLocation) {
+        guard let start = walkStart else {
+            walkStart = point
+            return
+        }
+        let distance = point.distance(from: start)
+        if distance > 100 { leftStart = true }
+        if distance > 50 {
+            if nearSince != nil {
+                nearSince = nil
+                if let at = finishPromptAt, at > Date() {
+                    UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [FlairNativePlugin.finishId])
+                    finishPromptAt = nil
+                }
+            }
+            return
+        }
+        guard leftStart, nearSince == nil else { return }
+        nearSince = point.timestamp
+        if let at = finishPromptAt, at <= Date() { return }
+        let at = point.timestamp.addingTimeInterval(600)
+        finishPromptAt = at
+        let content = UNMutableNotificationContent()
+        content.title = "Balade finie\u{00A0}?"
+        content.body = "Touchez pour terminer la balade."
+        content.sound = .default
+        // `cap_extra` : lu par @capacitor/local-notifications ; le JS ouvre « Balade en cours » (WatchArrivalBridge).
+        content.userInfo = ["cap_extra": ["kind": "balade-finie"]]
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(1, at.timeIntervalSinceNow), repeats: false)
+        UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: FlairNativePlugin.finishId, content: content, trigger: trigger))
+    }
+
+    /// La balade s'arrête (« Terminer », annulation, 3 h) : plus de question, et celle déjà montrée s'efface.
+    private func cancelFinishPrompt() {
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: [FlairNativePlugin.finishId])
+        center.removeDeliveredNotifications(withIdentifiers: [FlairNativePlugin.finishId])
+        nearSince = nil
+        finishPromptAt = nil
+    }
 
     /// T-062 : l'arrêt à 3 h ne dépend plus de l'arrivée d'un point (téléphone posé) : un minuteur à départ + 3 h.
     private func scheduleAutoStop() {
@@ -535,6 +605,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
     }
 
     private func stopUpdates() {
+        cancelFinishPrompt()
         autoStopTimer?.invalidate()
         autoStopTimer = nil
         location?.stopUpdatingLocation()
@@ -559,6 +630,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
     /// `clearWalk()` : efface la balade, seulement après un enregistrement réussi.
     @objc func clearWalk(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
+            self.cancelFinishPrompt()
             try? FileManager.default.removeItem(at: self.walkDir)
             call.resolve()
         }

@@ -13,6 +13,7 @@ import { watchOptedIn } from './watchImport'
  * - Confie à l’iPhone ce qu’il doit savoir pour l’envoyer seul, réveillé par Santé : lecture des marches choisie, réglage
  *   « Quand une balade de la Watch arrive », prénom du chien.
  * - Touchée, la notification ouvre `#/balade/arrivee?uuid=…&start=…`. Rien sur le web.
+ * - T-086 : « Balade finie ? » ouvre « Balade en cours ».
  */
 export function WatchArrivalBridge() {
   const { dog } = useData()
@@ -38,8 +39,10 @@ export function WatchArrivalBridge() {
     // Gardé par iOS jusqu’à ce qu’on l’écoute : une notification qui lance l’app arrive ici aussi.
     const handle = LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
       const extra = action.notification.extra as { kind?: string; uuid?: string; start?: string } | undefined
-      if (action.actionId !== 'tap' || extra?.kind !== 'balade' || !extra.uuid) return
-      go.current(arrivalPath(extra.uuid, extra.start ?? ''))
+      if (action.actionId !== 'tap') return
+      if (extra?.kind === 'balade' && extra.uuid) go.current(arrivalPath(extra.uuid, extra.start ?? ''))
+      // T-086 : « Balade finie ? » (programmée par l’iPhone pendant la balade) : l’écran « Balade en cours », pour terminer.
+      else if (extra?.kind === 'balade-finie') go.current('/balade-en-cours')
     })
     return () => {
       void handle.then((h) => h.remove())

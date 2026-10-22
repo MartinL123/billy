@@ -4,16 +4,17 @@ import { BackLink } from '../../components/BackLink'
 import { CheckIcon } from '../../components/Icons'
 import { Stats } from '../../components/Stats'
 import { useToast } from '../../components/Toast'
-import { markWalkTold } from '../../firebase/db'
+import { markWalkTold, updateEntryRoute } from '../../firebase/db'
 import { awardBone } from '../../firebase/training'
 import { useData } from '../../firebase/store'
 import { useReadOnly } from '../../firebase/viewer'
-import { readRoute } from '../../lib/route'
+import { isToTell, momentReaction, readRoute, routeMomentInfo, storeRoute } from '../../lib/route'
 import { useToday } from '../../lib/useToday'
 import { clockAt, durationText } from '../../lib/walkSheet'
 import { tellBone, tellQueue } from '../../lib/walkTell'
 import { StopTiles, usePlaceOnStop } from './StopTiles'
 import { WalkMap } from './WalkMap'
+import { ToProfile } from './ToProfile'
 
 /**
  * « Raconter la balade » (V6 § 6.2) : un arrêt par écran (la carte zoomée sur l’arrêt, l’heure, la rue, les tuiles),
@@ -78,6 +79,16 @@ export default function TellWalk() {
   const place = stop ?? marker!
   const when = route.startTime && item.atS !== undefined ? clockAt(route.startTime, item.atS) : undefined
   const street = stop?.street ?? marker?.street
+  // T-108 : un arrêt déjà raconté : sa réponse est cochée et peut être changée (le repère est remplacé, « Annuler » le rend).
+  const told = item.momentIndex !== undefined && route.moments[item.momentIndex] && !isToTell(route.moments[item.momentIndex]!) ? route.moments[item.momentIndex] : undefined
+  const removeTold = () => {
+    if (item.momentIndex === undefined) return
+    const before = route.moments
+    updateEntryRoute(entry.id, storeRoute({ ...route, moments: route.moments.filter((_, j) => j !== item.momentIndex) }))
+    toast(`${routeMomentInfo(told!.type).label} retiré`, { label: 'Annuler', run: () => updateEntryRoute(entry.id, storeRoute({ ...route, moments: before })) })
+    // Les repères ont bougé : la file figée ne vaut plus, on revient à la fiche.
+    back()
+  }
   const onlyStops = queue.every((q) => q.kind === 'stop')
   return (
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col">
@@ -95,11 +106,22 @@ export default function TellWalk() {
         <p className="-mt-1 text-[0.9412rem] text-muted">{[when, stop ? `${durationText(stop.durS)} d’arrêt` : undefined, street].filter(Boolean).join(' · ')}</p>
         <StopTiles
           stop={place}
+          {...(told ? { selected: told.type } : {})}
           onPick={(type, note) => {
-            if (placeOnStop(item, type, note)) placed.current++
+            // La même réponse : rien ne change, on passe à la suite.
+            if (told && told.type === type && (told.note ?? '') === (note ?? '')) return next()
+            if (placeOnStop(item, type, note) && !told) placed.current++
             next()
           }}
         />
+        {told && (
+          <div className="flex flex-wrap items-center gap-x-4">
+            <ToProfile reaction={momentReaction(told)} />
+            <button type="button" onClick={removeTold} className="btn-text -ml-1 text-[0.8824rem] text-muted">
+              Retirer ce repère
+            </button>
+          </div>
+        )}
         <button type="button" onClick={next} className="btn-text mt-auto self-center px-4">
           Passer
         </button>

@@ -169,9 +169,7 @@ export function paceAt(route: Route, minute: number): { clock?: string; kmh: num
   const t0 = track.t[0] ?? 0
   const s = Math.min(t0 + minute * 60 + 30, track.t[track.t.length - 1] ?? 0)
   const at = positionAt(track, s)
-  const during = route.stops?.find((stop) => stop.street && stop.at <= t0 + (minute + 1) * 60 && stop.at + stop.durS >= t0 + minute * 60)
-  const near = [...(route.stops ?? []), ...route.moments].filter((p) => p.street).map((p) => ({ street: p.street!, d: distanceMeters(at, p) })).filter((p) => p.d <= STREET_NEAR_M).sort((a, b) => a.d - b.d)[0]
-  const street = during?.street ?? near?.street
+  const street = streetAt(route, at, [t0 + minute * 60, t0 + (minute + 1) * 60])
   const start = validTime(route.startTime)
   const kmh = pace[minute]!
   return { ...(start ? { clock: clockAt(start, s - 30) } : {}), kmh, category: paceCategory(kmh), ...(street ? { street } : {}), at }
@@ -179,6 +177,16 @@ export function paceAt(route: Route, minute: number): { clock?: string; kmh: num
 
 /** La rue d’un point de la courbe : celle d’un arrêt ou d’un repère à moins de 150 m (pas de requête de plus). */
 export const STREET_NEAR_M = 150
+
+/**
+ * La rue d’un endroit de la balade, sans requête : celle de l’arrêt en cours pendant `during` (secondes depuis le
+ * départ), sinon celle de l’arrêt ou du repère le plus proche à moins de 150 m.
+ */
+export function streetAt(route: Pick<Route, 'stops' | 'moments'>, at: { lat: number; lng: number }, during?: [number, number]): string | undefined {
+  const stop = during ? route.stops?.find((s) => s.street && s.at <= during[1] && s.at + s.durS >= during[0]) : undefined
+  if (stop?.street) return stop.street
+  return [...(route.stops ?? []), ...route.moments].filter((p) => p.street).map((p) => ({ street: p.street!, d: distanceMeters(at, p) })).filter((p) => p.d <= STREET_NEAR_M).sort((a, b) => a.d - b.d)[0]?.street
+}
 
 /** D’où viennent les chiffres (sources en 12 px). `track` : l’étiquette de la liste (R-092), « Watch », « iPhone »… */
 export function sourceLabels(route: Pick<Route, 'source' | 'weather' | 'hr' | 'steps' | 'energyKcal' | 'stops' | 'moments'>, entrySource?: string): { track?: string; health?: string; weather?: string; places?: string } {

@@ -10,6 +10,7 @@ import EntryForm from './features/journal/EntryForm'
 import EntryView from './features/journal/EntryView'
 import TellWalk from './features/trajets/TellWalk'
 import TrimWalk from './features/trajets/TrimWalk'
+import ReplayWalk from './features/trajets/ReplayWalk'
 import WalkArrival from './features/trajets/WalkArrival'
 import WatchArrivalScreen from './features/trajets/WatchArrivalScreen'
 import Billy from './features/billy/Billy'
@@ -264,6 +265,7 @@ export default function App() {
             <Route path="souvenir/:id/modifier" element={<EntryForm />} />
             <Route path="souvenir/:id/raconter" element={<TellWalk />} />
             <Route path="souvenir/:id/recadrer" element={<TrimWalk />} />
+            <Route path="souvenir/:id/revoir" element={<ReplayWalk />} />
             <Route path="balade/recap/:id" element={<WalkArrival />} />
             <Route path="balade/arrivee" element={<WatchArrivalScreen />} />
             <Route path="exercice" element={<Exercise />} />

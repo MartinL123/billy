@@ -6,7 +6,7 @@ import { paceSegments } from '../../lib/walkSheet'
 import { directionArrows } from '../../lib/walkFacts'
 import { effectiveTrack } from '../../lib/trim'
 import type { PaceCategory } from '../../lib/walkStory'
-import { photoMarker, replayWalk } from '../balades/walkLayer'
+import { photoMarker } from '../balades/walkLayer'
 import { fitPadding, type Padding } from '../../lib/mapFrame'
 import type { PhotoPin } from '../../lib/walkFiche'
 import { momentMarker } from './momentIcons'
@@ -41,13 +41,11 @@ function arrowMarker(deg: number): HTMLElement {
  * ouvre la carte du territoire. `cursor` : le repère posé par le doigt sur la courbe d’allure ; `focus` : un arrêt à
  * regarder de près (mode « Raconter la balade »).
  */
-export function WalkMap({ route, dogName, cursor, focus, replaying = false, onReplayEnd, className = '', padding = PAD, photos = [], onPhoto, interactive = false, center }: { route: Route; dogName: string; cursor?: { lat: number; lng: number }; focus?: { lat: number; lng: number; number?: number }; replaying?: boolean; onReplayEnd?: () => void; className?: string; /** T-107 : la partie de la carte couverte (boutons en haut, panneau en bas) ; le tracé se cadre dans le reste. */ padding?: Padding; /** T-107 : les photos, en miniatures là où elles ont été prises. */ photos?: PhotoPin[]; onPhoto?: (index: number) => void; /** T-107 : la carte en grand se déplace et se zoome au doigt. */ interactive?: boolean; /** T-108 : « Voir sur la carte » d’une photo : la carte s’y déplace. */ center?: { lat: number; lng: number } }) {
+export function WalkMap({ route, dogName, cursor, focus, runner, className = '', padding = PAD, photos = [], onPhoto, interactive = false, center }: { route: Route; dogName: string; cursor?: { lat: number; lng: number }; focus?: { lat: number; lng: number; number?: number }; /** T-108 : « Revoir la balade » : le point qui avance sur le trajet. */ runner?: { lat: number; lng: number }; className?: string; /** T-107 : la partie de la carte couverte (boutons en haut, panneau en bas) ; le tracé se cadre dans le reste. */ padding?: Padding; /** T-107 : les photos, en miniatures là où elles ont été prises. */ photos?: PhotoPin[]; onPhoto?: (index: number) => void; /** T-107 : la carte en grand se déplace et se zoome au doigt. */ interactive?: boolean; /** T-108 : « Voir sur la carte » d’une photo : la carte s’y déplace. */ center?: { lat: number; lng: number } }) {
   const host = useRef<HTMLDivElement>(null)
   const pad = () => (host.current ? fitPadding(padding, host.current.clientWidth, host.current.clientHeight, 0.2) : padding)
   const map = useRef<MapLibreMap | null>(null)
   const [ready, setReady] = useState(false)
-  const endRef = useRef(onReplayEnd)
-  endRef.current = onReplayEnd
 
   useEffect(() => {
     if (!host.current) return
@@ -111,12 +109,15 @@ export function WalkMap({ route, dogName, cursor, focus, replaying = false, onRe
     return () => void marker.remove()
   }, [cursor?.lat, cursor?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // « Revoir la balade » : le replay de la carte du territoire, recadré dans cette petite carte à la fin.
+  // « Revoir la balade » (T-108) : un point orange qui avance sur le trajet (la carte ne bouge pas).
+  const runnerMarker = useRef<Marker | null>(null)
   useEffect(() => {
     const m = map.current
-    if (!m || !replaying) return
-    return replayWalk(m, route, dogName, () => endRef.current?.(), pad())
-  }, [replaying]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (!m || !runner) return
+    if (runnerMarker.current) runnerMarker.current.setLngLat(lngLat([runner.lat, runner.lng]))
+    else runnerMarker.current = addMarker(m, [runner.lat, runner.lng], dot('#BF5519', 22, dogName))
+  }, [runner?.lat, runner?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => void runnerMarker.current?.remove(), [])
 
   // Le cadre suit la taille de la carte (rotation, texte agrandi).
   useEffect(() => {
@@ -125,11 +126,11 @@ export function WalkMap({ route, dogName, cursor, focus, replaying = false, onRe
     if (!m || !el || focus) return
     const observer = new ResizeObserver(() => {
       m.resize()
-      if (!replaying) whenReady(m, () => fitPoints(m, route.points as LatLng[], pad()))
+      whenReady(m, () => fitPoints(m, route.points as LatLng[], pad()))
     })
     observer.observe(el)
     return () => observer.disconnect()
-  }, [route.points, replaying, Boolean(focus)]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [route.points, Boolean(focus)]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // T-107 : le panneau monte ou descend : le tracé se recadre dans ce qui reste visible.
   const firstPad = useRef(true)

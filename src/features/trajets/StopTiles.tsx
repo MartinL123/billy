@@ -3,6 +3,7 @@ import { useToast } from '../../components/Toast'
 import { updateEntryRoute } from '../../firebase/db'
 import { routeMomentInfo, storeRoute, type Route, type RouteMomentType } from '../../lib/route'
 import { STOP_TILES, tellMoment, type TellItem } from '../../lib/walkTell'
+import { CheckIcon } from '../../components/Icons'
 import { MomentIcon } from './momentIcons'
 import { PlaceMoment } from './PlaceMoment'
 
@@ -22,19 +23,25 @@ export function usePlaceOnStop(entryId: string, route: Route) {
   }
 }
 
-/** Les 6 tuiles de 44 px : Pipi · Rencontre · Reniflage · Jeu · Moment de stress · Autre (le choix complet, avec un mot). */
-export function StopTiles({ stop, onPick }: { stop: { lat: number; lng: number }; onPick: (type: RouteMomentType, note?: string) => void }) {
+/**
+ * Les 6 tuiles de 44 px : Pipi · Rencontre · Reniflage · Jeu · Moment de stress · Autre (le choix complet, avec un mot).
+ * `selected` (T-108) : la réponse déjà donnée, cochée (bordure orange, ✓) ; « Autre » si elle n’a pas sa tuile.
+ */
+export function StopTiles({ stop, onPick, selected }: { stop: { lat: number; lng: number }; onPick: (type: RouteMomentType, note?: string) => void; selected?: RouteMomentType }) {
   const [other, setOther] = useState(false)
+  const selectedLabel = selected ? (STOP_TILES.find((t) => t.type === selected) ?? STOP_TILES.find((t) => !t.type))!.label : undefined
   return (
     <>
       <div className="@container">
       <div role="group" aria-label="Que s’est-il passé ici ?" className="grid grid-cols-2 gap-2 @min-[23rem]:grid-cols-3">
         {STOP_TILES.map((tile) => {
           const color = tile.type ? routeMomentInfo(tile.type).color : '#5C6662'
+          const on = selectedLabel === tile.label
           return (
-            <button key={tile.label} type="button" onClick={() => (tile.type ? onPick(tile.type) : setOther(true))} className="tap flex min-h-11 items-center gap-2 rounded-field border-2 border-solid bg-surface px-2 py-1.5 text-left text-[0.8235rem] leading-tight font-bold text-text" style={{ borderColor: `${color}66` }}>
+            <button key={tile.label} type="button" {...(selected ? { 'aria-pressed': on } : {})} onClick={() => (tile.type ? onPick(tile.type) : setOther(true))} className={`tap flex min-h-11 items-center gap-2 rounded-field border-2 border-solid px-2 py-1.5 text-left text-[0.8235rem] leading-tight font-bold text-text ${on ? 'bg-[#FBE6D4]' : 'bg-surface'}`} style={{ borderColor: on ? '#BF5519' : `${color}66` }}>
               {tile.type ? <MomentIcon type={tile.type} size={24} /> : <span aria-hidden="true" className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#5C6662] text-[0.8235rem] text-white">…</span>}
-              {tile.label}
+              <span className="min-w-0 flex-1">{tile.label}</span>
+              {on && <CheckIcon size={18} strokeWidth={2.6} className="shrink-0 text-[#BF5519]" />}
             </button>
           )
         })}

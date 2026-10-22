@@ -20,14 +20,29 @@ function Slide({ photo, label, active }: { photo: EntryPhoto; label: string; act
   )
 }
 
+/** La légende d’une photo : le lieu et le moment ; `onMap` : elle est posée sur la carte. */
+export interface PhotoCaption {
+  place?: string
+  when?: string
+  onMap?: boolean
+}
+
 interface PhotoViewerProps {
   photos: EntryPhoto[]
   start: number
   onClose: () => void
+  /** T-108 : sous chaque photo, le lieu et l’heure. */
+  captions?: PhotoCaption[]
+  /** T-108 : « Voir sur la carte » (seulement pour une photo posée sur la carte). */
+  onShowOnMap?: (index: number) => void
 }
 
-/** Photo en plein écran, balayage horizontal entre les photos de l’entrée. */
-export function PhotoViewer({ photos, start, onClose }: PhotoViewerProps) {
+/**
+ * Photo en grand (maquette flair-2026-10-22/Photo, T-108) : plein écran noir, « 1 sur 3 » et Fermer en haut, balayage
+ * entre les photos (et des boutons précédent / suivant, R-067), des points sous la photo, puis le lieu, l’heure et
+ * « Voir sur la carte ».
+ */
+export function PhotoViewer({ photos, start, onClose, captions, onShowOnMap }: PhotoViewerProps) {
   const scroller = useRef<HTMLDivElement>(null)
   const [index, setIndex] = useState(start)
 
@@ -49,41 +64,58 @@ export function PhotoViewer({ photos, start, onClose }: PhotoViewerProps) {
     const el = scroller.current
     if (el) el.scrollTo({ left: i * el.clientWidth, behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   }
-  const arrow = 'absolute top-1/2 flex size-12 -translate-y-1/2 items-center justify-center rounded-full border-2 border-solid border-white/70 bg-black/40 p-0 text-white'
+  const arrow = 'absolute top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-black/45 p-0 text-white'
+  const caption = captions?.[index]
 
   return createPortal(
-    <div role="dialog" aria-modal="true" aria-label="Photos du souvenir" className="fixed inset-0 z-50 animate-fade bg-black">
-      <div
-        ref={scroller}
-        onScroll={(e) => setIndex(Math.round(e.currentTarget.scrollLeft / Math.max(1, e.currentTarget.clientWidth)))}
-        className="flex h-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden [scrollbar-width:none]"
-      >
-        {photos.map((photo, i) => (
-          <Slide key={photo.fileId} photo={photo} label={`Photo ${i + 1} sur ${photos.length}`} active={Math.abs(i - index) <= 1} />
-        ))}
-      </div>
-      <div className="absolute inset-x-0 top-0 flex items-center justify-between px-3 pt-[calc(env(safe-area-inset-top)+8px)]">
-        <button type="button" onClick={onClose} className="whitespace-nowrap flex min-h-12 items-center gap-2 rounded-full border-2 border-solid border-white/70 bg-black/40 px-4 text-[1rem] font-bold text-white">
+    <div role="dialog" aria-modal="true" aria-label="Photos" className="fixed inset-0 z-50 flex animate-fade flex-col bg-[#0F1413] text-white">
+      <div className="flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+12px)] pb-3">
+        <span aria-live="polite" className="text-[0.9412rem] font-bold tabular-nums">
+          {photos.length > 1 ? `${index + 1} sur ${photos.length}` : ''}
+        </span>
+        <button type="button" onClick={onClose} aria-label="Fermer" className="flex size-11 items-center justify-center rounded-full border-0 bg-white/20 p-0 text-white">
           <CloseIcon size={20} />
-          Fermer
         </button>
-        {photos.length > 1 && (
-          <span aria-live="polite" className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold text-white">
-            {index + 1} / {photos.length}
-          </span>
-        )}
-        <span className="w-[110px]" />
       </div>
-      {index > 0 && (
-        <button type="button" aria-label="Photo précédente" onClick={() => go(index - 1)} className={`${arrow} left-3`}>
-          <ChevronLeftIcon />
-        </button>
+      <div className="relative min-h-0 flex-1">
+        <div
+          ref={scroller}
+          onScroll={(e) => setIndex(Math.round(e.currentTarget.scrollLeft / Math.max(1, e.currentTarget.clientWidth)))}
+          className="flex h-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden [scrollbar-width:none]"
+        >
+          {photos.map((photo, i) => (
+            <Slide key={photo.fileId} photo={photo} label={`Photo ${i + 1} sur ${photos.length}`} active={Math.abs(i - index) <= 1} />
+          ))}
+        </div>
+        {index > 0 && (
+          <button type="button" aria-label="Photo précédente" onClick={() => go(index - 1)} className={`${arrow} left-2`}>
+            <ChevronLeftIcon />
+          </button>
+        )}
+        {index < photos.length - 1 && (
+          <button type="button" aria-label="Photo suivante" onClick={() => go(index + 1)} className={`${arrow} right-2`}>
+            <ChevronRightIcon />
+          </button>
+        )}
+      </div>
+      {photos.length > 1 && (
+        <div aria-hidden="true" className="flex justify-center gap-2 pt-3">
+          {photos.map((p, i) => (
+            <span key={p.fileId} className={`size-2 rounded-full ${i === index ? 'bg-white' : 'bg-white/40'}`} />
+          ))}
+        </div>
       )}
-      {index < photos.length - 1 && (
-        <button type="button" aria-label="Photo suivante" onClick={() => go(index + 1)} className={`${arrow} right-3`}>
-          <ChevronRightIcon />
-        </button>
-      )}
+      <div className="flex min-h-[72px] items-center gap-3 px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+        <div className="flex min-w-0 flex-1 flex-col">
+          {caption?.place && <span className="truncate text-[1rem] font-bold">{caption.place}</span>}
+          {caption?.when && <span className="text-[0.8824rem] text-white/75">{caption.when}</span>}
+        </div>
+        {caption?.onMap && onShowOnMap && (
+          <button type="button" onClick={() => onShowOnMap(index)} className="flex min-h-11 shrink-0 items-center rounded-full border-2 border-solid border-white/85 bg-transparent px-4 text-[0.8824rem] font-bold whitespace-nowrap text-white">
+            Voir sur la carte
+          </button>
+        )}
+      </div>
     </div>,
     document.body,
   )

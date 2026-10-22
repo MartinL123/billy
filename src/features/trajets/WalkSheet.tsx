@@ -15,7 +15,8 @@ import { formatDayHeading } from '../../lib/dates'
 import { fromStored, isToTell, momentReaction, routeMomentInfo, storeRoute, type Route } from '../../lib/route'
 import { stopStreet } from '../../lib/street'
 import { useBack } from '../../lib/useBack'
-import { sheetStats, sourceLabels, sourceLine, walkHours } from '../../lib/walkSheet'
+import { sheetStats, sourceLabels, sourceLine, streetAt, walkHours } from '../../lib/walkSheet'
+import { photoWhen } from '../../lib/walkReplay'
 import { dogAgeLine, markNewStreets, streetsBefore } from '../../lib/walkFacts'
 import { photoPins, walkNumber } from '../../lib/walkFiche'
 import { walkTimeline, type TimelineEvent } from '../../lib/walkTimeline'
@@ -65,8 +66,8 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
   const back = useBack('/balades')
   // T-098 : le retour dit où il ramène (« La carte », « Accueil ») ; par défaut, la liste des balades.
   const backLabel = (useLocation().state as { retour?: string } | null)?.retour ?? 'Balades'
-  const [replaying, setReplaying] = useState(false)
   const [cursor, setCursor] = useState<{ lat: number; lng: number }>()
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>()
   const [viewer, setViewer] = useState<number | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [postcard, setPostcard] = useState(false)
@@ -95,6 +96,23 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
   const streets = useMemo(() => (route.streets?.length ? markNewStreets(route.streets.map((s) => s.name), streetsBefore(walks, { id: entry.id, date: entry.date, startTime: route.startTime })) : []), [walks, route.streets, route.startTime, entry.id, entry.date])
   const number = useMemo(() => walkNumber(walks, { id: entry.id, date: entry.date, startTime: route.startTime }, dog.adoptionDate), [walks, entry.id, entry.date, route.startTime, dog.adoptionDate])
   const pins = useMemo(() => photoPins(entry.photos, route), [entry.photos, route])
+  // T-108 : sous chaque photo en grand, le lieu (la rue d’un arrêt ou d’un repère proche) et l’heure de prise de vue.
+  const captions = useMemo(
+    () =>
+      entry.photos.map((photo, i) => {
+        const pin = pins.find((p) => p.index === i)
+        const place = pin ? streetAt(route, pin) : undefined
+        return { when: photoWhen(entry.date, photo.time), onMap: Boolean(pin), ...(place ? { place } : {}) }
+      }),
+    [entry.photos, entry.date, pins, route],
+  )
+  const showPhotoOnMap = (index: number) => {
+    const pin = pins.find((p) => p.index === index)
+    setViewer(null)
+    if (!pin) return
+    showBig(true)
+    setMapCenter({ lat: pin.lat, lng: pin.lng })
+  }
   const placeOnStop = usePlaceOnStop(entry.id, route)
   const removeMoment = (index: number) => updateEntryRoute(entry.id, storeRoute({ ...route, moments: route.moments.filter((_, j) => j !== index) }))
   // Sous un arrêt à raconter : « Que s’est-il passé ici ? » et ses tuiles. Sous un repère hors arrêt : « Ajouter à
@@ -222,12 +240,13 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
   const panelStyle = { transform: `translateY(${(big ? bigOffset : 0) + dragY}px)`, transition: dragging || reducedMotion() ? 'none' : PANEL_EASE }
   const mapPadding = big ? { top: 110, bottom: peekH + 24, left: 28, right: 28 } : { top: 64, bottom: vh - mapH + 26 + 14, left: 28, right: 28 }
 
+  // « Revoir la balade » (T-108) : son propre écran, le point qui avance sur le trajet.
   const replayButton = route.points.length > 1 && (
-    <button type="button" onClick={() => setReplaying(!replaying)} className="tap map-btn">
+    <button type="button" onClick={() => navigate(`/souvenir/${entry.id}/revoir`)} className="tap map-btn">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        {replaying ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />}
+        <path d="M8 5v14l11-7z" />
       </svg>
-      {replaying ? 'Arrêter' : 'Revoir la balade'}
+      Revoir la balade
     </button>
   )
 
@@ -235,7 +254,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
     <div className="relative mx-auto min-h-dvh max-w-[430px]">
       {/* La carte, fixe derrière la fiche : le panneau défile par-dessus. */}
       <div className="fixed inset-y-0 left-0 right-0 z-0 mx-auto w-full max-w-[430px]">
-        <WalkMap route={route} dogName={dog.name} cursor={cursor} replaying={replaying} onReplayEnd={() => setReplaying(false)} className="size-full" padding={mapPadding} interactive={big} photos={pins} onPhoto={setViewer} />
+        <WalkMap route={route} dogName={dog.name} cursor={cursor} center={mapCenter} className="size-full" padding={mapPadding} interactive={big} photos={pins} onPhoto={setViewer} />
       </div>
       {/* La barre d’état reste lisible quand la fiche passe dessous. */}
       {scrolled && !big && <div aria-hidden="true" className="fixed inset-x-0 top-0 z-10 h-[env(safe-area-inset-top)] bg-bg" />}
@@ -352,7 +371,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
           input={{ points: postcardRoute(route.points, route.distanceM), title: name || 'Balade', line: postcardLine(route.distanceM, route.durationMin), dateLine: postcardDateLine(entry.date, entry.commune), dogName: dogName(dog), ...(dog.photoThumbFileId || dog.photoFileId ? { dogPhotoFileId: dog.photoThumbFileId ?? dog.photoFileId } : {}) }}
         />
       )}
-      {viewer !== null && <PhotoViewer photos={entry.photos} start={viewer} onClose={() => setViewer(null)} />}
+      {viewer !== null && <PhotoViewer photos={entry.photos} start={viewer} onClose={() => setViewer(null)} captions={captions} onShowOnMap={showPhotoOnMap} />}
       {confirmDelete && (
         <ConfirmSheet
           title="Supprimer cette balade ?"

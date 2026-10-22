@@ -260,7 +260,7 @@ export default function EntryForm() {
             max={today}
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="btn btn-tertiary text-right"
+            className="min-h-11 justify-end rounded-field px-1 text-right text-[1rem] font-bold whitespace-nowrap text-primary"
           />
         </div>
 

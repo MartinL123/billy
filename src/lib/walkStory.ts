@@ -257,9 +257,9 @@ export function walkStory(track: Track, { window, pauses, moments = [], hr }: { 
 }
 
 /** Les arrêts et l’allure à enregistrer pour une balade qui a un trajet daté (fenêtre du recadrage comprise). */
-export function routeStory(route: { track?: Track; trimmed?: { startS: number; endS: number }; moments?: Pick<RouteMoment, 'lat' | 'lng'>[]; hr?: number[] }): Pick<WalkStory, 'stops' | 'pace'> | undefined {
+export function routeStory(route: { track?: Track; trimmed?: { startS: number; endS: number }; moments?: Pick<RouteMoment, 'lat' | 'lng'>[]; hr?: number[]; pauses?: Pause[] }): Pick<WalkStory, 'stops' | 'pace'> | undefined {
   if (!route.track) return undefined
-  const { stops, pace } = walkStory(route.track, { window: route.trimmed ? [route.trimmed.startS, route.trimmed.endS] : undefined, moments: route.moments, hr: route.hr })
+  const { stops, pace } = walkStory(route.track, { window: route.trimmed ? [route.trimmed.startS, route.trimmed.endS] : undefined, moments: route.moments, hr: route.hr, pauses: route.pauses })
   return { stops, pace }
 }
 

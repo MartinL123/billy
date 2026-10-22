@@ -2,7 +2,7 @@ import { distanceMeters } from './community'
 import type { ISODate } from './dates'
 import type { Reaction } from './questionnaire'
 import { readTrack, type Track } from './track'
-import { linkMoments } from './walkStory'
+import { linkMoments, type Pause } from './walkStory'
 
 // Les trajets de balade (docs/specs/trajets.md) : tracés après coup sur la carte, jamais suivis en direct.
 
@@ -63,6 +63,8 @@ export interface Route {
   descentM?: number
   weather?: { tempC: number; humidity?: number; source: 'watch' | 'open-meteo' }
   energyKcal?: number
+  /** Les pauses de la séance Watch (secondes depuis le départ) : gardées pour recalculer les arrêts après un recadrage. */
+  pauses?: Pause[]
   /** Le début et la fin gardés après un recadrage (§ 8.3), en secondes depuis le départ. */
   trimmed?: { startS: number; endS: number }
 }

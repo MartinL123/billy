@@ -19,13 +19,17 @@ const STRAVA = `<?xml version="1.0" encoding="UTF-8"?>
 </gpx>`
 
 describe('lecture des fichiers Strava', () => {
-  it('lit le nom, le type, les points, leur heure et leur altitude (V6 § 2.1), sans rythme cardiaque', () => {
+  it('lit le nom, le type, les points, leur heure et leur altitude (V6 § 2.1) ; le cœur à part, daté (T-080)', () => {
     const activity = parseActivity(STRAVA)
     expect(activity.name).toBe('Afternoon Walk')
     expect(activity.type).toBe('walking')
     expect(activity.points).toHaveLength(4)
     expect(activity.points[0]).toEqual({ lat: 45, lng: 1, time: '2026-10-12T14:00:00Z', alt: 12.4 })
-    expect(JSON.stringify(activity)).not.toMatch(/hr|98/)
+    expect(JSON.stringify(activity.points)).not.toMatch(/hr|98/)
+    expect(activity.hr).toEqual([
+      { time: '2026-10-12T14:00:00Z', bpm: 98 },
+      { time: '2026-10-12T14:00:05Z', bpm: 99 },
+    ])
   })
 
   it('garde un trajet allégé, la distance (sauts du GPS ignorés), la durée et la date à Paris', () => {

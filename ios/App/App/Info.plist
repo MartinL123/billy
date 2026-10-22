@@ -27,7 +27,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Flair lit vos séances de l’Apple Watch pour afficher vos balades et leur tracé.</string>
+	<string>Flair lit vos marches, leur tracé et votre rythme cardiaque pour raconter chaque balade. Rien n’est partagé.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Flair enregistre le tracé de la balade, même écran verrouillé.</string>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>

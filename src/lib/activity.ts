@@ -3,7 +3,8 @@ import { simplifyWalk, type TimedPoint } from './balade'
 import type { ISODate } from './dates'
 import type { RoutePoint, RouteStop } from './route'
 import { buildTrack, type Track } from './track'
-import { walkStory } from './walkStory'
+import { elevation, hrPerMinute, pausesSince, positiveRound, watchWeather, type HrSample, type TimeSpan, type WalkWeather } from './walkHealth'
+import { walkStory, type Pause } from './walkStory'
 
 // Import des balades Strava (docs/specs/carte-a-decouvrir.md § 6) : fichiers GPX de l’archive ou d’une seule balade.
 // Billy garde le trajet allégé (la carte), la distance, la durée, la date, le nom et, depuis la V6 (§ 2.1), le trajet
@@ -14,6 +15,17 @@ export interface Activity {
   /** `<type>` du GPX Strava : walking, hiking, cycling, running… */
   type?: string
   points: TimedPoint[]
+  // ——— V6 § 2.2 : ce que la source sait en plus (tout est optionnel) ———
+  /** Rythme cardiaque daté : `gpxtpx:hr` d’un GPX, ou Santé (Watch). */
+  hr?: HrSample[]
+  /** Pas (Santé). */
+  steps?: number
+  /** Énergie active, kcal (Santé). */
+  energyKcal?: number
+  /** Météo notée par la Watch. */
+  weather?: { tempC?: number; humidity?: number }
+  /** Pauses de la séance Watch. */
+  pauses?: TimeSpan[]
 }
 
 const attr = (attrs: string, name: string) => {
@@ -34,7 +46,7 @@ const decode = (text: string) =>
 
 /**
  * Lit un GPX (texte) : le nom et le type de l’activité, et les points du parcours avec leur heure et leur altitude.
- * Le rythme cardiaque (gpxtpx:hr) est ignoré dès la lecture.
+ * Le rythme cardiaque (`gpxtpx:hr`) est lu à part, daté (V6 § 2.2) : il ne sera gardé qu’en valeur par minute.
  */
 export function parseActivity(xml: string): Activity {
   const track = /<trk\b[\s\S]*?<\/trk>/.exec(xml)?.[0] ?? ''
@@ -43,6 +55,7 @@ export function parseActivity(xml: string): Activity {
   const name = tag(head, 'name')
   const type = tag(head, 'type')
   const points: TimedPoint[] = []
+  const hr: HrSample[] = []
   for (const m of xml.matchAll(/<(trkpt|rtept)\b([^>]*?)(\/>|>([\s\S]*?)<\/\1>)/g)) {
     const lat = attr(m[2]!, 'lat')
     const lng = attr(m[2]!, 'lon')
@@ -51,8 +64,10 @@ export function parseActivity(xml: string): Activity {
     const eleText = m[4] ? tag(m[4], 'ele') : undefined
     const alt = eleText ? Number(eleText) : NaN
     points.push({ lat, lng, ...(time ? { time } : {}), ...(Number.isFinite(alt) ? { alt } : {}) })
+    const bpm = m[4] ? Number(/<(?:[\w-]+:)?hr>\s*([\d.]+)\s*</.exec(m[4])?.[1]) : NaN
+    if (time && Number.isFinite(bpm)) hr.push({ time, bpm })
   }
-  return { ...(name ? { name: decode(name) } : {}), ...(type ? { type: decode(type).toLowerCase() } : {}), points }
+  return { ...(name ? { name: decode(name) } : {}), ...(type ? { type: decode(type).toLowerCase() } : {}), points, ...(hr.length ? { hr } : {}) }
 }
 
 /** Les marches et randonnées sont gardées ; un fichier sans type aussi (un GPX exporté d’une seule balade). */
@@ -137,6 +152,14 @@ export interface ImportedActivity {
   /** Arrêts et allure par minute (V6 § 3), calculés sur le trajet daté. */
   stops?: RouteStop[]
   pace?: number[]
+  /** V6 § 2.1 : cœur par minute, pas, dénivelé, météo, énergie, pauses de la Watch (secondes depuis le départ). */
+  hr?: number[]
+  steps?: number
+  ascentM?: number
+  descentM?: number
+  weather?: WalkWeather
+  energyKcal?: number
+  pauses?: Pause[]
   /** Points complets, avec l’heure : seulement en mémoire, pour le brouillard et les photos. Jamais enregistrés tels quels. */
   full: TimedPoint[]
 }
@@ -153,7 +176,14 @@ export function toImported(activity: Activity): ImportedActivity | undefined {
   const endTime = times[times.length - 1]
   const durationMin = startTime && endTime ? Math.round((Date.parse(endTime) - Date.parse(startTime)) / 60000) : undefined
   const track = buildTrack(points, startTime)
-  const story = track ? walkStory(track) : undefined
+  const hr = startTime ? hrPerMinute(activity.hr, startTime, endTime) : undefined
+  const pauses = startTime ? pausesSince(activity.pauses, startTime) : undefined
+  // Les pauses de la Watch comptent comme arrêts (V6 § 3).
+  const story = track ? walkStory(track, { pauses, hr }) : undefined
+  const climb = elevation(track?.alt)
+  const weather = watchWeather(activity.weather)
+  const steps = positiveRound(activity.steps)
+  const energyKcal = positiveRound(activity.energyKcal)
   return {
     key: importKey(points),
     name: frenchName(activity.name, activity.type),
@@ -167,6 +197,12 @@ export function toImported(activity: Activity): ImportedActivity | undefined {
     ),
     ...(track ? { track } : {}),
     ...(story ? { stops: story.stops, pace: story.pace } : {}),
+    ...(hr ? { hr } : {}),
+    ...(steps ? { steps } : {}),
+    ...(climb ?? {}),
+    ...(weather ? { weather } : {}),
+    ...(energyKcal ? { energyKcal } : {}),
+    ...(pauses ? { pauses } : {}),
     full: points,
   }
 }

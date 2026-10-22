@@ -22,7 +22,8 @@ import { recoverFromFirestoreCrash } from '../../firebase/recover'
 import { useToday } from '../../lib/useToday'
 import { slotForStart, walkName, walkTimes, WALK_SLOTS, type WalkSlot } from '../../lib/walks'
 import { isNative } from '../../native'
-import { FlairNative } from '../../native/flair'
+import { FlairNative, readHealthWindow } from '../../native/flair'
+import { watchOptedIn } from './watchImport'
 import { ExplorerMap } from './ExplorerMap'
 import { ROUTE_COLOR } from '../../components/maplibre'
 import { importActivities } from './importRun'
@@ -134,10 +135,14 @@ export default function LiveWalk() {
         toast('Balade trop courte, elle n’a pas été gardée.')
         return navigate('/', { replace: true })
       }
+      // T-080 : le cœur, les pas et l’énergie de Santé sur la même fenêtre (Watch au poignet), seulement si la
+      // lecture de Santé a été choisie (R-079). Rien ne bloque l’enregistrement si Santé ne donne rien.
+      step = 'données de Santé (healthWindow)'
+      const health = watchOptedIn() ? await readHealthWindow(walk.startedAt!, new Date(endedAt).toISOString()) : undefined
       step = 'enregistrement (importActivities)'
       const d = data.current
       const result = await withTimeout(
-        importActivities(1, async () => gpsActivity(walk.points, walk.startedAt!), { knownKeys: knownImportKeys(d.entries), bones: d.bones, fog: d.fog, communes: d.communes, today: d.today, times: walkTimes(d.dog.walkTimes) }, () => undefined, { source: 'gps' }),
+        importActivities(1, async () => gpsActivity(walk.points, walk.startedAt!, health), { knownKeys: knownImportKeys(d.entries), bones: d.bones, fog: d.fog, communes: d.communes, today: d.today, times: walkTimes(d.dog.walkTimes) }, () => undefined, { source: 'gps' }),
         SAVE_MS,
         'enregistrement',
       )

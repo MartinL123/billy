@@ -1,4 +1,5 @@
 import { parisMinutes, type Activity } from './activity'
+import type { HealthExtras, TimeSpan } from './walkHealth'
 import { walkName } from './walks'
 
 // Les marches de l'Apple Watch (app iOS, T-001) : lues dans Santé à chaque ouverture, elles passent par le même
@@ -13,6 +14,17 @@ export interface WatchWalk {
   type: 'walking' | 'hiking'
   /** V6 § 2.1 : avec l’altitude, la vitesse et la précision de chaque point quand Santé les donne. */
   points: { lat: number; lng: number; time: string; alt?: number; speed?: number; accuracy?: number }[]
+  // ——— V6 § 2.2 : absents si Santé ne les a pas (ou si l’app iOS est plus ancienne que la T-080) ———
+  /** Rythme cardiaque daté pendant la séance. */
+  hr?: HealthExtras['hr']
+  /** Pas sur la fenêtre de la séance. */
+  steps?: number
+  /** Énergie active, kcal. */
+  energy?: number
+  /** Météo notée par la Watch (°C, %). */
+  weather?: { tempC?: number; humidity?: number }
+  /** Pauses de la séance (pause / reprise). */
+  pauses?: TimeSpan[]
 }
 
 /** La première lecture remonte 30 jours en arrière. */
@@ -61,9 +73,27 @@ export const timedPoint = (p: { lat: number; lng: number; time: string; alt?: nu
   ...(typeof p.speed === 'number' && Number.isFinite(p.speed) && p.speed >= 0 ? { speed: p.speed } : {}),
 })
 
-/** Une séance de la Watch devient une activité, comme un fichier GPX lu. */
+/** Ce que Santé ajoute à une activité (cœur, pas, énergie), seulement ce qui est là. */
+export function healthFields(h: HealthExtras | undefined): Pick<Activity, 'hr' | 'steps' | 'energyKcal'> {
+  if (!h) return {}
+  const hr = Array.isArray(h.hr) ? h.hr.filter((s) => s && typeof s.time === 'string' && typeof s.bpm === 'number') : []
+  return {
+    ...(hr.length ? { hr } : {}),
+    ...(typeof h.steps === 'number' ? { steps: h.steps } : {}),
+    ...(typeof h.energy === 'number' ? { energyKcal: h.energy } : {}),
+  }
+}
+
+/** Une séance de la Watch devient une activité, comme un fichier GPX lu (avec cœur, pas, énergie, météo et pauses). */
 export function watchActivity(walk: WatchWalk): Activity {
-  return { name: watchName(walk.start, walk.type), type: walk.type, points: walk.points.map(timedPoint) }
+  return {
+    name: watchName(walk.start, walk.type),
+    type: walk.type,
+    points: walk.points.map(timedPoint),
+    ...healthFields(walk),
+    ...(walk.weather ? { weather: walk.weather } : {}),
+    ...(Array.isArray(walk.pauses) && walk.pauses.length ? { pauses: walk.pauses } : {}),
+  }
 }
 
 /**

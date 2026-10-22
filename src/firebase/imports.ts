@@ -47,6 +47,14 @@ export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: I
       ...(walk.endTime ? { endTime: walk.endTime } : {}),
       ...(walk.stops ? { stops: walk.stops } : {}),
       ...(walk.pace ? { pace: walk.pace } : {}),
+      // V6 § 2.1 : cœur, pas, dénivelé, météo, énergie, pauses (seulement ce que la source connaît).
+      ...(walk.hr ? { hr: walk.hr } : {}),
+      ...(walk.steps ? { steps: walk.steps } : {}),
+      ...(walk.ascentM !== undefined ? { ascentM: walk.ascentM } : {}),
+      ...(walk.descentM !== undefined ? { descentM: walk.descentM } : {}),
+      ...(walk.weather ? { weather: walk.weather } : {}),
+      ...(walk.energyKcal ? { energyKcal: walk.energyKcal } : {}),
+      ...(walk.pauses ? { pauses: walk.pauses } : {}),
     }),
   }
   if (slot) entry.walkSlot = { date, creneau: slot }

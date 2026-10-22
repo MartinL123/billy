@@ -12,6 +12,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
     public let jsName = "FlairNative"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "getWalks", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "healthWindow", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "startWalk", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "stopWalk", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "cancelWalk", returnType: CAPPluginReturnPromise),
@@ -51,16 +52,24 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         return data
     }
 
+    /// T-080 : rythme cardiaque, pas et énergie active, lus en plus des séances et de leur tracé (V6 § 2.2).
+    private let heartRate = HKQuantityType.quantityType(forIdentifier: .heartRate)!
+    private let stepCount = HKQuantityType.quantityType(forIdentifier: .stepCount)!
+    private let activeEnergy = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned)!
+
     /// `getWalks({ since })` : les marches et randonnées depuis `since` (ISO), avec leur tracé.
-    /// Renvoie `{ available, walks: [{ uuid, start, end, type, points: [{ lat, lng, time, alt?, speed?, accuracy? }] }], withoutRoute, workouts }`.
+    /// Renvoie `{ available, walks: [{ uuid, start, end, type, points: [{ lat, lng, time, alt?, speed?, accuracy? }],
+    /// hr?: [{ time, bpm }], steps?, energy? (kcal), weather?: { tempC, humidity? (%) }, pauses?: [{ start, end }] }],
+    /// withoutRoute, workouts }`. Les heures sont en ISO ; le JS les ramène en minutes ou secondes depuis le départ.
     @objc func getWalks(_ call: CAPPluginCall) {
         guard HKHealthStore.isHealthDataAvailable() else {
             call.resolve(["available": false, "walks": [], "withoutRoute": 0, "workouts": 0])
             return
         }
         let since = call.getString("since").flatMap(FlairNativePlugin.parseDate) ?? Date().addingTimeInterval(-30 * 86400)
-        let read: Set<HKObjectType> = [HKObjectType.workoutType(), HKSeriesType.workoutRoute()]
-        // La demande ne s'affiche qu'une fois ; ensuite, iOS répond sans rien montrer (et ne dit jamais si la lecture est refusée).
+        let read: Set<HKObjectType> = [HKObjectType.workoutType(), HKSeriesType.workoutRoute(), heartRate, stepCount, activeEnergy]
+        // La demande ne s'affiche qu'une fois par type ; ensuite, iOS répond sans rien montrer (et ne dit jamais si la
+        // lecture est refusée). Les trois types ajoutés par la T-080 sont demandés à la première lecture qui suit.
         health.requestAuthorization(toShare: nil, read: read) { _, error in
             if let error = error {
                 call.reject("Autorisation Santé impossible", nil, error)
@@ -68,6 +77,19 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
             }
             self.readWalks(since: since, call: call)
         }
+    }
+
+    /// `healthWindow({ start, end })` (T-080) : le cœur, les pas et l'énergie que Santé a sur la fenêtre d'une balade du
+    /// GPS de Flair (Watch au poignet). Ne demande jamais l'autorisation : sans lecture permise, renvoie `{}`.
+    @objc func healthWindow(_ call: CAPPluginCall) {
+        guard HKHealthStore.isHealthDataAvailable(),
+              let start = call.getString("start").flatMap(FlairNativePlugin.parseDate),
+              let end = call.getString("end").flatMap(FlairNativePlugin.parseDate),
+              end > start else {
+            call.resolve([:])
+            return
+        }
+        healthData(from: start, to: end) { call.resolve($0) }
     }
 
     private func readWalks(since: Date, call: CAPPluginCall) {
@@ -87,20 +109,30 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
             for workout in walks {
                 group.enter()
                 self.route(of: workout) { locations in
-                    lock.lock()
                     if locations.count < 2 {
+                        lock.lock()
                         withoutRoute += 1
-                    } else {
-                        results.append([
+                        lock.unlock()
+                        group.leave()
+                        return
+                    }
+                    self.healthData(from: workout.startDate, to: workout.endDate) { extra in
+                        var walk: [String: Any] = [
                             "uuid": workout.uuid.uuidString,
                             "start": FlairNativePlugin.format(workout.startDate),
                             "end": FlairNativePlugin.format(workout.endDate),
                             "type": workout.workoutActivityType == .hiking ? "hiking" : "walking",
                             "points": locations.map { FlairNativePlugin.pointData($0) }
-                        ])
+                        ]
+                        walk.merge(extra) { _, new in new }
+                        if let weather = FlairNativePlugin.weather(of: workout) { walk["weather"] = weather }
+                        let pauses = FlairNativePlugin.pauses(of: workout)
+                        if !pauses.isEmpty { walk["pauses"] = pauses }
+                        lock.lock()
+                        results.append(walk)
+                        lock.unlock()
+                        group.leave()
                     }
-                    lock.unlock()
-                    group.leave()
                 }
             }
             group.notify(queue: .global()) {
@@ -109,6 +141,82 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
             }
         }
         health.execute(query)
+    }
+
+    /// Le cœur (échantillons datés, bpm), les pas et l'énergie active (kcal) sur une fenêtre. Ce qui manque (rien
+    /// mesuré, lecture refusée) est absent : jamais d'erreur.
+    private func healthData(from start: Date, to end: Date, done: @escaping ([String: Any]) -> Void) {
+        let window = HKQuery.predicateForSamples(withStart: start, end: end, options: [])
+        let lock = NSLock()
+        var data: [String: Any] = [:]
+        let group = DispatchGroup()
+
+        group.enter()
+        let byStart = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
+        let hrQuery = HKSampleQuery(sampleType: heartRate, predicate: window, limit: HKObjectQueryNoLimit, sortDescriptors: [byStart]) { _, samples, _ in
+            let bpm = HKUnit.count().unitDivided(by: .minute())
+            let hr: [[String: Any]] = ((samples as? [HKQuantitySample]) ?? []).map {
+                ["time": FlairNativePlugin.format($0.startDate), "bpm": $0.quantity.doubleValue(for: bpm)]
+            }
+            if !hr.isEmpty {
+                lock.lock()
+                data["hr"] = hr
+                lock.unlock()
+            }
+            group.leave()
+        }
+        health.execute(hrQuery)
+
+        // Somme sur la fenêtre (Santé évite de compter deux fois les pas de l'iPhone et de la Watch).
+        let sums: [(HKQuantityType, String, HKUnit)] = [(stepCount, "steps", .count()), (activeEnergy, "energy", .kilocalorie())]
+        for (type, key, unit) in sums {
+            group.enter()
+            let query = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: window, options: .cumulativeSum) { _, statistics, _ in
+                if let sum = statistics?.sumQuantity()?.doubleValue(for: unit), sum > 0 {
+                    lock.lock()
+                    data[key] = sum
+                    lock.unlock()
+                }
+                group.leave()
+            }
+            health.execute(query)
+        }
+
+        group.notify(queue: .global()) { done(data) }
+    }
+
+    /// La météo notée par la Watch dans la séance (température en °C, humidité en %), si elle y est.
+    private static func weather(of workout: HKWorkout) -> [String: Any]? {
+        guard let temperature = workout.metadata?[HKMetadataKeyWeatherTemperature] as? HKQuantity,
+              temperature.is(compatibleWith: .degreeCelsius()) else { return nil }
+        var weather: [String: Any] = ["tempC": temperature.doubleValue(for: .degreeCelsius())]
+        if let humidity = workout.metadata?[HKMetadataKeyWeatherHumidity] as? HKQuantity, humidity.is(compatibleWith: .percent()) {
+            weather["humidity"] = humidity.doubleValue(for: .percent()) * 100
+        }
+        return weather
+    }
+
+    /// Les pauses de la séance (pause / reprise, à la main ou automatiques), en heures ISO. Une pause jamais reprise
+    /// dure jusqu'à la fin de la séance.
+    private static func pauses(of workout: HKWorkout) -> [[String: String]] {
+        let events = (workout.workoutEvents ?? []).sorted { $0.dateInterval.start < $1.dateInterval.start }
+        var out: [[String: String]] = []
+        var pausedAt: Date?
+        for event in events {
+            switch event.type {
+            case .pause, .motionPaused:
+                if pausedAt == nil { pausedAt = event.dateInterval.start }
+            case .resume, .motionResumed:
+                if let start = pausedAt {
+                    out.append(["start": format(start), "end": format(event.dateInterval.start)])
+                    pausedAt = nil
+                }
+            default:
+                break
+            }
+        }
+        if let start = pausedAt { out.append(["start": format(start), "end": format(workout.endDate)]) }
+        return out
     }
 
     /// Le tracé GPS d'une séance (vide pour une marche en intérieur ou sans GPS), allégé à un point tous les 5 m.

@@ -1,6 +1,7 @@
 import type { Activity } from './activity'
 import { walkDistance } from './activity'
-import { timedPoint, watchName, type WatchWalk } from './watch'
+import { healthFields, timedPoint, watchName, type WatchWalk } from './watch'
+import type { HealthExtras } from './walkHealth'
 import { formatDuration } from './balade'
 import { formatRouteDistance } from './route'
 
@@ -51,9 +52,12 @@ export function tooShort(points: GpsPoint[], startedAt: string, endedAt: number)
   return gpsDistance(points) < MIN_DISTANCE_M || elapsedMs(startedAt, endedAt) < MIN_DURATION_MS
 }
 
-/** La balade terminée devient une activité, comme un fichier GPX lu (nom selon l'heure de départ). */
-export function gpsActivity(points: GpsPoint[], startedAt: string): Activity {
-  return { name: watchName(startedAt, 'walking'), type: 'walking', points: points.map(timedPoint) }
+/**
+ * La balade terminée devient une activité, comme un fichier GPX lu (nom selon l'heure de départ). `health` : le cœur,
+ * les pas et l’énergie lus dans Santé sur la même fenêtre (Watch au poignet), s’il y en a (V6 § 2.2).
+ */
+export function gpsActivity(points: GpsPoint[], startedAt: string, health?: HealthExtras): Activity {
+  return { name: watchName(startedAt, 'walking'), type: 'walking', points: points.map(timedPoint), ...healthFields(health) }
 }
 
 /** Part de la séance Watch couverte par une balade de l'iPhone (0 à 1). */

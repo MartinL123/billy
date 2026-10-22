@@ -22,7 +22,7 @@ interface Walk {
 
 type Reply = { ok: true; data?: unknown } | { ok: false; error: { message: string; code?: string } }
 
-const FLAIR_METHODS = ['getWalks', 'startWalk', 'stopWalk', 'clearWalk', 'cancelWalk', 'currentWalk', 'keepAwake', 'markSaved', 'pendingSent', 'clearSent', 'setBackGesture', 'haptic']
+const FLAIR_METHODS = ['getWalks', 'healthWindow', 'startWalk', 'stopWalk', 'clearWalk', 'cancelWalk', 'currentWalk', 'keepAwake', 'markSaved', 'pendingSent', 'clearSent', 'setBackGesture', 'haptic']
 const NOTIFICATION_METHODS = ['checkPermissions', 'requestPermissions', 'getPending', 'cancel', 'schedule', 'getDeliveredNotifications', 'removeAllDeliveredNotifications', 'createChannel', 'listChannels', 'areEnabled']
 
 /**
@@ -145,6 +145,8 @@ export class FakeIphone {
     switch (method) {
       case 'getWalks':
         return { ok: true, data: { available: false, walks: [], withoutRoute: 0, workouts: 0 } }
+      case 'healthWindow':
+        return { ok: true, data: {} }
       case 'currentWalk':
         return { ok: true, data: this.summary() }
       case 'startWalk': {

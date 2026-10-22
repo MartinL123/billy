@@ -2,6 +2,8 @@ import { isNative } from '../native'
 import { registerPlugin, type PluginListenerHandle } from '@capacitor/core'
 import type { GpsPoint } from '../lib/gpsWalk'
 import type { WatchWalk } from '../lib/watch'
+import type { HealthExtras } from '../lib/walkHealth'
+import { withTimeout } from '../lib/timeout'
 
 // Le plugin local de l'app iOS (`ios/App/App/FlairNativePlugin.swift`). À n'appeler que derrière `isNative()` :
 // sur le web, il n'existe pas.
@@ -37,6 +39,8 @@ export interface CurrentWalk {
 
 interface FlairNativePlugin {
   getWalks(options: { since: string }): Promise<WatchWalks>
+  /** T-080 : le cœur, les pas et l’énergie que Santé a sur cette fenêtre (vide si rien, ou si la lecture n’est pas permise). */
+  healthWindow(options: { start: string; end: string }): Promise<HealthExtras>
   /** Démarre, ou reprend la balade en cours. Rejet `denied` si la position n'est pas autorisée. */
   startWalk(): Promise<CurrentWalk>
   /** Arrête le GPS et renvoie la balade. Le fichier est gardé jusqu'à `clearWalk()` (R-042). */
@@ -69,4 +73,17 @@ export const FlairNative = registerPlugin<FlairNativePlugin>('FlairNative')
 export function haptic(type: 'success' | 'selection'): void {
   if (!isNative()) return
   FlairNative.haptic({ type }).catch(() => undefined)
+}
+
+/**
+ * T-080 : ce que Santé sait de la fenêtre d’une balade du GPS de Flair (Watch au poignet). Jamais bloquant : rien si
+ * Santé ne répond pas en 8 s, si la lecture n’est pas permise ou si l’app iOS est plus ancienne (méthode absente).
+ */
+export async function readHealthWindow(start: string, end: string): Promise<HealthExtras> {
+  if (!isNative()) return {}
+  try {
+    return (await withTimeout(FlairNative.healthWindow({ start, end }), 8_000, 'healthWindow')) ?? {}
+  } catch {
+    return {}
+  }
 }

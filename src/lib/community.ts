@@ -31,18 +31,27 @@ const LEVEL_WORDS: Record<CalmLevel, string> = { calme: 'Plutôt calme', moyen: 
 /** Le créneau d’un avis, d’après l’heure locale (l’heure elle-même n’est jamais enregistrée). */
 export const slotOf = (hour: number): CalmSlot => (hour < 9 ? 'tot' : hour < 11 ? 'matin' : hour < 17 ? 'midi' : 'soir')
 
-/** « Plutôt calme le matin » : l’avis le plus fréquent, et le créneau le plus cité pour cet avis. */
-export function calmSummary(votes: { level: CalmLevel; slot: CalmSlot }[]): { headline: string; detail: string } | undefined {
-  if (votes.length === 0) return undefined
+/** L’avis le plus fréquent et le créneau le plus cité pour cet avis (« le matin », « le matin avant 9 h »). */
+export function calmMoment(votes: { level?: CalmLevel; slot?: CalmSlot }[]): { level: CalmLevel; moment: string; count: number } | undefined {
+  // Un conseil laissé sans avis (T-088) n’est pas un avis.
+  const valid = votes.filter((v): v is { level: CalmLevel; slot: CalmSlot } => Boolean(v.level && v.slot))
+  if (valid.length === 0) return undefined
   const count = <T extends string>(items: T[]) => items.reduce<Record<string, number>>((acc, x) => ({ ...acc, [x]: (acc[x] ?? 0) + 1 }), {})
   const top = <T extends string>(counts: Record<string, number>, order: T[]) => order.reduce((best, x) => ((counts[x] ?? 0) > (counts[best] ?? 0) ? x : best), order[0]!)
-  const level = top(count(votes.map((v) => v.level)), ['calme', 'moyen', 'anime'] as CalmLevel[])
-  const same = votes.filter((v) => v.level === level)
+  const level = top(count(valid.map((v) => v.level)), ['calme', 'moyen', 'anime'] as CalmLevel[])
+  const same = valid.filter((v) => v.level === level)
   // « avant 9 h » compte comme le matin ; on le précise quand la plupart des avis du matin sont d’avant 9 h.
   const slot = top(count(same.map((v) => (v.slot === 'tot' ? 'matin' : v.slot))), ['matin', 'midi', 'soir'] as const)
   const morning = same.filter((v) => v.slot === 'tot' || v.slot === 'matin')
   const early = slot === 'matin' && morning.filter((v) => v.slot === 'tot').length * 2 > morning.length
-  return { headline: `${LEVEL_WORDS[level]} ${SLOT_WORDS[slot]}${early ? ' avant 9 h' : ''}`, detail: `avis de ${votes.length} membre${votes.length > 1 ? 's' : ''}` }
+  return { level, moment: `${SLOT_WORDS[slot]}${early ? ' avant 9 h' : ''}`, count: valid.length }
+}
+
+/** « Plutôt calme le matin » : l’avis le plus fréquent, et le créneau le plus cité pour cet avis. */
+export function calmSummary(votes: { level?: CalmLevel; slot?: CalmSlot }[]): { headline: string; detail: string } | undefined {
+  const calm = calmMoment(votes)
+  if (!calm) return undefined
+  return { headline: `${LEVEL_WORDS[calm.level]} ${calm.moment}`, detail: `avis de ${calm.count} membre${calm.count > 1 ? 's' : ''}` }
 }
 
 /** Distance en mètres entre deux points (formule de haversine). */
@@ -91,7 +100,7 @@ export const needsCalmPlace = (setting: string | undefined) => Boolean(setting &
  */
 export function pickCalmSpot<T extends { id: string; lat: number; lng: number; category: string }>(
   spots: T[],
-  calm: Record<string, { level: CalmLevel; slot: CalmSlot }[]>,
+  calm: Record<string, { level?: CalmLevel; slot?: CalmSlot }[]>,
   here?: { lat: number; lng: number },
 ): (T & { headline: string; votes: number; meters?: number }) | undefined {
   const calmOnes = spots.flatMap((s) => {

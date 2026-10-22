@@ -34,6 +34,8 @@ export interface Spot {
   info: string[]
   createdBy: string
   createdAt: string
+  /** T-088 : la photo du spot, une miniature de 400 px (optionnelle ; les anciens spots n’en ont pas). */
+  photo?: Bytes
 }
 
 export interface Mark {
@@ -44,10 +46,16 @@ export interface Mark {
   date: ISODate
 }
 
+/**
+ * community/meute/spots/{id}/calm/{uid} : l’avis de calme d’un membre et, depuis T-088, son conseil (texte court,
+ * signé du nom du chien). Un conseil peut exister sans avis : `level` et `slot` sont donc optionnels en lecture.
+ */
 export interface CalmVote {
-  level: CalmLevel
-  slot: CalmSlot
+  level?: CalmLevel
+  slot?: CalmSlot
   date: ISODate
+  tip?: string
+  dogName?: string
 }
 
 export interface FeedItem {
@@ -89,8 +97,14 @@ export function addSpot(spot: Omit<Spot, 'createdBy' | 'createdAt'>): string {
   return ref.id
 }
 
-export function voteCalm(spotId: string, vote: CalmVote): void {
-  send(setDoc(doc(db, 'community', 'meute', 'spots', spotId, 'calm', uid()), vote))
+/** L’avis de calme ; fusionné, pour garder le conseil déjà laissé. */
+export function voteCalm(spotId: string, vote: { level: CalmLevel; slot: CalmSlot; date: ISODate }): void {
+  send(setDoc(doc(db, 'community', 'meute', 'spots', spotId, 'calm', uid()), vote, { merge: true }))
+}
+
+/** Un conseil pour la meute (T-088) : un par membre et par spot, le dernier remplace le précédent. */
+export function saveTip(spotId: string, tip: { tip: string; dogName: string; date: ISODate }): void {
+  send(setDoc(doc(db, 'community', 'meute', 'spots', spotId, 'calm', uid()), tip, { merge: true }))
 }
 
 /** Marquer un spot : la marque (une par spot et par jour) et ses os, en une seule écriture. */

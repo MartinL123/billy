@@ -1,19 +1,26 @@
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { BonesGained } from '../../components/BoneIcon'
-import { CheckIcon, ChevronRightIcon, PinIcon } from '../../components/Icons'
+import { Bytes } from 'firebase/firestore'
+import { FilePicker } from '../../components/FilePicker'
+import { CheckIcon, ChevronRightIcon, PhotoIcon, PinIcon } from '../../components/Icons'
+import { compressImage, THUMBNAIL, UnreadableImageError } from '../../lib/image'
 import { Sheet } from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
 import { auth } from '../../firebase/app'
-import { addSpot, markSpot, voteCalm, type Spot, type WithId } from '../../firebase/community'
+import { addSpot, markSpot, saveTip, voteCalm, type CalmVote, type Spot, type WithId } from '../../firebase/community'
 import { updateEntryRoute } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { markBone } from '../../lib/bones'
 import { calmSummary, CALM_LEVELS, categoryInfo, distanceMeters, dogColor, formatDistance, markId, MARK_DAYS_ON_MAP, nearbySpots, slotOf, SPOT_CATEGORIES, SPOT_INFOS, type CalmLevel, type SpotCategory } from '../../lib/community'
+import { dogsThisWeek, newSpotCheck, TIP_MAX } from '../../lib/spots'
+import { walkItems } from '../../lib/walkList'
+import { SpotDetails } from './SpotDetails'
 import { diffDays } from '../../lib/dates'
 import { readRoute, storeRoute, withMarkMoments } from '../../lib/route'
 import { weekId, weekOf } from '../../lib/rhythm'
 import { useToday } from '../../lib/useToday'
+import { useGrantedPosition } from '../../lib/useGrantedPosition'
 import { FeedPhoto } from './FeedPhoto'
 import { MemberAvatar } from './MemberAvatar'
 import { usePack } from './usePack'
@@ -52,6 +59,9 @@ export default function Meute() {
 
   const [welcome, setWelcome] = useState(() => !readFlag(WELCOME_KEY))
   const [position, setPosition] = useState<LatLng | null>(null)
+  // La position déjà autorisée (jamais demandée pour ça) : « Y aller · 8 min à pied » sur la fiche d’un spot.
+  const granted = useGrantedPosition()
+  const here = position ?? granted
   const [filter, setFilter] = useState<Filter>('tout')
   // « Un spot calme pour ça » (depuis une mission) ouvre directement le spot.
   const [params] = useSearchParams()
@@ -60,6 +70,8 @@ export default function Meute() {
   const [newSpot, setNewSpot] = useState<LatLng | null>(null)
   const [marked, setMarked] = useState<{ spot: string; bones: number; first: boolean } | null>(null)
   const [locating, setLocating] = useState('')
+  const [duplicates, setDuplicates] = useState<{ here: LatLng; candidates: (WithId<Spot> & { meters: number })[] } | null>(null)
+  const ownRoutes = useMemo(() => walkItems(entries).map((w) => w.route.points), [entries])
 
   const memberOf = (uid: string) => members.find((m) => m.id === uid)
   const mine = marks.filter((m) => m.uid === me)
@@ -108,6 +120,15 @@ export default function Meute() {
     setMarking(false)
     setOpenSpot(null)
     setMarked({ spot: spot.name, bones: gain.amount, first })
+  }
+
+  // T-088 (V6 § 8.1) : un spot se crée seulement à moins de 60 m d’un trajet déjà fait ; les spots à moins de 100 m
+  // sont proposés d’abord, pour éviter les doublons.
+  const startNewSpot = (here: LatLng) => {
+    const check = newSpotCheck(here, ownRoutes, spots)
+    if (check.kind === 'loin') return toast(`Un spot se crée sur un chemin déjà fait avec ${dog.name} : rapprochez-vous de l’une de ses balades.`)
+    if (check.kind === 'doublons') return setDuplicates({ here, candidates: check.candidates })
+    setNewSpot(here)
   }
 
   const close = () => {
@@ -280,13 +301,16 @@ export default function Meute() {
       {open && (
         <SpotSheet
           spot={open}
-          meters={position ? nearbySpots([open], position)[0]?.meters ?? Infinity : undefined}
-          addedBy={memberOf(open.createdBy)?.dogName}
-          passed={[...new Set(marks.filter((m) => m.spotId === open.id && weekDays.includes(m.date)).map((m) => m.dogName))]}
-          passedToday={marks.some((m) => m.spotId === open.id && m.date === today)}
-          calm={calmOf(open.id)}
+          votes={calm[open.id] ?? []}
+          dogs={dogsThisWeek(marks, open.id, weekDays)}
+          meters={here ? distanceMeters(here, open) : undefined}
+          dogName={dog.name}
           canMark={!position || nearbySpots([open], position).length > 0}
           onVote={(level) => voteCalm(open.id, { level, slot: slotOf(new Date().getHours()), date: today })}
+          onTip={(tip) => {
+            saveTip(open.id, { tip, dogName: dog.name, date: today })
+            toast('Conseil envoyé à la meute')
+          }}
           onMark={() => mark(open)}
           onClose={() => setOpenSpot(null)}
         />
@@ -322,8 +346,8 @@ export default function Meute() {
             onClick={() => {
               setMarking(false)
               // Le nouveau spot se pose là où vous êtes : la position est nécessaire.
-              if (position) setNewSpot(position)
-              else locate((here) => setNewSpot(here))
+              if (position) startNewSpot(position)
+              else locate(startNewSpot)
             }}
             className="btn btn-outline"
           >
@@ -331,6 +355,21 @@ export default function Meute() {
           </button>
           <p className="text-[0.7647rem] leading-snug text-muted">Seule votre meute voit les marques, avec le jour, jamais l’heure ni votre position.</p>
         </Sheet>
+      )}
+
+      {duplicates && (
+        <DuplicateSheet
+          candidates={duplicates.candidates}
+          onPick={(spot) => {
+            setDuplicates(null)
+            mark(spot)
+          }}
+          onNew={() => {
+            setNewSpot(duplicates.here)
+            setDuplicates(null)
+          }}
+          onClose={() => setDuplicates(null)}
+        />
       )}
 
       {newSpot && (
@@ -366,80 +405,101 @@ export default function Meute() {
   )
 }
 
-function SpotSheet({ spot, meters, addedBy, passed, passedToday, calm, canMark, onVote, onMark, onClose }: {
+function SpotSheet({ spot, votes, dogs, meters, dogName, canMark, onVote, onTip, onMark, onClose }: {
   spot: WithId<Spot>
+  votes: CalmVote[]
+  dogs: number
   meters?: number
-  addedBy?: string
-  passed: string[]
-  passedToday: boolean
-  calm?: { headline: string; detail: string }
+  dogName: string
   canMark: boolean
   onVote: (level: CalmLevel) => void
+  onTip: (tip: string) => void
   onMark: () => void
   onClose: () => void
 }) {
-  const info = categoryInfo(spot.category)
   const [voted, setVoted] = useState<CalmLevel | null>(null)
+  const [tip, setTip] = useState<string | null>(null)
   const slot = slotOf(new Date().getHours())
   return (
     <Sheet label={spot.name} onClose={onClose}>
-      <h2 className="title-section mt-1">{spot.name}</h2>
-      <p className="text-[0.8824rem] text-muted">{[info.label, meters !== undefined && Number.isFinite(meters) ? formatDistance(meters) : '', addedBy ? `ajouté par ${addedBy}` : ''].filter(Boolean).join(' · ')}</p>
-      <section className="rounded-[18px] bg-bg p-3.5">
-        <h3 className="text-muted surtitre">Niveau de calme</h3>
-        {calm ? (
-          <>
-            <p className="text-[1rem] font-bold">{calm.headline}</p>
-            <p className="text-sm text-muted">{calm.detail}</p>
-          </>
+      {/* La fiche façon « Highlight » (V6 § 8.1) ; « Y aller » est l’action orange, le reste vient après. */}
+      <SpotDetails spot={spot} votes={votes} dogs={dogs} meters={meters}>
+        {canMark ? (
+          <button type="button" onClick={onMark} className="btn btn-outline min-h-12">
+            Marquer ce spot
+          </button>
         ) : (
-          <p className="text-[0.8824rem]">Pas encore d’avis.</p>
+          <p className="rounded-[14px] bg-bg px-3.5 py-3 text-center text-[0.8824rem] text-muted">Approchez-vous à moins de 300 m pour marquer ce spot.</p>
         )}
-      </section>
-      {spot.info.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {spot.info.map((i) => (
-            <span key={i} className="rounded-xl bg-primary-soft px-2.5 py-1 text-sm font-semibold text-primary-dark">
-              {i}
-            </span>
-          ))}
-        </div>
-      )}
-      {passed.length > 0 && (
-        <p className="text-[0.8824rem]">
-          <strong>Passés ici cette semaine :</strong> {passed.join(', ')}
-          {passedToday ? ' · dont aujourd’hui' : ''}
-        </p>
-      )}
-      <fieldset className="m-0 border-0 p-0">
-        <legend className="mb-2 p-0 text-[0.8824rem] font-bold">{slot === 'tot' || slot === 'matin' ? 'Ce matin' : slot === 'midi' ? 'Cet après-midi' : 'Ce soir'}, c’était…</legend>
-        <div className="grid grid-cols-3 gap-2">
-          {CALM_LEVELS.map((l) => (
-            <button
-              key={l.id}
-              type="button"
-              aria-pressed={voted === l.id}
-              onClick={() => {
-                setVoted(l.id)
-                onVote(l.id)
-              }}
-              className={`btn px-2 ${voted === l.id ? 'btn-on' : 'btn-outline'}`}
-            >
-              {l.label}
+        <fieldset className="m-0 border-0 p-0">
+          <legend className="mb-2 p-0 text-[0.8824rem] font-bold">{slot === 'tot' || slot === 'matin' ? 'Ce matin' : slot === 'midi' ? 'Cet après-midi' : 'Ce soir'}, c’était…</legend>
+          <div className="grid grid-cols-3 gap-2">
+            {CALM_LEVELS.map((l) => (
+              <button
+                key={l.id}
+                type="button"
+                aria-pressed={voted === l.id}
+                onClick={() => {
+                  setVoted(l.id)
+                  onVote(l.id)
+                }}
+                className={`btn px-2 ${voted === l.id ? 'btn-on' : 'btn-outline'}`}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+        {tip === null ? (
+          <button type="button" onClick={() => setTip('')} className="btn-text -ml-1 self-start">
+            Laisser un conseil
+          </button>
+        ) : (
+          <form
+            className="flex flex-col gap-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (!tip.trim()) return
+              onTip(tip.trim().slice(0, TIP_MAX))
+              setTip(null)
+            }}
+          >
+            <label className="flex flex-col gap-1.5">
+              <span className="text-[0.8824rem] font-semibold">Un conseil pour la meute, signé {dogName}</span>
+              <textarea value={tip} onChange={(e) => setTip(e.target.value)} maxLength={TIP_MAX} rows={2} placeholder="L’entrée côté rivière est plus calme." className="field resize-none" />
+            </label>
+            <button type="submit" className="btn-text -ml-1 self-start">
+              Envoyer le conseil
             </button>
-          ))}
-        </div>
-      </fieldset>
-      <Link to={`/territoire?spot=${spot.id}`} className="btn btn-outline">
-        Voir sur la carte
-      </Link>
-      {canMark ? (
-        <button type="button" onClick={onMark} className="btn btn-main">
-          Marquer ce spot
-        </button>
-      ) : (
-        <p className="rounded-[14px] bg-bg px-3.5 py-3 text-center text-[0.8824rem] text-muted">Approchez-vous à moins de 300 m pour marquer ce spot.</p>
-      )}
+          </form>
+        )}
+      </SpotDetails>
+    </Sheet>
+  )
+}
+
+/** « C’est l’un de ceux-là ? » : les spots à moins de 100 m, avant d’en créer un nouveau (pas de doublon). */
+function DuplicateSheet({ candidates, onPick, onNew, onClose }: { candidates: (WithId<Spot> & { meters: number })[]; onPick: (spot: WithId<Spot>) => void; onNew: () => void; onClose: () => void }) {
+  return (
+    <Sheet label="C’est l’un de ceux-là ?" onClose={onClose}>
+      <h2 className="title-section mt-1">C’est l’un de ceux-là ?</h2>
+      <p className="text-[0.8824rem] text-muted">Des spots de la meute existent déjà tout près.</p>
+      <div className="flex flex-col gap-2">
+        {candidates.map((s) => (
+          <button key={s.id} type="button" onClick={() => onPick(s)} className="flex min-h-14 items-center gap-3 rounded-[18px] border-2 border-solid border-border bg-surface px-4 text-left">
+            <span className="size-3 shrink-0 rounded-full" style={{ background: categoryInfo(s.category).color }} />
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="text-[1rem] font-bold">{s.name}</span>
+              <span className="text-sm text-muted">
+                {categoryInfo(s.category).label} · {formatDistance(s.meters)}
+              </span>
+            </span>
+          </button>
+        ))}
+      </div>
+      <button type="button" onClick={onNew} className="btn-text self-center px-4">
+        Non, c’est un nouveau spot
+      </button>
     </Sheet>
   )
 }
@@ -450,10 +510,22 @@ function NewSpotSheet({ onCancel, onCreate }: { onCancel: () => void; onCreate: 
   const [calmNow, setCalmNow] = useState<CalmLevel | null>(null)
   const [info, setInfo] = useState<string[]>([])
   const [error, setError] = useState('')
+  // T-088 : une photo facultative, de la photothèque (jamais l’appareil photo), gardée en miniature de 400 px.
+  const [photo, setPhoto] = useState<Bytes>()
+  const [photoError, setPhotoError] = useState('')
+  const pickPhoto = async (file: File) => {
+    try {
+      const { thumb } = await compressImage(file, THUMBNAIL)
+      setPhoto(Bytes.fromUint8Array(new Uint8Array(await thumb.arrayBuffer())))
+      setPhotoError('')
+    } catch (e) {
+      setPhotoError(e instanceof UnreadableImageError ? e.message : 'Cette photo n’a pas pu être lue.')
+    }
+  }
   const create = () => {
     if (!name.trim()) return setError('Donnez un nom au spot.')
     if (/maison|chez moi|domicile/i.test(name)) return setError('Un spot est un lieu public, jamais un domicile.')
-    onCreate({ name: name.trim(), category, info }, calmNow)
+    onCreate({ name: name.trim(), category, info, ...(photo ? { photo } : {}) }, calmNow)
   }
   return (
     <Sheet label="Nouveau spot" onClose={onCancel}>
@@ -466,6 +538,15 @@ function NewSpotSheet({ onCancel, onCreate }: { onCancel: () => void; onCreate: 
       {error && (
         <p role="alert" className="text-[0.8824rem] font-semibold text-danger">
           {error}
+        </p>
+      )}
+      <FilePicker accept="image/*" multiple={false} onFiles={(files) => void pickPhoto(files[0]!)} className="btn-text -ml-1 self-start">
+        <PhotoIcon size={20} />
+        {photo ? 'Changer la photo' : 'Ajouter une photo'}
+      </FilePicker>
+      {photoError && (
+        <p role="alert" className="text-[0.8824rem] font-semibold text-danger">
+          {photoError}
         </p>
       )}
       <fieldset className="m-0 border-0 p-0">

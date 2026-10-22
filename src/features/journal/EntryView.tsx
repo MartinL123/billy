@@ -13,7 +13,7 @@ import { useBack } from '../../lib/useBack'
 import { MomentChips } from './EntryCard'
 import { PhotoViewer } from './PhotoViewer'
 import { readRoute } from '../../lib/route'
-import { RouteDetail } from '../trajets/RouteDetail'
+import { WalkSheet } from '../trajets/WalkSheet'
 import { useReadOnly } from '../../firebase/viewer'
 
 /** Le détail d’un souvenir (balade, photo ou note). C’est ici que se trouve « Modifier ». */
@@ -37,6 +37,8 @@ export default function EntryView() {
   }
   const entry = modernCard(found)
   const route = readRoute(entry.route)
+  // Une balade a sa fiche (V6 § 6.1) ; une photo ou une note garde ce détail simple.
+  if (route) return <WalkSheet entry={entry} route={route} />
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
@@ -48,7 +50,6 @@ export default function EntryView() {
         <Pending show={entry.pending} />
         {entry.text && <p className="text-[1.1176rem] leading-[1.45] whitespace-pre-wrap">{entry.text}</p>}
         <MomentChips entry={entry} />
-        {route && <RouteDetail entryId={entry.id} route={route} />}
         {entry.photos.length > 0 && (
           <div className={`grid gap-1.5 ${entry.photos.length > 1 ? 'grid-cols-2' : ''}`}>
             {entry.photos.map((photo, i) => (

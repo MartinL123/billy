@@ -4,7 +4,7 @@ import { distanceMeters } from '../../lib/community'
 import { bearing, cumulative, easeInOut, pointAlong, REPLAY_MS, turnToward } from '../../lib/replay'
 import type { Route } from '../../lib/route'
 import { momentMarker } from '../trajets/momentIcons'
-import { fitPadding } from '../../lib/mapFrame'
+import { fitPadding, type Padding } from '../../lib/mapFrame'
 
 export type WalkPhoto = { index: number; thumbFileId: string; lat: number; lng: number }
 
@@ -84,10 +84,10 @@ export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPh
  * Un toucher sur la carte arrête ; si l’iPhone réduit les animations, on montre simplement tout le trajet.
  * Renvoie la fonction qui arrête.
  */
-export function replayWalk(m: MapLibreMap, route: Route, dogName: string, onEnd: () => void): () => void {
+export function replayWalk(m: MapLibreMap, route: Route, dogName: string, onEnd: () => void, padding?: Padding): () => void {
   const points = route.points
   const done = () => {
-    fitPoints(m, points, walkPadding(m), true, { pitch: 0, bearing: 0 })
+    fitPoints(m, points, padding ?? walkPadding(m), true, { pitch: 0, bearing: 0 })
     onEnd()
   }
   if (points.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {

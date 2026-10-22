@@ -5,13 +5,11 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { isNative } from '../../native'
 import { ChevronRightIcon, PlusIcon } from '../../components/Icons'
 import { auth } from '../../firebase/app'
-import { fetchCommune } from '../../firebase/communes'
 import { removeSpot, type Mark, type Spot, type WithId } from '../../firebase/community'
 import { useData } from '../../firebase/store'
-import { communeAt } from '../../lib/commune'
-import { discoveredShare, inPolygon, knownFog, shareLabel } from '../../lib/fog'
+import { knownFog } from '../../lib/fog'
 import { useToday } from '../../lib/useToday'
-import { filterWalks, walkColors, walkItems, walksNear, type WalkFilter, type WalkItem } from '../../lib/walkList'
+import { filterWalks, walkColors, walkItems, walksNear, walksTotals, type WalkFilter, type WalkItem } from '../../lib/walkList'
 import type { MapPlace, MapWalk } from './ExplorerMap'
 import { PlaceCard, type Selected } from './PlaceCard'
 import { WalkPanel } from './WalkPanel'
@@ -23,7 +21,7 @@ import { nearestOnRoute, readRoute, storeRoute, type Route } from '../../lib/rou
 import { useGrantedPosition } from '../../lib/useGrantedPosition'
 import { formatRelative } from '../../lib/dates'
 import { formatRouteDistance } from '../../lib/route'
-import { sharePercent, territoryHint, walkLineDetails } from '../../lib/territory'
+import { territoryHint, walkLineDetails } from '../../lib/territory'
 import { ofName } from '../../lib/gender'
 import { useReadOnly } from '../../firebase/viewer'
 import { WatchOptIn } from './WatchOptIn'
@@ -71,7 +69,7 @@ const toggle = (on: boolean) => `min-h-11 rounded-full border-0 px-3.5 text-[0.8
 
 /** La carte qui se découvre (maquettes V3-Explorer, V4-Balades) : le territoire de Billy. */
 export default function Explorer() {
-  const { dog, entries, fog, communes } = useData()
+  const { dog, entries, fog } = useData()
   const today = useToday()
   const readOnly = useReadOnly()
   const [prefs, setPrefs] = useState(readPrefs)
@@ -121,13 +119,6 @@ export default function Explorer() {
     )
   }
 
-  // La commune de la dernière balade : contour gardé, sinon demandé une seule fois.
-  const commune = start ? communeAt(communes, start, inPolygon) : undefined
-  useEffect(() => {
-    if (start && !commune) void fetchCommune(start.lat, start.lng)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [start?.lat, start?.lng, Boolean(commune)])
-  const share = commune ? discoveredShare(cells, commune) : undefined
 
   // Les spots marqués par Billy restent sur la carte, avec leur goutte.
   const me = auth.currentUser?.uid ?? ''
@@ -331,25 +322,14 @@ export default function Explorer() {
           style={{ paddingBottom: footerHeight + 12 }}
           className={`-mx-5 flex min-h-0 flex-1 flex-col gap-3 overscroll-contain px-5 [&>*]:shrink-0 ${sheet.snap === 'full' ? 'overflow-y-auto' : 'overflow-y-hidden [&_.scroll-row]:touch-pan-x'}`}
         >
-          {/* V5 : le quartier, le pourcentage découvert en grand et sa barre dorée (visibles même réduit). */}
-          <div ref={peekRef} className="flex items-end justify-between gap-3">
-            <div className="flex min-w-0 flex-col">
-              <span className="text-milestone-dark surtitre">Le quartier</span>
-              {/* R-089 : sans nom, « Son territoire ». */}
-              <h1 className="title-section">{dog.unnamed ? 'Son territoire' : `Le territoire ${ofName(dog.name)}`}</h1>
-            </div>
-            {share !== undefined && commune && (
-              <p className="flex shrink-0 flex-col items-end leading-none" aria-label={shareLabel(share, commune.name)}>
-                <span className="font-display text-[2rem] font-bold text-milestone-dark tabular-nums">{sharePercent(share)}</span>
-                <span className="text-[0.7647rem] font-bold text-[#3F4946]">découvert</span>
-              </p>
-            )}
+          {/* V5 : le quartier (visible même réduit). */}
+          <div ref={peekRef} className="flex min-w-0 flex-col">
+            <span className="text-milestone-dark surtitre">Le quartier</span>
+            {/* R-089 : sans nom, « Son territoire ». */}
+            <h1 className="title-section">{dog.unnamed ? 'Son territoire' : `Le territoire ${ofName(dog.name)}`}</h1>
           </div>
-          {share !== undefined && commune && (
-            <span className="h-2.5 overflow-hidden rounded-full bg-placeholder" aria-hidden="true">
-              <span className="block h-full rounded-full bg-gold" style={{ width: `${Math.max(3, Math.min(100, share * 100))}%` }} />
-            </span>
-          )}
+          {/* V6.1 § 1 : une ligne de résumé à la place du pourcentage découvert ; elle suit le filtre. */}
+          {walks.length > 0 && <WalksSummary items={shown} />}
           {walks.length === 0 ? (
             // App iOS (T-001) : les marches de la Watch arrivent seules ; le fichier GPX reste en secours.
             <>
@@ -471,5 +451,26 @@ function TrackLine({ walk, color, today }: { walk: WalkItem; color?: string; tod
       </span>
       <ChevronRightIcon size={18} className="ml-auto shrink-0 text-primary" />
     </Link>
+  )
+}
+
+/**
+ * V6.1 § 1 : « 12 balades · 18,4 km · 9 h 40 de balade », chiffres en gras, les trois valeurs réparties sur toute la
+ * largeur. Elles suivent le filtre choisi.
+ */
+function WalksSummary({ items }: { items: WalkItem[] }) {
+  const t = walksTotals(items)
+  return (
+    <p className="flex flex-wrap justify-between gap-x-3 text-[0.8824rem] text-[#3F4946] tabular-nums" aria-live="polite">
+      <span>
+        <b className="text-text">{t.count}</b> {t.countLabel}
+      </span>
+      <b className="text-text">{t.distance}</b>
+      {t.time && (
+        <span>
+          <b className="text-text">{t.time}</b> de balade
+        </span>
+      )}
+    </p>
   )
 }

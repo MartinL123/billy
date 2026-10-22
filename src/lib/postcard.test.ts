@@ -51,10 +51,9 @@ describe('privacyCut', () => {
 })
 
 describe('textes de la carte postale', () => {
-  it('distance et bouts de territoire, avec des espaces insécables', () => {
-    expect(postcardLine(2140, 130)).toBe('2,1 km · 3 bouts de territoire découverts')
-    expect(postcardLine(2140, 45)).toBe('2,1 km · un nouveau bout de territoire')
-    expect(postcardLine(650, 10)).toBe('650 m')
+  it('distance et durée (V6.1 : plus de bouts de territoire), avec des espaces insécables', () => {
+    expect(postcardLine(2140, 32)).toBe('2,1\u00a0km · 32\u00a0min')
+    expect(postcardLine(650)).toBe('650\u00a0m')
   })
 
   it('la date et la commune seulement', () => {

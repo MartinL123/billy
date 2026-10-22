@@ -27,9 +27,9 @@ describe('texte de la notification', () => {
   })
 
   it('distance et durée à la française', () => {
-    expect(arrivalBody(2140, 32 * 60 + 10)).toBe('2,1 km · 32 min. Touchez pour voir ce qu’il a découvert.')
-    expect(arrivalBody(846, 600)).toBe('850 m · 10 min. Touchez pour voir ce qu’il a découvert.')
-    expect(arrivalBody(5000, 72 * 60)).toBe('5,0 km · 1 h 12. Touchez pour voir ce qu’il a découvert.')
+    expect(arrivalBody(2140, 32 * 60 + 10)).toBe('2,1 km · 32 min. Touchez pour voir la balade.')
+    expect(arrivalBody(846, 600)).toBe('850 m · 10 min. Touchez pour voir la balade.')
+    expect(arrivalBody(5000, 72 * 60)).toBe('5,0 km · 1 h 12. Touchez pour voir la balade.')
   })
 
   it('lien profond', () => {

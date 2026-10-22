@@ -1,13 +1,7 @@
 import { formatRelative, formatShort, parseISO, type ISODate } from './dates'
 import { formatRouteDistance } from './route'
 
-// Le panneau des Balades (V5, T-054) : le pourcentage découvert en grand, et la phrase qui décrit la balade touchée.
-
-/** « 4 % », « < 1 % » (un peu découvert, mais pas 1 %), « 0 % ». */
-export function sharePercent(share: number): string {
-  if (share > 0 && share < 0.01) return '< 1 %'
-  return `${Math.round(Math.min(1, share) * 100)} %`
-}
+// Le panneau des Balades (V5, T-054) : la phrase qui décrit la balade touchée (V6.1 : plus de pourcentage découvert).
 
 /**
  * Sans balade touchée : l’invitation ; avec (T-098) : quand, combien, et quoi toucher ensuite (la ligne en bas du

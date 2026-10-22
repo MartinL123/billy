@@ -1,7 +1,7 @@
 import { distanceMeters } from './community'
 import { formatLong, type ISODate } from './dates'
 import { formatRouteDistance, routeDistance, type RoutePoint } from './route'
-import { CELLS_PER_BIT } from './walkSheet'
+import { formatDuration } from './balade'
 
 // La carte postale de balade (spec V6 § 8.4) : fonctions pures, testées. Le dessin (canvas) vit dans
 // features/trajets/postcardImage.ts.
@@ -47,19 +47,13 @@ export function privacyCut(points: RoutePoint[], cutM = POSTCARD_CUT_M, minM = P
 /** Le tracé de la carte postale : rien si la balade enregistrée fait moins de 500 m, quelle que soit la longueur des points. */
 export const postcardRoute = (points: RoutePoint[], distanceM: number): RoutePoint[] => (distanceM < POSTCARD_MIN_M ? [] : privacyCut(points))
 
-/** Le nombre de « bouts de territoire » (le même compte que le récap et la fiche). */
-export const postcardBits = (newCells: number) => Math.floor(newCells / CELLS_PER_BIT)
-
 /**
- * La ligne de chiffres : « 2,1 km · 3 bouts de territoire découverts ». Flair ne connaît pas les rues découvertes,
- * seulement les cases du brouillard : on dit ce qu’on sait. Rien de découvert : la distance seule.
+ * La ligne de chiffres : « 2,1 km · 32 min ». V6.1 § 1 : plus de « bouts de territoire » ni de pourcentage ; les rues
+ * découvertes viendront quand Flair les connaîtra. Sans durée : la distance seule.
  */
-export function postcardLine(distanceM: number, newCells: number): string {
-  const bits = postcardBits(newCells)
-  const distance = formatRouteDistance(distanceM).replace(' ', ' ')
-  if (bits > 1) return `${distance} · ${bits} bouts de territoire découverts`
-  if (bits === 1) return `${distance} · un nouveau bout de territoire`
-  return distance
+export function postcardLine(distanceM: number, durationMin?: number): string {
+  const distance = formatRouteDistance(distanceM).replace(' ', '\u00a0')
+  return durationMin ? `${distance} · ${formatDuration(durationMin)}` : distance
 }
 
 /** « 22 octobre 2026 · Vertbois » : la date et, au plus, le nom de la commune (aucun autre lieu). */

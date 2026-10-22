@@ -1,10 +1,7 @@
 import { parisMinutes } from './activity'
 import { formatDuration } from './balade'
-import { communeAt, type Commune } from './commune'
 import { distanceMeters } from './community'
 import { formatDayHeading, type ISODate } from './dates'
-import { discoveredShare, inPolygon, revealedCells } from './fog'
-import { ofName } from './gender'
 import { formatRouteDistance, type Route, type RoutePoint } from './route'
 import type { Track } from './track'
 import { effectiveTrack, trimWindow } from './trim'
@@ -179,61 +176,6 @@ export function paceAt(route: Route, minute: number): { clock?: string; kmh: num
 
 /** La rue d’un point de la courbe : celle d’un arrêt ou d’un repère à moins de 150 m (pas de requête de plus). */
 export const STREET_NEAR_M = 150
-
-/** Ce que la balade a découvert : les cases jamais vues avant elle, et ce que ça fait de sa commune. */
-export interface Discovery {
-  newCells: number
-  share?: number
-  commune?: string
-}
-
-type WalkLike = { id: string; date: ISODate; createdAt?: string; route?: { points?: { lat: number; lng: number }[]; startTime?: string } }
-
-const walkOrder = (w: WalkLike) => `${w.date}|${w.route?.startTime ?? ''}|${w.createdAt ?? ''}`
-
-/**
- * Les cases que cette balade a sorties du brouillard : celles de son tracé qu’aucune balade d’avant (date, heure de
- * départ) n’avait déjà levées. Recalculé à partir des tracés : rien de plus n’est enregistré.
- */
-export function walkDiscovery(walkId: string, walks: WalkLike[], communes: Commune[]): Discovery | undefined {
-  const walk = walks.find((w) => w.id === walkId)
-  const points = walk?.route?.points ?? []
-  if (!walk || points.length < 2) return undefined
-  const key = walkOrder(walk)
-  const before = new Set<string>()
-  for (const w of walks) {
-    if (w.id === walkId || !w.route?.points?.length || walkOrder(w) > key) continue
-    for (const cell of revealedCells(w.route.points)) before.add(cell)
-  }
-  const fresh = [...revealedCells(points)].filter((c) => !before.has(c))
-  const commune = communeAt(communes, points[0]!, inPolygon)
-  return { newCells: fresh.length, ...(commune ? { share: discoveredShare(fresh, commune), commune: commune.name } : {}) }
-}
-
-/** « +2 % », « < 1 % » (un peu, pas 1 %), rien si rien de nouveau. */
-export function shareGain(share: number | undefined): string | undefined {
-  if (!share || share <= 0) return undefined
-  return share < 0.01 ? '< 1 %' : `+${Math.round(share * 100)} %`
-}
-
-/** « +1 % de Vertbois », « Un peu plus de Vertbois » (moins de 1 %). */
-export function discoveryLine(d: Discovery | undefined): string | undefined {
-  if (!d || !d.newCells) return undefined
-  if (!d.commune || !d.share) return undefined
-  return d.share < 0.01 ? `Un peu plus ${ofName(d.commune)} découvert` : `+${Math.round(d.share * 100)} % ${ofName(d.commune)} découvert`
-}
-
-/** Un « bout de territoire » : 40 cases de 25 m (le même compte que la balade en cours). */
-export const CELLS_PER_BIT = 40
-
-/** La phrase du récap et de « Ce qu’il a découvert » : « Billy a découvert 3 nouveaux bouts de territoire ». */
-export function discoverySentence(dogName: string, newCells: number): string {
-  const bits = Math.floor(newCells / CELLS_PER_BIT)
-  if (bits > 1) return `${dogName} a découvert ${bits} nouveaux bouts de territoire`
-  if (bits === 1) return `${dogName} a découvert un nouveau bout de territoire`
-  if (newCells > 0) return `${dogName} a agrandi un peu son territoire`
-  return `Une balade sur des chemins qu’il connaît`
-}
 
 /** D’où viennent les chiffres (sources en 12 px). `track` : l’étiquette de la liste (R-092), « Watch », « iPhone »… */
 export function sourceLabels(route: Pick<Route, 'source' | 'weather' | 'hr' | 'steps' | 'energyKcal' | 'stops' | 'moments'>, entrySource?: string): { track?: string; health?: string; weather?: string; places?: string } {

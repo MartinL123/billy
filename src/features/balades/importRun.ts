@@ -1,24 +1,20 @@
-import { fetchCommune } from '../../firebase/communes'
 import { revealFog } from '../../firebase/fog'
 import { saveImportedWalk } from '../../firebase/imports'
 import type { FogZone, WithId } from '../../firebase/types'
 import { isGpxFile, parseActivity, readActivityFile, MAX_GPX_BYTES, type Activity } from '../../lib/activity'
 import type { Bone } from '../../lib/bones'
-import { communeAt, type Commune } from '../../lib/commune'
+import type { Commune } from '../../lib/commune'
 import type { ISODate } from '../../lib/dates'
-import { discoveredShare, inPolygon, knownFog, revealedCells } from '../../lib/fog'
 import { emptyTally, ignoredLine, tallyActivity, type ImportTally } from '../../lib/importPlan'
 import type { RoutePoint } from '../../lib/route'
 import type { WalkTimes } from '../../lib/walks'
 import { logEvent } from '../../firebase/journal'
 
-/** Le résultat d’un import, pour l’écran « Le brouillard s’est levé ! ». */
+/** Le résultat d’un import, pour l’écran « Balades ajoutées ». */
 export interface ImportResult {
   walks: { entryId: string; name: string; date: ISODate; distanceM: number; durationMin?: number; points: RoutePoint[] }[]
   distanceM: number
   newCells: number
-  /** Part de la commune découverte, avant et après (si la commune est connue). */
-  share?: { name: string; before: number; after: number }
   line: string
   /** Les os gagnés par ces balades (fin de balade : la pastille « +3 os », T-051). */
   gained: Bone[]
@@ -76,23 +72,11 @@ export async function importActivities(
   }
   onProgress(count, count)
 
-  const before = knownFog(ctx.fog)
   const newCells = tracks.length ? revealFog(tracks, ctx.fog) : 0
 
-  // Le pourcentage de la commune de la dernière balade : contour gardé, sinon demandé une fois à Nominatim.
-  let share: ImportResult['share']
-  const start = tracks[tracks.length - 1]?.[0]
-  if (start) {
-    const commune = communeAt(ctx.communes, start, inPolygon) ?? (await fetchCommune(start.lat, start.lng))
-    if (commune) {
-      const after = new Set(before)
-      for (const t of tracks) for (const c of revealedCells(t)) after.add(c)
-      share = { name: commune.name, before: discoveredShare(before, commune), after: discoveredShare(after, commune) }
-    }
-  }
   // Les mois récents d’abord.
   walks.sort((a, b) => b.date.localeCompare(a.date))
-  last = { walks, distanceM: walks.reduce((sum, w) => sum + w.distanceM, 0), newCells, ...(share ? { share } : {}), line: ignoredLine(tally), gained }
+  last = { walks, distanceM: walks.reduce((sum, w) => sum + w.distanceM, 0), newCells, line: ignoredLine(tally), gained }
   // T-066 : journal privé (la balade GPS est notée par l’écran de la balade, après vérification).
   if (source !== 'gps') for (const w of walks) logEvent({ type: 'walk_saved', source: source === 'watch' ? 'watch' : 'gpx', m: Math.round(w.distanceM), ...(w.durationMin ? { min: w.durationMin } : {}) })
   return last

@@ -20,12 +20,12 @@ export function progressTile(active: string[], levels: Record<string, number | u
   return { text: active.length === 1 ? 'Une chose en cours' : `${active.length} choses en cours`, detail: paws ? '' : 'On commence', paws }
 }
 
-/** Ses balades : combien, combien de km, et la part découverte de la commune quand on la connaît. */
-export function walksTile(walks: { distanceM: number }[], share?: string): Tile & { km: number } {
+/** Ses balades : combien, combien de km (V6.1 § 1 : plus de part découverte). */
+export function walksTile(walks: { distanceM: number }[]): Tile & { km: number } {
   const km = walks.reduce((sum, w) => sum + w.distanceM, 0) / 1000
   // Le bouton est dans « Ses sorties du jour » ; la tuile, déjà un lien, garde seulement le texte (R-040).
   if (!walks.length) return { text: 'Pas encore de balade', detail: '', km: 0 }
-  return { text: `${plural(walks.length, 'balade')} · ${km.toFixed(1).replace('.', ',')} km`, detail: share ?? '', km }
+  return { text: `${plural(walks.length, 'balade')} · ${km.toFixed(1).replace('.', ',')} km`, detail: '', km }
 }
 
 interface CareLike {
@@ -65,11 +65,11 @@ export function progressLine(active: string[]): string {
   return active.length === 1 ? 'Une compétence en route' : `${active.length} compétences en route`
 }
 
-/** « 4,7 km ensemble · 4 % de Saint-Ouen découvert ». */
-export function walksLine(walks: { distanceM: number }[], share?: string): string {
+/** « 12 balades · 18,4 km » (V6.1 § 1 : plus de pourcentage découvert, ni « km ensemble »). */
+export function walksLine(walks: { distanceM: number }[]): string {
   if (!walks.length) return 'Pas encore de balade'
   const km = (walks.reduce((sum, w) => sum + w.distanceM, 0) / 1000).toFixed(1).replace('.', ',')
-  return share ? `${km}\u00a0km ensemble · ${share}` : `${km}\u00a0km ensemble`
+  return `${plural(walks.length, 'balade')} · ${km}\u00a0km`
 }
 
 /** « Le dernier : 19 octobre 2026 » (sans les jours de repos). */

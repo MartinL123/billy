@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Stats } from '../../components/Stats'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { Sheet } from '../../components/Sheet'
-import { CheckIcon, CloseIcon, PawIcon } from '../../components/Icons'
+import { CheckIcon, CloseIcon } from '../../components/Icons'
 import { useToast } from '../../components/Toast'
 import { useData } from '../../firebase/store'
 import { waitForPendingWrites } from 'firebase/firestore'
 import { db } from '../../firebase/app'
 import { knownImportKeys, parisMinutes } from '../../lib/activity'
 import { knownFog, revealedCells } from '../../lib/fog'
-import { doubtfulSegments, durationParts, elapsedMs, gpsActivity, gpsDistance, territoryBits, tooShort, weakSignal, type GpsPoint } from '../../lib/gpsWalk'
+import { doubtfulSegments, durationParts, elapsedMs, gpsActivity, gpsDistance, tooShort, weakSignal, type GpsPoint } from '../../lib/gpsWalk'
 import { dayBudget, minutesOfDay, walksOfDay } from '../../lib/walkDay'
 import { formatRouteDistance, readRoute } from '../../lib/route'
 import { errorText, withTimeout } from '../../lib/timeout'
@@ -22,7 +22,7 @@ import { recoverFromFirestoreCrash } from '../../firebase/recover'
 import { useToday } from '../../lib/useToday'
 import { slotForStart, walkName, walkTimes, WALK_SLOTS, type WalkSlot } from '../../lib/walks'
 import { isNative } from '../../native'
-import { FlairNative, readHealthWindow, setLiveWalk } from '../../native/flair'
+import { FlairNative, readHealthWindow } from '../../native/flair'
 import { watchOptedIn } from './watchImport'
 import { ExplorerMap } from './ExplorerMap'
 import { ROUTE_COLOR } from '../../components/maplibre'
@@ -100,8 +100,6 @@ export default function LiveWalk() {
   /** La précision du GPS et depuis quand elle est mauvaise (V5) : « Le GPS cherche le ciel ». */
   const [accuracy, setAccuracy] = useState<number>()
   const [weakSince, setWeakSince] = useState<number>()
-  /** « Nouveau bout de territoire ! » : affichée 3 s quand le tracé lève une zone jamais vue. */
-  const [found, setFound] = useState(false)
   const { walks } = useData()
   const finishing = useRef(false)
   // T-089 : « Boucles pour Billy » : la balade passée choisie, affichée en pointillés pendant la balade.
@@ -319,33 +317,13 @@ export default function LiveWalk() {
   }, [ended, gone])
 
   const latLngs = useMemo(() => points.map((p): [number, number] => [p.lat, p.lng]), [points])
-  // Le territoire connu avant la balade : ce que le tracé découvre en plus compte en « bouts de territoire ».
-  const knownBefore = useRef<Set<string> | undefined>(undefined)
-  if (!knownBefore.current && fog.length) knownBefore.current = knownFog(fog)
-  const newCellsRef = useRef(0)
+  // Le brouillard (s’il est affiché, T-095 V6.1) se lève sous le tracé. V6.1 § 1 : plus de « bouts de territoire »
+  // comptés ni annoncés (ni ici, ni dans la Live Activity).
   const cells = useMemo(() => {
     const all = knownFog(fog)
-    let fresh = 0
-    for (const cell of revealedCells(points)) {
-      if (!knownBefore.current?.has(cell)) fresh++
-      all.add(cell)
-    }
-    newCellsRef.current = fresh
+    for (const cell of revealedCells(points)) all.add(cell)
     return all
   }, [fog, points])
-  const bits = territoryBits(newCellsRef.current)
-  const shownBits = useRef(0)
-  useEffect(() => {
-    if (bits <= shownBits.current) return
-    shownBits.current = bits
-    setFound(true)
-    const timer = window.setTimeout(() => setFound(false), 3000)
-    return () => window.clearTimeout(timer)
-  }, [bits])
-  // T-086 : la Live Activity montre aussi les bouts de territoire découverts.
-  useEffect(() => {
-    if (phase === 'walking' && !ended) setLiveWalk(bits)
-  }, [bits, phase, ended])
   // La portion douteuse (GPS faible, trou de plus de 20 s) en pointillés ; le reste en trait plein.
   const tracks = useMemo(() => {
     const out: { id: string; color: string; points: [number, number][]; dashed?: boolean }[] = []
@@ -417,17 +395,11 @@ export default function LiveWalk() {
               <strong>Le GPS cherche le ciel.</strong> La balade continue, le tracé se recolle tout seul.
             </p>
           )}
-          {found && !ended && (
-            <p role="status" className="anim-pop flex items-center gap-2 self-center rounded-full bg-gold-soft px-4 py-2.5 text-[0.8824rem] font-bold text-[#3D2A00] shadow-[0_4px_12px_rgba(24,32,30,0.18)]">
-              <PawIcon size={18} color="#8A6514" />
-              Nouveau bout de territoire !
-            </p>
-          )}
         </div>
       </div>
 
       {ended ? (
-        // « Belle balade ! » (V6 § 6.3) : la découverte, les os, et « Raconter la balade » s’il y a des arrêts.
+        // « Belle balade ! » (V6 § 6.3) : les chiffres, les os, et « Raconter la balade » s’il y a des arrêts.
         <WalkRecap entryId={ended.entryId} bones={ended.bones} fallback={{ distanceM: ended.distanceM }} {...(ended.slotName ? { subtitle: `${ended.slotName} notée` } : {})} />
       ) : gone ? null : (
         <section aria-label="Balade en cours" className="flex flex-col gap-3.5 rounded-t-[26px] bg-surface px-4 pt-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">

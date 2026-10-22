@@ -3,9 +3,7 @@ import { Link } from 'react-router-dom'
 import { ChevronRightIcon } from '../../components/Icons'
 import { useData } from '../../firebase/store'
 import { activeSkills } from '../../lib/active'
-import { communeAt } from '../../lib/commune'
 import { healthTile, memoriesLine, memoriesTile, progressLine, walksLine } from '../../lib/dashboard'
-import { discoveredShare, inPolygon, knownFog, shareLabel } from '../../lib/fog'
 import { useToday } from '../../lib/useToday'
 import { walkItems } from '../../lib/walkList'
 import { APP_NAME } from '../../appName'
@@ -82,15 +80,9 @@ function Row({ to, icon, tint, title, detail, alert = false, last = false }: { t
  */
 export function LifeTiles({ arrival = false }: { /** Première ouverture du jour : la carte monte avec la cascade (T-033). */ arrival?: boolean }) {
   const readOnly = useReadOnly()
-  const { dog, bossProgress, entries, events, fog, communes } = useData()
+  const { dog, bossProgress, entries, events } = useData()
   const today = useToday()
   const walks = useMemo(() => walkItems(entries), [entries])
-  // La part découverte de la commune de la dernière balade, si son contour est déjà connu (la carte le demande).
-  const share = useMemo(() => {
-    const start = walks[0]?.route.points[0]
-    const commune = start ? communeAt(communes, { lat: start[0], lng: start[1] }, inPolygon) : undefined
-    return commune ? shareLabel(discoveredShare(knownFog(fog), commune), commune.name) : undefined
-  }, [walks, communes, fog])
   const active = activeSkills(dog.activeSkills, dog.traits ?? [], bossProgress)
   // App iOS : aucune séance trouvée dans Santé, la lecture n’est sans doute pas autorisée (T-001). Une ligne, pas de popup.
   const watchHint = isNative() && watchOptedIn() && watchLooksBlocked() ? `Autoriser ${APP_NAME} à lire vos marches (Réglages › Santé)` : undefined
@@ -102,7 +94,7 @@ export function LifeTiles({ arrival = false }: { /** Première ouverture du jour
       <h2 className="title-section mt-1">Sa vie avec vous</h2>
       <nav aria-label="Sa vie avec vous" className={`card flex flex-col p-0 ${arrival ? 'anim-in' : ''}`}>
         <Row to="/billy" icon={ICONS.progres} tint="#DCEBE6" title="Ses progrès" detail={progressLine(active)} />
-        <Row to={walks.length || readOnly ? '/territoire' : '/importer'} icon={ICONS.balades} tint="#E3EAF8" title="Ses balades" detail={watchHint ?? walksLine(walks.map((w) => w.route), share)} />
+        <Row to={walks.length || readOnly ? '/territoire' : '/importer'} icon={ICONS.balades} tint="#E3EAF8" title="Ses balades" detail={watchHint ?? walksLine(walks.map((w) => w.route))} />
         <Row to="/sante" icon={ICONS.sante} tint="#FBE6D4" title="Sa santé" detail={sante.text} alert={sante.late} />
         {/* Visiteur (R-073) : rien à noter, seulement à regarder. */}
         <Row to={memories.count || readOnly ? '/balades' : '/noter'} icon={ICONS.souvenirs} tint="#FCEFD3" title="Ses souvenirs" detail={memories.count ? memoriesLine(entries) : readOnly ? 'Pas encore de souvenir' : 'Noter le premier'} last />

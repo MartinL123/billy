@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cellArea, cellCenter, cellOf, cellsLabel, countFresh, discoveredShare, freshCells, inPolygon, knownFog, polygonArea, revealedCells, shareLabel, zoneOf } from './fog'
+import { cellArea, cellCenter, cellOf, cellsLabel, countFresh, discoveredShare, freshCells, inPolygon, knownFog, polygonArea, revealedCells, zoneOf } from './fog'
 
 // Une balade inventée : 1 km tout droit vers le nord (aucun vrai lieu de Martin dans le dépôt).
 const START = { lat: 47, lng: 2 }
@@ -50,8 +50,6 @@ describe('le brouillard', () => {
     // Une bande de ~50 m sur 1 km dans 1 km² : environ 5 %.
     expect(share).toBeGreaterThan(0.035)
     expect(share).toBeLessThan(0.07)
-    expect(shareLabel(share, 'Bourg-en-Test')).toMatch(/^1\d % de Bourg-en-Test découvert$|^\d % de Bourg-en-Test découvert$/)
-    expect(shareLabel(0.004, 'Bourg-en-Test')).toBe('moins de 1 % de Bourg-en-Test découvert')
     expect(cellArea(cellOf(START))).toBeGreaterThan(500)
     expect(cellsLabel(56)).toBe('56 cases')
   })

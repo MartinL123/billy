@@ -4,22 +4,20 @@ import { Stats } from '../../components/Stats'
 import { useData } from '../../firebase/store'
 import { readRoute } from '../../lib/route'
 import { recapStats, stopChips, stopsLine } from '../../lib/walkRecap'
-import { discoverySentence, walkDiscovery } from '../../lib/walkSheet'
 import { tellQueue } from '../../lib/walkTell'
 import { dogName } from '../../lib/dogName'
 
 /**
  * Le panneau du récap « Belle balade ! » (V6 § 6.3), après « Terminer » (GPS de Flair) ou à l’arrivée d’une balade de
- * la Watch : surtitre, une phrase, Stats (distance · % découvert gagné · os), les arrêts et « Raconter la balade » ;
+ * la Watch : surtitre, une phrase, Stats (distance · durée · os ; V6.1 : plus de pourcentage découvert), les arrêts et « Raconter la balade » ;
  * sans arrêt à raconter, « Voir la balade » (sa fiche, T-098) et « Ajouter un souvenir ».
  * `fallback` : ce qu’on sait déjà si la balade n’est pas encore lue dans la base locale.
  */
 export function WalkRecap({ entryId, overline, subtitle, bones, fallback }: { entryId: string; overline?: string; subtitle?: string; bones?: number; fallback: { distanceM: number } }) {
-  const { dog, entries, communes, bones: allBones } = useData()
+  const { dog, entries, bones: allBones } = useData()
   const navigate = useNavigate()
   const entry = entries.find((e) => e.id === entryId)
   const route = useMemo(() => readRoute(entry?.route), [entry?.route])
-  const discovery = useMemo(() => (entry ? walkDiscovery(entryId, entries, communes) : undefined), [entryId, entries, communes, Boolean(entry)]) // eslint-disable-line react-hooks/exhaustive-deps
   // Les os de la note de cette balade (+3, dans la limite du jour), sauf si l’écran les connaît déjà.
   const gained = bones ?? allBones.filter((b) => b.reason === 'note' && b.refId === entryId).reduce((s, b) => s + b.amount, 0)
   // T-086 : les arrêts sans repère et les repères « À raconter ».
@@ -33,9 +31,9 @@ export function WalkRecap({ entryId, overline, subtitle, bones, fallback }: { en
       <div className="flex flex-col items-center gap-1 text-center">
         {overline && <span className="surtitre text-milestone-dark">{overline}</span>}
         <h1 className="title-screen">Belle balade !</h1>
-        <p className="text-[0.9412rem] text-[#3F4946]">{discovery ? discoverySentence(dog.name, discovery.newCells) : `Avec ${dogName(dog)}`}{subtitle ? ` · ${subtitle}` : ''}</p>
+        <p className="text-[0.9412rem] text-[#3F4946]">{`Avec ${dogName(dog)}`}{subtitle ? ` · ${subtitle}` : ''}</p>
       </div>
-      <Stats items={recapStats({ distanceM: route?.distanceM ?? fallback.distanceM, discovery, bones: gained })} className="rounded-[16px] bg-bg px-4 py-3" />
+      <Stats items={recapStats({ distanceM: route?.distanceM ?? fallback.distanceM, ...(route?.durationMin ? { durationMin: route.durationMin } : {}), bones: gained })} className="rounded-[16px] bg-bg px-4 py-3" />
       {untold > 0 && route ? (
         <>
           <p className="text-[0.9412rem] font-bold">{stopsLine(stops, queue.filter((q) => q.kind === 'marker').length)}</p>

@@ -77,7 +77,7 @@ interface FlairNativePlugin {
   motionStatus(): Promise<{ available: boolean; status: MotionStatus }>
   /** T-085 : les périodes « à pied » brutes depuis `since` (la première fois, iOS demande l’accès). */
   motionWalks(options: { since: string }): Promise<{ periods: MotionPeriod[] }>
-  /** T-086 : ce que la Live Activity affiche en plus de la distance : les bouts de territoire découverts. */
+  /** T-086 : les bouts de territoire de la Live Activity. Plus appelé depuis la V6.1 (§ 1) : la Live Activity n’en montre pas (0). */
   setLiveWalk(options: { bits: number }): Promise<void>
   addListener(event: 'walkPoint', listener: (point: GpsPoint) => void): Promise<PluginListenerHandle>
   addListener(event: 'walkStopped', listener: (data: { stoppedAt?: string }) => void): Promise<PluginListenerHandle>
@@ -141,8 +141,3 @@ export async function readMotionWalks(since: string): Promise<MotionPeriod[]> {
   }
 }
 
-/** T-086 : les bouts de territoire découverts, pour la Live Activity. Jamais bloquant (app iOS plus ancienne : rien). */
-export function setLiveWalk(bits: number): void {
-  if (!isNative()) return
-  FlairNative.setLiveWalk({ bits }).catch(() => undefined)
-}

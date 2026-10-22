@@ -2,7 +2,7 @@ import { douglasPeucker } from './balade'
 import { polygonArea } from './fog'
 import type { RoutePoint } from './route'
 
-// La commune où se trouve la carte, pour « 2 % de Saint-Briac-sur-Mer découvert » (carte-a-decouvrir.md § 3).
+// La commune où se trouve la carte (carte-a-decouvrir.md § 3) : la part découverte reste une donnée du brouillard (V6.1 : plus affichée).
 // Contour demandé une seule fois à Nominatim (OpenStreetMap), puis gardé dans users/{uid}/communes/{id}.
 
 export interface Commune {

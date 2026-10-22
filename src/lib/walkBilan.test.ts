@@ -11,21 +11,16 @@ const walk = (id: string, date: string, points: RoutePoint[], extra: Partial<{ d
 })
 
 describe('bilanStats', () => {
-  it('balades · km · % découvert · heures ensemble', () => {
+  it('balades · km · temps de balade (V6.1 : plus de pourcentage, « de balade » et non « ensemble »)', () => {
     const walks = [walk('a', '2026-10-01', line(48.85), { distanceM: 2100, durationMin: 45 }), walk('b', '2026-09-01', line(48.86), { distanceM: 3000, durationMin: 95 })]
-    expect(bilanStats(walks, { share: 0.123, commune: 'Vertbois' })).toEqual([
-      { value: '2', label: 'Balades' },
-      { value: '5,1 km', label: 'Distance' },
-      { value: '12 %', label: 'Découvert', spoken: '12 % de Vertbois' },
-      { value: '2 h 20', label: 'Ensemble' },
-    ])
+    const nb = (t: string) => t.replace(/\u00a0/g, ' ')
+    expect(bilanStats(walks).map((s) => `${nb(s.value)} ${s.label}`)).toEqual(['2 Balades', '5,1 km Distance', '2 h 20 De balade'])
   })
 
-  it('sans commune ni durée : ces cases restent vides (le composant Stats les cache)', () => {
+  it('sans durée : cette case reste vide (le composant Stats la cache)', () => {
     const stats = bilanStats([walk('a', '2026-10-01', line(48.85))])
     expect(stats[0]).toEqual({ value: '1', label: 'Balade' })
     expect(stats[2]!.value).toBe('')
-    expect(stats[3]!.value).toBe('')
   })
 })
 
@@ -72,7 +67,6 @@ describe('monthReport', () => {
     expect(monthStats({ walks: 3, distanceM: 4200, newCells: 85, toldStops: 1 })).toEqual([
       { value: '3', label: 'Balades' },
       { value: '4,2 km', label: 'Distance' },
-      { value: '2', label: 'Bouts de territoire' },
       { value: '1', label: 'Arrêt raconté' },
     ])
     expect(topMomentLine('rencontre')).toBe('Le moment le plus noté : rencontre chien.')

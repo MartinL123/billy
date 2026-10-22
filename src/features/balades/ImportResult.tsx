@@ -6,15 +6,13 @@ import { formatRouteDistance } from '../../lib/route'
 import { RouteThumb } from '../trajets/RouteThumb'
 import { takeImportResult } from './importRun'
 import { useData } from '../../firebase/store'
-import { ofName } from '../../lib/gender'
+import { ofDog } from '../../lib/dogName'
 import { APP_NAME } from '../../appName'
 import { useToday } from '../../lib/useToday'
 import { bigWalkNotice, dayBudget, minutesOfDay, walksOfDay } from '../../lib/walkDay'
 import { walkTimes } from '../../lib/walks'
 
-const percent = (share: number) => (share > 0 && share < 0.01 ? 'moins de 1' : String(Math.round(share * 100)))
-
-/** « Le brouillard s’est levé ! » (maquette V3-ImportResultat). */
+/** « Balades ajoutées ! » (maquette V3-ImportResultat ; V6.1 : plus de brouillard ni de pourcentage). */
 export default function ImportResult() {
   const { dog, entries, walks } = useData()
   const today = useToday()
@@ -26,24 +24,21 @@ export default function ImportResult() {
   const notice = bigWalkNotice(budget, Boolean(budget && result?.walks.some((w) => w.date === today && (w.durationMin ?? 0) > budget.perWalk)))
   if (!result) return <Navigate to="/territoire" replace />
   const nothing = result.walks.length === 0
-  const gained = result.share ? Math.round((result.share.after - result.share.before) * 100) : 0
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
       <main className="flex flex-col gap-4 px-5 pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+120px)]">
         <div className="flex flex-col gap-1">
           <h1 className="title-screen">{nothing ? `Tout était déjà dans ${APP_NAME}` : 'Le brouillard s’est levé !'}</h1>
-          <p className="text-[1rem] text-muted">{nothing ? 'Aucune nouvelle balade dans ces fichiers.' : `${dog.name} a un nouveau bout de territoire.`}</p>
+          <p className="text-[1rem] text-muted">{nothing ? 'Aucune nouvelle balade dans ces fichiers.' : `Elles sont sur la carte ${ofDog(dog)}.`}</p>
         </div>
         {!nothing && (
           <>
-            {/* Des km et un % de la commune, pas de « cases » (audit R-018) ; en Stats (V6 § 1). */}
+            {/* Des balades et des km, en Stats (V6 § 1) ; V6.1 § 1 : plus de pourcentage découvert. */}
             <Stats
               items={[
                 { value: String(result.walks.length), label: `Balade${result.walks.length > 1 ? 's' : ''} ajoutée${result.walks.length > 1 ? 's' : ''}` },
                 { value: formatRouteDistance(result.distanceM), label: 'Parcourus' },
-                ...(result.share ? [{ value: `${percent(result.share.after)}\u00a0%`, label: `${ofName(result.share.name)} découvert` }] : []),
-                ...(result.share && gained >= 1 ? [{ value: `+${gained}\u00a0%`, label: 'Gagnés' }] : []),
               ]}
             />
             {notice && <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[1rem] leading-snug text-[#1D3F73]">{notice}</p>}

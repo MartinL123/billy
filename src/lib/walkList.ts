@@ -41,16 +41,28 @@ export function filterWalks(items: WalkItem[], filter: WalkFilter, today: ISODat
   return items
 }
 
-/** Le résumé en chiffres (composant Stats, V6 § 1) : 12 balades · 18,4 km · 9 h 40 ensemble (sans durée connue, pas de temps). */
+/** « 9 h 40 », « 45 min » : le temps de balade (V6.1 § 1 : « 9 h 40 de balade », jamais « ensemble »). */
+export const walkTimeText = (min: number) => (Math.floor(min / 60) ? `${Math.floor(min / 60)}\u00a0h\u00a0${String(min % 60).padStart(2, '0')}` : `${min}\u00a0min`)
+
+/** Le résumé en chiffres (composant Stats, V6 § 1) : 12 balades · 18,4 km · 9 h 40 de balade (sans durée connue, pas de temps). */
 export function walksSummary(items: WalkItem[]): { value: string; label: string }[] {
+  const t = walksTotals(items)
+  const out = [
+    { value: t.count, label: t.countLabel.replace(/^./, (c) => c.toUpperCase()) },
+    { value: t.distance, label: 'Distance' },
+  ]
+  if (t.time) out.push({ value: t.time, label: 'De balade' })
+  return out
+}
+
+/**
+ * La ligne de résumé du panneau de la carte (V6.1 § 1) : « 12 balades · 18,4 km · 9 h 40 de balade », chiffres en gras.
+ * Sans durée connue, pas de temps.
+ */
+export function walksTotals(items: Pick<WalkItem, 'route'>[]): { count: string; countLabel: string; distance: string; time?: string } {
   const km = items.reduce((s, w) => s + w.route.distanceM, 0) / 1000
   const min = items.reduce((s, w) => s + (w.route.durationMin ?? 0), 0)
-  const out = [
-    { value: String(items.length), label: items.length > 1 ? 'Balades' : 'Balade' },
-    { value: `${km.toFixed(1).replace('.', ',')}\u00a0km`, label: 'Distance' },
-  ]
-  if (min) out.push({ value: Math.floor(min / 60) ? `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, '0')}` : `${min}\u00a0min`, label: 'Ensemble' })
-  return out
+  return { count: String(items.length), countLabel: items.length > 1 ? 'balades' : 'balade', distance: `${km.toFixed(1).replace('.', ',')}\u00a0km`, ...(min ? { time: walkTimeText(min) } : {}) }
 }
 
 /** Les communes visitées, de la plus fréquente à la moins fréquente. */

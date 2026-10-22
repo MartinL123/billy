@@ -2,13 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { recapStats, stopChips, stopsLine } from './walkRecap'
 
 describe('le récap « Belle balade ! » (V6 § 6.3)', () => {
-  it('Stats : distance · % découvert gagné · os, seulement ce qu’il y a', () => {
-    expect(recapStats({ distanceM: 2100, discovery: { newCells: 80, share: 0.012, commune: 'Vertbois' }, bones: 3 })).toEqual([
-      { value: '2,1 km', label: 'Ensemble' },
-      { value: '+1 %', label: 'de Vertbois découvert' },
-      { value: '+3', label: 'Os gagnés' },
-    ])
-    expect(recapStats({ distanceM: 650, bones: 0 }).filter((s) => s.value)).toEqual([{ value: '650 m', label: 'Ensemble' }])
+  it('Stats : distance · durée · os, seulement ce qu’il y a (V6.1 : plus de pourcentage)', () => {
+    const nb = (list: { value: string; label: string }[]) => list.filter((s) => s.value).map((s) => `${s.label} ${s.value.replace(/\u00a0/g, ' ')}`)
+    expect(nb(recapStats({ distanceM: 2100, durationMin: 32, bones: 3 }))).toEqual(['Distance 2,1 km', 'Durée 32 min', 'Os gagnés +3'])
+    expect(nb(recapStats({ distanceM: 650, bones: 0 }))).toEqual(['Distance 650 m'])
   })
 
   it('les arrêts : la phrase et 2 ou 3 pastilles', () => {

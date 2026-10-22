@@ -2,8 +2,7 @@ import type { Activity } from './activity'
 import { walkDistance } from './activity'
 import { healthFields, timedPoint, watchName, type WatchWalk } from './watch'
 import type { HealthExtras } from './walkHealth'
-import { formatDuration } from './balade'
-import { formatRouteDistance, type WalkMarker } from './route'
+import type { WalkMarker } from './route'
 
 // La balade enregistrée par l'iPhone (app iOS, T-036) : démarrée et arrêtée par ses boutons, puis le même circuit que
 // l'import d'un fichier GPX. Ce fichier ne dépend ni de Capacitor ni de Firestore.
@@ -97,25 +96,6 @@ export function weakSignal(lastAccuracy: number | undefined, weakSince: number |
 export function doubtfulSegments(points: GpsPoint[]): [number, number][] {
   const out: [number, number][] = []
   for (let i = 1; i < points.length; i++) if (Date.parse(points[i]!.time) - Date.parse(points[i - 1]!.time) > WEAK_AFTER_MS) out.push([i - 1, i])
-  return out
-}
-
-/** Un « bout de territoire » : 40 cases de 25 m jamais vues (environ 2 500 m²). */
-export const CELLS_PER_BIT = 40
-export const territoryBits = (newCells: number) => Math.floor(newCells / CELLS_PER_BIT)
-
-/**
- * « Belle balade ! » en chiffres (composant Stats, V6 § 1) : durée, distance, puis les os (seulement s’ils sont donnés)
- * et les nouveaux bouts de territoire (seulement s’il y en a).
- */
-export function endWalkStats({ ms, distanceM, noteBones, bits }: { ms: number; distanceM: number; noteBones: number; bits: number }): { value: string; label: string }[] {
-  const { min, sec } = durationParts(ms)
-  const out = [
-    { value: min ? formatDuration(min) : `${sec}\u00a0s`, label: 'Durée' },
-    { value: formatRouteDistance(distanceM), label: 'Distance' },
-  ]
-  if (noteBones > 0) out.push({ value: `+${noteBones}`, label: 'Os gagnés' })
-  if (bits > 0) out.push({ value: String(bits), label: bits === 1 ? 'Nouveau bout de territoire' : 'Nouveaux bouts de territoire' })
   return out
 }
 

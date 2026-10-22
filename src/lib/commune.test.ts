@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { communeAt, communeFromNominatim, isCommuneSized } from './commune'
 import { discoveredShare, inPolygon, revealedCells } from './fog'
-import { bilanStats } from './walkBilan'
 
 // Réponse inventée au format de Nominatim (aucun vrai lieu de Martin).
 const RESPONSE = {
@@ -64,16 +63,12 @@ describe('commune', () => {
     expect(communeAt([big, city], p, inPolygon)?.name).toBe('Villetest')
   })
 
-  it('un point en ville donne « x % de <ville> »', () => {
+  it('un point en ville : la part découverte de <ville> (donnée du brouillard)', () => {
     const city = communeFromNominatim(CITY)!
     const country = { id: 'r7', name: 'Pays-de-Test', areaM2: 640_000e6, bbox: [42, -4, 51, 8] as [number, number, number, number], ring: square(-4, 42, 8, 51)[0]!.map(([lng, lat]) => ({ lat: lat!, lng: lng! })) }
     const points = Array.from({ length: 40 }, (_, i) => ({ lat: 47.005 + i * 0.0008, lng: 2.025 }))
     const commune = communeAt([country, city], points[0]!, inPolygon)!
     const share = discoveredShare([...revealedCells(points)], commune)
     expect(share).toBeGreaterThanOrEqual(0.01)
-    const stat = bilanStats([], { share, commune: commune.name })[2]!
-    expect(stat.value).toMatch(/^\d+\u00a0%$/)
-    expect(stat.label).toBe('Découvert')
-    expect(stat.spoken).toMatch(/^\d+\u00a0% de Villetest$/)
   })
 })

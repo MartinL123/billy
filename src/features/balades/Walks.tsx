@@ -17,8 +17,6 @@ import { useToday } from '../../lib/useToday'
 import { communesOf, filterWalks, walkColors, walkItems, walksSummary, walkTags, type WalkFilter } from '../../lib/walkList'
 import { RouteThumb } from '../trajets/RouteThumb'
 import { useReadOnly } from '../../firebase/viewer'
-import { communeAt } from '../../lib/commune'
-import { discoveredShare, inPolygon, knownFog } from '../../lib/fog'
 import { bilanStats, monthReport, monthStats, topMomentLine, walkPhotos } from '../../lib/walkBilan'
 import { PhotoViewer } from '../journal/PhotoViewer'
 
@@ -32,7 +30,7 @@ const PHOTOS = 9
  */
 export default function Walks() {
   const readOnly = useReadOnly()
-  const { entries, dog, fog, communes: communeShapes } = useData()
+  const { entries, dog } = useData()
   const today = useToday()
   const navigate = useNavigate()
   const back = useBack('/territoire')
@@ -52,12 +50,7 @@ export default function Walks() {
   const communes = useMemo(() => communesOf(walks), [walks])
   // La même couleur que sur la carte.
   const colors = useMemo(() => walkColors(walks), [walks])
-  // Le bilan : la part découverte de la commune de la dernière balade (comme l’accueil), le mois, les photos.
-  const discovered = useMemo(() => {
-    const start = walks[0]?.route.points[0]
-    const commune = start ? communeAt(communeShapes, { lat: start[0], lng: start[1] }, inPolygon) : undefined
-    return commune ? { share: discoveredShare(knownFog(fog), commune), commune: commune.name } : undefined
-  }, [walks, communeShapes, fog])
+  // Le bilan : les totaux, le mois, les photos (V6.1 § 1 : plus de part découverte).
   const month = useMemo(() => monthReport(walks, today.slice(0, 7)), [walks, today])
   const photos = useMemo(() => walkPhotos(entries), [entries])
   const [allPhotos, setAllPhotos] = useState(false)
@@ -111,7 +104,7 @@ export default function Walks() {
         <div className="flex flex-col gap-1">
           <h1 className="title-screen">Ses balades</h1>
           {/* Sans balade, pas de « 0 balade · 0,0 km » au-dessus de l’état vide (R-036). */}
-          {walks.length > 0 && <Stats items={bilanStats(walks, discovered)} className="mt-2" />}
+          {walks.length > 0 && <Stats items={bilanStats(walks)} className="mt-2" />}
         </div>
         {/* « Noter un souvenir » vit ici depuis la V5 (il a quitté l’accueil). */}
         {!readOnly && (

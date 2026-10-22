@@ -1,16 +1,15 @@
-import { ofName } from './gender'
 import { formatRouteDistance, isToTell, routeMomentInfo, type Route } from './route'
-import { clockAt, shareGain, type Discovery } from './walkSheet'
+import { clockAt } from './walkSheet'
+import { formatDuration } from './balade'
 import { tellQueue } from './walkTell'
 
 // Le récap « Belle balade ! » (spec V6 § 6.3) : fonctions pures, testées.
 
-/** Stats du récap : distance · % découvert gagné · os (seulement ce qu’il y a). */
-export function recapStats({ distanceM, discovery, bones }: { distanceM: number; discovery?: Discovery; bones: number }): { value: string; label: string }[] {
-  const gain = discovery?.commune ? shareGain(discovery.share) : undefined
+/** Stats du récap : distance · durée · os (seulement ce qu’il y a). V6.1 § 1 : plus de pourcentage découvert. */
+export function recapStats({ distanceM, durationMin, bones }: { distanceM: number; durationMin?: number; bones: number }): { value: string; label: string }[] {
   return [
-    { value: formatRouteDistance(distanceM), label: 'Ensemble' },
-    { value: gain ?? '', label: discovery?.commune ? `${ofName(discovery.commune)} découvert` : 'Découvert' },
+    { value: formatRouteDistance(distanceM), label: 'Distance' },
+    { value: durationMin ? formatDuration(durationMin) : '', label: 'Durée' },
     { value: bones > 0 ? `+${bones}` : '', label: 'Os gagnés' },
   ]
 }

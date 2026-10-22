@@ -10,7 +10,7 @@ describe('accueil en tableau de bord (T-031)', () => {
     expect(progressTile([], {}).text).toBe('Choisir quoi travailler')
   })
   it('ses balades : nombre, km, part découverte', () => {
-    expect(walksTile([{ distanceM: 1500 }, { distanceM: 2300 }], '2 % de Saint-Briac découvert')).toEqual({ text: '2 balades · 3,8 km', detail: '2 % de Saint-Briac découvert', km: 3.8 })
+    expect(walksTile([{ distanceM: 1500 }, { distanceM: 2300 }])).toEqual({ text: '2 balades · 3,8 km', detail: '', km: 3.8 })
     expect(walksTile([]).text).toBe('Pas encore de balade')
   })
   it('sa santé : à jour ou en retard, puis le prochain soin', () => {
@@ -36,7 +36,7 @@ describe('« Sa vie avec vous » en 4 lignes (V5, T-050)', () => {
   it('progrès, balades, souvenirs', () => {
     expect(progressLine(['rappel', 'calme', 'soins'])).toBe('3 compétences en route')
     expect(progressLine(['rappel'])).toBe('Une compétence en route')
-    expect(nb(walksLine([{ distanceM: 2600 }, { distanceM: 2100 }], '4 % de Saint-Ouen découvert'))).toBe('4,7 km ensemble · 4 % de Saint-Ouen découvert')
+    expect(nb(walksLine([{ distanceM: 2600 }, { distanceM: 2100 }]))).toBe('2 balades · 4,7 km')
     expect(walksLine([])).toBe('Pas encore de balade')
     expect(nb(memoriesLine([{ id: 'a', date: '2026-10-19' }, { id: 'repos-2026-10-20', date: '2026-10-20' }]))).toBe('Le dernier : 19 octobre 2026')
   })

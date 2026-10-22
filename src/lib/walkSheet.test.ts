@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Route } from './route'
 import type { Track } from './track'
-import { averageKmh, clockLabel, discoveryLine, discoverySentence, hrSummary, kmSplits, paceAt, paceSegments, paceSummary, shareGain, sheetStats, sourceLabels, splitLabel, splitTime, untoldStops, walkDiscovery, walkSeconds, walkSubtitle, weatherText } from './walkSheet'
+import { averageKmh, clockLabel, hrSummary, kmSplits, paceAt, paceSegments, paceSummary, sheetStats, sourceLabels, splitLabel, splitTime, untoldStops, walkSeconds, walkSubtitle, weatherText } from './walkSheet'
 
 const M_PER_DEG = 111_195
 
@@ -118,37 +118,6 @@ describe('l’allure', () => {
   it('résumé lu par VoiceOver', () => {
     expect(paceSummary([4, 4, 6, 0.5])).toBe('Allure minute par minute : 2 min de marche tranquille, 1 min rapide, 1 min à l’arrêt.')
     expect(paceSummary([])).toBe('')
-  })
-})
-
-describe('ce qu’il a découvert', () => {
-  const walk = (id: string, date: string, lat: number) => ({ id, date, route: { points: [{ lat, lng: 2.35 }, { lat: lat + 0.004, lng: 2.35 }] } })
-  const commune = { name: 'Vertbois', areaM2: 1_000_000, bbox: [48.8, 2.3, 48.9, 2.4] as [number, number, number, number], ring: [{ lat: 48.8, lng: 2.3 }, { lat: 48.9, lng: 2.3 }, { lat: 48.9, lng: 2.4 }, { lat: 48.8, lng: 2.4 }] }
-
-  it('seulement les cases qu’aucune balade d’avant n’avait levées', () => {
-    const first = walk('a', '2026-10-20', 48.85)
-    const same = walk('b', '2026-10-21', 48.85)
-    const other = walk('c', '2026-10-22', 48.87)
-    const all = [first, same, other]
-    expect(walkDiscovery('a', all, [commune])!.newCells).toBeGreaterThan(0)
-    expect(walkDiscovery('b', all, [commune])!.newCells).toBe(0)
-    const d = walkDiscovery('c', all, [commune])!
-    expect(d.newCells).toBeGreaterThan(0)
-    expect(d.commune).toBe('Vertbois')
-    expect(d.share).toBeGreaterThan(0)
-    expect(walkDiscovery('z', all, [])).toBeUndefined()
-  })
-
-  it('les phrases', () => {
-    expect(shareGain(0.023)).toBe('+2 %')
-    expect(shareGain(0.004)).toBe('< 1 %')
-    expect(shareGain(0)).toBeUndefined()
-    expect(discoveryLine({ newCells: 30, share: 0.012, commune: 'Vertbois' })).toBe('+1 % de Vertbois découvert')
-    expect(discoveryLine({ newCells: 3, share: 0.001, commune: 'Auray' })).toBe('Un peu plus d’Auray découvert')
-    expect(discoveryLine({ newCells: 0, share: 0, commune: 'Auray' })).toBeUndefined()
-    expect(discoverySentence('Billy', 125)).toBe('Billy a découvert 3 nouveaux bouts de territoire')
-    expect(discoverySentence('Billy', 41)).toBe('Billy a découvert un nouveau bout de territoire')
-    expect(discoverySentence('Billy', 5)).toBe('Billy a agrandi un peu son territoire')
   })
 })
 

@@ -1,7 +1,6 @@
 import { revealedCells } from './fog'
-import { ofName } from './gender'
 import { formatRouteDistance, isGoodMoment, routeMomentInfo, type Route, type RouteMomentType } from './route'
-import { CELLS_PER_BIT } from './walkSheet'
+import { walkTimeText } from './walkList'
 import type { ISODate } from './dates'
 
 // « Ses balades : le bilan » (spec V6 § 8.5) : agrégations pures, testées. Seulement ce qui monte : des totaux et le
@@ -18,27 +17,13 @@ type BilanWalk = { id: string; date: ISODate; route: Pick<Route, 'points' | 'dis
 
 const km = (m: number) => `${(m / 1000).toFixed(1).replace('.', ',')} km`
 
-/** « 9 h 40 », « 45 min » (le temps passé ensemble). */
-export function togetherText(min: number): string {
-  const h = Math.floor(min / 60)
-  return h ? `${h} h ${String(min % 60).padStart(2, '0')}` : `${min} min`
-}
-
-/** « 12 % », « < 1 % » : la part découverte de la commune (rien si rien). */
-export function shareText(share: number | undefined): string {
-  if (!share || share <= 0) return ''
-  return share < 0.01 ? '< 1 %' : `${Math.round(share * 100)} %`
-}
-
-/** Les Stats du haut : balades · km · % découvert · heures ensemble (toutes les balades). */
-export function bilanStats(walks: BilanWalk[], discovered?: { share: number; commune: string }): Stat[] {
+/** Les Stats du haut : balades · km · temps de balade (toutes les balades). V6.1 § 1 : plus de pourcentage découvert. */
+export function bilanStats(walks: BilanWalk[]): Stat[] {
   const min = walks.reduce((s, w) => s + (w.route.durationMin ?? 0), 0)
   return [
     { value: String(walks.length), label: walks.length > 1 ? 'Balades' : 'Balade' },
     { value: km(walks.reduce((s, w) => s + w.route.distanceM, 0)), label: 'Distance' },
-    // R-090 : un libellé court (la commune est dite sur chaque balade) ; VoiceOver la lit avec le pourcentage.
-    discovered && shareText(discovered.share) ? { value: shareText(discovered.share), label: 'Découvert', spoken: `${shareText(discovered.share)} ${ofName(discovered.commune)}` } : { value: '', label: 'Découvert' },
-    { value: min ? togetherText(min) : '', label: 'Ensemble' },
+    { value: min ? walkTimeText(min) : '', label: 'De balade' },
   ]
 }
 
@@ -85,13 +70,11 @@ export function monthReport(walks: BilanWalk[], month: string): MonthReport {
   }
 }
 
-/** Les Stats du bilan du mois ; ce qui vaut zéro ne s’affiche pas. */
+/** Les Stats du bilan du mois ; ce qui vaut zéro ne s’affiche pas (V6.1 § 1 : plus de « bouts de territoire »). */
 export function monthStats(r: MonthReport): Stat[] {
-  const bits = Math.floor(r.newCells / CELLS_PER_BIT)
   return [
     { value: r.walks ? String(r.walks) : '', label: r.walks > 1 ? 'Balades' : 'Balade' },
     { value: r.distanceM ? formatRouteDistance(r.distanceM).replace(' ', ' ') : '', label: 'Distance' },
-    { value: bits ? String(bits) : '', label: bits > 1 ? 'Bouts de territoire' : 'Bout de territoire' },
     { value: r.toldStops ? String(r.toldStops) : '', label: r.toldStops > 1 ? 'Arrêts racontés' : 'Arrêt raconté' },
   ]
 }

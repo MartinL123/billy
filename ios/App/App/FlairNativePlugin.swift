@@ -969,7 +969,7 @@ final class WatchArrivals {
         return "Belle balade avec \(name.isEmpty ? "votre chien" : name)\u{00A0}!"
     }
 
-    /// « 2,1 km · 32 min. Touchez pour voir ce qu’il a découvert. »
+    /// « 2,1 km · 32 min. Touchez pour voir la balade. »
     static func body(distance: Double, seconds: Double) -> String {
         let nbsp = "\u{00A0}"
         let length: String
@@ -987,7 +987,7 @@ final class WatchArrivals {
         } else {
             duration = "\(minutes / 60) h \(String(format: "%02d", minutes % 60))"
         }
-        return "\(length) · \(duration). Touchez pour voir ce qu’il a découvert."
+        return "\(length) · \(duration). Touchez pour voir la balade."
     }
 
     private static func distance(of workout: HKWorkout) -> Double {

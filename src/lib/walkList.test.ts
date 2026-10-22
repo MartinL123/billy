@@ -20,7 +20,7 @@ describe('toutes les balades', () => {
     expect(filterWalks(items, 'toutes', '2026-10-17')).toHaveLength(2)
   })
   it('résumé', () => {
-    expect(walksSummary(items).map((s) => `${s.value.replace(/\u00a0/g, ' ')} ${s.label}`)).toEqual(['2 Balades', '5,6 km Distance', '1 h 34 Ensemble'])
+    expect(walksSummary(items).map((s) => `${s.value.replace(/\u00a0/g, ' ')} ${s.label}`)).toEqual(['2 Balades', '5,6 km Distance', '1 h 34 De balade'])
   })
   it('communes et étiquettes', () => {
     const withTowns = walkItems([

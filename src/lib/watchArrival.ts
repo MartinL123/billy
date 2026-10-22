@@ -20,11 +20,11 @@ export function arrivalDeliveryDate(now: Date): Date {
 /** « Belle balade avec Billy ! » */
 export const arrivalTitle = (dogName: string) => `Belle balade avec ${dogName.trim() || 'votre chien'} !`
 
-/** « 2,1 km · 32 min. Touchez pour voir ce qu’il a découvert. » (« 850 m » sous le kilomètre). */
+/** « 2,1 km · 32 min. Touchez pour voir la balade. » (« 850 m » sous le kilomètre). */
 export function arrivalBody(distanceM: number, seconds: number): string {
   const distance = distanceM < 1000 ? `${Math.max(10, Math.round(distanceM / 10) * 10)} m` : `${(distanceM / 1000).toFixed(1).replace('.', ',')} km`
   const duration = formatDuration(Math.max(1, Math.round(seconds / 60)))
-  return `${distance} · ${duration}. Touchez pour voir ce qu’il a découvert.`
+  return `${distance} · ${duration}. Touchez pour voir la balade.`
 }
 
 /** Le lien ouvert par la notification : `#/balade/arrivee?uuid=…&start=…` (le départ sert à retrouver la balade importée). */

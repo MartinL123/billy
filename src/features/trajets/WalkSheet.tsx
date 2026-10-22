@@ -11,11 +11,10 @@ import { deleteEntry, updateEntryRoute } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import type { Entry, WithId } from '../../firebase/types'
 import { useReadOnly } from '../../firebase/viewer'
-import { ofName } from '../../lib/gender'
 import { isToTell, momentReaction, routeMomentInfo, storeRoute, type Route } from '../../lib/route'
 import { stopStreet } from '../../lib/street'
 import { useBack } from '../../lib/useBack'
-import { discoverySentence, shareGain, sheetStats, sourceLabels, walkDiscovery, walkSubtitle, CELLS_PER_BIT } from '../../lib/walkSheet'
+import { sheetStats, sourceLabels, walkSubtitle } from '../../lib/walkSheet'
 import { walkTimeline, type TimelineEvent } from '../../lib/walkTimeline'
 import { tellQueue, type TellItem } from '../../lib/walkTell'
 import { postcardDateLine, postcardLine, postcardRoute } from '../../lib/postcard'
@@ -35,12 +34,12 @@ type WalkEntry = WithId<Entry> & { pending?: boolean }
 
 /**
  * La fiche de balade (spec V6 § 6.1, remplace V3-CarnetTrajet) : une seule page qui défile. La carte colorée par allure,
- * le titre, les Stats, l’allure, « Ce qui s’est passé », « Ce qu’il a découvert », les photos, « Tous les chiffres »
+ * le titre, les Stats, l’allure, « Ce qui s’est passé », les photos, « Tous les chiffres »
  * (replié), les sources, puis Modifier et Supprimer. Une balade ancienne (sans trajet daté) ne montre que ce qu’elle a.
  */
 export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) {
   const readOnly = useReadOnly()
-  const { dog, entries, communes } = useData()
+  const { dog } = useData()
   const navigate = useNavigate()
   const back = useBack('/balades')
   // T-098 : le retour dit où il ramène (« La carte », « Accueil ») ; par défaut, la liste « Ses balades ».
@@ -66,11 +65,9 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
   }, [Boolean(route.track), first?.[0], first?.[1]]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const events = useMemo(() => walkTimeline(route, { startStreet }), [route, startStreet])
-  const discovery = useMemo(() => walkDiscovery(entry.id, entries, communes), [entry.id, entries, communes])
   const sources = sourceLabels(route, entry.source)
   const untold = tellQueue(route)
   const showPace = Boolean(route.track && route.pace && route.pace.length > 1)
-  const bits = discovery ? Math.floor(discovery.newCells / CELLS_PER_BIT) : 0
   const placeOnStop = usePlaceOnStop(entry.id, route)
   const removeMoment = (index: number) => updateEntryRoute(entry.id, storeRoute({ ...route, moments: route.moments.filter((_, j) => j !== index) }))
   // Sous un repère : « Ajouter à Comment il réagit » (peur, grogne : seulement si on le choisit) et « Retirer ».
@@ -177,22 +174,6 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
           </section>
         )}
 
-        {/* 6. Ce qu’il a découvert (seulement s’il y a du nouveau). */}
-        {discovery && discovery.newCells > 0 && (
-          <section className="flex flex-col gap-2">
-            <h2 className="title-section">Ce qu’il a découvert</h2>
-            <div className="card flex flex-col gap-3 p-4">
-              <Stats
-                items={[
-                  { value: discovery.commune ? (shareGain(discovery.share) ?? '') : '', label: discovery.commune ? `${ofName(discovery.commune)} découvert` : '' },
-                  { value: bits ? String(bits) : '', label: bits > 1 ? 'Nouveaux bouts de territoire' : 'Nouveau bout de territoire' },
-                ]}
-              />
-              <p className="text-[0.9412rem] leading-snug">{discoverySentence(dog.name, discovery.newCells)}.</p>
-            </div>
-          </section>
-        )}
-
         {/* 7. Les photos de la balade (photothèque seulement). */}
         {(entry.photos.length > 0 || !readOnly) && (
           <section className="flex flex-col gap-2">
@@ -261,7 +242,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
         <Postcard
           date={entry.date}
           onClose={() => setPostcard(false)}
-          input={{ points: postcardRoute(route.points, route.distanceM), title: name || 'Balade', line: postcardLine(route.distanceM, discovery?.newCells ?? 0), dateLine: postcardDateLine(entry.date, entry.commune), dogName: dogName(dog), ...(dog.photoThumbFileId || dog.photoFileId ? { dogPhotoFileId: dog.photoThumbFileId ?? dog.photoFileId } : {}) }}
+          input={{ points: postcardRoute(route.points, route.distanceM), title: name || 'Balade', line: postcardLine(route.distanceM, route.durationMin), dateLine: postcardDateLine(entry.date, entry.commune), dogName: dogName(dog), ...(dog.photoThumbFileId || dog.photoFileId ? { dogPhotoFileId: dog.photoThumbFileId ?? dog.photoFileId } : {}) }}
         />
       )}
       {viewer !== null && <PhotoViewer photos={entry.photos} start={viewer} onClose={() => setViewer(null)} />}

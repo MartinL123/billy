@@ -53,7 +53,7 @@ export default function Mesure() {
     ['Soins faits à temps', (w) => `${pct(w.care.rate)} (${w.care.onTime} sur ${w.care.done})`],
     ['Jours entraînés', (w) => `${w.training.days} (${pct(w.training.rate)})`],
     ['Durée médiane d’une séance', (w) => duration(w.training.medianSec)],
-    ['Rechargements après panne (R-042)', (w) => String(w.crashes)],
+    ['Rechargements après une coupure', (w) => String(w.crashes)],
   ]
 
   return (
@@ -79,7 +79,8 @@ export default function Mesure() {
           </ul>
           <h2 className="mt-2 text-[1rem] font-bold">Aujourd’hui, {formatLong(today)}</h2>
           {todayEvents.length ? (
-            <ul className="m-0 flex list-none flex-col gap-1 p-0 font-mono text-[0.7647rem]">
+            /* R-084 : une ligne JSON passe à la ligne (n’importe où) ; la page ne défile jamais de côté. */
+            <ul className="m-0 flex min-w-0 list-none flex-col gap-1 p-0 font-mono text-[0.7647rem] [overflow-wrap:anywhere]">
               {todayEvents.map((e, i) => (
                 <li key={i}>{JSON.stringify(e)}</li>
               ))}

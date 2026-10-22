@@ -44,19 +44,42 @@ export async function serverWalks(uid: string): Promise<FirestoreDoc[]> {
   return (await serverDocs(uid, 'entries')).filter((d) => d.fields && 'route' in d.fields)
 }
 
+const BACKFILLS = ['bonesBackfilled', 'fog25Backfilled', 'filesKindBackfilled'] as const
+const dogUrl = (uid: string) => `${FIRESTORE_URL}/v1/projects/${PROJECT}/databases/(default)/documents/users/${uid}/dog/billy`
+
 /**
- * Le profil du premier lancement (et ses marques de rattrapage) est arrivé au serveur. Avant, couper le réseau
- * laisserait un compte tout neuf dont le profil n'existe que dans le cache local : ce n'est pas le cas à tester
- * (sauf T-074, qui ne regarde que le profil : `backfills: false`).
+ * R-093 : le profil d'un compte neuf, posé au serveur AVANT la connexion, tel que le premier lancement l'écrit
+ * (ensureProfile), avec les marques des rattrapages faits une seule fois. Les tests de la balade partent ainsi d'un
+ * compte prêt, sans attendre ni dépendre du premier lancement (que T-074 teste, lui, pour de vrai).
+ */
+export async function seedProfile(uid: string): Promise<void> {
+  const today = new Date().toISOString().slice(0, 10)
+  const text = (value: string) => ({ stringValue: value })
+  const fields = {
+    name: text(''),
+    birthDate: text(''),
+    breed: text(''),
+    adoptionDate: text(''),
+    seedVersion: { integerValue: '3' },
+    ...Object.fromEntries(BACKFILLS.map((key) => [key, text(today)])),
+  }
+  const response = await fetch(dogUrl(uid), {
+    method: 'PATCH',
+    headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields }),
+  })
+  if (!response.ok) throw new Error(`Profil de test impossible : ${response.status}`)
+}
+
+/**
+ * Le profil du premier lancement est arrivé au serveur ; avec `backfills`, les marques des trois rattrapages aussi
+ * (T-074 : un compte neuf coupé du réseau au premier lancement finit dans le même état qu'un autre).
  */
 export async function profileOnServer(uid: string, { backfills = true } = {}): Promise<boolean> {
-  const response = await fetch(`${FIRESTORE_URL}/v1/projects/${PROJECT}/databases/(default)/documents/users/${uid}/dog/billy`, {
-    headers: { Authorization: 'Bearer owner' },
-  })
+  const response = await fetch(dogUrl(uid), { headers: { Authorization: 'Bearer owner' } })
   if (!response.ok) return false
   const fields = ((await response.json()) as FirestoreDoc).fields ?? {}
-  if (!backfills) return true
-  return ['bonesBackfilled', 'fog25Backfilled', 'filesKindBackfilled'].every((key) => key in fields)
+  return !backfills || BACKFILLS.every((key) => key in fields)
 }
 
 /** T-087 : le partage en direct live/{jeton} tel que le serveur l'a reçu (undefined s'il n'existe pas). */

@@ -3,10 +3,10 @@ import {
   arrayUnion,
   deleteDoc,
   deleteField,
-  getDocFromServer,
   onSnapshot,
   orderBy,
   query,
+  runTransaction,
   setDoc,
   updateDoc,
   writeBatch,
@@ -66,9 +66,14 @@ const SEED_VERSION = 3
  */
 export async function ensureProfile(): Promise<void> {
   const dogRef = userDoc('dog', 'billy')
-  const snap = await getDocFromServer(dogRef)
-  if (snap.exists()) return
-  await setDoc(dogRef, { name: '', birthDate: '', breed: '', adoptionDate: '', seedVersion: SEED_VERSION } satisfies Dog)
+  // R-093 : une transaction, pas getDocFromServer + setDoc. Après une coupure au premier lancement, l’écouteur (et
+  // getDocFromServer, qui passe par lui) peut dire le profil absent alors qu’il existe : setDoc l’écrasait alors en
+  // boucle (des milliers d’écritures, marques de rattrapage effacées). La lecture d’une transaction va au serveur, et
+  // l’écriture n’a lieu que si le profil n’y est vraiment pas.
+  await runTransaction(db, async (transaction) => {
+    if ((await transaction.get(dogRef)).exists()) return
+    transaction.set(dogRef, { name: '', birthDate: '', breed: '', adoptionDate: '', seedVersion: SEED_VERSION } satisfies Dog)
+  })
 }
 
 /**

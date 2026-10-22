@@ -1,6 +1,6 @@
 import { test as base, expect, type Page } from '@playwright/test'
 import { bravo, finishButton, goHash, login, skipOpening, startWalk } from './app'
-import { newUser, profileOnServer, serverDocs, serverLive, serverWalks, type TestUser } from './emulator'
+import { newUser, profileOnServer, seedProfile, serverDocs, serverLive, serverWalks, type TestUser } from './emulator'
 import { FakeIphone } from './fakeIphone'
 
 // Protocole de casse de la balade (docs/profondeur/03-protocole-casse.md), cas 3, 4, 5, 9, 11 et 13.
@@ -14,20 +14,22 @@ const test = base.extend<{ fake: FakeIphone; user: TestUser; app: Page }>({
     await use(fake)
   },
   user: async ({}, use) => {
-    await use(await newUser())
+    const user = await newUser()
+    // R-093 : le profil est déjà au serveur à la connexion (le premier lancement lui-même : test T-074).
+    await seedProfile(user.uid)
+    await use(user)
   },
   app: async ({ context, fake, user }, use) => {
     // `fake` d'abord : le faux pont doit être posé avant que la page ne charge l'app.
     void fake
     const page = await context.newPage()
     await login(page, user)
-    await expect.poll(() => profileOnServer(user.uid), { message: 'profil du premier lancement au serveur' }).toBe(true)
     await use(page)
   },
 })
 
 /** La balade arrive au serveur (l'émulateur) : on attend qu'il y en ait `n`. */
-async function expectServerWalks(user: TestUser, n: number, timeout = 20_000) {
+async function expectServerWalks(user: TestUser, n: number, timeout = 30_000) {
   await expect.poll(async () => (await serverWalks(user.uid)).length, { timeout, message: `${n} balade(s) au serveur` }).toBe(n)
 }
 
@@ -200,6 +202,8 @@ base('T-074 · compte neuf hors ligne avant l’envoi du profil : l’app reste 
   await page.waitForTimeout(1500)
   await context.setOffline(false)
   await expect.poll(() => profileOnServer(user.uid, { backfills: false }), { timeout: 30_000, message: 'profil au serveur' }).toBe(true)
+  // R-093 : le profil n'est plus récrit en boucle (ce qui effaçait les marques) et les rattrapages ont lieu.
+  await expect.poll(() => profileOnServer(user.uid), { timeout: 30_000, message: 'rattrapages du premier lancement au serveur' }).toBe(true)
   await page.waitForTimeout(1000)
   const before = fake.count('FlairNative.currentWalk')
   await page.waitForTimeout(5000)

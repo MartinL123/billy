@@ -5,6 +5,9 @@ un **faux pont iOS** (`fakeIphone.ts`) remplace le plugin `FlairNative` (et `Loc
 (départ, points, arrêt, copie gardée jusqu'à l'envoi) vit côté Node, comme le fichier natif `balade-en-cours/` :
 il survit au rechargement et à la fermeture de la page. Les données vont dans les **émulateurs Firebase**, jamais
 dans le vrai projet ; chaque test crée son propre compte (`e2e-…@billy.test`).
+Son profil (et les marques des rattrapages faits une seule fois) est posé au serveur avant la connexion
+(`seedProfile`, R-093) : les tests partent d'un compte prêt. Le vrai premier lancement d'un compte neuf, coupure du
+réseau comprise, est le test T-074.
 
 ## Lancer
 
@@ -28,6 +31,7 @@ l'arrêter après un changement du code de l'app pour que les tests voient la no
 | 11 · Position refusée | `startWalk` rejeté avec le code `denied` | « La position n'est pas autorisée », le chemin Réglages › Flair › Position, retour à l'accueil |
 | T-087 · Partage en direct | Pendant la balade : « Partager en direct », un proche ajouté, « Partager » (feuille de partage simulée) ; le lien ouvert dans un autre navigateur, sans compte | `live/{jeton}` au serveur (seulement les champs prévus), « … est en balade depuis … · 100 m », « Mis à jour … » ; Terminer → `terminée`, position effacée, « Balade terminée à … » ; lien coupé → message calme |
 | 13 · Deux balades le même jour | A (partie il y a 60 min), puis B (il y a 15 min) | Deux balades au serveur, clés d'import différentes, pas d'os en double |
+| T-074 · Compte neuf hors ligne | Connexion d'un compte neuf (vrai premier lancement), réseau coupé 1,5 s puis rétabli | L'app reste stable (pas de remontage en boucle) ; le profil et les marques des trois rattrapages arrivent au serveur (R-093 : le profil n'est plus récrit en boucle) |
 
 ## Ce qui reste manuel (sur l'iPhone de Martin)
 

@@ -43,6 +43,8 @@ interface Props {
   three: boolean
   /** V6.1 § 2 (T-095) : le brouillard, en option (« Affichage ») ; éteint, la carte reste nette. */
   fog?: boolean
+  /** T-109 : « Lieux les plus fréquentés » : les points de chaleur des passages ([lat, lng]) ; absent, pas de calque. */
+  heat?: [number, number][]
   /** Sans balade : la position (si autorisée) ou Paris. */
   center?: LatLng
   /** Le lieu ouvert dans la petite fenêtre : la carte s’y centre, au-dessus de la fenêtre. */
@@ -104,7 +106,8 @@ function drawWalks(m: MapLibreMap, walks: MapWalk[], dimmed: boolean) {
   m.setPaintProperty('trajets', 'line-opacity', dimmed ? 0.3 : ['case', ['get', 'faded'], 0.4, 1])
   m.setPaintProperty('trajets-liseré', 'line-opacity', dimmed ? 0.15 : ['case', ['get', 'faded'], 0.25, 0.85])
   m.setPaintProperty('trajets-pointilles', 'line-opacity', dimmed ? 0.3 : ['case', ['get', 'faded'], 0.4, 1])
-  // Les trajets restent au-dessus du brouillard, la balade mise en avant au-dessus de tout.
+  // Les trajets restent au-dessus du brouillard (et de la chaleur des passages, T-109), la balade mise en avant au-dessus de tout.
+  if (m.getLayer('frequentes')) m.moveLayer('frequentes')
   m.moveLayer('trajets-liseré')
   m.moveLayer('trajets')
   m.moveLayer('trajets-pointilles')
@@ -193,7 +196,7 @@ function innerBox(layout: FogLayout): [number, number, number, number] {
  * La carte qui se découvre : le brouillard (un seul polygone troué, bords adoucis ; en option depuis la V6.1), les
  * trajets, les spots. Plan ou satellite, 2D ou 3D.
  */
-export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places, satellite, three, fog = true, center, focus, recenter, onPlace, onMapTap, onBearing, north, zoom, walk, dogName }: Props) {
+export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places, satellite, three, fog = true, heat, center, focus, recenter, onPlace, onMapTap, onBearing, north, zoom, walk, dogName }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const markers = useRef<Marker[]>([])
@@ -439,6 +442,38 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
       drawWalks(m, tracks, Boolean(walkRoute))
     })
   }, [cells, tracks, sat, fog, Boolean(walkRoute)]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // T-109 : « Lieux les plus fréquentés » : une chaleur sous les tracés (vert pâle → vert → orange là où l’on passe le plus).
+  useEffect(() => {
+    const m = map.current
+    if (!m) return
+    whenReady(m, () => {
+      if (!heat) {
+        if (m.getLayer('frequentes')) m.removeLayer('frequentes')
+        if (m.getSource('frequentes')) m.removeSource('frequentes')
+        return
+      }
+      const data = { type: 'FeatureCollection' as const, features: heat.map(([lat, lng]) => ({ type: 'Feature' as const, properties: {}, geometry: { type: 'Point' as const, coordinates: [lng, lat] } })) }
+      const source = m.getSource('frequentes') as GeoJSONSource | undefined
+      if (source) source.setData(data)
+      else m.addSource('frequentes', { type: 'geojson', data })
+      if (!m.getLayer('frequentes'))
+        m.addLayer(
+          {
+            id: 'frequentes',
+            type: 'heatmap',
+            source: 'frequentes',
+            paint: {
+              'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 11, 6, 15, 18, 18, 40],
+              'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 11, 0.4, 16, 1],
+              'heatmap-opacity': 0.75,
+              'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'], 0, 'rgba(0,0,0,0)', 0.15, 'rgba(149,201,180,0.55)', 0.4, '#3E8B74', 0.7, '#E08A3C', 1, '#BF5519'],
+            },
+          },
+          m.getLayer('trajets-liseré') ? 'trajets-liseré' : undefined,
+        )
+    })
+  }, [heat, sat])
 
   // Les lieux : leur icône et leur nom. Ils restent droits en 3D. Zone tactile de 44 px de haut pour une icône de 34 px (R-067).
   useEffect(() => {

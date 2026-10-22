@@ -157,11 +157,11 @@ test('cas 11 · position refusée : « La position n’est pas autorisée » et 
   await expect(app).toHaveURL(/#\/$/)
 })
 
-test('T-099 · « Ne pas la garder » ramène à l’onglet Balades, rien n’est enregistré', async ({ fake, user, app }) => {
+test('T-099 / T-109 · « Annuler la balade » ramène à l’onglet Balades, rien n’est enregistré', async ({ fake, user, app }) => {
   await startWalk(app)
   await fake.walkPoints(app, 20)
-  await app.getByRole('button', { name: 'Ne pas garder' }).click()
-  await app.getByRole('button', { name: 'Ne pas la garder' }).click()
+  await app.getByRole('button', { name: 'Annuler la balade' }).click()
+  await app.getByRole('dialog').getByRole('button', { name: 'Annuler la balade' }).click()
   await expect(app).toHaveURL(/#\/territoire$/)
   await expect(app.getByText('La balade n’a pas été gardée.')).toBeVisible()
   expect(fake.walk).toBeUndefined()

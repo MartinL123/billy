@@ -11,6 +11,7 @@ import { APP_NAME } from '../../appName'
 import { useToday } from '../../lib/useToday'
 import { bigWalkNotice, dayBudget, minutesOfDay, walksOfDay } from '../../lib/walkDay'
 import { walkTimes } from '../../lib/walks'
+import { importNewStreets } from '../../lib/walkFacts'
 
 /** « Balades ajoutées ! » (maquette V3-ImportResultat ; V6.1 : plus de brouillard ni de pourcentage). */
 export default function ImportResult() {
@@ -22,6 +23,10 @@ export default function ImportResult() {
   const budget = dayBudget({ birthDate: dog.birthDate, today, times: walkTimes(dog.walkTimes), done: walks.find((w) => w.date === today)?.done ?? {}, walks: walksOfDay(entries, today, walks.find((w) => w.date === today)?.noted), now: minutesOfDay(new Date()) })
   // Seulement si la prochaine sortie est vraiment raccourcie (R-049).
   const notice = bigWalkNotice(budget, Boolean(budget && result?.walks.some((w) => w.date === today && (w.durationMin ?? 0) > budget.perWalk)))
+  // T-109 : « Nouvelles rues » : les rues arrivent après l’import (StoryBackfill) ; le chiffre apparaît dès qu’elles sont
+  // connues et grandit avec elles. Tant qu’aucune n’est connue, le troisième chiffre n’est pas affiché.
+  const ids = new Set(result?.walks.map((w) => w.entryId))
+  const newStreets = importNewStreets(entries.filter((e) => ids.has(e.id)).map((e) => ({ ...(e.route?.streets ? { streets: e.route.streets } : {}) })))
   if (!result) return <Navigate to="/territoire" replace />
   const nothing = result.walks.length === 0
 
@@ -34,11 +39,12 @@ export default function ImportResult() {
         </div>
         {!nothing && (
           <>
-            {/* Des balades et des km, en Stats (V6 § 1) ; V6.1 § 1 : plus de pourcentage découvert. */}
+            {/* T-109 (maquette ImportResultat) : « Balades · Parcourus · Nouvelles rues » ; pas de pourcentage découvert. */}
             <Stats
               items={[
-                { value: String(result.walks.length), label: `Balade${result.walks.length > 1 ? 's' : ''} ajoutée${result.walks.length > 1 ? 's' : ''}` },
+                { value: String(result.walks.length), label: result.walks.length > 1 ? 'Balades' : 'Balade' },
                 { value: formatRouteDistance(result.distanceM), label: 'Parcourus' },
+                ...(newStreets !== undefined ? [{ value: newStreets ? `+${newStreets}` : '0', label: newStreets > 1 ? 'Nouvelles rues' : 'Nouvelle rue', spoken: `${newStreets} nouvelle${newStreets > 1 ? 's' : ''} rue${newStreets > 1 ? 's' : ''}` }] : []),
               ]}
             />
             {notice && <p className="rounded-field bg-info-soft px-4 py-3 text-[1rem] leading-snug text-[#1D3F73]">{notice}</p>}

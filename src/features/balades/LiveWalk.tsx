@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Stats } from '../../components/Stats'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { Sheet } from '../../components/Sheet'
-import { CheckIcon, CloseIcon } from '../../components/Icons'
+import { CheckIcon } from '../../components/Icons'
 import { DangerButton, MapButton } from '../../components/Buttons'
 import { useToast } from '../../components/Toast'
 import { useData } from '../../firebase/store'
@@ -235,7 +235,7 @@ export default function LiveWalk() {
         setPoints(current.points)
       }
       // « Terminer » depuis l’accueil, ou une balade déjà arrêtée qui attend d’être enregistrée (R-042).
-      // (Une balade arrêtée seule après 3 h attend le choix : « Terminer » ou « Ne pas la garder », R-043.)
+      // (Une balade arrêtée seule après 3 h attend le choix : « Terminer » ou « Annuler la balade », R-043.)
       if (current.active && (params.get('terminer') || (current.stopped && !current.autoStopped))) {
         // Une balade arrêtée qui attendait d’être enregistrée (R-042) : reprise après un incident.
         if (!params.get('terminer')) logEvent({ type: 'walk_recovered' })
@@ -312,7 +312,7 @@ export default function LiveWalk() {
     if (!ended && !gone) return
     const share = activeShare(liveShares.current, Date.now())
     if (share) endLiveShare(share.token, liveShares.current, ended?.distanceM)
-    // T-099 : « Ne pas la garder » ramène à l’onglet Balades, panneau à mi-hauteur (après l’arrêt du partage).
+    // T-099 : « Annuler la balade » (ou « Ne pas la garder ») ramène à l’onglet Balades, panneau à mi-hauteur (après l’arrêt du partage).
     if (gone) {
       toast('La balade n’a pas été gardée.')
       navigate('/territoire', { replace: true })
@@ -374,7 +374,6 @@ export default function LiveWalk() {
       </main>
     )
 
-  const pill = 'flex min-h-11 items-center gap-1.5 rounded-full border-0 bg-surface px-4 text-[0.8824rem] font-bold whitespace-nowrap text-[#3F4946] shadow-float'
   return (
     <main className="fixed inset-0 flex flex-col bg-bg">
       <div className="relative min-h-0 flex-1">
@@ -382,15 +381,8 @@ export default function LiveWalk() {
         <ExplorerMap cells={cells} tracks={tracks} me={here} center={here} focus={here} recenter={recenter} places={[]} satellite={false} three={false} fog={fogShown} dogName={dog.name} />
         <div className="pointer-events-none absolute inset-x-4 top-[calc(env(safe-area-inset-top)+12px)] flex flex-col items-start gap-2.5">
           <div className="flex w-full items-start justify-between gap-2">
-            {/* « Ne pas garder » quitte le bas de l’écran (V5) : une pilule en haut à gauche. */}
-            {!ended && !gone && phase === 'walking' ? (
-              <button type="button" onClick={() => setConfirmCancel(true)} className={`tap pointer-events-auto ${pill}`}>
-                <CloseIcon size={18} />
-                Ne pas garder
-              </button>
-            ) : (
-              <span />
-            )}
+            {/* T-109 : plus de pilule « Ne pas garder » en haut : « Annuler la balade » est sous « Terminer ». */}
+            <span />
             {/* T-106 : « Me situer » (cible), comme sur la carte des Balades : la carte revient sur le chien si on l’a déplacée. */}
             {here && !ended && !gone && <MapButton kind="locate" onClick={() => setRecenter((n) => n + 1)} />}
           </div>
@@ -467,6 +459,12 @@ export default function LiveWalk() {
               <button type="button" onClick={() => void finish()} disabled={phase !== 'walking'} className="btn btn-main min-h-[58px] text-[1.1176rem]">
                 {phase === 'saving' ? 'Enregistrement…' : 'Terminer'}
               </button>
+              {/* T-109 (maquette BaladeEnCours) : « Annuler la balade », tertiary rouge à croix, après confirmation. */}
+              {phase === 'walking' && (
+                <DangerButton icon="cross" onClick={() => setConfirmCancel(true)} className="min-h-[50px]">
+                  Annuler la balade
+                </DangerButton>
+              )}
             </>
           )}
         </section>
@@ -508,10 +506,11 @@ export default function LiveWalk() {
       )}
 
       {confirmCancel && (
-        // « Continuer la balade » en orange, « Ne pas la garder » en contour rouge : plus de « Annuler » ambigu (V5).
-        <Sheet label="Ne pas garder cette balade ?" onClose={() => setConfirmCancel(false)}>
-          <h2 className="title-section mt-1">Ne pas garder cette balade ?</h2>
-          <p className="text-[0.9412rem] leading-snug text-[#3F4946]">Le tracé sera effacé, sans os.</p>
+        // « Continuer la balade » en orange, « Annuler la balade » en contour rouge (T-109) : rien n’est enregistré,
+        // retour à l’onglet Balades (T-099).
+        <Sheet label="Annuler la balade ?" onClose={() => setConfirmCancel(false)}>
+          <h2 className="title-section mt-1">Annuler la balade ?</h2>
+          <p className="text-[0.9412rem] leading-snug text-[#3F4946]">Rien ne sera enregistré : le tracé sera effacé, sans os.</p>
           <button type="button" onClick={() => setConfirmCancel(false)} className="btn btn-main min-h-14">
             Continuer la balade
           </button>
@@ -524,7 +523,7 @@ export default function LiveWalk() {
               setGone(true)
             }}
           >
-            Ne pas la garder
+            Annuler la balade
           </DangerButton>
         </Sheet>
       )}

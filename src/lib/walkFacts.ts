@@ -290,3 +290,13 @@ export function streetsSummary(streets: RouteStreet[]): string {
   if (fresh === streets.length) return fresh === 1 ? '1 nouvelle rue' : `${fresh} nouvelles rues`
   return `${all}, dont ${fresh} nouvelle${fresh > 1 ? 's' : ''}`
 }
+
+/**
+ * T-109 : « Nouvelles rues » des balades importées : les rues nouvelles de chacune, sans doublon. Les rues arrivent
+ * après l’import (Nominatim, une par seconde) : `undefined` tant qu’aucune balade du lot n’a les siennes.
+ */
+export function importNewStreets(walks: { streets?: RouteStreet[] }[]): number | undefined {
+  const known = walks.filter((w) => w.streets)
+  if (!known.length) return undefined
+  return new Set(known.flatMap((w) => (w.streets ?? []).filter((s) => s.new).map((s) => s.name.trim().toLocaleLowerCase('fr')))).size
+}

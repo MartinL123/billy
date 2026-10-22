@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { RoutePoint } from './route'
 import type { Track } from './track'
 import {
+  importNewStreets,
   altitudeProfile,
   cadenceOf,
   daylightMoment,
@@ -215,5 +216,14 @@ describe('textes', () => {
     expect(rainText(0)).toBe('0 mm')
     expect(rainText(0.4)).toBe('0,4 mm')
     expect(rainText(12.3)).toBe('12 mm')
+  })
+})
+
+describe('« Nouvelles rues » des balades importées (T-109)', () => {
+  it('compte les rues nouvelles du lot sans doublon, et rien tant que les rues ne sont pas connues', () => {
+    expect(importNewStreets([{}, {}])).toBeUndefined()
+    expect(importNewStreets([{ streets: [{ name: 'Rue des Lilas', new: true }, { name: 'Allée Verte' }] }, {}])).toBe(1)
+    expect(importNewStreets([{ streets: [{ name: 'Rue des Lilas', new: true }] }, { streets: [{ name: 'rue des lilas', new: true }, { name: 'Quai Bleu', new: true }] }])).toBe(2)
+    expect(importNewStreets([{ streets: [] }])).toBe(0)
   })
 })

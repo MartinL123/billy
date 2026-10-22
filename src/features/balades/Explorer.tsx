@@ -14,6 +14,7 @@ import { removeSpot, type Mark, type Spot, type WithId } from '../../firebase/co
 import { useData } from '../../firebase/store'
 import { knownFog } from '../../lib/fog'
 import { readMapPrefs, writeMapPrefs } from '../../lib/mapPrefs'
+import { heatPoints } from '../../lib/heatmap'
 import { useToday } from '../../lib/useToday'
 import { emptyFilterText, filterWalks, PANEL_FILTERS, walkColors, walkItems, walksNear, walksTotals, type WalkFilter, type WalkItem } from '../../lib/walkList'
 import type { MapPlace, MapWalk } from './ExplorerMap'
@@ -64,6 +65,8 @@ export default function Explorer() {
   const cells = useMemo(() => knownFog(fog), [fog])
   const walks = useMemo(() => walkItems(entries), [entries])
   const shown = useMemo(() => filterWalks(walks, filter, today), [walks, filter, today])
+  // T-109 : « Lieux les plus fréquentés » (« Affichage », éteint par défaut) : les passages de toutes les balades.
+  const heat = useMemo(() => (prefs.heat ? heatPoints(walks.map((w) => w.route.points)) : undefined), [walks, prefs.heat])
   // Une couleur par balade, la même sur la carte et dans la liste. Brouillard éteint (V6.1 § 2) : toutes en vert carte.
   const colors = useMemo(() => (prefs.fog ? walkColors(walks) : new Map(walks.map((w) => [w.id, ROUTE_COLOR]))), [walks, prefs.fog])
   // Une balade touchée : son trait s’épaissit, les autres passent à 40 % ; un autre toucher la relâche.
@@ -234,7 +237,7 @@ export default function Explorer() {
   return (
     <div className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
-        <ExplorerMap cells={cells} tracks={tracks} frame={frame} frameKey={frameKey} me={myPos ? [myPos.lat, myPos.lng] : undefined} onWalk={onTrack} places={places} satellite={prefs.satellite} three={prefs.three} fog={prefs.fog} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={onMapTap} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} />
+        <ExplorerMap cells={cells} tracks={tracks} frame={frame} frameKey={frameKey} me={myPos ? [myPos.lat, myPos.lng] : undefined} onWalk={onTrack} places={places} satellite={prefs.satellite} three={prefs.three} fog={prefs.fog} heat={heat} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={onMapTap} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} />
       </Suspense>
 
       {/* En haut, 2 pilules seulement (V5) : « Affichage » à gauche, « Me situer » à droite. Pincer pour zoomer. */}
@@ -261,6 +264,7 @@ export default function Explorer() {
                 </button>
               </div>
               <Switch label="Brouillard" hint="Les zones où vous n’êtes jamais allés restent dans la brume" on={prefs.fog} onChange={(fog) => setPref({ fog })} />
+              <Switch label="Lieux les plus fréquentés" hint="Plus c’est orange, plus vous y passez souvent" on={prefs.heat} onChange={(heat) => setPref({ heat })} />
               {/* T-097 : les idées masquées depuis le panneau se remettent ici. */}
               {isNative() && !readOnly && <Switch label="Idées de balade" hint="Des balades déjà faites qui partent d’ici" on={prefs.ideas} onChange={(ideas) => setPref({ ideas })} />}
               {/* L’import reste ici (V6.1 § 4), plus en bas du panneau. */}
@@ -443,9 +447,9 @@ function WalksSummary({ items }: { items: WalkItem[] }) {
 /** Un interrupteur d’« Affichage » (V6.1 § 2) : toute la ligne se touche, 44 px au moins. */
 function Switch({ label, hint, on, onChange }: { label: string; hint: string; on: boolean; onChange: (on: boolean) => void }) {
   return (
-    <button type="button" role="switch" aria-checked={on} onClick={() => onChange(!on)} className="flex min-h-11 w-[15.5rem] max-w-full items-center gap-3 rounded-field border-0 bg-transparent px-2 py-1.5 text-left text-text">
+    <button type="button" role="switch" aria-checked={on} onClick={() => onChange(!on)} className="flex min-h-11 w-[16.5rem] max-w-full items-center gap-3 rounded-field border-0 bg-transparent px-2 py-1.5 text-left text-text">
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="text-[0.8824rem] font-bold">{label}</span>
+        <span className="text-[0.8824rem] font-bold whitespace-nowrap">{label}</span>
         <span className="text-[0.7647rem] leading-snug text-[#3F4946]">{hint}</span>
       </span>
       <span aria-hidden="true" className={`relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-150 motion-reduce:transition-none ${on ? 'bg-primary' : 'bg-line-strong'}`}>

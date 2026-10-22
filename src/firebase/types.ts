@@ -85,6 +85,8 @@ export interface Dog {
   unnamed?: boolean
   /** Ancien marqueur des données de départ. Plus aucune n’est appliquée ; conservé pour les comptes existants. */
   seedVersion?: number
+  /** T-103 : « Retrouver les photos de mes balades » (app iOS) : vrai si accepté, faux si refusé ; absent : pas encore demandé. */
+  walkPhotos?: boolean
 }
 
 /** users/{uid}/events/{id} — `date` vide = date à compléter. */
@@ -114,6 +116,10 @@ export interface EntryPhoto {
   /** Où elle a été prise sur la balade (EXIF ou heure de la trace GPX), si on le sait. */
   lat?: number
   lng?: number
+  /** T-103 : l’heure de prise de vue (ISO), pour une photo retrouvée dans la photothèque après la balade. */
+  time?: string
+  /** T-103 : ajoutée seule depuis la photothèque (« Annuler » la retire). */
+  auto?: boolean
 }
 
 /** users/{uid}/entries/{id} */
@@ -146,6 +152,10 @@ export interface Entry {
   walkSlot?: { date: ISODate; creneau: string }
   /** « Raconter la balade » mené au bout (V6 § 6.2), ce jour-là : ses +3 os ne sont donnés qu’une fois. */
   toldAt?: ISODate
+  /** T-103 : le dernier nom calculé seul (moment + lieu marquant) ; un autre texte est un nom choisi, qui reste. */
+  autoName?: string
+  /** T-103 : la photothèque a été parcourue pour cette balade (une seule fois). */
+  photosSearchedAt?: string
 }
 
 export type DocumentCategory = 'sante' | 'veto' | 'administratif' | 'autre'

@@ -6,6 +6,7 @@ import { readRoute } from '../../lib/route'
 import { recapStats, stopChips, stopsLine } from '../../lib/walkRecap'
 import { tellQueue } from '../../lib/walkTell'
 import { dogName } from '../../lib/dogName'
+import { RecapPhotos } from './RecapPhotos'
 
 /**
  * Le panneau du récap « Belle balade ! » (V6 § 6.3), après « Terminer » (GPS de Flair) ou à l’arrivée d’une balade de
@@ -34,6 +35,8 @@ export function WalkRecap({ entryId, overline, subtitle, bones, fallback }: { en
         <p className="text-[0.9412rem] text-[#3F4946]">{`Avec ${dogName(dog)}`}{subtitle ? ` · ${subtitle}` : ''}</p>
       </div>
       <Stats items={recapStats({ distanceM: route?.distanceM ?? fallback.distanceM, ...(route?.durationMin ? { durationMin: route.durationMin } : {}), bones: gained })} className="rounded-[16px] bg-bg px-4 py-3" />
+      {/* T-103 : les photos prises pendant la balade (app iOS, avec l’accord de la personne). */}
+      {route && <RecapPhotos entryId={entryId} route={route} />}
       {untold > 0 && route ? (
         <>
           <p className="text-[0.9412rem] font-bold">{stopsLine(stops, queue.filter((q) => q.kind === 'marker').length)}</p>

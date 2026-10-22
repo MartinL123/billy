@@ -116,6 +116,23 @@ export async function stopStreet(lat: number, lng: number): Promise<string | und
   return nominatimTurn(() => streetName(lat, lng))
 }
 
+/** T-103 : les lieux où un arrêt peut être un jeu. */
+const PARK_KINDS: PlaceKind[] = ['parc', 'square', 'jardin', 'canin']
+
+/** La rue d’un arrêt et le parc où il s’est fait (`''` : aucun). */
+export function spotFromNominatim(json: NominatimReverse | null | undefined): { street?: string; park: string } {
+  const street = streetFromNominatim(json)
+  const place = placeFromNominatim(json)
+  return { ...(street ? { street } : {}), park: place && PARK_KINDS.includes(place.kind) ? place.name : '' }
+}
+
+/** La rue et le parc d’un arrêt (T-103), par la file d’attente : hors ligne ou sans réponse, rien (cherchés plus tard). */
+export async function stopSpot(lat: number, lng: number): Promise<{ street?: string; park: string } | undefined> {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return undefined
+  const json = cache.get(`${lat.toFixed(4)},${lng.toFixed(4)}`) ?? (await nominatimTurn(() => reverse17(lat, lng)))
+  return json ? spotFromNominatim(json) : undefined
+}
+
 /**
  * T-102 : les rues et les lieux d’un trajet, un point après l’autre par la file d’attente (une requête par seconde).
  * Rien (`undefined`) si un point n’a pas de réponse : la balade sera reprise plus tard, en entier.

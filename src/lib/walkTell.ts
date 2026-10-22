@@ -1,6 +1,6 @@
 import { noteBone, type Bone, type BoneWithId } from './bones'
 import type { ISODate } from './dates'
-import { isToTell, type Route, type RouteMoment, type RouteMomentType } from './route'
+import { isToTell, type Route, type RouteMoment, type RouteMomentType, type RouteStop } from './route'
 import { timeOnTrack } from './walkTimeline'
 
 // « Que s’est-il passé ici ? » et « Raconter la balade » (spec V6 § 6.2). Fonctions pures.
@@ -36,6 +36,16 @@ export const stopsToTell = (route: Pick<Route, 'stops'> & { moments?: RouteMomen
  * Ce qu’il reste à raconter (T-086) : un arrêt sans repère ou avec un repère « À raconter » (`momentIndex` alors
  * donné), ou un repère « À raconter » hors arrêt. `atS` : secondes depuis le départ, si on les connaît.
  */
+/**
+ * T-103 (V6.1 § 9) : le repère proposé pour un arrêt encore à raconter. Un arrêt de 3 min ou plus dans un parc, un
+ * square, un jardin : « Jeu ? ». Seulement une proposition (rien n’est enregistré ni compté avant le toucher qui la
+ * confirme). « Pipi » près d’un spot de la meute : pas de spots tant que la meute est gelée (T-072).
+ */
+export function suggestedMoment(stop: Pick<RouteStop, 'durS' | 'park'>, moment: Pick<RouteMoment, 'type'> | undefined): RouteMomentType | undefined {
+  if (moment && !isToTell(moment)) return undefined
+  return stop.durS >= 180 && stop.park ? 'jeu' : undefined
+}
+
 export type TellItem = { kind: 'stop'; stopIndex: number; momentIndex?: number; atS: number } | { kind: 'marker'; momentIndex: number; atS?: number }
 
 /** La file de « Raconter la balade », dans l’ordre de la balade (sans trajet daté : les arrêts, puis les repères). */

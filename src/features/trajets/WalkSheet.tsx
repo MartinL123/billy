@@ -17,7 +17,7 @@ import { useBack } from '../../lib/useBack'
 import { sheetStats, sourceLabels, sourceLine, walkSubtitle } from '../../lib/walkSheet'
 import { dogAgeLine, markNewStreets, streetsBefore, timesBefore, timesBeforeText } from '../../lib/walkFacts'
 import { walkTimeline, type TimelineEvent } from '../../lib/walkTimeline'
-import { tellQueue, type TellItem } from '../../lib/walkTell'
+import { suggestedMoment, tellQueue, type TellItem } from '../../lib/walkTell'
 import { postcardDateLine, postcardLine, postcardRoute } from '../../lib/postcard'
 import { MomentChips } from '../journal/EntryCard'
 import { PhotoViewer } from '../journal/PhotoViewer'
@@ -26,7 +26,7 @@ import { BodyBlock, PaceBlock, ReliefBlock, RouteBlock, WeatherBlock } from './W
 import { WalkMap } from './WalkMap'
 import { WalkTimeline } from './WalkTimeline'
 import { ToProfile } from './ToProfile'
-import { StopTiles, usePlaceOnStop } from './StopTiles'
+import { StopTiles, SuggestedMoment, usePlaceOnStop } from './StopTiles'
 import { Postcard } from './Postcard'
 import { dogName } from '../../lib/dogName'
 
@@ -90,6 +90,10 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
       return (
         <div className="mt-1.5 flex flex-col gap-2">
           <span className="text-[0.8824rem] font-bold">Que s’est-il passé ici ?</span>
+          {/* T-103 : un long arrêt dans un parc propose « Jeu ? », confirmé d’un toucher (jamais compté avant). */}
+          {event.kind === 'stop' && route.stops?.[event.stopIndex] && suggestedMoment(route.stops[event.stopIndex]!, event.moment) && (
+            <SuggestedMoment type={suggestedMoment(route.stops[event.stopIndex]!, event.moment)!} place={route.stops[event.stopIndex]!.park} onConfirm={(type) => placeOnStop(item, type)} />
+          )}
           <StopTiles stop={event.kind === 'moment' ? event.moment : event} onPick={(type, note) => placeOnStop(item, type, note)} />
           {item.momentIndex !== undefined && (
             <button type="button" aria-label="Retirer le repère À raconter" onClick={() => removeMoment(item.momentIndex!)} className="btn-text -ml-1 self-start text-[0.8824rem] text-muted">

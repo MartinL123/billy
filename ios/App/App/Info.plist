@@ -39,6 +39,8 @@
 	<true/>
 	<key>NSMotionUsageDescription</key>
 	<string>Flair regarde seulement quand vous marchez, jamais où.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Flair retrouve les photos prises pendant vos balades pour les ajouter à leurs souvenirs. Rien n’est partagé.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Flair enregistre le tracé de la balade, même écran verrouillé.</string>
 	<key>UIApplicationSceneManifest</key>

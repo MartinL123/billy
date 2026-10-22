@@ -53,3 +53,20 @@ export function StopTiles({ stop, onPick }: { stop: { lat: number; lng: number }
     </>
   )
 }
+
+/**
+ * T-103 : le repère proposé (« Jeu ? », un long arrêt dans un parc), en pointillés : un toucher le confirme et
+ * l’enregistre comme n’importe quelle tuile (bandeau « Annuler »). Tant qu’il n’est pas touché, rien n’est compté.
+ */
+export function SuggestedMoment({ type, place, onConfirm }: { type: RouteMomentType; place?: string; onConfirm: (type: RouteMomentType) => void }) {
+  const info = routeMomentInfo(type)
+  return (
+    <button type="button" onClick={() => onConfirm(type)} aria-label={`Confirmer\u00a0: ${info.label}`} className="tap flex min-h-11 items-center gap-2 self-start rounded-full border-2 border-dashed bg-surface py-1 pr-3.5 pl-1 text-left text-[0.8824rem] leading-tight font-bold text-text" style={{ borderColor: `${info.color}99` }}>
+      <MomentIcon type={type} size={28} />
+      <span className="flex flex-col">
+        <span>{`${info.label}\u00a0?`}</span>
+        {place && <span className="text-[0.7647rem] font-medium text-muted">{`${place} · toucher pour confirmer`}</span>}
+      </span>
+    </button>
+  )
+}

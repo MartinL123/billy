@@ -7,6 +7,7 @@ import UserNotifications
 import CoreMotion
 import ActivityKit
 import AppIntents
+import Photos
 
 /// Le pont entre l'app web et l'iPhone (phase 2, docs/ios.md) : les marches de l'Apple Watch (HealthKit, T-001) et la
 /// balade enregistrée par le GPS de l'iPhone (T-036). Côté JS : `src/native/flair.ts`. Rien n'est écrit dans Santé.
@@ -31,7 +32,9 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         CAPPluginMethod(name: "setWatchNotify", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "motionStatus", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "motionWalks", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "setLiveWalk", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "setLiveWalk", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "photosAccess", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "walkPhotos", returnType: CAPPluginReturnPromise)
     ]
 
     private let health = HKHealthStore()
@@ -782,6 +785,80 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
                 self.updateLiveActivity(force: true)
             }
             call.resolve()
+        }
+    }
+
+    // MARK: - Photos de la balade (T-103, V6.1 § 9)
+    //
+    // Avec l'accord de la personne (une fois), Flair cherche dans la photothèque les photos prises entre le départ et
+    // l'arrivée. Lecture seule (accès limité ou complet), jamais l'appareil photo ; vidéos et captures d'écran ignorées.
+
+    private static func photosStatus(_ status: PHAuthorizationStatus) -> String {
+        switch status {
+        case .authorized: return "granted"
+        case .limited: return "limited"
+        case .notDetermined: return "prompt"
+        default: return "denied"
+        }
+    }
+
+    /// `photosAccess({ ask })` : `{ status: 'granted' | 'limited' | 'denied' | 'prompt' }`. Avec `ask`, iOS demande
+    /// l'accès la première fois (texte `NSPhotoLibraryUsageDescription`).
+    @objc func photosAccess(_ call: CAPPluginCall) {
+        let current = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        guard current == .notDetermined, call.getBool("ask") ?? false else {
+            call.resolve(["status": FlairNativePlugin.photosStatus(current)])
+            return
+        }
+        PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
+            call.resolve(["status": FlairNativePlugin.photosStatus(status)])
+        }
+    }
+
+    /// `walkPhotos({ start, end, max })` : les photos prises entre `start` et `end` (ISO), dans l'ordre, au plus `max`
+    /// (12 par défaut). Chacune : `{ data` (JPEG en base64, 1600 px au plus), `time` (ISO), `lat?`, `lng? }`. Rien si
+    /// l'accès n'est pas donné ; une photo seulement dans iCloud est téléchargée (réseau permis).
+    @objc func walkPhotos(_ call: CAPPluginCall) {
+        let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        guard status == .authorized || status == .limited,
+              let start = call.getString("start").flatMap(FlairNativePlugin.parseDate),
+              let end = call.getString("end").flatMap(FlairNativePlugin.parseDate), end > start else {
+            call.resolve(["photos": []])
+            return
+        }
+        let max = min(Swift.max(call.getInt("max") ?? 12, 1), 30)
+        DispatchQueue.global(qos: .userInitiated).async {
+            let options = PHFetchOptions()
+            options.predicate = NSPredicate(format: "creationDate >= %@ AND creationDate <= %@", start as NSDate, end as NSDate)
+            options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
+            let assets = PHAsset.fetchAssets(with: .image, options: options)
+            var picked: [PHAsset] = []
+            assets.enumerateObjects { asset, _, stop in
+                if asset.mediaSubtypes.contains(.photoScreenshot) { return }
+                picked.append(asset)
+                if picked.count >= max { stop.pointee = true }
+            }
+            let request = PHImageRequestOptions()
+            request.isSynchronous = true
+            request.deliveryMode = .highQualityFormat
+            request.resizeMode = .fast
+            request.isNetworkAccessAllowed = true
+            var photos: [[String: Any]] = []
+            for asset in picked {
+                var image: UIImage?
+                PHImageManager.default().requestImage(for: asset, targetSize: CGSize(width: 1600, height: 1600), contentMode: .aspectFit, options: request) { result, _ in
+                    image = result
+                }
+                guard let jpeg = image?.jpegData(compressionQuality: 0.8) else { continue }
+                var photo: [String: Any] = ["data": jpeg.base64EncodedString()]
+                if let date = asset.creationDate { photo["time"] = FlairNativePlugin.format(date) }
+                if let location = asset.location, location.horizontalAccuracy >= 0 {
+                    photo["lat"] = location.coordinate.latitude
+                    photo["lng"] = location.coordinate.longitude
+                }
+                photos.append(photo)
+            }
+            call.resolve(["photos": photos])
         }
     }
 

@@ -16,7 +16,8 @@ import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { takeDraftPhotos } from './draft'
 import { errorText } from '../../firebase/errors'
-import { placePhoto, timesAlong, type PhotoClue } from '../../lib/balade'
+import { placePhoto, type PhotoClue } from '../../lib/balade'
+import { routeTimedPoints } from '../../lib/walkPhotos'
 import { readPhotoClue } from '../../lib/photoClue'
 import { readRoute } from '../../lib/route'
 
@@ -111,9 +112,11 @@ export default function EntryForm() {
       for (const item of items) {
         if ('saved' in item) photos.push(item.saved)
         else {
-          // Une photo prise pendant la balade se place sur le tracé (GPS de la photo, ou son heure).
-          const at = route ? placePhoto(item.clue, route.points, timesAlong(route.points, route.startTime, route.durationMin)) : undefined
-          photos.push({ fileId: await saveImage(item.full), thumbFileId: await saveImage(item.thumb), ...(at ? { lat: at.lat, lng: at.lng } : {}) })
+          // Une photo prise pendant la balade se place sur le tracé (GPS de la photo, ou son heure recoupée avec le
+          // trajet daté, T-103 ; sans trajet daté, les heures réparties le long du tracé).
+          const at = route ? placePhoto(item.clue, route.points, routeTimedPoints(route)) : undefined
+          const time = item.clue.time !== undefined ? { time: new Date(item.clue.time).toISOString() } : {}
+          photos.push({ fileId: await saveImage(item.full), thumbFileId: await saveImage(item.thumb), ...(at ? { lat: at.lat, lng: at.lng } : {}), ...time })
         }
       }
       const { id: _id, pending: _pending, ...kept } = existing ?? ({} as Partial<NonNullable<typeof existing>>)

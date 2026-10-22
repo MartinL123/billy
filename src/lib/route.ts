@@ -133,6 +133,8 @@ export interface RouteStop {
   street?: string
   /** Le repère posé à moins de 40 m de l’arrêt. */
   momentIndex?: number
+  /** T-103 : le parc, square ou jardin où s’est fait l’arrêt (Nominatim) ; `''` : cherché, aucun. */
+  park?: string
 }
 
 export const durationLabel = (min: number) => (min >= 60 ? '1 h +' : `${min} min`)

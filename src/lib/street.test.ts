@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { communeFromAddress, NOMINATIM_GAP_MS, nominatimTurn, placeFromNominatim, roadFromNominatim, streetFromNominatim } from './street'
+import { communeFromAddress, NOMINATIM_GAP_MS, nominatimTurn, placeFromNominatim, roadFromNominatim, spotFromNominatim, streetFromNominatim } from './street'
 
 describe('nom de la rue', () => {
   it('prend la rue, puis le chemin piéton, puis le parc', () => {
@@ -63,5 +63,14 @@ describe('file d’attente de Nominatim', () => {
     } finally {
       vi.useRealTimers()
     }
+  })
+})
+
+describe('arrêt dans un parc (T-103)', () => {
+  it('la rue et le parc, ou aucun parc', () => {
+    expect(spotFromNominatim({ category: 'leisure', type: 'park', name: 'Square des Tilleuls', address: { road: 'Rue Haute' } })).toEqual({ street: 'Rue Haute', park: 'Square des Tilleuls' })
+    expect(spotFromNominatim({ address: { road: 'Rue Haute' } })).toEqual({ street: 'Rue Haute', park: '' })
+    // Une aire de jeux n’est pas un parc où l’on joue avec son chien.
+    expect(spotFromNominatim({ category: 'leisure', type: 'playground', name: 'Aire Pivert' })).toEqual({ park: '' })
   })
 })

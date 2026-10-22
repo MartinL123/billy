@@ -21,7 +21,7 @@ import { lifeMilestones } from '../lib/milestones'
 import type { RouteStop, StoredRoute } from '../lib/route'
 import type { RoutePlace, RouteStreet } from '../lib/walkFacts'
 import type { WalkWeather } from '../lib/walkHealth'
-import type { BillyDocument, BillyEvent, Dog, Entry, Weight, WithId } from './types'
+import type { BillyDocument, BillyEvent, Dog, Entry, EntryPhoto, Weight, WithId } from './types'
 import { diffDays, todayISO, type ISODate } from '../lib/dates'
 import { nextAfterDone, nextOccurrence } from '../lib/recurrence'
 import { logEvent } from './journal'
@@ -214,9 +214,14 @@ export function markWalkTold(id: string, date: ISODate): void {
 /** V6 § 2–3 : les arrêts, l’allure, le dénivelé et la météo d’une balade (seulement ces champs : le reste du trajet ne bouge pas). */
 export function updateEntryStory(
   id: string,
-  story: { stops?: RouteStop[]; pace?: number[]; ascentM?: number; descentM?: number; weather?: WalkWeather; weatherDetails?: Partial<WalkWeather>; streets?: RouteStreet[]; places?: RoutePlace[]; kmSplits?: number[]; maxSpeed?: number; cadence?: number },
+  story: { stops?: RouteStop[]; pace?: number[]; ascentM?: number; descentM?: number; weather?: WalkWeather; weatherDetails?: Partial<WalkWeather>; streets?: RouteStreet[]; places?: RoutePlace[]; kmSplits?: number[]; maxSpeed?: number; cadence?: number; name?: string },
 ): void {
   const patch: DocumentData = {}
+  // T-103 : un nom encore automatique suit les lieux traversés ; `autoName` garde ce nom pour le reconnaître ensuite.
+  if (story.name) {
+    patch.text = story.name
+    patch.autoName = story.name
+  }
   if (story.stops) patch['route.stops'] = story.stops
   if (story.pace) patch['route.pace'] = story.pace
   if (story.ascentM !== undefined) patch['route.ascentM'] = story.ascentM
@@ -235,6 +240,21 @@ export function updateEntryStory(
 /** La commune d’une balade (Nominatim), gardée avec elle pour la liste « Ses balades ». */
 export function setEntryCommune(id: string, commune: string): void {
   send(updateDoc(userDoc('entries', id), { commune }))
+}
+
+/** T-103 : la photothèque a été parcourue pour cette balade ; les photos retrouvées s’ajoutent à celles déjà là. */
+export function addWalkPhotos(id: string, photos: EntryPhoto[]): void {
+  send(updateDoc(userDoc('entries', id), { photosSearchedAt: new Date().toISOString(), ...(photos.length ? { photos: arrayUnion(...photos) } : {}) }))
+}
+
+/** T-103 : « Annuler » : les photos ajoutées seules sont retirées, leurs fichiers effacés. */
+export function removeWalkPhotos(id: string, photos: EntryPhoto[]): void {
+  if (!photos.length) return
+  send(updateDoc(userDoc('entries', id), { photos: arrayRemove(...photos) }))
+  for (const photo of photos) {
+    deleteFile(photo.fileId)
+    deleteFile(photo.thumbFileId)
+  }
 }
 
 export function saveEntry(id: string, entry: Entry): void {

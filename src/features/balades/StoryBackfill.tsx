@@ -2,11 +2,12 @@ import { useEffect, useRef } from 'react'
 import { updateEntryStory } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { fromStored, readRoute } from '../../lib/route'
-import { routePlaces, stopStreet } from '../../lib/street'
-import { missingStory, stopsWithoutStreet, withStreets } from '../../lib/walkStory'
+import { routePlaces, stopSpot } from '../../lib/street'
+import { missingStory, stopsToLookUp, withStopSpots } from '../../lib/walkStory'
 import { missingElevation } from '../../lib/walkHealth'
 import { fetchWalkWeather, missingWeatherDetails, needsWeather, needsWeatherDetails } from '../../lib/openMeteo'
 import { markNewStreets, missingFigures, samplePoints, streetsBefore, walkMs } from '../../lib/walkFacts'
+import { nextAutoName } from '../../lib/walkAutoName'
 
 /** Au plus 20 rues cherchées par ouverture : Nominatim reste ménagé, le reste viendra la fois suivante. */
 const STREETS_PER_SESSION = 20
@@ -46,6 +47,17 @@ export function StoryBackfill() {
     }
   }, [entries])
 
+  // T-103 : une balade dont les lieux sont déjà connus et dont le nom est encore automatique prend « moment + lieu ».
+  const named = useRef(new Set<string>())
+  useEffect(() => {
+    for (const e of entries) {
+      if (!e.route?.places || named.current.has(e.id)) continue
+      named.current.add(e.id)
+      const name = nextAutoName(e, e.route.places)
+      if (name) updateEntryStory(e.id, { name })
+    }
+  }, [entries])
+
   useEffect(() => {
     if (!online || weatherBusy.current || weatherAsked.current.size >= WEATHERS_PER_SESSION) return
     const todo = entries.filter((e) => (needsWeather(e.route) || needsWeatherDetails(e.route)) && !weatherAsked.current.has(e.id)).slice(0, WEATHERS_PER_SESSION - weatherAsked.current.size)
@@ -71,22 +83,23 @@ export function StoryBackfill() {
 
   useEffect(() => {
     if (!online || busy.current) return
-    const todo = entries.flatMap((e) => stopsWithoutStreet(e.route?.stops).filter((s) => !asked.current.has(`${e.id}:${s.at}`)).map((s) => ({ id: e.id, stop: s })))
+    // T-103 : la rue de chaque arrêt, et pour un arrêt de 3 min ou plus, le parc où il s’est fait (« Jeu ? »).
+    const todo = entries.flatMap((e) => stopsToLookUp(e.route?.stops).filter((s) => !asked.current.has(`${e.id}:${s.at}`)).map((s) => ({ id: e.id, stop: s })))
     if (!todo.length || asked.current.size >= STREETS_PER_SESSION) return
     busy.current = true
     void (async () => {
       try {
-        const found = new Map<string, Map<number, string>>()
+        const found = new Map<string, Map<number, { street?: string; park: string }>>()
         for (const { id, stop } of todo.slice(0, STREETS_PER_SESSION - asked.current.size)) {
           asked.current.add(`${id}:${stop.at}`)
-          const street = await stopStreet(stop.lat, stop.lng)
-          if (street) found.set(id, (found.get(id) ?? new Map()).set(stop.at, street))
+          const spot = await stopSpot(stop.lat, stop.lng)
+          if (spot) found.set(id, (found.get(id) ?? new Map()).set(stop.at, spot))
         }
         // Les arrêts tels qu’ils sont maintenant (un repère a pu être ajouté entre-temps), complétés de leurs rues.
-        for (const [id, streets] of found) {
+        for (const [id, spots] of found) {
           const stops = latest.current.find((e) => e.id === id)?.route?.stops
           if (!stops) continue
-          const next = withStreets(stops, streets)
+          const next = withStopSpots(stops, spots)
           if (next !== stops) updateEntryStory(id, { stops: next })
         }
       } finally {
@@ -123,7 +136,10 @@ export function StoryBackfill() {
             latest.current.map((x) => ({ id: x.id, date: x.date, startTime: x.route?.startTime, streets: x.route?.streets })),
             { id: e.id, date: e.date, startTime: e.route!.startTime },
           )
-          updateEntryStory(e.id, { streets: markNewStreets(found.streets, before), places: found.places })
+          // T-103 : le nom suit les lieux, s’il est encore automatique (un nom choisi reste).
+          const name = nextAutoName(now, found.places)
+          updateEntryStory(e.id, { streets: markNewStreets(found.streets, before), places: found.places, ...(name ? { name } : {}) })
+          named.current.add(e.id)
         }
       } finally {
         placesBusy.current = false

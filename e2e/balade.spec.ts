@@ -296,3 +296,30 @@ test('T-086 · Repère sur l’écran verrouillé : « Repère posé », puis «
   await expect.poll(async () => JSON.stringify((await serverWalks(user.uid))[0]?.fields), { message: 'repère raconté au serveur' }).toContain('"type":{"stringValue":"jeu"}')
   expect(JSON.stringify((await serverWalks(user.uid))[0]?.fields)).not.toContain('araconter')
 })
+
+test('T-103 · photos de la balade : ajoutées depuis le récap avec l’accord, puis « Annuler » les retire', async ({ fake, user, app }) => {
+  await startWalk(app)
+  await fake.walkPoints(app, 24)
+  // Une photo de la photothèque prise pendant la balade, une autre la veille (ignorée).
+  const data = await app.evaluate(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = canvas.height = 40
+    canvas.getContext('2d')!.fillRect(0, 0, 40, 20)
+    return canvas.toDataURL('image/jpeg').split(',')[1]!
+  })
+  const started = Date.parse(fake.walk!.startedAt)
+  fake.photos = [
+    { data, time: new Date(started + 2 * 60_000).toISOString() },
+    { data, time: new Date(started - 86_400_000).toISOString() },
+  ]
+  await finishButton(app).click()
+  await expect(bravo(app)).toBeVisible()
+  await app.getByRole('button', { name: 'Ajouter les photos prises pendant la balade' }).click()
+  await expect(app.getByText('1 photo de la balade ajoutée')).toBeVisible()
+  const photos = async () => (JSON.stringify((await serverWalks(user.uid))[0]?.fields?.photos ?? {}).match(/thumbFileId/g) ?? []).length
+  await expect.poll(photos, { timeout: 30_000, message: 'photo ajoutée au serveur' }).toBe(1)
+  expect(JSON.stringify((await serverWalks(user.uid))[0]?.fields)).toContain('photosSearchedAt')
+  await app.getByRole('button', { name: 'Annuler' }).click()
+  await expect(app.getByText('Photos retirées.')).toBeVisible()
+  await expect.poll(photos, { timeout: 30_000, message: 'photo retirée au serveur' }).toBe(0)
+})

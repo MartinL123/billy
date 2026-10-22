@@ -277,6 +277,27 @@ export function missingStory(route: Parameters<typeof routeStory>[0] & { stops?:
 /** Les arrêts sans rue, à chercher. */
 export const stopsWithoutStreet = (stops: RouteStop[] | undefined) => (stops ?? []).filter((s) => !s.street)
 
+/** T-103 : un arrêt de 3 min ou plus peut être un jeu, s’il s’est fait dans un parc. */
+export const PLAY_STOP_S = 180
+
+/** Les arrêts à chercher : sans rue, ou (T-103) assez longs pour un jeu et pas encore situés dans un parc ou non. */
+export const stopsToLookUp = (stops: RouteStop[] | undefined) => (stops ?? []).filter((s) => !s.street || (s.durS >= PLAY_STOP_S && s.park === undefined))
+
+/** Ajoute rue et parc trouvés (par heure d’arrêt) aux arrêts tels qu’ils sont maintenant ; même tableau si rien ne change. */
+export function withStopSpots(stops: RouteStop[], found: Map<number, { street?: string; park: string }>): RouteStop[] {
+  let changed = false
+  const out = stops.map((s) => {
+    const spot = found.get(s.at)
+    if (!spot) return s
+    const street = !s.street && spot.street ? { street: spot.street } : {}
+    const park = s.park === undefined && s.durS >= PLAY_STOP_S ? { park: spot.park } : {}
+    if (!Object.keys(street).length && !Object.keys(park).length) return s
+    changed = true
+    return { ...s, ...street, ...park }
+  })
+  return changed ? out : stops
+}
+
 /** Ajoute les rues trouvées (par heure d’arrêt) aux arrêts tels qu’ils sont maintenant ; même tableau si rien ne change. */
 export function withStreets(stops: RouteStop[], streets: Map<number, string>): RouteStop[] {
   let changed = false

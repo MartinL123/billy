@@ -3,7 +3,7 @@ import { toImported } from './activity'
 import { gpsActivity } from './gpsWalk'
 import { storeRoute } from './route'
 import type { Track } from './track'
-import { fastMoment, findStops, heartPeak, linkMoments, missingStory, movingSeconds, paceByMinute, paceCategory, routeStory, stopsWithoutStreet, walkStory, withStreets } from './walkStory'
+import { fastMoment, findStops, heartPeak, linkMoments, missingStory, movingSeconds, paceByMinute, paceCategory, routeStory, stopsToLookUp, stopsWithoutStreet, walkStory, withStopSpots, withStreets } from './walkStory'
 
 const M_PER_DEG = 111_195
 
@@ -207,5 +207,24 @@ describe('à l’import', () => {
     const stop = walk.stops![0]!
     const stored = storeRoute({ points: walk.points, distanceM: walk.distanceM, moments: [{ lat: stop.lat, lng: stop.lng, type: 'jeu' }], stops: walk.stops })
     expect(stored.stops![0]!.momentIndex).toBe(0)
+  })
+})
+
+describe('rue et parc des arrêts (T-103)', () => {
+  const stops = [
+    { at: 60, durS: 90, lat: 48.8, lng: 2.3 },
+    { at: 300, durS: 240, lat: 48.81, lng: 2.3, street: 'Rue Basse' },
+    { at: 900, durS: 240, lat: 48.82, lng: 2.3, street: 'Rue Basse', park: '' },
+  ]
+  it('cherche les arrêts sans rue, et les longs arrêts pas encore situés', () => {
+    expect(stopsToLookUp(stops)).toEqual([stops[0], stops[1]])
+  })
+  it('complète sans rien écraser', () => {
+    const found = new Map([
+      [60, { street: 'Rue Haute', park: 'Square des Tilleuls' }],
+      [300, { street: 'Autre', park: 'Square des Tilleuls' }],
+    ])
+    expect(withStopSpots(stops, found)).toEqual([{ ...stops[0], street: 'Rue Haute' }, { ...stops[1], park: 'Square des Tilleuls' }, stops[2]])
+    expect(withStopSpots(stops, new Map())).toBe(stops)
   })
 })

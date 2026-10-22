@@ -32,6 +32,7 @@ import { FamilySection, VisitorAccount } from '../visitor/Family'
 import { ExportButton } from './ExportButton'
 import { WatchOptIn } from '../balades/WatchOptIn'
 import { MotionSetting } from '../motion/MotionSetting'
+import { WalkPhotosSetting } from './WalkPhotosSetting'
 import { ProchesSection } from '../live/Proches'
 
 
@@ -268,6 +269,9 @@ export default function Profile() {
 
       {/* T-085 : sans montre, Mouvements et forme (app iOS). */}
       {isNative() && <MotionSetting />}
+
+      {/* T-103 : les photos prises pendant les balades, ajoutées à leurs souvenirs (app iOS). */}
+      {isNative() && <WalkPhotosSetting />}
 
       {/* App iOS : les notifications locales (T-042). Gelé (T-072) : le rappel du soir en web push (EveningReminder) n’est plus proposé. */}
       {isNative() && <NotificationSettings />}

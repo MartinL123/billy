@@ -8,6 +8,16 @@ import { withTimeout } from '../lib/timeout'
 import type { MotionPeriod } from '../lib/motionWalks'
 
 export type MotionStatus = 'granted' | 'denied' | 'prompt'
+export type PhotosStatus = 'granted' | 'limited' | 'denied' | 'prompt'
+
+/** T-103 : une photo de la photothèque prise pendant la balade. */
+export interface LibraryPhoto {
+  /** JPEG en base64. */
+  data: string
+  time?: string
+  lat?: number
+  lng?: number
+}
 
 // Le plugin local de l'app iOS (`ios/App/App/FlairNativePlugin.swift`). À n'appeler que derrière `isNative()` :
 // sur le web, il n'existe pas.
@@ -79,6 +89,10 @@ interface FlairNativePlugin {
   motionWalks(options: { since: string }): Promise<{ periods: MotionPeriod[] }>
   /** T-086 : les bouts de territoire de la Live Activity. Plus appelé depuis la V6.1 (§ 1) : la Live Activity n’en montre pas (0). */
   setLiveWalk(options: { bits: number }): Promise<void>
+  /** T-103 : l’accès à la photothèque ; avec `ask`, iOS le demande la première fois. */
+  photosAccess(options: { ask: boolean }): Promise<{ status: PhotosStatus }>
+  /** T-103 : les photos prises entre `start` et `end` (JPEG en base64, 1600 px au plus), sans les vidéos. */
+  walkPhotos(options: { start: string; end: string; max?: number }): Promise<{ photos: LibraryPhoto[] }>
   addListener(event: 'walkPoint', listener: (point: GpsPoint) => void): Promise<PluginListenerHandle>
   addListener(event: 'walkStopped', listener: (data: { stoppedAt?: string }) => void): Promise<PluginListenerHandle>
   /** La précision du GPS à chaque mise à jour (même pour un point écarté) : signal faible (T-051). */
@@ -141,3 +155,25 @@ export async function readMotionWalks(since: string): Promise<MotionPeriod[]> {
   }
 }
 
+
+/** T-103 : l’accès à la photothèque (`unavailable` sur le web ou une app iOS plus ancienne). */
+export async function photosAccess(ask: boolean): Promise<PhotosStatus | 'unavailable'> {
+  if (!isNative()) return 'unavailable'
+  try {
+    // La première fois, la fenêtre d’iOS attend la réponse de la personne.
+    return (await withTimeout(FlairNative.photosAccess({ ask }), ask ? 120_000 : 5_000, 'photosAccess')).status
+  } catch {
+    return 'unavailable'
+  }
+}
+
+/** T-103 : les photos prises pendant la balade ; rien si l’accès manque, si l’iPhone ne répond pas ou sur le web. */
+export async function readWalkPhotos(start: string, end: string): Promise<LibraryPhoto[]> {
+  if (!isNative()) return []
+  try {
+    const answer = await withTimeout(FlairNative.walkPhotos({ start, end }), 60_000, 'walkPhotos')
+    return Array.isArray(answer.photos) ? answer.photos : []
+  } catch {
+    return []
+  }
+}

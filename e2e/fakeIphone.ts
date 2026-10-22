@@ -24,7 +24,7 @@ interface Walk {
 
 type Reply = { ok: true; data?: unknown } | { ok: false; error: { message: string; code?: string } }
 
-const FLAIR_METHODS = ['getWalks', 'healthWindow', 'startWalk', 'stopWalk', 'clearWalk', 'cancelWalk', 'currentWalk', 'keepAwake', 'markSaved', 'pendingSent', 'clearSent', 'setBackGesture', 'haptic', 'setWatchNotify', 'motionStatus', 'motionWalks', 'setLiveWalk']
+const FLAIR_METHODS = ['getWalks', 'healthWindow', 'startWalk', 'stopWalk', 'clearWalk', 'cancelWalk', 'currentWalk', 'keepAwake', 'markSaved', 'pendingSent', 'clearSent', 'setBackGesture', 'haptic', 'setWatchNotify', 'motionStatus', 'motionWalks', 'setLiveWalk', 'photosAccess', 'walkPhotos']
 const NOTIFICATION_METHODS = ['checkPermissions', 'requestPermissions', 'getPending', 'cancel', 'schedule', 'getDeliveredNotifications', 'removeAllDeliveredNotifications', 'createChannel', 'listChannels', 'areEnabled']
 
 /**
@@ -89,6 +89,8 @@ export class FakeIphone {
   startMinutesAgo = 20
   /** T-085 : Mouvements et forme (absent : iPhone sans capteur). */
   motion?: { status: 'granted' | 'denied' | 'prompt'; periods: { start: string; end: string }[] }
+  /** T-103 : les photos de la photothèque (absent : accès pas encore demandé). */
+  photos?: { data: string; time?: string; lat?: number; lng?: number }[]
   /** Chaque appel reçu, pour vérifier par exemple qu'aucune balade ne redémarre. */
   calls: { method: string; options: unknown }[] = []
 
@@ -209,6 +211,11 @@ export class FakeIphone {
         return { ok: true, data: this.motion ? { available: true, status: this.motion.status } : { available: false, status: 'denied' } }
       case 'motionWalks':
         return { ok: true, data: { periods: this.motion?.status === 'granted' ? this.motion.periods : [] } }
+      // T-103 : la photothèque, jamais demandée par défaut (aucune photo).
+      case 'photosAccess':
+        return { ok: true, data: { status: this.photos ? 'granted' : 'prompt' } }
+      case 'walkPhotos':
+        return { ok: true, data: { photos: this.photos ?? [] } }
       default:
         return { ok: false, error: { message: `FlairNative.${method} inconnu`, code: 'UNIMPLEMENTED' } }
     }

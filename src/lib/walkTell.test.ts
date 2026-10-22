@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { storeRoute, type Route } from './route'
-import { momentOnStop, STOP_TILES, stopsToTell, tellBone } from './walkTell'
+import { momentOnStop, STOP_TILES, stopsToTell, suggestedMoment, tellBone } from './walkTell'
 
 const route: Route = {
   points: [[48.85, 2.35]],
@@ -38,5 +38,17 @@ describe('raconter la balade (V6 § 6.2)', () => {
     expect(tellBone('w1', '2026-10-22', [{ id: 'note-raconte-w1', date: '2026-10-21', amount: 3, reason: 'note', refId: 'raconte-w1' }], { placed: 1 })).toBeUndefined()
     const full = [1, 2, 3].map((i) => ({ id: `note-${i}`, date: '2026-10-22', amount: 3, reason: 'note' as const, refId: String(i) }))
     expect(tellBone('w1', '2026-10-22', full, { placed: 1 })).toBeUndefined()
+  })
+})
+
+describe('repère proposé (T-103)', () => {
+  it('« Jeu ? » pour un arrêt de 3 min ou plus dans un parc, encore à raconter', () => {
+    expect(suggestedMoment({ durS: 200, park: 'Square des Tilleuls' }, undefined)).toBe('jeu')
+    expect(suggestedMoment({ durS: 200, park: 'Square des Tilleuls' }, { type: 'araconter' })).toBe('jeu')
+    expect(suggestedMoment({ durS: 120, park: 'Square des Tilleuls' }, undefined)).toBeUndefined()
+    expect(suggestedMoment({ durS: 400, park: '' }, undefined)).toBeUndefined()
+    expect(suggestedMoment({ durS: 400 }, undefined)).toBeUndefined()
+    // Déjà raconté : plus rien à proposer.
+    expect(suggestedMoment({ durS: 400, park: 'Square des Tilleuls' }, { type: 'marque' })).toBeUndefined()
   })
 })

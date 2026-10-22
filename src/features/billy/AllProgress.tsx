@@ -20,7 +20,7 @@ export default function AllProgress() {
         <h1 className="title-screen">Ses progrès</h1>
         {items.length ? (
           <div className="card rounded-[20px] px-4 py-1">
-            <ProgressList items={items} today={today} />
+            <ProgressList items={items} today={today} back="Ses progrès" />
           </div>
         ) : (
           <p className="text-muted">Ses étapes acquises et ses séances « Super » s’afficheront ici.</p>

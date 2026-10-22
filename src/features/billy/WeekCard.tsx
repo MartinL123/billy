@@ -34,9 +34,9 @@ const dayLabel = (day: WeekDay) => {
 }
 
 /** « Sa semaine » : 7 ronds du lundi au dimanche ; toucher un jour coché ouvre sa séance (ou la liste du jour). */
-export function WeekCard({ week }: { week: TrainingWeek }) {
+export function WeekCard({ week, back }: { week: TrainingWeek; /** Libellé du retour sur la séance ouverte (« Billy »). */ back: string }) {
   const navigate = useNavigate()
-  const open = (day: WeekDay) => navigate(day.sessionIds.length === 1 ? `/souvenir/${day.sessionIds[0]}` : `/billy/jour/${day.date}`)
+  const open = (day: WeekDay) => navigate(day.sessionIds.length === 1 ? `/souvenir/${day.sessionIds[0]}` : `/billy/jour/${day.date}`, { state: { retour: back } })
   return (
     <section aria-labelledby="semaine" className="card rounded-[20px] p-4">
       <div className="flex items-baseline justify-between gap-2">

@@ -27,7 +27,7 @@ export default function DaySessions() {
             const note = s.text.split('\n').find((line) => line.trim() && !line.startsWith(sessionTitle(s)))
             return (
               <li key={s.id}>
-                <Link to={`/souvenir/${s.id}`} className="card tap flex min-h-11 items-center gap-3 rounded-[20px] p-4 text-text no-underline">
+                <Link to={`/souvenir/${s.id}`} state={{ retour: 'Sa journée' }} className="card tap flex min-h-11 items-center gap-3 rounded-[20px] p-4 text-text no-underline">
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span className="title-card">{sessionTitle(s)}</span>
                     <span className="text-[0.8235rem] text-muted">{[feelingLabel(s.feeling), minutes ? `${minutes} min` : ''].filter(Boolean).join(' · ')}</span>

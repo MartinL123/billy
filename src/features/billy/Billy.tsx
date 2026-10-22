@@ -61,7 +61,7 @@ export default function Billy() {
         </Link>
       </div>
 
-      <WeekCard week={week} />
+      <WeekCard week={week} back={name} />
 
       <section aria-labelledby="apprend" className="flex flex-col gap-3.5">
         <h2 id="apprend" className="title-section mt-1">
@@ -93,7 +93,7 @@ export default function Billy() {
         <div className="card rounded-[20px] px-4 py-1">
           {feed.length ? (
             <>
-              <ProgressList items={feed.slice(0, FEED_SIZE)} today={today} />
+              <ProgressList items={feed.slice(0, FEED_SIZE)} today={today} back={name} />
               {feed.length > FEED_SIZE && (
                 <Link to="/billy/progres" className="btn-text flex w-full border-0 border-t border-solid border-divider no-underline">
                   Voir tous ses progrès
@@ -106,9 +106,10 @@ export default function Billy() {
         </div>
       </section>
 
-      {/* L’action principale, fixée en bas au-dessus de la barre d’onglets (pas chez un visiteur). */}
+      {/* L’action principale, fixée en bas au-dessus de la barre d’onglets (pas chez un visiteur). Un fond opaque descend
+          jusque sous la barre : rien ne défile entre le bouton et les onglets ; un fondu au-dessus du bouton. */}
       {!readOnly && (
-        <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+108px)] z-10 mx-auto max-w-[430px] bg-gradient-to-b from-transparent to-bg to-35% px-4 pt-[18px] pb-2.5">
+        <div className="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-[430px] bg-gradient-to-b from-transparent to-bg to-[18px] px-4 pt-[18px] pb-[calc(env(safe-area-inset-bottom)+118px)]">
           <Link to={train} className="tap btn btn-main min-h-14 whitespace-nowrap">
             S’entraîner · {minutes}{' '}min
           </Link>

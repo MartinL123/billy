@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BackLink } from '../../components/BackLink'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { Pending } from '../../components/Pending'
 import { Bytes } from 'firebase/firestore'
@@ -22,6 +22,8 @@ export default function EntryView() {
   const { id } = useParams()
   const { entries } = useData()
   const back = useBack('/balades')
+  // Ouvert depuis la page Billy (T-104) : le retour dit d’où l’on vient (« Billy », « Sa journée »), comme la fiche d’une balade.
+  const backLabel = (useLocation().state as { retour?: string } | null)?.retour ?? 'Ses balades'
   const [viewer, setViewer] = useState<number | null>(null)
   const found = entries.find((e) => e.id === id)
 
@@ -43,7 +45,7 @@ export default function EntryView() {
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
       <header className="sticky top-0 z-10 flex items-center bg-bg px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
-        <BackLink label="Ses balades" onClick={back} />
+        <BackLink label={backLabel} onClick={back} />
       </header>
       <main className="flex flex-col gap-4 px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+40px)]">
         <h1 className="title-screen">Le {formatLong(entry.date)}</h1>

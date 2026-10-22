@@ -24,12 +24,12 @@ function Mark({ kind }: { kind: ProgressItem['kind'] }) {
  * Le fil daté de ses progrès : une grille commune (date, pastille, texte) pour que les colonnes restent alignées
  * quelle que soit la date (« Aujourd’hui » est plus long que « 20 oct. »).
  */
-export function ProgressList({ items, today }: { items: ProgressItem[]; today: string }) {
+export function ProgressList({ items, today, back }: { items: ProgressItem[]; today: string; /** Libellé du retour sur l’écran ouvert. */ back: string }) {
   return (
     <ul className="m-0 grid list-none grid-cols-[max-content_28px_minmax(0,1fr)] gap-x-2 p-0">
       {items.map((item) => (
         <li key={item.id} className="col-span-3 grid grid-cols-subgrid border-0 border-b border-solid border-divider last:border-b-0">
-          <Link to={item.to} className="tap col-span-3 grid min-h-11 grid-cols-subgrid items-start py-2.5 text-text no-underline">
+          <Link to={item.to} state={{ retour: back }} className="tap col-span-3 grid min-h-11 grid-cols-subgrid items-start py-2.5 text-text no-underline">
             <span className="pt-0.5 text-[0.7647rem] font-bold whitespace-nowrap text-muted">{progressDate(item.date, today)}</span>
             <Mark kind={item.kind} />
             <span className="flex min-w-0 flex-col">

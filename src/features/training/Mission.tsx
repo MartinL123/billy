@@ -114,6 +114,8 @@ export default function Mission() {
             exercise?.scene && <Illustration scene={exercise.scene} className="h-[150px] bg-surface" />
           )}
           {needs && <span className="self-start rounded-full bg-primary-soft px-3 py-1.5 text-[0.8824rem] font-semibold text-primary-dark">Il vous faut : {needs}</span>}
+          {/* R-088 : la même mention que l’écran de l’exercice (le choix des exercices ne change pas). */}
+          {exercise && !exercise.verified && <p className="text-[0.8824rem] text-gold-dark">Exercice à vérifier avec votre éducateur.</p>}
           {index === steps.length - 1 && exercise && (
             <button type="button" onClick={() => setMore(true)} className="btn-text -ml-1 self-start">
               En savoir plus
@@ -132,6 +134,7 @@ export default function Mission() {
           <h2 className="title-section mt-1">Bon à savoir</h2>
           {exercise.caution && <p className="text-[1rem] leading-snug font-semibold">{exercise.caution}</p>}
           <p className="text-[1rem] leading-snug">{place('S’il ne mange plus, il est trop stressé : arrêtez et revenez plus facile la prochaine fois.')}</p>
+          {!exercise.verified && <p className="text-[0.8824rem] text-gold-dark">Exercice à vérifier avec votre éducateur.</p>}
           <p className="text-[0.8824rem] text-muted">
             Source :{' '}
             {exercise.source.url ? (

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CloseIcon } from '../../components/Icons'
 import { Sheet } from '../../components/Sheet'
 import { useData } from '../../firebase/store'
@@ -69,11 +69,14 @@ export default function Mission() {
 
   // « Ça s’est bien passé ? » : le ressenti part avec la mission notée, puis « C’est réussi ! » et les os.
   const finish = (feeling: string) => navigate(`/noter?depuis=quete&ressenti=${feeling}&auto=1`, { replace: true })
+  // T-101 : ouverte pendant une balade (« Vous êtes au square… ») : fermer ramène à « Balade en cours », qui continue.
+  const [params] = useSearchParams()
+  const close = () => navigate(params.get('balade') ? '/balade-en-cours' : '/', { replace: true })
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col px-5 pt-[calc(env(safe-area-inset-top)+10px)] pb-[calc(env(safe-area-inset-bottom)+20px)]">
       <header className="flex items-center gap-3">
-        <button type="button" onClick={() => navigate('/', { replace: true })} aria-label="Fermer la mission" className="flex size-11 shrink-0 items-center justify-center rounded-full border-0 bg-surface shadow-[0_1px_4px_rgba(24,32,30,0.15)]">
+        <button type="button" onClick={close} aria-label="Fermer la mission" className="flex size-11 shrink-0 items-center justify-center rounded-full border-0 bg-surface shadow-[0_1px_4px_rgba(24,32,30,0.15)]">
           <CloseIcon size={22} />
         </button>
         <div className="flex flex-1 gap-1.5" aria-hidden="true">

@@ -34,7 +34,9 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         CAPPluginMethod(name: "motionWalks", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setLiveWalk", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "photosAccess", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "walkPhotos", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "walkPhotos", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setParks", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "parkOffered", returnType: CAPPluginReturnPromise)
     ]
 
     private let health = HKHealthStore()
@@ -47,6 +49,14 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         // T-086 : « Repère » touché sur la Live Activity : l'écran « Balade en cours » le dit (« Repère posé »).
         NotificationCenter.default.addObserver(forName: WalkMarkers.placed, object: nil, queue: .main) { [weak self] note in
             self?.notifyListeners("walkMarker", data: (note.userInfo as? [String: Any]) ?? [:])
+        }
+        // T-101 : l'exercice au parc se propose par notification seulement écran verrouillé ou app en arrière-plan ;
+        // au premier plan, c'est le bandeau du JS.
+        NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.scheduleParkPrompt()
+        }
+        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.settleParkPrompt()
         }
         // Une Live Activity restée affichée sans balade à reprendre (enregistrée, effacée) disparaît.
         let state = WalkFiles.readState()
@@ -431,6 +441,8 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         if !markers.isEmpty { summary["markers"] = markers }
         // T-060 : « Position exacte » coupée dans Réglages : les points (plusieurs centaines de mètres) seront écartés.
         if let manager = location { summary["reducedAccuracy"] = manager.accuracyAuthorization == .reducedAccuracy }
+        // T-101 : l'exercice au parc a déjà été proposé pendant cette balade (bandeau ou notification).
+        if parkOfferedFor(startedAt) { summary["parkOffered"] = true }
         return summary
     }
 
@@ -524,6 +536,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
             }
             notifyListeners("walkPoint", data: FlairNativePlugin.pointData(point))
             watchForFinish(point)
+            watchForPark(point)
             WalkMarkers.lastLocation = point
             addLiveDistance(point)
         }
@@ -625,6 +638,8 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
     private func stopUpdates(dismissLiveNow: Bool = true) {
         LiveWalkActivity.end(dismissNow: dismissLiveNow, distanceM: liveDistance, discovered: liveDiscovered, markers: WalkMarkers.read().count)
         cancelFinishPrompt()
+        cancelParkPrompt()
+        parks = []
         autoStopTimer?.invalidate()
         autoStopTimer = nil
         location?.stopUpdatingLocation()
@@ -860,6 +875,116 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
             }
             call.resolve(["photos": photos])
         }
+    }
+
+    // MARK: - Exercice au parc (T-101, V6.1 § 8)
+    //
+    // Pendant une balade lancée seulement (aucune autre autorisation de position). Au départ, le JS passe les parcs à
+    // moins de 2 km (`setParks`, rien si la mission du jour est faite ou le réglage éteint). Entré dans un parc et resté
+    // 30 s, écran verrouillé : une notification locale, programmée d'avance (un iPhone immobile n'envoie plus de
+    // positions) et annulée si l'on en sort avant. Une seule fois par balade. Miroir testé : `src/lib/parkDwell.ts`.
+
+    private struct ParkArea {
+        let s: Double, w: Double, n: Double, e: Double
+        let text: String
+        var area: Double { (n - s) * (e - w) }
+        func contains(_ c: CLLocationCoordinate2D) -> Bool { c.latitude >= s && c.latitude <= n && c.longitude >= w && c.longitude <= e }
+    }
+
+    private static let parkId = "exercice-parc"
+    private static let parkOfferedKey = "flair.parcPropose"
+    private static let parkDwell: TimeInterval = 30
+    private var parks: [ParkArea] = []
+    private var parkTitle = ""
+    private var parkCurrent: Int?
+    private var parkSince: Date?
+    private var parkPromptAt: Date?
+
+    private func parkOfferedFor(_ startedAt: String) -> Bool {
+        UserDefaults.standard.string(forKey: FlairNativePlugin.parkOfferedKey) == startedAt
+    }
+
+    private func markParkOffered() {
+        if let startedAt = readState()?["startedAt"] as? String { UserDefaults.standard.set(startedAt, forKey: FlairNativePlugin.parkOfferedKey) }
+        cancelParkPrompt()
+        parks = []
+    }
+
+    /// `setParks({ parks: [{ s, w, n, e, text }], title })` : les parcs de cette balade et le texte de chacun.
+    @objc func setParks(_ call: CAPPluginCall) {
+        let list = (call.getArray("parks") as? [[String: Any]]) ?? []
+        let title = call.getString("title") ?? ""
+        DispatchQueue.main.async {
+            self.cancelParkPrompt()
+            self.parkTitle = title
+            self.parks = list.compactMap { p in
+                guard let s = p["s"] as? Double, let w = p["w"] as? Double, let n = p["n"] as? Double, let e = p["e"] as? Double, let text = p["text"] as? String else { return nil }
+                return ParkArea(s: s, w: w, n: n, e: e, text: text)
+            }
+            self.parkCurrent = nil
+            self.parkSince = nil
+            call.resolve()
+        }
+    }
+
+    /// `parkOffered()` : le bandeau a été montré (app au premier plan) : plus de notification pour cette balade.
+    @objc func parkOffered(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            self.markParkOffered()
+            call.resolve()
+        }
+    }
+
+    /// Le plus petit parc qui contient le point (un square dans un grand parc).
+    private func parkIndex(_ c: CLLocationCoordinate2D) -> Int? {
+        var best: Int?
+        for (i, park) in parks.enumerated() where park.contains(c) {
+            if best == nil || park.area < parks[best!].area { best = i }
+        }
+        return best
+    }
+
+    private func watchForPark(_ point: CLLocation) {
+        guard !parks.isEmpty, let startedAt = readState()?["startedAt"] as? String, !parkOfferedFor(startedAt) else { return }
+        // La notification est déjà partie : c'était la seule de la balade.
+        if let at = parkPromptAt, at <= Date() { return markParkOffered() }
+        let index = parkIndex(point.coordinate)
+        guard index != parkCurrent else { return }
+        cancelParkPrompt()
+        parkCurrent = index
+        parkSince = index == nil ? nil : point.timestamp
+        scheduleParkPrompt()
+    }
+
+    /// Écran verrouillé ou app en arrière-plan, dans un parc : la notification à l'entrée + 30 s (tout de suite si passé).
+    private func scheduleParkPrompt() {
+        guard recording, UIApplication.shared.applicationState != .active, parkPromptAt == nil,
+              let index = parkCurrent, index < parks.count, let since = parkSince,
+              let startedAt = readState()?["startedAt"] as? String, !parkOfferedFor(startedAt) else { return }
+        let at = max(Date().addingTimeInterval(1), since.addingTimeInterval(FlairNativePlugin.parkDwell))
+        parkPromptAt = at
+        let content = UNMutableNotificationContent()
+        content.title = parkTitle
+        content.body = parks[index].text
+        content.sound = .default
+        // `cap_extra` : le JS ouvre la mission du jour par-dessus la balade (WatchArrivalBridge).
+        content.userInfo = ["cap_extra": ["kind": "parc"]]
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(1, at.timeIntervalSinceNow), repeats: false)
+        UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: FlairNativePlugin.parkId, content: content, trigger: trigger))
+    }
+
+    /// De retour au premier plan : une notification déjà montrée compte (une fois par balade) ; sinon elle est annulée,
+    /// le bandeau du JS prend le relais.
+    private func settleParkPrompt() {
+        guard let at = parkPromptAt else { return }
+        if at <= Date() { markParkOffered() } else { cancelParkPrompt() }
+    }
+
+    private func cancelParkPrompt() {
+        if let at = parkPromptAt, at > Date() {
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [FlairNativePlugin.parkId])
+        }
+        parkPromptAt = nil
     }
 
     /// `keepAwake({ on })` : l'écran reste allumé tant que l'écran « Balade en cours » est affiché.

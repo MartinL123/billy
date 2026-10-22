@@ -36,6 +36,7 @@ import { endLiveShare } from '../../firebase/live'
 import { activeShare } from '../../lib/liveShare'
 import { useLivePrivate } from '../live/useLivePrivate'
 import { dogName, realDogName } from '../../lib/dogName'
+import { useParkOffer } from './useParkOffer'
 
 /** La boucle suivie (T-089), en pointillés gris : le tracé du jour reste le vert carte. */
 const LOOP_COLOR = '#5C6662'
@@ -342,6 +343,8 @@ export default function LiveWalk() {
     return out
   }, [latLngs, points, loopPoints])
   const here = latLngs[latLngs.length - 1]
+  // T-101 : un exercice au parc, une fois par balade, si la mission du jour n’est pas faite.
+  const park = useParkOffer({ active: isNative() && phase === 'walking' && !ended && !gone && !stoppedAt, points, now })
   const startFailed = Boolean(failure && (failure.step.startsWith('départ') || failure.step.startsWith('lecture')))
   const weak = weakSignal(accuracy, weakSince, now)
 
@@ -382,6 +385,20 @@ export default function LiveWalk() {
               <CloseIcon size={18} />
               Ne pas garder
             </button>
+          )}
+          {park.offer && !ended && !gone && (
+            // T-101 : le bandeau en haut ; « Commencer » ouvre la mission par-dessus, la balade continue.
+            <div role="status" className="anim-pop pointer-events-auto flex flex-col gap-2 self-stretch rounded-[16px] bg-surface px-4 pt-3 pb-1.5 shadow-[0_4px_12px_rgba(24,32,30,0.18)]">
+              <p className="text-[0.9412rem] leading-snug font-semibold">{park.offer.text}</p>
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={() => navigate('/mission?balade=1')} className="btn btn-on min-h-11 px-5 text-[0.9412rem]">
+                  Commencer
+                </button>
+                <button type="button" onClick={park.later} className="btn-text px-2">
+                  Plus tard
+                </button>
+              </div>
+            </div>
           )}
           {storageFull && !ended && (
             <p role="alert" className="pointer-events-auto self-stretch rounded-[16px] bg-surface px-4 py-3 text-[0.8824rem] leading-snug text-danger shadow-[0_4px_12px_rgba(24,32,30,0.18)]">

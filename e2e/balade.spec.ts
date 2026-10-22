@@ -323,3 +323,26 @@ test('T-103 · photos de la balade : ajoutées depuis le récap avec l’accord,
   await expect(app.getByText('Photos retirées.')).toBeVisible()
   await expect.poll(photos, { timeout: 30_000, message: 'photo retirée au serveur' }).toBe(0)
 })
+
+test('T-101 · exercice au parc : après 30 s dans un parc, le bandeau une seule fois ; « Commencer » ouvre la mission, la balade continue', async ({ fake, app }) => {
+  fake.parkName = 'Square des Tilleuls'
+  await startWalk(app)
+  await fake.walkPoints(app, 2)
+  const banner = app.getByText(/^Vous êtes au square des Tilleuls\. \d+\u00a0min de «/)
+  // Pas avant 30 s.
+  await app.waitForTimeout(20_000)
+  await expect(banner).toHaveCount(0)
+  await expect(banner).toBeVisible({ timeout: 20_000 })
+  expect(fake.parkOffered).toBe(true)
+  expect(fake.parks).toHaveLength(1)
+  await app.getByRole('button', { name: 'Commencer' }).click()
+  await expect(app).toHaveURL(/#\/mission\?balade=1/)
+  await app.getByRole('button', { name: 'Fermer la mission' }).click()
+  await expect(app).toHaveURL(/#\/balade-en-cours/)
+  await expect(finishButton(app)).toBeVisible()
+  // Une seule fois par balade, même après être revenu sur l’écran.
+  await fake.walkPoints(app, 2)
+  await app.waitForTimeout(35_000)
+  await expect(banner).toHaveCount(0)
+  expect(fake.recording).toBe(true)
+})

@@ -24,7 +24,7 @@ interface Walk {
 
 type Reply = { ok: true; data?: unknown } | { ok: false; error: { message: string; code?: string } }
 
-const FLAIR_METHODS = ['getWalks', 'healthWindow', 'startWalk', 'stopWalk', 'clearWalk', 'cancelWalk', 'currentWalk', 'keepAwake', 'markSaved', 'pendingSent', 'clearSent', 'setBackGesture', 'haptic', 'setWatchNotify', 'motionStatus', 'motionWalks', 'setLiveWalk', 'photosAccess', 'walkPhotos']
+const FLAIR_METHODS = ['getWalks', 'healthWindow', 'startWalk', 'stopWalk', 'clearWalk', 'cancelWalk', 'currentWalk', 'keepAwake', 'markSaved', 'pendingSent', 'clearSent', 'setBackGesture', 'haptic', 'setWatchNotify', 'motionStatus', 'motionWalks', 'setLiveWalk', 'photosAccess', 'walkPhotos', 'setParks', 'parkOffered']
 const NOTIFICATION_METHODS = ['checkPermissions', 'requestPermissions', 'getPending', 'cancel', 'schedule', 'getDeliveredNotifications', 'removeAllDeliveredNotifications', 'createChannel', 'listChannels', 'areEnabled']
 
 /**
@@ -91,12 +91,24 @@ export class FakeIphone {
   motion?: { status: 'granted' | 'denied' | 'prompt'; periods: { start: string; end: string }[] }
   /** T-103 : les photos de la photothèque (absent : accès pas encore demandé). */
   photos?: { data: string; time?: string; lat?: number; lng?: number }[]
+  /** T-101 : un parc (inventé) autour du départ dans la réponse d’Overpass ; absent : aucun parc. */
+  parkName?: string
+  /** T-101 : les parcs confiés à l’iPhone pour l’écran verrouillé, et si l’exercice a été proposé. */
+  parks: unknown[] = []
+  parkOffered = false
   /** Chaque appel reçu, pour vérifier par exemple qu'aucune balade ne redémarre. */
   calls: { method: string; options: unknown }[] = []
 
   async install(context: BrowserContext) {
     await context.exposeBinding('__fakeIphone', (_source, plugin: string, method: string, options: Record<string, unknown>) => this.handle(plugin, method, options))
     await context.addInitScript(BRIDGE)
+    // T-101 : jamais d’appel au vrai Overpass pendant les tests ; un parc de 2 km de côté autour du départ si demandé.
+    await context.route('https://overpass-api.de/**', (route) => {
+      const around = /around:\d+,([-\d.]+),([-\d.]+)/.exec(decodeURIComponent(route.request().url()))
+      const [lat, lng] = around ? [Number(around[1]), Number(around[2])] : [0, 0]
+      const elements = this.parkName ? [{ type: 'way', id: 1, tags: { leisure: 'park', name: this.parkName }, bounds: { minlat: lat - 0.01, minlon: lng - 0.01, maxlat: lat + 0.01, maxlon: lng + 0.01 } }] : []
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ elements }) })
+    })
   }
 
   count(method: string) {
@@ -147,6 +159,7 @@ export class FakeIphone {
       ...(walk.stoppedAt ? { stoppedAt: walk.stoppedAt } : {}),
       ...(walk.savedAs ? { savedAs: walk.savedAs } : {}),
       ...(walk.markers?.length ? { markers: [...walk.markers] } : {}),
+      ...(this.parkOffered ? { parkOffered: true } : {}),
     }
   }
 
@@ -173,6 +186,7 @@ export class FakeIphone {
           this.walk = undefined
         }
         if (this.walk?.stoppedAt) return { ok: true, data: this.summary() }
+        if (!this.walk) this.parkOffered = false
         if (!this.walk) this.walk = { startedAt: new Date(Date.now() - this.startMinutesAgo * 60_000).toISOString(), points: [] }
         this.recording = true
         return { ok: true, data: this.summary() }
@@ -211,6 +225,13 @@ export class FakeIphone {
         return { ok: true, data: this.motion ? { available: true, status: this.motion.status } : { available: false, status: 'denied' } }
       case 'motionWalks':
         return { ok: true, data: { periods: this.motion?.status === 'granted' ? this.motion.periods : [] } }
+      // T-101 : l’écran verrouillé n’est pas simulé ; on garde seulement ce que l’iPhone a reçu.
+      case 'setParks':
+        this.parks = Array.isArray(options.parks) ? options.parks : []
+        return { ok: true }
+      case 'parkOffered':
+        this.parkOffered = true
+        return { ok: true }
       // T-103 : la photothèque, jamais demandée par défaut (aucune photo).
       case 'photosAccess':
         return { ok: true, data: { status: this.photos ? 'granted' : 'prompt' } }

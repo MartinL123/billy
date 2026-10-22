@@ -44,6 +44,8 @@ export function WatchArrivalBridge() {
       if (extra?.kind === 'balade' && extra.uuid) go.current(arrivalPath(extra.uuid, extra.start ?? ''))
       // T-086 : « Balade finie ? » (programmée par l’iPhone pendant la balade) : l’écran « Balade en cours », pour terminer.
       else if (extra?.kind === 'balade-finie') go.current('/balade-en-cours')
+      // T-101 : « Vous êtes au square… » : la mission du jour, la balade continue (fermer y ramène).
+      else if (extra?.kind === 'parc') go.current('/mission?balade=1')
     })
     return () => {
       void handle.then((h) => h.remove())

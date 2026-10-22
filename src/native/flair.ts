@@ -51,6 +51,8 @@ export interface CurrentWalk {
   savedAs?: string
   /** T-086 : les « Repère » touchés sur la Live Activity (écran verrouillé, Dynamic Island), gardés avec la balade. */
   markers?: WalkMarker[]
+  /** T-101 : l’exercice au parc a déjà été proposé pendant cette balade (bandeau ou notification). */
+  parkOffered?: boolean
 }
 
 interface FlairNativePlugin {
@@ -89,6 +91,10 @@ interface FlairNativePlugin {
   motionWalks(options: { since: string }): Promise<{ periods: MotionPeriod[] }>
   /** T-086 : les bouts de territoire de la Live Activity. Plus appelé depuis la V6.1 (§ 1) : la Live Activity n’en montre pas (0). */
   setLiveWalk(options: { bits: number }): Promise<void>
+  /** T-101 : les parcs de la balade (rectangle et texte de la notification) ; liste vide : rien à proposer. */
+  setParks(options: { parks: { s: number; w: number; n: number; e: number; text: string }[]; title: string }): Promise<void>
+  /** T-101 : le bandeau a été montré : plus de notification pendant cette balade. */
+  parkOffered(): Promise<void>
   /** T-103 : l’accès à la photothèque ; avec `ask`, iOS le demande la première fois. */
   photosAccess(options: { ask: boolean }): Promise<{ status: PhotosStatus }>
   /** T-103 : les photos prises entre `start` et `end` (JPEG en base64, 1600 px au plus), sans les vidéos. */

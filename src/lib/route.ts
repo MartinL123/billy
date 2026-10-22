@@ -9,7 +9,7 @@ import { linkMoments, type Pause } from './walkStory'
 /** Un point : [latitude, longitude]. */
 export type RoutePoint = [number, number]
 
-export type RouteMomentType = 'peur' | 'grogne' | 'rencontre' | 'jeu' | 'marque' | 'rappel' | 'detendu' | 'note'
+export type RouteMomentType = 'peur' | 'grogne' | 'rencontre' | 'jeu' | 'marque' | 'reniflage' | 'rappel' | 'detendu' | 'note'
 
 /**
  * Les repères d’une balade (trajets.md § 3, complétés par la fonction « Balades ») : « A eu peur » devient
@@ -22,6 +22,8 @@ export const ROUTE_MOMENTS: { id: RouteMomentType; label: string; color: string 
   { id: 'rencontre', label: 'Rencontre chien', color: '#7B4FC9' },
   { id: 'jeu', label: 'Jeu', color: '#C2531A' },
   { id: 'marque', label: 'Pipi', color: '#8A6514' },
+  // V6 § 6.2 : « Reniflage », posé sur un arrêt de la frise.
+  { id: 'reniflage', label: 'Reniflage', color: '#6B7F3A' },
   { id: 'rappel', label: 'Super rappel', color: '#1E5A50' },
   { id: 'detendu', label: 'Bien détendu', color: '#2559A8' },
   { id: 'note', label: 'Note libre', color: '#5C6662' },

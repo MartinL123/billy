@@ -8,6 +8,7 @@ import Calendar from './features/calendar/Calendar'
 import EventForm from './features/calendar/EventForm'
 import EntryForm from './features/journal/EntryForm'
 import EntryView from './features/journal/EntryView'
+import TellWalk from './features/trajets/TellWalk'
 import Billy from './features/billy/Billy'
 import Explorer from './features/balades/Explorer'
 import Walks from './features/balades/Walks'
@@ -236,6 +237,7 @@ export default function App() {
             <Route path="souvenir/nouveau" element={<Navigate to="/noter" replace />} />
             <Route path="souvenir/:id" element={<EntryView />} />
             <Route path="souvenir/:id/modifier" element={<EntryForm />} />
+            <Route path="souvenir/:id/raconter" element={<TellWalk />} />
             <Route path="exercice" element={<Exercise />} />
             <Route path="mission" element={<Mission />} />
             <Route path="sante/evenements" element={<HealthEvents />} />

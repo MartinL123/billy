@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BackLink } from '../../components/BackLink'
 import { FileImage } from '../../components/FileImage'
@@ -25,6 +25,7 @@ import { hasNumbers, WalkNumbers } from './WalkNumbers'
 import { WalkMap } from './WalkMap'
 import { WalkTimeline } from './WalkTimeline'
 import { ToProfile } from './ToProfile'
+import { StopTiles, usePlaceOnStop } from './StopTiles'
 
 type WalkEntry = WithId<Entry> & { pending?: boolean }
 
@@ -42,7 +43,6 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
   const [cursor, setCursor] = useState<{ lat: number; lng: number }>()
   const [viewer, setViewer] = useState<number | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const timelineRef = useRef<HTMLElement>(null)
 
   const [name, ...rest] = entry.text.split('\n')
   const notes = rest.join('\n').trim()
@@ -64,10 +64,19 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
   const untold = untoldStops(route)
   const showPace = Boolean(route.track && route.pace && route.pace.length > 1)
   const bits = discovery ? Math.floor(discovery.newCells / CELLS_PER_BIT) : 0
+  const placeOnStop = usePlaceOnStop(entry.id, route)
   const removeMoment = (index: number) => updateEntryRoute(entry.id, storeRoute({ ...route, moments: route.moments.filter((_, j) => j !== index) }))
   // Sous un repère : « Ajouter à Comment il réagit » (peur, grogne : seulement si on le choisit) et « Retirer ».
   const momentActions = (event: TimelineEvent) => {
     const found = event.kind === 'moment' ? { moment: event.moment, index: event.momentIndex } : event.kind === 'stop' && event.moment && event.momentIndex !== undefined ? { moment: event.moment, index: event.momentIndex } : undefined
+    // Un arrêt sans repère : « Que s’est-il passé ici ? » et ses 6 tuiles (V6 § 6.2).
+    if (event.kind === 'stop' && !event.moment && !readOnly)
+      return (
+        <div className="mt-1.5 flex flex-col gap-2">
+          <span className="text-[0.8824rem] font-bold">Que s’est-il passé ici ?</span>
+          <StopTiles stop={event} onPick={(type, note) => placeOnStop(event.stopIndex, type, note)} />
+        </div>
+      )
     if (!found || readOnly) return null
     return (
       <div className="flex flex-wrap items-center gap-x-4">
@@ -78,7 +87,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
       </div>
     )
   }
-  const tell = () => timelineRef.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
+  const tell = () => navigate(`/souvenir/${entry.id}/raconter`)
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
@@ -134,7 +143,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
 
         {/* 5. Ce qui s’est passé. */}
         {events.length > 0 && (
-          <section ref={timelineRef} className="flex scroll-mt-14 flex-col gap-2">
+          <section className="flex flex-col gap-2">
             <h2 className="title-section">Ce qui s’est passé</h2>
             <WalkTimeline events={events} startTime={route.startTime} preview renderExtra={momentActions} />
           </section>

@@ -200,6 +200,11 @@ export function updateEntryRoute(id: string, route: StoredRoute): void {
   send(updateDoc(userDoc('entries', id), { route } as DocumentData))
 }
 
+/** V6 § 6.2 : la balade a été racontée (une fois). */
+export function markWalkTold(id: string, date: ISODate): void {
+  send(updateDoc(userDoc('entries', id), { toldAt: date }))
+}
+
 /** V6 § 2–3 : les arrêts, l’allure, le dénivelé et la météo d’une balade (seulement ces champs : le reste du trajet ne bouge pas). */
 export function updateEntryStory(id: string, story: { stops?: RouteStop[]; pace?: number[]; ascentM?: number; descentM?: number; weather?: WalkWeather }): void {
   const patch: DocumentData = {}

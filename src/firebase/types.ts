@@ -144,6 +144,8 @@ export interface Entry {
   commune?: string
   /** La sortie du jour à laquelle la balade est rattachée. */
   walkSlot?: { date: ISODate; creneau: string }
+  /** « Raconter la balade » mené au bout (V6 § 6.2), ce jour-là : ses +3 os ne sont donnés qu’une fois. */
+  toldAt?: ISODate
 }
 
 export type DocumentCategory = 'sante' | 'veto' | 'administratif' | 'autre'

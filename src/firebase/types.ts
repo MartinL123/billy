@@ -9,7 +9,6 @@ import type { Recurrence } from '../lib/recurrence'
 import type { Decision } from '../lib/xp'
 import type { Trait } from '../content/training'
 import type { WalkTimes } from '../lib/walks'
-import type { LiveShareRef, Proche } from '../lib/liveShare'
 
 // Modèle de données de docs/specs/spec-v1.md. Tout champ ajouté après coup reste optionnel.
 
@@ -84,12 +83,6 @@ export interface Dog {
   activeSkills?: string[]
   /** Calculé à la lecture, jamais enregistré : le nom n’a pas encore été donné (on affiche « Votre chien »). */
   unnamed?: boolean
-  /** T-087 : Profil › Mes proches (prénom + numéro ou e-mail), à qui partager une balade en direct. */
-  proches?: Proche[]
-  /** T-087 : le prénom du maître, montré sur la page « Suivre » (« Billy et Martin sont en balade »). */
-  ownerName?: string
-  /** T-087 : les partages en direct lancés (jetons de live/…), pour les arrêter et les effacer après 24 h. */
-  liveShares?: LiveShareRef[]
   /** Ancien marqueur des données de départ. Plus aucune n’est appliquée ; conservé pour les comptes existants. */
   seedVersion?: number
 }

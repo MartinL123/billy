@@ -109,12 +109,12 @@ service cloud.firestore {
       allow read: if isOwner(uid) || isViewerOf(uid);
     }
 
-    // Un spectateur lit tout le compte, sauf les documents (papiers, ordonnances), les abonnements aux rappels (push)
-    // et le journal privé de mesure (journal, T-066),
+    // Un spectateur lit tout le compte, sauf les documents (papiers, ordonnances), les abonnements aux rappels (push),
+    // le journal privé de mesure (journal, T-066) et private (T-087 : proches, jetons du partage en direct),
     // qui restent privés. Les fichiers ont leur propre règle juste dessous.
     // (Une seule règle qui autorise suffit : l'exception est donc écrite ici, pas dans une règle à part.)
     match /users/{uid}/{collection}/{rest=**} {
-      allow read: if !(collection in ['documents', 'push', 'files', 'journal']) && isViewerOf(uid);
+      allow read: if !(collection in ['documents', 'push', 'files', 'journal', 'private']) && isViewerOf(uid);
     }
 
     // R-069 : un fichier dit s'il est une photo ou une page de document ; le spectateur ne lit que les photos

@@ -1,21 +1,27 @@
 import { useState } from 'react'
 import { TextField, Optional } from '../../components/Form'
-import { updateDog } from '../../firebase/db'
-import { useData } from '../../firebase/store'
+import type { Proche } from '../../lib/liveShare'
+import { updateLivePrivate } from '../../firebase/live'
 import { ProcheForm } from './LiveShare'
+import { useLivePrivate } from './useLivePrivate'
 
 /**
  * Profil › Mes proches (T-087) : les personnes à qui partager une balade en direct (prénom + numéro ou e-mail), et le
  * prénom du maître montré sur la page de suivi. Flair n’écrit jamais à ces personnes : c’est vous qui envoyez le lien.
  */
 export function ProchesSection() {
-  const { dog } = useData()
-  const proches = dog.proches ?? []
+  const priv = useLivePrivate()
+  // Le champ prend la valeur enregistrée une fois lue, puis on la modifie librement.
+  return priv ? <Proches key="lu" saved={priv} /> : null
+}
+
+function Proches({ saved }: { saved: { proches?: Proche[]; ownerName?: string } }) {
+  const proches = saved.proches ?? []
   const [adding, setAdding] = useState(false)
-  const [ownerName, setOwnerName] = useState(dog.ownerName ?? '')
+  const [ownerName, setOwnerName] = useState(saved.ownerName ?? '')
   const saveOwnerName = () => {
     const name = ownerName.trim().slice(0, 40)
-    if (name !== (dog.ownerName ?? '')) updateDog({ ownerName: name })
+    if (name !== (saved.ownerName ?? '')) updateLivePrivate({ ownerName: name })
   }
 
   return (
@@ -30,7 +36,7 @@ export function ProchesSection() {
                 <span className="truncate text-base font-semibold">{p.name}</span>
                 {p.contact && <span className="truncate text-[0.7647rem] text-muted">{p.contact}</span>}
               </span>
-              <button type="button" onClick={() => updateDog({ proches: proches.filter((x) => x.id !== p.id) })} aria-label={`Retirer ${p.name}`} className="btn btn-quiet min-h-11 px-3 text-[0.8824rem] text-danger">
+              <button type="button" onClick={() => updateLivePrivate({ proches: proches.filter((x) => x.id !== p.id) })} aria-label={`Retirer ${p.name}`} className="btn btn-quiet min-h-11 px-3 text-[0.8824rem] text-danger">
                 Retirer
               </button>
             </li>
@@ -39,7 +45,7 @@ export function ProchesSection() {
       )}
       {adding || proches.length === 0 ? (
         <div className="card p-4">
-          <ProcheForm proches={dog.proches} onAdded={() => setAdding(false)} />
+          <ProcheForm proches={saved.proches} onAdded={() => setAdding(false)} />
         </div>
       ) : (
         <button type="button" onClick={() => setAdding(true)} className="btn-text self-start -ml-1">

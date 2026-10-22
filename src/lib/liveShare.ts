@@ -37,6 +37,16 @@ export interface LiveShareRef {
   endedAt?: string
 }
 
+/**
+ * users/{uid}/private/live : les proches (numéros et e-mails de tiers), le prénom du maître et les jetons des partages.
+ * Lu par le seul propriétaire, jamais par un visiteur (T-048) : ces jetons donnent la position en direct.
+ */
+export interface LivePrivate {
+  proches?: Proche[]
+  ownerName?: string
+  liveShares?: LiveShareRef[]
+}
+
 /** Mise à jour de la position : toutes les 60 s (≈ 60 écritures par heure). */
 export const PUSH_MS = 60_000
 /** Un partage terminé (ou oublié) disparaît 24 h après. */

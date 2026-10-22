@@ -4,8 +4,8 @@ import { Sheet } from '../../components/Sheet'
 import { TextField, Optional } from '../../components/Form'
 import { useToast } from '../../components/Toast'
 import { useData } from '../../firebase/store'
-import { updateDog } from '../../firebase/db'
-import { cleanLiveShares, endLiveShare, pushLivePosition, startLiveShare } from '../../firebase/live'
+import { cleanLiveShares, endLiveShare, pushLivePosition, startLiveShare, updateLivePrivate } from '../../firebase/live'
+import { useLivePrivate } from './useLivePrivate'
 import { gpsDistance, type GpsPoint } from '../../lib/gpsWalk'
 import { activeShare, cleanProche, followLink, MAX_CHOSEN, newToken, pushDue, walkLiveStatus, withNames, type Proche } from '../../lib/liveShare'
 import { isNative } from '../../native'
@@ -22,17 +22,19 @@ const TICK_MS = 20_000
  * À l’ouverture, les partages arrêtés depuis 24 h sont supprimés.
  */
 export function LiveShareSync() {
-  const { dog } = useData()
+  const priv = useLivePrivate()
   const { pathname } = useLocation()
-  const shares = useRef(dog.liveShares)
-  shares.current = dog.liveShares
+  const shares = useRef(priv?.liveShares)
+  shares.current = priv?.liveShares
   const lastPush = useRef<{ token: string; at: number }>(undefined)
 
+  // Une fois, dès que private/live est lu.
+  const loaded = priv !== undefined
   useEffect(() => {
-    cleanLiveShares(shares.current, Date.now())
-  }, [])
+    if (loaded) cleanLiveShares(shares.current, Date.now())
+  }, [loaded])
 
-  const active = activeShare(dog.liveShares, Date.now())
+  const active = activeShare(priv?.liveShares, Date.now())
   const token = active?.token
   const sharedAt = active?.startedAt
   useEffect(() => {
@@ -67,9 +69,9 @@ export function LiveShareSync() {
 
 /** « Partagé en direct avec Coralie · Arrêter » : tant que le partage dure, en haut des onglets et dans la balade. */
 export function LiveShareBanner({ className = '' }: { className?: string }) {
-  const { dog } = useData()
+  const priv = useLivePrivate()
   const toast = useToast()
-  const share = isNative() ? activeShare(dog.liveShares, Date.now()) : undefined
+  const share = isNative() ? activeShare(priv?.liveShares, Date.now()) : undefined
   if (!share) return null
   return (
     <div role="status" className={`flex min-h-11 items-center gap-2.5 rounded-[16px] bg-primary-soft py-1 pr-1 pl-3.5 text-primary-dark ${className}`}>
@@ -78,7 +80,7 @@ export function LiveShareBanner({ className = '' }: { className?: string }) {
       <button
         type="button"
         onClick={() => {
-          endLiveShare(share.token, dog.liveShares)
+          endLiveShare(share.token, priv?.liveShares)
           toast('Partage arrêté')
         }}
         className="btn-text shrink-0 px-3 text-primary-dark"
@@ -91,9 +93,9 @@ export function LiveShareBanner({ className = '' }: { className?: string }) {
 
 /** Dans « Balade en cours » : la ligne « Partager en direct » (éteinte par défaut), ou le bandeau du partage. */
 export function LiveShareLine({ startedAt, points }: { startedAt: string; points: GpsPoint[] }) {
-  const { dog } = useData()
+  const priv = useLivePrivate()
   const [open, setOpen] = useState(false)
-  if (activeShare(dog.liveShares, Date.now())) return <LiveShareBanner />
+  if (activeShare(priv?.liveShares, Date.now())) return <LiveShareBanner />
   return (
     <>
       <button type="button" role="switch" aria-checked="false" onClick={() => setOpen(true)} className="flex min-h-11 items-center gap-3 border-0 bg-transparent p-0 text-left">
@@ -108,7 +110,7 @@ export function LiveShareLine({ startedAt, points }: { startedAt: string; points
   )
 }
 
-/** Le formulaire d’un proche : prénom, numéro ou e-mail. Gardé dans le profil (Profil › Mes proches). */
+/** Le formulaire d’un proche : prénom, numéro ou e-mail. Gardé dans private/live (Profil › Mes proches). */
 export function ProcheForm({ proches, onAdded }: { proches: Proche[] | undefined; onAdded?: (proche: Proche) => void }) {
   const [name, setName] = useState('')
   const [contact, setContact] = useState('')
@@ -116,7 +118,7 @@ export function ProcheForm({ proches, onAdded }: { proches: Proche[] | undefined
   const add = () => {
     const proche = cleanProche({ name, contact }, newToken().slice(0, 10))
     if (!proche) return setError('Écrivez au moins un prénom.')
-    updateDog({ proches: [...(proches ?? []), proche] })
+    updateLivePrivate({ proches: [...(proches ?? []), proche] })
     setName('')
     setContact('')
     setError('')
@@ -136,8 +138,9 @@ export function ProcheForm({ proches, onAdded }: { proches: Proche[] | undefined
 /** Le panneau : choisir une ou deux personnes dans « Mes proches », puis « Partager » (feuille de partage d’iOS). */
 function LiveShareSheet({ startedAt, points, onClose }: { startedAt: string; points: GpsPoint[]; onClose: () => void }) {
   const { dog } = useData()
+  const priv = useLivePrivate()
   const toast = useToast()
-  const proches = dog.proches ?? []
+  const proches = priv?.proches ?? []
   const [chosen, setChosen] = useState<string[]>(() => (proches.length === 1 ? [proches[0]!.id] : []))
   const [adding, setAdding] = useState(proches.length === 0)
   const [link, setLink] = useState('')
@@ -150,7 +153,7 @@ function LiveShareSheet({ startedAt, points, onClose }: { startedAt: string; poi
     const token = newToken()
     const url = followLink(token, window.location)
     const here = points[points.length - 1]
-    startLiveShare(token, { dogName: dog.name, ...(dog.ownerName ? { ownerName: dog.ownerName } : {}), startedAt, ...(here ? { lat: here.lat, lng: here.lng } : {}), distanceM: gpsDistance(points) }, names, dog.liveShares)
+    startLiveShare(token, { dogName: dog.name, ...(priv?.ownerName ? { ownerName: priv.ownerName } : {}), startedAt, ...(here ? { lat: here.lat, lng: here.lng } : {}), distanceM: gpsDistance(points) }, names, priv?.liveShares)
     // Rien n’est attendu avant d’ouvrir la feuille de partage d’iOS (elle doit suivre le toucher).
     if (navigator.share) {
       navigator
@@ -161,7 +164,7 @@ function LiveShareSheet({ startedAt, points, onClose }: { startedAt: string; poi
         })
         .catch((error: unknown) => {
           // Feuille fermée sans envoyer : le lien ne part pas, le partage s’arrête tout de suite.
-          if (error instanceof DOMException && error.name === 'AbortError') endLiveShare(token, [...(dog.liveShares ?? []), { token, startedAt: new Date().toISOString(), with: names }])
+          if (error instanceof DOMException && error.name === 'AbortError') endLiveShare(token, [...(priv?.liveShares ?? []), { token, startedAt: new Date().toISOString(), with: names }])
           else showLink(url)
         })
     } else showLink(url)
@@ -208,7 +211,7 @@ function LiveShareSheet({ startedAt, points, onClose }: { startedAt: string; poi
       )}
       {adding ? (
         <ProcheForm
-          proches={dog.proches}
+          proches={priv?.proches}
           onAdded={(p) => {
             setAdding(false)
             setChosen((list) => (list.length < MAX_CHOSEN ? [...list, p.id] : list))

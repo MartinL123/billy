@@ -201,7 +201,8 @@ Après « Terminer » (GPS de Flair) ou à l'arrivée d'une balade de la Watch (
 
 État (T-087, fait) : `src/lib/liveShare.ts` (jeton, lien, phrases, nettoyage), `src/firebase/live.ts`,
 `src/features/live/` (panneau, bandeau, page « Suivre », Profil › Mes proches). Les proches, le prénom du maître
-(`ownerName`) et les jetons des partages (`liveShares`) sont dans le profil (`dog/billy`) ; les jetons servent à arrêter
+(`ownerName`) et les jetons des partages (`liveShares`) sont dans `users/{uid}/private/live`, que le propriétaire seul
+lit (jamais un visiteur T-048 : numéros de tiers, jetons qui donnent la position) ; les jetons servent à arrêter
 et à effacer après 24 h sans `list`. Mise à jour de la position : `LiveShareSync` (toutes les 60 s, quel que soit
 l'écran ouvert, depuis la balade gardée par l'iPhone). **Règles Firestore modifiées** (`match /live/{token}`, testées
 dans `tests/rules.test.ts`) : Martin doit les déployer avec

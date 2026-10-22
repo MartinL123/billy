@@ -1,14 +1,36 @@
-import { deleteDoc, deleteField, doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore'
+import { deleteDoc, deleteField, doc, onSnapshot, setDoc, updateDoc, type DocumentData } from 'firebase/firestore'
 import { db } from './app'
-import { selfUid, send } from './paths'
-import { updateDog } from './db'
-import { sharesToDelete, type LiveDoc, type LiveShareRef, type LiveStatus } from '../lib/liveShare'
+import { selfUid, send, userDoc } from './paths'
+import { sharesToDelete, type LiveDoc, type LivePrivate, type LiveShareRef, type LiveStatus } from '../lib/liveShare'
 
 // Partage en direct (T-087, spec V6 § 7) : live/{jeton}, hors de users/… pour être lu sans compte.
 // firestore.rules : `get` pour tous (le jeton est la clé), jamais `list`, écriture par le seul propriétaire.
 // Comme ailleurs, les écritures ne sont jamais attendues (hors ligne, elles partent au retour du réseau).
 
 const liveDoc = (token: string) => doc(db, 'live', token)
+/** users/{uid}/private/live : proches, prénom du maître, jetons des partages (jamais lu par un visiteur). */
+const privateDoc = () => userDoc('private', 'live')
+
+/** Modifie quelques champs de users/{uid}/private/live (créé au premier usage). */
+export function updateLivePrivate(patch: LivePrivate): void {
+  send(setDoc(privateDoc(), patch as DocumentData, { merge: true }))
+}
+
+/** users/{uid}/private/live en direct ; absent : rien encore (`{}`). Lecture tolérante : champs inconnus ignorés. */
+export function watchLivePrivate(onData: (data: LivePrivate) => void): () => void {
+  return onSnapshot(
+    privateDoc(),
+    (snap) => {
+      const raw = (snap.exists() ? snap.data() : {}) as Record<string, unknown>
+      onData({
+        ...(Array.isArray(raw.proches) ? { proches: raw.proches as LivePrivate['proches'] } : {}),
+        ...(typeof raw.ownerName === 'string' ? { ownerName: raw.ownerName } : {}),
+        ...(Array.isArray(raw.liveShares) ? { liveShares: raw.liveShares as LiveShareRef[] } : {}),
+      })
+    },
+    (error) => console.error('Lecture de private/live impossible', error),
+  )
+}
 
 export interface LivePosition {
   lat?: number
@@ -16,7 +38,7 @@ export interface LivePosition {
   distanceM: number
 }
 
-/** « Partager » : crée live/{jeton} et retient le partage dans le profil (pour l’arrêter, puis l’effacer). */
+/** « Partager » : crée live/{jeton} et retient le partage dans private/live (pour l’arrêter, puis l’effacer). */
 export function startLiveShare(
   token: string,
   walk: { dogName: string; ownerName?: string; startedAt: string } & LivePosition,
@@ -35,7 +57,7 @@ export function startLiveShare(
     status: 'en cours',
   }
   send(setDoc(liveDoc(token), live))
-  updateDog({ liveShares: [...(shares ?? []), { token, startedAt: now, with: names }] })
+  updateLivePrivate({ liveShares: [...(shares ?? []), { token, startedAt: now, with: names }] })
 }
 
 /** La position du moment (toutes les 60 s pendant la balade). */
@@ -63,7 +85,7 @@ export function endLiveShare(token: string, shares: LiveShareRef[] | undefined, 
       ...(distanceM !== undefined ? { distanceM: Math.round(distanceM) } : {}),
     }),
   )
-  updateDog({ liveShares: (shares ?? []).map((s) => (s.token === token && !s.endedAt ? { ...s, endedAt: now } : s)) })
+  updateLivePrivate({ liveShares: (shares ?? []).map((s) => (s.token === token && !s.endedAt ? { ...s, endedAt: now } : s)) })
 }
 
 /** À l’ouverture : les partages arrêtés depuis 24 h sont effacés (par leur jeton : `list` est interdit). */
@@ -71,7 +93,7 @@ export function cleanLiveShares(shares: LiveShareRef[] | undefined, now: number)
   const old = sharesToDelete(shares, now)
   if (!old.length) return
   for (const share of old) send(deleteDoc(liveDoc(share.token)))
-  updateDog({ liveShares: (shares ?? []).filter((s) => !old.includes(s)) })
+  updateLivePrivate({ liveShares: (shares ?? []).filter((s) => !old.includes(s)) })
 }
 
 /**

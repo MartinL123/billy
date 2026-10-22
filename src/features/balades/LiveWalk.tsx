@@ -33,6 +33,7 @@ import { WalkRecap } from '../trajets/WalkRecap'
 import { LiveShareLine } from '../live/LiveShare'
 import { endLiveShare } from '../../firebase/live'
 import { activeShare } from '../../lib/liveShare'
+import { useLivePrivate } from '../live/useLivePrivate'
 
 const toMin = (time: string) => {
   const [h, m] = time.split(':').map(Number)
@@ -290,10 +291,13 @@ export default function LiveWalk() {
   }, [])
 
   // T-087 : la balade enregistrée ou pas gardée, le partage en direct s’arrête tout de suite (position effacée).
+  const livePrivate = useLivePrivate()
+  const liveShares = useRef(livePrivate?.liveShares)
+  liveShares.current = livePrivate?.liveShares
   useEffect(() => {
     if (!ended && !gone) return
-    const share = activeShare(data.current.dog.liveShares, Date.now())
-    if (share) endLiveShare(share.token, data.current.dog.liveShares, ended?.distanceM)
+    const share = activeShare(liveShares.current, Date.now())
+    if (share) endLiveShare(share.token, liveShares.current, ended?.distanceM)
   }, [ended, gone])
 
   const latLngs = useMemo(() => points.map((p): [number, number] => [p.lat, p.lng]), [points])

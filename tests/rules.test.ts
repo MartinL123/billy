@@ -261,6 +261,23 @@ describe('T-087 : partage en direct (live/{jeton})', () => {
     await assertFails(setDoc(doc(bob, 'live/BobBobBobBobBobBobBob1'), live()))
   })
 
+  it('private/live (proches, jetons des partages) : le propriétaire seul, jamais un visiteur', async () => {
+    const alice = env.authenticatedContext('alice').firestore()
+    await assertSucceeds(setDoc(doc(alice, 'users/alice/private/live'), { proches: [{ id: 'p1', name: 'Coralie', contact: '06 12 34 56 78' }], ownerName: 'Martin', liveShares: [{ token: TOKEN, startedAt: '2026-10-22T08:00:00Z', with: ['Coralie'] }] }))
+    await assertSucceeds(getDoc(doc(alice, 'users/alice/private/live')))
+    await env.withSecurityRulesDisabled(async (admin) => {
+      await setDoc(doc(admin.firestore(), 'viewers/parent'), { owner: 'alice', code: 'abcdefghjkmn' })
+    })
+    const parent = env.authenticatedContext('parent').firestore()
+    // Le visiteur lit le profil du chien, pas private.
+    await assertSucceeds(getDoc(doc(parent, 'users/alice/dog/billy')))
+    await assertFails(getDoc(doc(parent, 'users/alice/private/live')))
+    await assertFails(getDocs(collection(parent, 'users/alice/private')))
+    await assertFails(setDoc(doc(parent, 'users/alice/private/live'), { ownerName: 'Intrus' }))
+    const bob = env.authenticatedContext('bob').firestore()
+    await assertFails(getDoc(doc(bob, 'users/alice/private/live')))
+  })
+
   it('le propriétaire ne change pas ownerUid ; champs et jeton vérifiés ; un visiteur ne crée rien', async () => {
     const alice = env.authenticatedContext('alice').firestore()
     await assertSucceeds(setDoc(doc(alice, `live/${TOKEN}`), live()))

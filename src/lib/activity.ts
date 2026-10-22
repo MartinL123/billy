@@ -1,8 +1,9 @@
 import { distanceMeters } from './community'
 import { simplifyWalk, type TimedPoint } from './balade'
 import type { ISODate } from './dates'
-import type { RoutePoint } from './route'
+import type { RoutePoint, RouteStop } from './route'
 import { buildTrack, type Track } from './track'
+import { walkStory } from './walkStory'
 
 // Import des balades Strava (docs/specs/carte-a-decouvrir.md § 6) : fichiers GPX de l’archive ou d’une seule balade.
 // Billy garde le trajet allégé (la carte), la distance, la durée, la date, le nom et, depuis la V6 (§ 2.1), le trajet
@@ -133,6 +134,9 @@ export interface ImportedActivity {
   points: RoutePoint[]
   /** Le trajet daté (V6 § 2.1) : un point toutes les 5 s au plus. Absent si le fichier n’a pas d’heures. */
   track?: Track
+  /** Arrêts et allure par minute (V6 § 3), calculés sur le trajet daté. */
+  stops?: RouteStop[]
+  pace?: number[]
   /** Points complets, avec l’heure : seulement en mémoire, pour le brouillard et les photos. Jamais enregistrés tels quels. */
   full: TimedPoint[]
 }
@@ -149,6 +153,7 @@ export function toImported(activity: Activity): ImportedActivity | undefined {
   const endTime = times[times.length - 1]
   const durationMin = startTime && endTime ? Math.round((Date.parse(endTime) - Date.parse(startTime)) / 60000) : undefined
   const track = buildTrack(points, startTime)
+  const story = track ? walkStory(track) : undefined
   return {
     key: importKey(points),
     name: frenchName(activity.name, activity.type),
@@ -161,6 +166,7 @@ export function toImported(activity: Activity): ImportedActivity | undefined {
       MAX_STORED_POINTS,
     ),
     ...(track ? { track } : {}),
+    ...(story ? { stops: story.stops, pace: story.pace } : {}),
     full: points,
   }
 }

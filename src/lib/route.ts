@@ -2,6 +2,7 @@ import { distanceMeters } from './community'
 import type { ISODate } from './dates'
 import type { Reaction } from './questionnaire'
 import { readTrack, type Track } from './track'
+import { linkMoments } from './walkStory'
 
 // Les trajets de balade (docs/specs/trajets.md) : tracés après coup sur la carte, jamais suivis en direct.
 
@@ -143,7 +144,8 @@ export type StoredPoint = { lat: number; lng: number }
 export type StoredRoute = Omit<Route, 'points'> & { points: StoredPoint[] }
 export const toStored = (points: RoutePoint[]): StoredPoint[] => points.map(([lat, lng]) => ({ lat, lng }))
 export const fromStored = (points: StoredPoint[] | undefined): RoutePoint[] => (points ?? []).map((p) => [p.lat, p.lng])
-export const storeRoute = (route: Route): StoredRoute => ({ ...route, points: toStored(route.points) })
+/** À chaque enregistrement, les arrêts se rattachent aux repères posés à moins de 40 m (V6 § 3). */
+export const storeRoute = (route: Route): StoredRoute => ({ ...route, points: toStored(route.points), ...(route.stops ? { stops: linkMoments(route.stops, route.moments) } : {}) })
 export function readRoute(route: StoredRoute | undefined): Route | undefined {
   if (!route) return undefined
   const { track, ...rest } = route

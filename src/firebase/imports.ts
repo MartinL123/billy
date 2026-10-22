@@ -45,6 +45,8 @@ export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: I
       ...(walk.durationMin ? { durationMin: walk.durationMin } : {}),
       ...(walk.startTime ? { startTime: walk.startTime } : {}),
       ...(walk.endTime ? { endTime: walk.endTime } : {}),
+      ...(walk.stops ? { stops: walk.stops } : {}),
+      ...(walk.pace ? { pace: walk.pace } : {}),
     }),
   }
   if (slot) entry.walkSlot = { date, creneau: slot }

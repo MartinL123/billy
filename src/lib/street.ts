@@ -43,17 +43,38 @@ export function communeFromAddress(json: NominatimReverse | null | undefined): s
   return a.village ?? a.town ?? a.city ?? a.municipality ?? undefined
 }
 
+/** Écart minimal entre deux requêtes à Nominatim (règle : une par seconde au plus). */
+export const NOMINATIM_GAP_MS = 1100
 let lastAsk = 0
+let queue: Promise<unknown> = Promise.resolve()
+
+/** File d’attente commune : chaque tâche attend son tour, une requête par seconde au plus pour toute l’app. */
+export function nominatimTurn<T>(task: () => Promise<T>): Promise<T> {
+  const run = queue.then(async () => {
+    const wait = lastAsk + NOMINATIM_GAP_MS - Date.now()
+    if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait))
+    lastAsk = Date.now()
+    return task()
+  })
+  queue = run.catch(() => undefined)
+  return run
+}
+
 export async function communeName(lat: number, lng: number): Promise<string | undefined> {
   if (typeof navigator !== 'undefined' && !navigator.onLine) return undefined
-  const wait = lastAsk + 1100 - Date.now()
-  if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait))
-  lastAsk = Date.now()
-  try {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=fr&lat=${lat.toFixed(4)}&lon=${lng.toFixed(4)}`
-    const response = await fetch(url, { signal: AbortSignal.timeout(6000) })
-    return response.ok ? communeFromAddress(await response.json()) : undefined
-  } catch {
-    return undefined
-  }
+  return nominatimTurn(async () => {
+    try {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=fr&lat=${lat.toFixed(4)}&lon=${lng.toFixed(4)}`
+      const response = await fetch(url, { signal: AbortSignal.timeout(6000) })
+      return response.ok ? communeFromAddress(await response.json()) : undefined
+    } catch {
+      return undefined
+    }
+  })
+}
+
+/** La rue d’un arrêt (V6 § 3), par la file d’attente : hors ligne, rien (elle sera cherchée plus tard). */
+export async function stopStreet(lat: number, lng: number): Promise<string | undefined> {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return undefined
+  return nominatimTurn(() => streetName(lat, lng))
 }

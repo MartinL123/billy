@@ -21,6 +21,7 @@ import ImportResult from './features/balades/ImportResult'
 import LiveWalk from './features/balades/LiveWalk'
 import { BonesBackfill } from './features/shop/BonesBackfill'
 import { FogBackfill } from './features/balades/FogBackfill'
+import { StoryBackfill } from './features/balades/StoryBackfill'
 import { FilesKindBackfill } from './features/profile/FilesKindBackfill'
 import { MilestonesFix } from './features/calendar/MilestonesFix'
 import { WatchSync } from './features/balades/WatchSync'
@@ -178,6 +179,7 @@ export default function App() {
             {/* Gelé (T-072) : CommunitySync (publication du profil dans la meute à chaque ouverture) n’est plus monté. */}
             <BonesBackfill />
             <FogBackfill />
+            <StoryBackfill />
             <FilesKindBackfill />
             <JournalOpen />
             <MilestonesFix />

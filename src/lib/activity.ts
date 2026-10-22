@@ -4,6 +4,7 @@ import type { ISODate } from './dates'
 import { markerMoments, type RouteMoment, type RoutePoint, type RouteStop, type WalkMarker } from './route'
 import { buildTrack, type Track } from './track'
 import { elevation, hrPerMinute, pausesSince, positiveRound, watchWeather, type HrSample, type TimeSpan, type WalkWeather } from './walkHealth'
+import { walkFigures } from './walkFacts'
 import { walkStory, type Pause } from './walkStory'
 
 // Import des balades Strava (docs/specs/carte-a-decouvrir.md § 6) : fichiers GPX de l’archive ou d’une seule balade.
@@ -162,6 +163,10 @@ export interface ImportedActivity {
   weather?: WalkWeather
   energyKcal?: number
   pauses?: Pause[]
+  /** T-102 : km par km (secondes), vitesse max (km/h), cadence (pas par minute en marche). */
+  kmSplits?: number[]
+  maxSpeed?: number
+  cadence?: number
   /** T-086 : les moments « À raconter » (repères posés pendant la balade). */
   moments?: RouteMoment[]
   /** Points complets, avec l’heure : seulement en mémoire, pour le brouillard et les photos. Jamais enregistrés tels quels. */
@@ -189,6 +194,7 @@ export function toImported(activity: Activity): ImportedActivity | undefined {
   const steps = positiveRound(activity.steps)
   const energyKcal = positiveRound(activity.energyKcal)
   const moments = markerMoments(activity.markers)
+  const figures = walkFigures({ ...(track ? { track } : {}), ...(story ? { stops: story.stops } : {}), ...(steps ? { steps } : {}), ...(startTime ? { startTime } : {}), ...(endTime ? { endTime } : {}), ...(durationMin ? { durationMin } : {}) })
   return {
     key: importKey(points),
     name: frenchName(activity.name, activity.type),
@@ -208,6 +214,7 @@ export function toImported(activity: Activity): ImportedActivity | undefined {
     ...(weather ? { weather } : {}),
     ...(energyKcal ? { energyKcal } : {}),
     ...(pauses ? { pauses } : {}),
+    ...figures,
     ...(moments.length ? { moments } : {}),
     full: points,
   }

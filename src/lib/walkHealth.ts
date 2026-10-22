@@ -1,3 +1,4 @@
+import type { Daylight } from './walkFacts'
 import type { Pause } from './walkStory'
 
 // Cœur, pas, dénivelé, énergie et pauses d’une balade (spec V6 § 2.1 et § 2.2). La Watch et Santé donnent des
@@ -22,6 +23,14 @@ export interface WalkWeather {
   tempC: number
   humidity?: number
   source: 'watch' | 'open-meteo'
+  // T-102 : Open-Meteo, même requête (aussi pour une balade dont la Watch a noté la température).
+  /** Ressenti (°C). */
+  feelsC?: number
+  windKmh?: number
+  /** Pluie pendant la balade (mm). */
+  rainMm?: number
+  /** Le moment de la journée, d’après le lever et le coucher du soleil. */
+  daylight?: Daylight
 }
 
 /** Ce que Santé sait d’une balade (Watch, ou balade du GPS de Flair avec la Watch au poignet). */

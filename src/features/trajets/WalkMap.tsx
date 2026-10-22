@@ -3,6 +3,7 @@ import type { GeoJSONSource } from 'maplibre-gl'
 import { addMarker, cameraMs, createMap, dot, fitPoints, lngLat, ROUTE_COLOR, ROUTE_FAST_COLOR, ROUTE_STOP_COLOR, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
 import { routeMomentInfo, type Route } from '../../lib/route'
 import { paceSegments } from '../../lib/walkSheet'
+import { directionArrows } from '../../lib/walkFacts'
 import { effectiveTrack } from '../../lib/trim'
 import type { PaceCategory } from '../../lib/walkStory'
 import { replayWalk } from '../balades/walkLayer'
@@ -23,9 +24,18 @@ function stopMarker(n: number, red: boolean, size = 22): HTMLElement {
   return el
 }
 
+/** T-102 : une flèche du sens de marche (chevron blanc cerné), tournée selon le cap du tracé (la carte ne tourne pas). */
+function arrowMarker(deg: number): HTMLElement {
+  const el = document.createElement('span')
+  el.setAttribute('aria-hidden', 'true')
+  el.style.cssText = 'display:block;width:16px;height:16px;pointer-events:none'
+  el.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" style="transform:rotate(${deg}deg)"><path d="M4.5 10 8 6.5 11.5 10" fill="none" stroke="rgba(24,32,30,.45)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 10 8 6.5 11.5 10" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+  return el
+}
+
 /**
  * La carte de la fiche de balade (V6 § 6.1) : le tracé coloré par allure (sinon en vert carte), le départ en vert, les
- * arrêts numérotés, les repères qui ne sont pas sur un arrêt. Sans geste (la page défile par-dessus) : le plein écran
+ * arrêts numérotés, les repères qui ne sont pas sur un arrêt, et le sens de marche (flèches, T-102). Sans geste (la page défile par-dessus) : le plein écran
  * ouvre la carte du territoire. `cursor` : le repère posé par le doigt sur la courbe d’allure ; `focus` : un arrêt à
  * regarder de près (mode « Raconter la balade »).
  */
@@ -66,6 +76,7 @@ export function WalkMap({ route, dogName, cursor, focus, replaying = false, onRe
         m.addLayer({ id: 'fiche', type: 'line', source: 'fiche', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 4.5 } })
       }
     })
+    if (!focus) for (const a of directionArrows(route.points)) markers.push(addMarker(m, [a.lat, a.lng], arrowMarker(a.deg)))
     const first = route.points[0]
     if (first) markers.push(addMarker(m, first, dot('#1E5A50', 18, 'Départ')))
     const linked = new Set<number>()
@@ -119,7 +130,7 @@ export function WalkMap({ route, dogName, cursor, focus, replaying = false, onRe
   return (
     <div className={`relative isolate overflow-hidden bg-[#E8EFE9] ${className}`}>
       {!ready && <span aria-hidden="true" className="skeleton pointer-events-none absolute inset-0 z-[5] rounded-none" />}
-      <div ref={host} role="img" aria-label={`Carte de la balade : le tracé coloré par allure${route.stops?.length ? `, ${route.stops.length} arrêt${route.stops.length > 1 ? 's' : ''} numéroté${route.stops.length > 1 ? 's' : ''}` : ''}`} className="size-full" />
+      <div ref={host} role="img" aria-label={`Carte de la balade : le tracé coloré par allure, avec le sens de marche${route.stops?.length ? `, ${route.stops.length} arrêt${route.stops.length > 1 ? 's' : ''} numéroté${route.stops.length > 1 ? 's' : ''}` : ''}`} className="size-full" />
       {route.moments.length > 0 && <span className="sr-only">{route.moments.map((m) => routeMomentInfo(m.type).label).join(', ')}</span>}
     </div>
   )

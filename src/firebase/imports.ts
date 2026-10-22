@@ -56,6 +56,10 @@ export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: I
       ...(walk.weather ? { weather: walk.weather } : {}),
       ...(walk.energyKcal ? { energyKcal: walk.energyKcal } : {}),
       ...(walk.pauses ? { pauses: walk.pauses } : {}),
+      // T-102 : km par km, vitesse max, cadence (rues, lieux et météo arrivent ensuite, en arrière-plan).
+      ...(walk.kmSplits ? { kmSplits: walk.kmSplits } : {}),
+      ...(walk.maxSpeed ? { maxSpeed: walk.maxSpeed } : {}),
+      ...(walk.cadence ? { cadence: walk.cadence } : {}),
     }),
   }
   if (slot) entry.walkSlot = { date, creneau: slot }

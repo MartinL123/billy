@@ -196,3 +196,23 @@ export function weatherText(w: Route['weather']): string | undefined {
 
 /** Les arrêts qui attendent encore un repère (ou dont le repère est « À raconter », T-086). */
 export const untoldStops = (route: Pick<Route, 'stops'> & { moments?: Route['moments'] }) => (route.stops ?? []).filter((s) => s.momentIndex === undefined || route.moments?.[s.momentIndex]?.type === 'araconter')
+
+const RECORDED_BY: Record<ReturnType<typeof walkSourceLabel>, string> = { Watch: 'Enregistré par l’Apple Watch', iPhone: 'Enregistré par l’iPhone', Fichier: 'Importé d’un fichier', Notée: 'Tracé à la main' }
+
+/**
+ * T-102 : la ligne des sources, en bas de la fiche : « Enregistré par l’Apple Watch · Météo Open-Meteo · Lieux ©
+ * OpenStreetMap ». Le nom du propriétaire n’est pas connu ici : il n’est pas écrit.
+ */
+export function sourceLine(route: Pick<Route, 'source' | 'weather' | 'hr' | 'steps' | 'energyKcal' | 'stops' | 'moments' | 'streets' | 'places'>, entrySource?: string): string {
+  const src = sourceLabels(route, entrySource)
+  const parts = [RECORDED_BY[walkSourceLabel(entrySource, route.source)]]
+  // Une balade du GPS de l’iPhone avec la Watch au poignet : le cœur et les pas viennent de Santé.
+  if (src.health && src.health !== 'Apple Watch' && src.health !== 'Fichier') parts.push(`Cœur et pas : ${src.health}`)
+  const w = route.weather
+  if (w) {
+    const extra = w.feelsC !== undefined || w.windKmh !== undefined || w.rainMm !== undefined || w.daylight !== undefined
+    parts.push(w.source === 'watch' ? (extra ? 'Météo Apple Watch et Open-Meteo' : 'Météo Apple Watch') : 'Météo Open-Meteo')
+  }
+  if (src.places || route.streets?.length || route.places?.length) parts.push('Lieux © OpenStreetMap')
+  return parts.join(' · ')
+}

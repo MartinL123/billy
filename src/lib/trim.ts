@@ -1,5 +1,6 @@
 import { simplify, toStored, fromStored, type Route, type RoutePoint, type RouteStop } from './route'
 import { sliceTrack, trackDistance, type Track } from './track'
+import { walkFigures } from './walkFacts'
 import { routeStory, windowOf, type Window } from './walkStory'
 
 // Recadrer le début et la fin d’une balade (spec V6 § 8.3, T-090) : on garde la portion choisie, on recalcule la
@@ -36,10 +37,16 @@ const keepStreets = (stops: RouteStop[], before: RouteStop[] | undefined) =>
     return street ? { ...s, street } : s
   })
 
-/** Les arrêts et l’allure recalculés pour la fenêtre du trajet (rien sans trajet daté). */
+/**
+ * Les arrêts et l’allure recalculés pour la fenêtre du trajet (rien sans trajet daté). T-102 : km par km, vitesse max et
+ * cadence aussi ; les rues et lieux traversés sont retirés, ils seront cherchés à nouveau sur la portion gardée.
+ */
 function withStory(route: Route): Route {
   const story = routeStory(route)
-  return story ? { ...route, stops: keepStreets(story.stops, route.stops), pace: story.pace } : route
+  if (!story) return route
+  const { streets: _s, places: _p, kmSplits: _k, maxSpeed: _m, cadence: _c, ...rest } = route
+  const next: Route = { ...rest, stops: keepStreets(story.stops, route.stops), pace: story.pace }
+  return { ...next, ...walkFigures(next) }
 }
 
 /** Revenir au trajet d’origine : distance, durée et points d’avant, arrêts et allure sur toute la balade. */

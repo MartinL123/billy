@@ -2,6 +2,8 @@ import { distanceMeters } from './community'
 import type { ISODate } from './dates'
 import type { Reaction } from './questionnaire'
 import { readTrack, type Track } from './track'
+import type { RoutePlace, RouteStreet } from './walkFacts'
+import type { WalkWeather } from './walkHealth'
 import { linkMoments, type Pause } from './walkStory'
 
 // Les trajets de balade (docs/specs/trajets.md) : tracés après coup sur la carte, jamais suivis en direct.
@@ -91,8 +93,19 @@ export interface Route {
   steps?: number
   ascentM?: number
   descentM?: number
-  weather?: { tempC: number; humidity?: number; source: 'watch' | 'open-meteo' }
+  weather?: WalkWeather
   energyKcal?: number
+  // ——— T-102 (V6.1 § 7) : calculés à l’import ou rattrapés en arrière-plan, tous optionnels ———
+  /** Les rues traversées dans l’ordre (Nominatim, un point tous les 100 m), « nouvelle » si jamais vue avant. */
+  streets?: RouteStreet[]
+  /** Parcs, squares, jardins traversés (Nominatim). */
+  places?: RoutePlace[]
+  /** Le temps de chaque kilomètre entier (secondes). */
+  kmSplits?: number[]
+  /** Vitesse max (km/h, lissée sur 15 s). */
+  maxSpeed?: number
+  /** Pas par minute en marche. */
+  cadence?: number
   /** Les pauses de la séance Watch (secondes depuis le départ) : gardées pour recalculer les arrêts après un recadrage. */
   pauses?: Pause[]
   /**

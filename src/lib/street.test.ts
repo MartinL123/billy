@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { communeFromAddress, NOMINATIM_GAP_MS, nominatimTurn, streetFromNominatim } from './street'
+import { communeFromAddress, NOMINATIM_GAP_MS, nominatimTurn, placeFromNominatim, roadFromNominatim, streetFromNominatim } from './street'
 
 describe('nom de la rue', () => {
   it('prend la rue, puis le chemin piéton, puis le parc', () => {
@@ -20,6 +20,20 @@ describe('nom de la rue', () => {
   })
 })
 
+describe('T-102 : rues et lieux traversés', () => {
+  it('la rue : les voies seulement, jamais le parc', () => {
+    expect(roadFromNominatim({ address: { road: 'Rue des Lilas', park: 'Parc des Hirondelles' } })).toBe('Rue des Lilas')
+    expect(roadFromNominatim({ address: { square: 'Place de la Fontaine' } })).toBe('Place de la Fontaine')
+    expect(roadFromNominatim({ address: { park: 'Parc des Hirondelles' } })).toBeUndefined()
+  })
+
+  it('le lieu : l’objet trouvé (leisure) ou le parc qui contient le point', () => {
+    expect(placeFromNominatim({ category: 'leisure', type: 'park', name: 'Square du Héron', address: {} })).toEqual({ name: 'Square du Héron', kind: 'square' })
+    expect(placeFromNominatim({ category: 'leisure', type: 'dog_park', name: 'Espace canin des Saules' })).toEqual({ name: 'Espace canin des Saules', kind: 'canin' })
+    expect(placeFromNominatim({ category: 'highway', type: 'residential', name: 'Rue des Lilas', address: { road: 'Rue des Lilas', park: 'Parc des Hirondelles' } })).toEqual({ name: 'Parc des Hirondelles', kind: 'parc' })
+    expect(placeFromNominatim({ category: 'amenity', type: 'cafe', name: 'Le Café du Coin', address: { road: 'Rue des Lilas' } })).toBeUndefined()
+  })
+})
 
 describe('file d’attente de Nominatim', () => {
   it('une requête par seconde au plus, dans l’ordre', async () => {

@@ -19,6 +19,7 @@ import { unshareMoment } from './community'
 export { newId } from './paths'
 import { lifeMilestones } from '../lib/milestones'
 import type { RouteStop, StoredRoute } from '../lib/route'
+import type { RoutePlace, RouteStreet } from '../lib/walkFacts'
 import type { WalkWeather } from '../lib/walkHealth'
 import type { BillyDocument, BillyEvent, Dog, Entry, Weight, WithId } from './types'
 import { diffDays, todayISO, type ISODate } from '../lib/dates'
@@ -211,13 +212,23 @@ export function markWalkTold(id: string, date: ISODate): void {
 }
 
 /** V6 § 2–3 : les arrêts, l’allure, le dénivelé et la météo d’une balade (seulement ces champs : le reste du trajet ne bouge pas). */
-export function updateEntryStory(id: string, story: { stops?: RouteStop[]; pace?: number[]; ascentM?: number; descentM?: number; weather?: WalkWeather }): void {
+export function updateEntryStory(
+  id: string,
+  story: { stops?: RouteStop[]; pace?: number[]; ascentM?: number; descentM?: number; weather?: WalkWeather; weatherDetails?: Partial<WalkWeather>; streets?: RouteStreet[]; places?: RoutePlace[]; kmSplits?: number[]; maxSpeed?: number; cadence?: number },
+): void {
   const patch: DocumentData = {}
   if (story.stops) patch['route.stops'] = story.stops
   if (story.pace) patch['route.pace'] = story.pace
   if (story.ascentM !== undefined) patch['route.ascentM'] = story.ascentM
   if (story.descentM !== undefined) patch['route.descentM'] = story.descentM
   if (story.weather) patch['route.weather'] = story.weather
+  // T-102 : seulement les détails qui manquaient, champ par champ (la température notée par la Watch reste).
+  for (const [k, v] of Object.entries(story.weatherDetails ?? {})) if (v !== undefined) patch[`route.weather.${k}`] = v
+  if (story.streets) patch['route.streets'] = story.streets
+  if (story.places) patch['route.places'] = story.places
+  if (story.kmSplits) patch['route.kmSplits'] = story.kmSplits
+  if (story.maxSpeed !== undefined) patch['route.maxSpeed'] = story.maxSpeed
+  if (story.cadence !== undefined) patch['route.cadence'] = story.cadence
   if (Object.keys(patch).length) send(updateDoc(userDoc('entries', id), patch))
 }
 

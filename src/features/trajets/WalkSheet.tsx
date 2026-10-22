@@ -11,18 +11,18 @@ import { deleteEntry, updateEntryRoute } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import type { Entry, WithId } from '../../firebase/types'
 import { useReadOnly } from '../../firebase/viewer'
-import { isToTell, momentReaction, routeMomentInfo, storeRoute, type Route } from '../../lib/route'
+import { fromStored, isToTell, momentReaction, routeMomentInfo, storeRoute, type Route } from '../../lib/route'
 import { stopStreet } from '../../lib/street'
 import { useBack } from '../../lib/useBack'
-import { sheetStats, sourceLabels, walkSubtitle } from '../../lib/walkSheet'
+import { sheetStats, sourceLabels, sourceLine, walkSubtitle } from '../../lib/walkSheet'
+import { dogAgeLine, markNewStreets, streetsBefore, timesBefore, timesBeforeText } from '../../lib/walkFacts'
 import { walkTimeline, type TimelineEvent } from '../../lib/walkTimeline'
 import { tellQueue, type TellItem } from '../../lib/walkTell'
 import { postcardDateLine, postcardLine, postcardRoute } from '../../lib/postcard'
 import { MomentChips } from '../journal/EntryCard'
 import { PhotoViewer } from '../journal/PhotoViewer'
 import { setDraftPhotos } from '../journal/draft'
-import { PaceChart } from './PaceChart'
-import { hasNumbers, WalkNumbers } from './WalkNumbers'
+import { BodyBlock, PaceBlock, ReliefBlock, RouteBlock, WeatherBlock } from './WalkBlocks'
 import { WalkMap } from './WalkMap'
 import { WalkTimeline } from './WalkTimeline'
 import { ToProfile } from './ToProfile'
@@ -33,13 +33,14 @@ import { dogName } from '../../lib/dogName'
 type WalkEntry = WithId<Entry> & { pending?: boolean }
 
 /**
- * La fiche de balade (spec V6 § 6.1, remplace V3-CarnetTrajet) : une seule page qui défile. La carte colorée par allure,
- * le titre, les Stats, l’allure, « Ce qui s’est passé », les photos, « Tous les chiffres »
- * (replié), les sources, puis Modifier et Supprimer. Une balade ancienne (sans trajet daté) ne montre que ce qu’elle a.
+ * La fiche de balade (spec V6 § 6.1, V6.1 § 7 / T-102) : une seule page qui défile et montre tout ce qu’on sait, en blocs
+ * visibles. La carte (allure, arrêts, départ, sens de marche), le titre et l’âge du chien ce jour-là, les Stats, l’allure,
+ * « Ce qui s’est passé », le parcours, le relief, le corps, la météo, les photos, les sources, puis Partager, Ajuster,
+ * Modifier et Supprimer. Chaque bloc n’apparaît que s’il a des données (une balade ancienne ne montre que ce qu’elle a).
  */
 export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) {
   const readOnly = useReadOnly()
-  const { dog } = useData()
+  const { dog, entries } = useData()
   const navigate = useNavigate()
   const back = useBack('/balades')
   // T-098 : le retour dit où il ramène (« La carte », « Accueil ») ; par défaut, la liste « Ses balades ».
@@ -67,7 +68,12 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
   const events = useMemo(() => walkTimeline(route, { startStreet }), [route, startStreet])
   const sources = sourceLabels(route, entry.source)
   const untold = tellQueue(route)
-  const showPace = Boolean(route.track && route.pace && route.pace.length > 1)
+  const age = dogAgeLine(dog, entry.date)
+  // Le parcours : « nouvelle » est recalculé ici sur toutes les balades d’avant (une balade plus ancienne importée après
+  // compte aussi) ; le trajet déjà fait, sur les balades d’avant presque identiques.
+  const walks = useMemo(() => entries.filter((e) => e.route).map((e) => ({ id: e.id, date: e.date, startTime: e.route!.startTime, streets: e.route!.streets, points: fromStored(e.route!.points) })), [entries])
+  const streets = useMemo(() => (route.streets?.length ? markNewStreets(route.streets.map((s) => s.name), streetsBefore(walks, { id: entry.id, date: entry.date, startTime: route.startTime })) : []), [walks, route.streets, route.startTime, entry.id, entry.date])
+  const again = useMemo(() => timesBeforeText(timesBefore({ id: entry.id, date: entry.date, startTime: route.startTime, points: route.points }, walks)), [walks, route.points, route.startTime, entry.id, entry.date])
   const placeOnStop = usePlaceOnStop(entry.id, route)
   const removeMoment = (index: number) => updateEntryRoute(entry.id, storeRoute({ ...route, moments: route.moments.filter((_, j) => j !== index) }))
   // Sous un repère : « Ajouter à Comment il réagit » (peur, grogne : seulement si on le choisit) et « Retirer ».
@@ -138,6 +144,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
           <span className="surtitre text-primary">Balade avec {dogName(dog)}</span>
           <h1 className="title-screen">{name || 'Balade'}</h1>
           <p className="text-[0.9412rem] text-muted">{walkSubtitle({ date: entry.date, startTime: route.startTime, endTime: route.endTime, commune: entry.commune, trimmed: route.track ? route.trimmed : undefined })}</p>
+          {age && <p className="text-[0.9412rem] text-muted">{age}</p>}
           <Pending show={Boolean(entry.pending)} />
         </div>
         {notes && <p className="-mt-2 text-[1rem] leading-[1.45] whitespace-pre-wrap">{notes}</p>}
@@ -145,26 +152,8 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
 
         {/* 3. Stats : durée · distance · en marche · arrêts. */}
         <Stats items={sheetStats(route)} />
-        {/* § 8.4 : la carte postale, en action secondaire (l’orange reste « Raconter la balade »). */}
-        {!readOnly && (
-          <button type="button" aria-label="Partager une carte postale de la balade" onClick={() => setPostcard(true)} className="btn-text -mt-2 -ml-1 self-start">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" />
-              <path d="M8 11H6a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-2" />
-            </svg>
-            Partager
-          </button>
-        )}
-
-        {/* 4. L’allure minute par minute. */}
-        {showPace && (
-          <section className="flex flex-col gap-2">
-            <h2 className="title-section">Allure</h2>
-            <div className="card p-4">
-              <PaceChart route={route} onScrub={setCursor} />
-            </div>
-          </section>
-        )}
+        {/* 4. L’allure : courbe, vitesse moyenne en marche, vitesse max, km par km. */}
+        <PaceBlock route={route} onScrub={setCursor} />
 
         {/* 5. Ce qui s’est passé. */}
         {events.length > 0 && (
@@ -174,7 +163,13 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
           </section>
         )}
 
-        {/* 7. Les photos de la balade (photothèque seulement). */}
+        {/* 6 à 9. Le parcours, le relief, le corps, la météo. */}
+        <RouteBlock streets={streets} places={route.places ?? []} again={again} />
+        <ReliefBlock route={route} />
+        <BodyBlock route={route} healthSource={sources.health} />
+        <WeatherBlock weather={route.weather} />
+
+        {/* 10. Les photos de la balade (photothèque seulement). */}
         {(entry.photos.length > 0 || !readOnly) && (
           <section className="flex flex-col gap-2">
             <h2 className="title-section">Photos</h2>
@@ -203,23 +198,23 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
           </section>
         )}
 
-        {/* 8. Tous les chiffres, repliés. */}
-        {hasNumbers(route) && <WalkNumbers route={route} entrySource={entry.source} />}
-
-        {/* 9. Sources, puis Modifier et Supprimer. */}
-        {/* R-092 : « Source : Fichier », la même étiquette que dans la liste des balades. */}
-        <p className="source-note -mt-2">{[`Source\u00a0: ${sources.track}`, sources.weather, sources.places].filter(Boolean).join(' · ')}</p>
+        {/* 11. Les sources, puis les actions en texte. */}
+        <p className="source-note">{sourceLine(route, entry.source)}</p>
         {!readOnly && (
-          <div className="flex flex-wrap items-center gap-x-6 border-t border-divider pt-2">
-            <Link to={`/souvenir/${entry.id}/modifier`} className="btn-text -ml-1">
-              Modifier
-            </Link>
+          <div className="-mt-2 flex flex-wrap items-center gap-x-6 border-t border-divider pt-2">
+            {/* § 8.4 : la carte postale (l’orange reste « Raconter la balade »). */}
+            <button type="button" aria-label="Partager une carte postale de la balade" onClick={() => setPostcard(true)} className="btn-text -ml-1">
+              Partager
+            </button>
             {/* § 8.3 : seulement avec un trajet daté (les anciennes balades n’ont rien à recadrer). */}
             {route.track && (
               <Link to={`/souvenir/${entry.id}/recadrer`} className="btn-text">
                 Ajuster le début et la fin
               </Link>
             )}
+            <Link to={`/souvenir/${entry.id}/modifier`} className="btn-text">
+              Modifier
+            </Link>
             <button type="button" onClick={() => setConfirmDelete(true)} className="btn-text text-danger">
               Supprimer
             </button>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Route } from './route'
 import type { Track } from './track'
-import { averageKmh, clockLabel, hrSummary, kmSplits, paceAt, paceSegments, paceSummary, sheetStats, sourceLabels, splitLabel, splitTime, untoldStops, walkSeconds, walkSubtitle, weatherText } from './walkSheet'
+import { averageKmh, clockLabel, hrSummary, kmSplits, paceAt, paceSegments, paceSummary, sheetStats, sourceLabels, sourceLine, splitLabel, splitTime, untoldStops, walkSeconds, walkSubtitle, weatherText } from './walkSheet'
 
 const M_PER_DEG = 111_195
 
@@ -96,6 +96,13 @@ describe('les chiffres', () => {
     expect(sourceLabels({ moments: [] })).toEqual({ track: 'Notée' })
     expect(sourceLabels({ source: 'gpx', moments: [] }, 'strava')).toEqual({ track: 'Fichier' })
     expect(sourceLabels({ moments: [] }, 'strava')).toEqual({ track: 'Fichier' })
+  })
+
+  it('T-102 : la ligne des sources, sans nom de propriétaire', () => {
+    expect(sourceLine({ source: 'watch', hr: [90], moments: [], weather: { tempC: 12, source: 'open-meteo' }, streets: [{ name: 'Rue des Lilas' }] })).toBe('Enregistré par l’Apple Watch · Météo Open-Meteo · Lieux © OpenStreetMap')
+    expect(sourceLine({ source: 'gps', steps: 3000, moments: [], weather: { tempC: 12, source: 'watch', daylight: 'jour' } })).toBe('Enregistré par l’iPhone · Cœur et pas\u00a0: Santé (Apple Watch) · Météo Apple Watch et Open-Meteo')
+    expect(sourceLine({ moments: [] }, 'strava')).toBe('Importé d’un fichier')
+    expect(sourceLine({ moments: [] })).toBe('Tracé à la main')
   })
 })
 

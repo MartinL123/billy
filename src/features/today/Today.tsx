@@ -29,6 +29,7 @@ import { LifeTiles } from './LifeTiles'
 import { useCurrentWalk } from '../balades/useCurrentWalk'
 import { elapsedMs, minutesSince } from '../../lib/gpsWalk'
 import { isNative } from '../../native'
+import { dogName } from '../../lib/dogName'
 
 // « Plus tard » sur la pesée : on n’en reparle pas avant demain (choix gardé sur cet appareil).
 const WEIGH_LATER_KEY = 'billy-pesee-plus-tard'
@@ -174,7 +175,7 @@ function useCardContent(card: NowCard, onWeighLater: () => void, onNote: (slot: 
       const name = walkName(card.time).replace(/^la s/, 'S')
       return {
         badge: `${name} · ${formatHour(card.time)}`,
-        title: `C’est l’heure de sortir ${dog.name}`,
+        title: `C’est l’heure de sortir ${dogName(dog)}`,
         text: `${advised ? `${advised}\u00a0min conseillées. ` : ''}${isNative() ? 'Le tracé lève le brouillard sur la carte.' : 'Une fois rentrés, notez-la en un toucher.'}`,
         scene: 'laisse',
         action: isNative() ? ({ label: 'Partir en balade', to: '/balade-en-cours?depart=1' } as Action) : ({ label: 'Je l’ai faite', run: () => onNote(card.slot) } as Action),
@@ -214,7 +215,7 @@ function useCardContent(card: NowCard, onWeighLater: () => void, onNote: (slot: 
     case 'pesee':
       return {
         badge: 'Pesée du mois',
-        title: `Peser ${dog.name}`,
+        title: `Peser ${dogName(dog)}`,
         text: `${card.last ? `Dernière pesée le ${formatLong(card.last)}.` : 'Aucune pesée notée.'} Il grandit : une pesée par mois suffit.`,
         scene: undefined,
         action: { label: 'Noter son poids', to: '/sante/poids?ajouter=1' },
@@ -240,6 +241,8 @@ function useCardContent(card: NowCard, onWeighLater: () => void, onNote: (slot: 
  */
 export default function Today() {
   const { dog, events, walks, weights, entries, online } = useData()
+  // R-089 : sans nom, « Bonjour ! » plutôt que « Bonjour, Votre chien ».
+  const hello = dog.unnamed ? `Bonjour\u00a0!` : `Bonjour, ${dog.name}`
   // Visiteur (T-048) : pas de carte du moment, rien à faire, tout à regarder.
   const readOnly = useReadOnly()
   const today = useToday()
@@ -318,12 +321,12 @@ export default function Today() {
       <header className="flex items-center gap-3">
         {/* La photo et le nom forment un seul bouton vers l’écran du chien (audit R-009).
             VoiceOver (R-067) : « Bonjour, Billy » d’abord, comme à l’écran, puis la date et la destination. */}
-        <Link to="/billy" aria-label={`Bonjour, ${dog.name}, ${formatDayHeading(today)}. Voir ses progrès`} className="tap flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-[20px] text-text no-underline">
+        <Link to="/billy" aria-label={`${hello}, ${formatDayHeading(today)}. Voir ses progrès`} className="tap flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-[20px] text-text no-underline">
           <DogPhoto size={52} />
           <span className="flex min-w-0 flex-col">
             <span className="text-[0.8824rem] font-medium text-muted">{formatDayHeading(today)}</span>
             {/* Jamais coupé (V5) : plus petit sur un écran étroit, puis à la ligne. */}
-            <span className="font-display text-[clamp(21px,7vw,26px)] leading-tight font-semibold break-words">Bonjour, {dog.name}</span>
+            <span className="font-display text-[clamp(21px,7vw,26px)] leading-tight font-semibold break-words">{hello}</span>
           </span>
         </Link>
         {/* Gelé (T-072) : la pastille d’os vers la boutique est retirée ; les os restent en base. */}
@@ -349,7 +352,7 @@ export default function Today() {
         plan={walkPlan}
         times={times}
         yesterday={{ date: yesterday, slots: yesterdayOpen }}
-        sentence={walksSentence(walkPlan.slots, input.budget?.next, dog.name)}
+        sentence={walksSentence(walkPlan.slots, input.budget?.next, dogName(dog))}
         onNote={note}
         showStart={card.kind !== 'sortie'}
         pending={!online}

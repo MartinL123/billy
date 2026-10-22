@@ -280,7 +280,7 @@ export default function Explorer() {
       {/* Panneau du bas, dans la zone du pouce : il suit le doigt et se cale ouvert ou réduit (filtres toujours visibles). */}
       <section
         ref={sheet.ref}
-        aria-label={`Le territoire ${ofName(dog.name)}`}
+        aria-label={dog.unnamed ? 'Son territoire' : `Le territoire ${ofName(dog.name)}`}
         {...sheet.handlers}
         style={sheet.style}
         className={`absolute inset-x-0 top-[calc(env(safe-area-inset-top)+62px)] bottom-0 z-10 mx-auto flex max-w-[430px] ${selected || walk ? 'invisible' : ''} flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]`}
@@ -305,7 +305,8 @@ export default function Explorer() {
           <div ref={peekRef} className="flex items-end justify-between gap-3">
             <div className="flex min-w-0 flex-col">
               <span className="text-milestone-dark surtitre">Le quartier</span>
-              <h1 className="title-section">Le territoire {ofName(dog.name)}</h1>
+              {/* R-089 : sans nom, « Son territoire ». */}
+              <h1 className="title-section">{dog.unnamed ? 'Son territoire' : `Le territoire ${ofName(dog.name)}`}</h1>
             </div>
             {share !== undefined && commune && (
               <p className="flex shrink-0 flex-col items-end leading-none" aria-label={shareLabel(share, commune.name)}>

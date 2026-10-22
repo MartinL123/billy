@@ -113,4 +113,5 @@ export const agree = (word: string, sex: string | undefined): string => {
  * « de » + un nom propre, avec élision (audit R-007) : « d’Oslo », « d’Hector », « d’Élise », mais « de Billy ».
  * Le « h » est traité comme muet (cas le plus courant pour un prénom).
  */
-export const ofName = (name: string): string => (/^[aeiouyhàâäéèêëîïôöùûüœæAEIOUYHÀÂÄÉÈÊËÎÏÔÖÙÛÜŒÆ]/.test(name.trim()) && !/^[Yy][aeiouéèêàâôû]/.test(name.trim()) ? `d’${name}` : `de ${name}`)
+// R-089 : « Votre chien » (chien sans nom, store.tsx) devient « de votre chien » au milieu d’une phrase.
+export const ofName = (name: string): string => name.trim() === 'Votre chien' ? 'de votre chien' : (/^[aeiouyhàâäéèêëîïôöùûüœæAEIOUYHÀÂÄÉÈÊËÎÏÔÖÙÛÜŒÆ]/.test(name.trim()) && !/^[Yy][aeiouéèêàâôû]/.test(name.trim()) ? `d’${name}` : `de ${name}`)

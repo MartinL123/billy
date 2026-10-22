@@ -27,7 +27,7 @@ export default function Welcome() {
   }, [])
   return (
     <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col px-6 pt-[calc(env(safe-area-inset-top)+40px)] pb-[calc(env(safe-area-inset-bottom)+24px)]">
-      <h1 className="title-screen">Bienvenue, {dog.name} !</h1>
+      <h1 className="title-screen">{dog.unnamed ? 'Bienvenue !' : `Bienvenue, ${dog.name} !`}</h1>
       <p className="mt-2 text-[1rem] leading-snug text-[#3F4946]">Voici ce que vous allez faire ensemble.</p>
       <span className="mt-4 inline-flex items-center gap-2 self-start rounded-full bg-gold-soft px-3.5 py-2 text-[0.9412rem] font-bold text-gold-dark">
         <BoneIcon size={20} />+{gift.amount} os pour bien commencer

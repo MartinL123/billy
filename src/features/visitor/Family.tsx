@@ -8,6 +8,7 @@ import { createInvite, removeViewer, stopViewing, watchViewers, type Viewer } fr
 import { formatLong } from '../../lib/dates'
 import { inviteLink } from '../../lib/visitor'
 import { restartApp } from './Invitation'
+import { dogName } from '../../lib/dogName'
 
 /**
  * Profil › Famille (T-048) : inviter un proche à regarder, en lecture seule (balades, souvenirs, santé, progrès ;
@@ -28,7 +29,7 @@ export function FamilySection() {
       const url = inviteLink(await createInvite(), window.location)
       setLink(url)
       // Le partage d’iOS (Messages, WhatsApp…) ; sinon le lien est copié.
-      if (navigator.share) await navigator.share({ title: `Suivre ${dog.name}`, url }).catch(() => undefined)
+      if (navigator.share) await navigator.share({ title: `Suivre ${dogName(dog)}`, url }).catch(() => undefined)
       else await copy(url)
     } catch {
       toast('Pas de réseau : réessayez une fois connecté.')
@@ -48,7 +49,7 @@ export function FamilySection() {
   return (
     <section className="flex flex-col gap-2.5">
       <h2 className="title-section">Famille</h2>
-      <p className="text-[0.8824rem] leading-snug text-[#3F4946]">Un proche suit {dog.name} depuis son compte : balades, souvenirs, santé et progrès, sans rien pouvoir modifier. Les documents restent privés.</p>
+      <p className="text-[0.8824rem] leading-snug text-[#3F4946]">Un proche suit {dogName(dog)} depuis son compte : balades, souvenirs, santé et progrès, sans rien pouvoir modifier. Les documents restent privés.</p>
       {viewers.length > 0 && (
         <ul className="card m-0 flex list-none flex-col px-4 py-1">
           {viewers.map((viewer, i) => (
@@ -76,7 +77,7 @@ export function FamilySection() {
       {removing && (
         <ConfirmSheet
           title={'Retirer ce proche\u00a0?'}
-          message={`${removing.email || 'Ce proche'} ne verra plus ${dog.name}. Vous pourrez l’inviter à nouveau.`}
+          message={`${removing.email || 'Ce proche'} ne verra plus ${dogName(dog)}. Vous pourrez l’inviter à nouveau.`}
           confirmLabel="Retirer"
           onCancel={() => setRemoving(undefined)}
           onConfirm={() => {

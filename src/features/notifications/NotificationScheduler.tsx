@@ -5,6 +5,7 @@ import { useToday } from '../../lib/useToday'
 import { walkTimes } from '../../lib/walks'
 import { isNative } from '../../native'
 import { replaceNotifications } from './localNotifications'
+import { dogName } from '../../lib/dogName'
 
 /**
  * App iOS (T-042) : replanifie les notifications locales à chaque ouverture, au retour au premier plan, et dès que le
@@ -32,7 +33,7 @@ export function NotificationScheduler() {
   useEffect(() => {
     if (!isNative()) return
     const timer = window.setTimeout(() => {
-      const plan = planNotifications({ now: new Date(), dogName: dog.name, events, times: walkTimes(dog.walkTimes), doneToday: doneToday ?? {}, prefs: readPrefs(dog.notifications) })
+      const plan = planNotifications({ now: new Date(), dogName: dogName(dog), events, times: walkTimes(dog.walkTimes), doneToday: doneToday ?? {}, prefs: readPrefs(dog.notifications) })
       replaceNotifications(plan).catch((error) => console.error('Notifications non planifiées', error))
     }, 500)
     return () => window.clearTimeout(timer)

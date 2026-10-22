@@ -6,6 +6,7 @@ import { readRoute } from '../../lib/route'
 import { recapStats, stopChips, stopsLine } from '../../lib/walkRecap'
 import { discoverySentence, walkDiscovery } from '../../lib/walkSheet'
 import { tellQueue } from '../../lib/walkTell'
+import { dogName } from '../../lib/dogName'
 
 /**
  * Le panneau du récap « Belle balade ! » (V6 § 6.3), après « Terminer » (GPS de Flair) ou à l’arrivée d’une balade de
@@ -32,7 +33,7 @@ export function WalkRecap({ entryId, overline, subtitle, bones, fallback }: { en
       <div className="flex flex-col items-center gap-1 text-center">
         {overline && <span className="surtitre text-milestone-dark">{overline}</span>}
         <h1 className="title-screen">Belle balade !</h1>
-        <p className="text-[0.9412rem] text-[#3F4946]">{discovery ? discoverySentence(dog.name, discovery.newCells) : `Avec ${dog.name}`}{subtitle ? ` · ${subtitle}` : ''}</p>
+        <p className="text-[0.9412rem] text-[#3F4946]">{discovery ? discoverySentence(dog.name, discovery.newCells) : `Avec ${dogName(dog)}`}{subtitle ? ` · ${subtitle}` : ''}</p>
       </div>
       <Stats items={recapStats({ distanceM: route?.distanceM ?? fallback.distanceM, discovery, bones: gained })} className="rounded-[16px] bg-bg px-4 py-3" />
       {untold > 0 && route ? (

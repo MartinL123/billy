@@ -22,6 +22,7 @@ import { useQuest } from '../today/useQuest'
 import { Illustration } from './Illustration'
 import { place } from '../../lib/garden'
 import { sessionStart } from '../../firebase/journal'
+import { dogName } from '../../lib/dogName'
 
 const GENERIC_TIP = 'S’il ne mange plus, il est trop stressé : arrêtez et revenez plus facile la prochaine fois.'
 
@@ -125,7 +126,7 @@ function RestDay() {
         <p className="text-[0.8824rem] leading-snug text-white/90">{quest.afterHardDay ? 'Hier était difficile : aujourd’hui, on souffle.' : 'Un jour sans exercice l’aide à retenir ce qu’il apprend.'}</p>
       </header>
       <main className="flex flex-col gap-4 px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+120px)]">
-        <h2 className={sectionTitle}>Des idées pour {dog.name}</h2>
+        <h2 className={sectionTitle}>Des idées pour {dogName(dog)}</h2>
         <ul className="card m-0 flex list-none flex-col p-0">
           {REST_IDEAS.map((idea, i) => (
             <li key={idea} className={`px-4 py-3.5 text-[1rem] leading-snug ${i ? 'border-t border-divider' : ''}`}>

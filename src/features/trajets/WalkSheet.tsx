@@ -29,6 +29,7 @@ import { WalkTimeline } from './WalkTimeline'
 import { ToProfile } from './ToProfile'
 import { StopTiles, usePlaceOnStop } from './StopTiles'
 import { Postcard } from './Postcard'
+import { dogName } from '../../lib/dogName'
 
 type WalkEntry = WithId<Entry> & { pending?: boolean }
 
@@ -135,7 +136,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
       <main className={`flex flex-col gap-5 px-5 pt-4 ${untold.length && !readOnly ? 'pb-[calc(env(safe-area-inset-bottom)+112px)]' : 'pb-[calc(env(safe-area-inset-bottom)+40px)]'}`}>
         {/* 2. Surtitre, titre, sous-titre. */}
         <div className="flex flex-col gap-1">
-          <span className="surtitre text-primary">Balade avec {dog.name}</span>
+          <span className="surtitre text-primary">Balade avec {dogName(dog)}</span>
           <h1 className="title-screen">{name || 'Balade'}</h1>
           <p className="text-[0.9412rem] text-muted">{walkSubtitle({ date: entry.date, startTime: route.startTime, endTime: route.endTime, commune: entry.commune, trimmed: route.track ? route.trimmed : undefined })}</p>
           <Pending show={Boolean(entry.pending)} />
@@ -258,7 +259,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
         <Postcard
           date={entry.date}
           onClose={() => setPostcard(false)}
-          input={{ points: postcardRoute(route.points, route.distanceM), title: name || 'Balade', line: postcardLine(route.distanceM, discovery?.newCells ?? 0), dateLine: postcardDateLine(entry.date, entry.commune), dogName: dog.name, ...(dog.photoThumbFileId || dog.photoFileId ? { dogPhotoFileId: dog.photoThumbFileId ?? dog.photoFileId } : {}) }}
+          input={{ points: postcardRoute(route.points, route.distanceM), title: name || 'Balade', line: postcardLine(route.distanceM, discovery?.newCells ?? 0), dateLine: postcardDateLine(entry.date, entry.commune), dogName: dogName(dog), ...(dog.photoThumbFileId || dog.photoFileId ? { dogPhotoFileId: dog.photoThumbFileId ?? dog.photoFileId } : {}) }}
         />
       )}
       {viewer !== null && <PhotoViewer photos={entry.photos} start={viewer} onClose={() => setViewer(null)} />}

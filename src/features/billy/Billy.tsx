@@ -17,6 +17,7 @@ import { place, placeSkill } from '../../lib/garden'
 import { useToday } from '../../lib/useToday'
 import { DogPhoto } from '../shop/DogPhoto'
 import { useReadOnly } from '../../firebase/viewer'
+import { dogName } from '../../lib/dogName'
 
 const capital = (text: string) => text.replace(/^./, (c) => c.toLocaleUpperCase('fr'))
 
@@ -120,7 +121,7 @@ export default function Billy() {
         })}
       </section>
 
-      <nav aria-label={`Tout sur ${dog.name}`} className="grid grid-cols-2 gap-3">
+      <nav aria-label={`Tout sur ${dogName(dog)}`} className="grid grid-cols-2 gap-3">
         {tiles.map((tile) => (
           <Link key={tile.title} to={tile.to} className="card tap flex min-h-[88px] flex-col gap-1 rounded-[20px] p-3.5 text-text no-underline">
             <span className="title-card">{tile.title}</span>

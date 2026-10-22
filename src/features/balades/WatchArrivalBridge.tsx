@@ -7,6 +7,7 @@ import { arrivalPath } from '../../lib/watchArrival'
 import { isNative } from '../../native'
 import { setWatchNotify } from '../../native/flair'
 import { watchOptedIn } from './watchImport'
+import { realDogName } from '../../lib/dogName'
 
 /**
  * App iOS (T-084, spec V6 § 4) : le pont avec la notification « Belle balade avec Billy ! ».
@@ -31,8 +32,8 @@ export function WatchArrivalBridge() {
   }, [])
 
   useEffect(() => {
-    setWatchNotify({ optedIn, enabled, dogName: dog.name })
-  }, [optedIn, enabled, dog.name])
+    setWatchNotify({ optedIn, enabled, dogName: realDogName(dog) })
+  }, [optedIn, enabled, dog.name, dog.unnamed])
 
   useEffect(() => {
     if (!isNative()) return

@@ -11,6 +11,7 @@ import { isNative } from '../../native'
 import { haptic } from '../../native/flair'
 import { watchOptedIn } from '../balades/watchImport'
 import { declineMotion, dismissMotionPeriod, motionDeclined, useMotion } from './useMotion'
+import { dogName } from '../../lib/dogName'
 
 /** La phrase d’iOS, reprise telle quelle sur la carte et dans le réglage (V6 § 5). */
 export const MOTION_PROMISE = `${APP_NAME} regarde seulement quand vous marchez, jamais où.`
@@ -57,7 +58,7 @@ function MotionCardInner() {
     return (
       <section aria-label="Une marche à noter" className="card flex flex-col gap-1.5 rounded-[20px] px-[18px] pt-[16px] pb-1.5">
         <p className="text-[1rem] leading-snug">
-          {motionSentence(suggestion, today)} <span className="font-bold">C’était une sortie avec {dog.name}{' '}?</span>
+          {motionSentence(suggestion, today)} <span className="font-bold">C’était une sortie avec {dogName(dog)}{' '}?</span>
         </p>
         <div className="flex flex-wrap items-center gap-x-6">
           <button type="button" onClick={yes} className="btn-text">

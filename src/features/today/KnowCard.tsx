@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useData } from '../../firebase/store'
 import { place } from '../../lib/garden'
 import { essentialsDone, nextPart, partComplete, PARTS } from '../../lib/questionnaire'
+import { dogName } from '../../lib/dogName'
 
 /**
  * « Faisons connaissance » (V5, T-050), tant que le questionnaire n’est pas fini : la prochaine partie, 5 petits points
@@ -19,7 +20,7 @@ export function KnowCard() {
       {/* T-072 : plus de « +15 os » par partie, ces os n’étaient donnés que par DressageAwards (retiré). */}
       <span className="text-primary surtitre">Faisons connaissance · 2{'\u00a0'}min</span>
       <h2 className="title-section">{starting ? 'Les questions du départ' : place(PARTS[(part?.part ?? 1) - 1]!)}</h2>
-      <p className="text-[0.8824rem] leading-snug text-[#3F4946]">{part ? `${part.remaining} petite${part.remaining > 1 ? 's' : ''} question${part.remaining > 1 ? 's' : ''}. Ses missions seront choisies pour ${dog.name}.` : 'Quelques questions pour finir.'}</p>
+      <p className="text-[0.8824rem] leading-snug text-[#3F4946]">{part ? `${part.remaining} petite${part.remaining > 1 ? 's' : ''} question${part.remaining > 1 ? 's' : ''}. Ses missions seront choisies pour ${dogName(dog)}.` : 'Quelques questions pour finir.'}</p>
       <div className="flex items-center gap-3">
         <span role="img" aria-label={`${count} partie${count > 1 ? 's' : ''} sur ${PARTS.length} faite${count > 1 ? 's' : ''}`} className="flex gap-1.5">
           {done.map((ok, i) => (

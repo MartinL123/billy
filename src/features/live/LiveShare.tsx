@@ -10,6 +10,7 @@ import { gpsDistance, type GpsPoint } from '../../lib/gpsWalk'
 import { activeShare, cleanProche, followLink, MAX_CHOSEN, newToken, pushDue, walkLiveStatus, withNames, type Proche } from '../../lib/liveShare'
 import { isNative } from '../../native'
 import { FlairNative } from '../../native/flair'
+import { ofDog } from '../../lib/dogName'
 
 // Partage en direct (T-087, spec V6 § 7) : jamais vers la meute, jamais public, jamais automatique.
 
@@ -157,7 +158,7 @@ function LiveShareSheet({ startedAt, points, onClose }: { startedAt: string; poi
     // Rien n’est attendu avant d’ouvrir la feuille de partage d’iOS (elle doit suivre le toucher).
     if (navigator.share) {
       navigator
-        .share({ title: `La balade de ${dog.name}`, text: `Suivez la balade de ${dog.name} en direct`, url })
+        .share({ title: `La balade ${ofDog(dog)}`, text: `Suivez la balade ${ofDog(dog)} en direct`, url })
         .then(() => {
           toast('Lien partagé')
           onClose()

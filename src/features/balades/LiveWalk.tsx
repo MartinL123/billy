@@ -34,6 +34,7 @@ import { LiveShareLine } from '../live/LiveShare'
 import { endLiveShare } from '../../firebase/live'
 import { activeShare } from '../../lib/liveShare'
 import { useLivePrivate } from '../live/useLivePrivate'
+import { dogName, realDogName } from '../../lib/dogName'
 
 /** La boucle suivie (T-089), en pointillés gris : le tracé du jour reste le vert carte. */
 const LOOP_COLOR = '#5C6662'
@@ -241,7 +242,7 @@ export default function LiveWalk() {
       if (!current.active && !params.get('depart')) return navigate('/', { replace: true })
       try {
         const resumed = current.recording || current.autoStopped
-        const walk = resumed ? current : await FlairNative.startWalk({ dogName: data.current.dog.name })
+        const walk = resumed ? current : await FlairNative.startWalk({ dogName: realDogName(data.current.dog) })
         if (!resumed) logEvent({ type: 'walk_start' })
         if (!alive) return
         setReduced(Boolean(walk.reducedAccuracy))
@@ -433,7 +434,7 @@ export default function LiveWalk() {
         <section aria-label="Balade en cours" className="flex flex-col gap-3.5 rounded-t-[26px] bg-surface px-4 pt-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
           <span className="flex items-center gap-2 text-milestone-dark surtitre">
             {!stoppedAt && <span aria-hidden="true" className="live-dot size-2.5 rounded-full bg-[#BF5519]" />}
-            {stoppedAt ? 'Arrêtée après 3 h' : `Balade en cours avec ${dog.name}`}
+            {stoppedAt ? 'Arrêtée après 3 h' : `Balade en cours avec ${dogName(dog)}`}
           </span>
           <Stats
             items={[

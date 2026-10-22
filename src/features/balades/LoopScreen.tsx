@@ -11,6 +11,7 @@ import { useToday } from '../../lib/useToday'
 import { walkItems } from '../../lib/walkList'
 import { isNative } from '../../native'
 import { WalkMap } from '../trajets/WalkMap'
+import { dogName } from '../../lib/dogName'
 
 /**
  * Une boucle pour Billy (spec V6 § 8.2, T-089) : la carte de la balade passée et « Partir en balade ». Pendant la
@@ -38,9 +39,9 @@ export default function LoopScreen() {
           </span>
         </div>
       </div>
-      <section aria-label={`Boucle pour ${dog.name}`} className="flex flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
+      <section aria-label={`Boucle pour ${dogName(dog)}`} className="flex flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
         <div className="flex flex-col gap-0.5">
-          <span className="text-primary surtitre">Boucle pour {dog.name}</span>
+          <span className="text-primary surtitre">Boucle pour {dogName(dog)}</span>
           <h1 className="title-section">{item.name}</h1>
           <p className="text-[0.9412rem] text-muted">{level} · déjà faite ensemble</p>
         </div>

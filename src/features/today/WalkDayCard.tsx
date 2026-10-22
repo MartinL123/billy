@@ -106,7 +106,7 @@ function DoneSlot({ name, minutes, pending, walkId, onEdit }: { name: string; mi
   const spoken = `${name}, faite${minutes ? `, ${minutesText(minutes)}` : ''}`
   if (walkId)
     return (
-      <Link to={`/souvenir/${walkId}`} aria-label={`${spoken}. Voir la balade`} className={`tap ${style}`}>
+      <Link to={`/souvenir/${walkId}`} state={{ retour: 'Accueil' }} aria-label={`${spoken}. Voir la balade`} className={`tap ${style}`}>
         {inner}
       </Link>
     )

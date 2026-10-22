@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { Stats } from '../../components/Stats'
 import { BackLink } from '../../components/BackLink'
 import { outlineButton } from '../../components/Form'
@@ -11,10 +10,11 @@ import { useRef } from 'react'
 import { HOME_CLEARANCE, useSheet } from './useSheet'
 
 /**
- * Le panneau d’une balade ouverte sur la carte : ce qu’elle est, la revoir, y placer des repères. Il se glisse vers le
+ * Le panneau d’une balade ouverte en plein écran sur la carte (depuis sa fiche, T-098) : ce qu’elle est, la revoir,
+ * y placer des repères (R-059). Il se glisse vers le
  * bas comme le panneau des balades (même geste) : réduit, il garde le nom de la balade et la carte prend l’écran.
  */
-export function WalkPanel({ entryId, source, name, date, route, color, replaying, onReplay, onAddMark, onClose, readOnly = false }: { readOnly?: boolean; entryId: string; source?: string; name: string; date: string; route: Route; color?: string; replaying: boolean; onReplay: () => void; /** R-059 : `visibleBottom` = le haut du panneau (la carte visible s’arrête là). */ onAddMark: (visibleBottom: number) => void; onClose: () => void }) {
+export function WalkPanel({ source, name, date, route, color, replaying, onReplay, onAddMark, onClose, readOnly = false }: { readOnly?: boolean; source?: string; name: string; date: string; route: Route; color?: string; replaying: boolean; onReplay: () => void; /** R-059 : `visibleBottom` = le haut du panneau (la carte visible s’arrête là). */ onAddMark: (visibleBottom: number) => void; onClose: () => void }) {
   // R-091 : au cran du milieu, « Revoir la balade » et « Ajouter un repère » entiers, au-dessus du rond Accueil.
   const actionsEnd = useRef<HTMLButtonElement>(null)
   const sheet = useSheet({ halfRef: actionsEnd, bottomInset: HOME_CLEARANCE })
@@ -41,11 +41,9 @@ export function WalkPanel({ entryId, source, name, date, route, color, replaying
           <span className="h-1.5 w-11 rounded-full bg-line-strong" />
         )}
       </button>
-      <div className="flex shrink-0 items-center justify-between">
-        <BackLink label="Toutes les balades" onClick={onClose} />
-        <Link to={`/souvenir/${entryId}`} className="btn-text -mr-1">
-          Le souvenir
-        </Link>
+      {/* T-098 : la carte en plein écran s’ouvre depuis la fiche de la balade ; le retour y ramène. */}
+      <div className="flex shrink-0 items-center">
+        <BackLink label="Sa fiche" onClick={onClose} />
       </div>
       <h1 className="flex shrink-0 items-center gap-2.5 title-section">
         {color && <span className="h-1.5 w-6 shrink-0 rounded-full" style={{ background: color }} aria-hidden="true" />}

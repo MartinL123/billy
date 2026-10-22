@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { BackLink } from '../../components/BackLink'
 import { FileImage } from '../../components/FileImage'
 import { FilePicker } from '../../components/FilePicker'
@@ -43,6 +43,8 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
   const { dog, entries, communes } = useData()
   const navigate = useNavigate()
   const back = useBack('/balades')
+  // T-098 : le retour dit où il ramène (« La carte », « Accueil ») ; par défaut, la liste « Ses balades ».
+  const backLabel = (useLocation().state as { retour?: string } | null)?.retour ?? 'Ses balades'
   const [replaying, setReplaying] = useState(false)
   const [cursor, setCursor] = useState<{ lat: number; lng: number }>()
   const [viewer, setViewer] = useState<number | null>(null)
@@ -108,7 +110,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
       <header className="sticky top-0 z-10 flex items-center bg-bg px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
-        <BackLink label="Ses balades" onClick={back} />
+        <BackLink label={backLabel} onClick={back} />
       </header>
 
       {/* 1. La carte (40 % de la hauteur) : « Revoir la balade » et le plein écran (la carte du territoire). */}

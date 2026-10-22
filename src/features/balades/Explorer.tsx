@@ -11,19 +11,19 @@ import { useData } from '../../firebase/store'
 import { communeAt } from '../../lib/commune'
 import { discoveredShare, inPolygon, knownFog, shareLabel } from '../../lib/fog'
 import { useToday } from '../../lib/useToday'
-import { filterWalks, walkColors, walkItems, walksNear, type WalkFilter } from '../../lib/walkList'
+import { filterWalks, walkColors, walkItems, walksNear, type WalkFilter, type WalkItem } from '../../lib/walkList'
 import type { MapPlace, MapWalk } from './ExplorerMap'
 import { PlaceCard, type Selected } from './PlaceCard'
 import { WalkPanel } from './WalkPanel'
 import { LoopsBlock } from './LoopsBlock'
-import { useSheet } from './useSheet'
+import { useSheet, type Snap } from './useSheet'
 import { PlaceMoment } from '../trajets/PlaceMoment'
 import { updateEntryRoute } from '../../firebase/db'
 import { nearestOnRoute, readRoute, storeRoute, type Route } from '../../lib/route'
 import { useGrantedPosition } from '../../lib/useGrantedPosition'
 import { formatRelative } from '../../lib/dates'
 import { formatRouteDistance } from '../../lib/route'
-import { sharePercent, territoryHint } from '../../lib/territory'
+import { sharePercent, territoryHint, walkLineDetails } from '../../lib/territory'
 import { ofName } from '../../lib/gender'
 import { useReadOnly } from '../../firebase/viewer'
 import { WatchOptIn } from './WatchOptIn'
@@ -59,6 +59,12 @@ const PANEL_FILTERS: { id: WalkFilter; label: string }[] = [
   { id: 'mois', label: 'Ce mois' },
 ]
 
+/** T-098 : le cran du panneau gardé dans l’adresse (« ?cran= »), pour le retrouver au retour de la fiche d’une balade. */
+const SNAPS: Snap[] = ['collapsed', 'half', 'full']
+
+/** T-098 : ce qu’on dit à la fiche d’une balade pour son bouton retour. */
+const FROM_MAP = { retour: 'La carte' }
+
 const pill = 'pointer-events-auto flex min-h-11 items-center gap-1.5 rounded-full border-0 bg-surface px-4 text-[0.8824rem] font-bold text-text shadow-[0_2px_8px_rgba(24,32,30,0.25)]'
 
 const toggle = (on: boolean) => `min-h-11 rounded-full border-0 px-3.5 text-[0.8824rem] font-bold ${on ? 'bg-text text-white' : 'bg-transparent text-text'}`
@@ -70,7 +76,7 @@ export default function Explorer() {
   const readOnly = useReadOnly()
   const [prefs, setPrefs] = useState(readPrefs)
   // « Voir ces balades sur la carte » garde le filtre choisi dans la liste.
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
   const [filter, setFilter] = useState<WalkFilter>(() => (params.get('filtre') as WalkFilter | null) ?? 'toutes')
   // Gelé (T-072) : la carte ne lit plus la meute (ni spots, ni marques) et n’a plus le calque « Spots de la meute ».
@@ -157,7 +163,7 @@ export default function Explorer() {
   }, [readOnly])
   // R-082 : au cran du milieu, la première rangée de balades entière au-dessus de l’action fixée en bas.
   const firstRow = useRef<HTMLUListElement>(null)
-  const sheet = useSheet({ peekRef, halfRef: firstRow, bottomInset: footerHeight })
+  const sheet = useSheet({ peekRef, halfRef: firstRow, bottomInset: footerHeight, start: SNAPS.find((c) => c === params.get('cran')) ?? 'half' })
 
   // Une balade ouverte depuis son souvenir (?balade=…) : mise en avant, replay, repères à placer.
   const walkId = params.get('balade')
@@ -199,6 +205,29 @@ export default function Explorer() {
   // Depuis la carte, ouvrir puis refermer une balade ne laisse pas d’entrée en double dans l’historique (T-024).
   const openWalk = (id: string) => navigate(`/territoire?balade=${encodeURIComponent(id)}${filter !== 'toutes' ? `&filtre=${encodeURIComponent(filter)}` : ''}`, { replace: true })
   const closeWalk = () => navigate(`/territoire${filter !== 'toutes' ? `?filtre=${encodeURIComponent(filter)}` : ''}`, { replace: true })
+  // T-098 : la carte en plein écran s’ouvre depuis la fiche d’une balade ; son retour y ramène.
+  const backToSheet = () => {
+    const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0
+    if (idx > 0) navigate(-1)
+    else if (walkEntry) navigate(`/souvenir/${encodeURIComponent(walkEntry.id)}`, { replace: true })
+    else closeWalk()
+  }
+  // T-098 : le filtre et le cran du panneau dans l’adresse (sans nouvelle entrée d’historique) : le retour de la fiche
+  // d’une balade retrouve le panneau tel qu’on l’a laissé.
+  useEffect(() => {
+    if (walkId) return
+    const next = new URLSearchParams(params)
+    if (filter === 'toutes') next.delete('filtre')
+    else next.set('filtre', filter)
+    if (sheet.snap === 'half') next.delete('cran')
+    else next.set('cran', sheet.snap)
+    if (next.toString() !== params.toString()) setParams(next, { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, sheet.snap, walkId])
+  // T-098 : un tracé touché sur la carte est mis en avant (sa ligne apparaît en bas du panneau) ; touché encore, sa
+  // fiche s’ouvre. Une balade ouverte en plein écran (depuis sa fiche) : un autre tracé prend sa place.
+  const openSheet = (id: string) => navigate(`/souvenir/${encodeURIComponent(id)}`, { state: FROM_MAP })
+  const onTrack = (id: string) => (walk ? openWalk(id) : id === highlight ? openSheet(id) : setHighlight(id))
   // La boussole : l’aiguille suit la carte ; un toucher la remet face au nord.
   const [bearing, setBearing] = useState(0)
   const [north, setNorth] = useState(0)
@@ -208,6 +237,7 @@ export default function Explorer() {
   const highlighted = shown.find((w) => w.id === highlight)
   const onMapTap = () => {
     setSelectedId(null)
+    setHighlight(undefined)
     setDisplay(false)
   }
 
@@ -220,7 +250,7 @@ export default function Explorer() {
   return (
     <div className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
-        <ExplorerMap cells={cells} tracks={tracks} frame={frame} frameKey={frameKey} me={myPos ? [myPos.lat, myPos.lng] : undefined} onWalk={openWalk} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={onMapTap} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} />
+        <ExplorerMap cells={cells} tracks={tracks} frame={frame} frameKey={frameKey} me={myPos ? [myPos.lat, myPos.lng] : undefined} onWalk={onTrack} places={places} satellite={prefs.satellite} three={prefs.three} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={onMapTap} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} />
       </Suspense>
 
       {/* En haut, 2 pilules seulement (V5) : « Affichage » à gauche, « Me situer » à droite. Pincer pour zoomer. */}
@@ -330,7 +360,6 @@ export default function Explorer() {
           ) : (
             <>
               <p className="text-[0.8824rem] leading-snug text-[#3F4946]" aria-live="polite">
-                {highlighted ? <strong className="text-text">{highlighted.name}. </strong> : null}
                 {territoryHint(highlighted, today)}
               </p>
               <div role="group" aria-label="Quoi afficher" className="scroll-row -mx-5 flex gap-1.5 px-5">
@@ -341,7 +370,7 @@ export default function Explorer() {
                 ))}
                 {/* Gelé (T-072) : le bouton « Spots de la meute » est retiré. */}
               </div>
-              {/* Les balades en cartes, à l’horizontale : un toucher la met en avant sur la carte, un autre la relâche. */}
+              {/* Les balades en cartes, à l’horizontale : un toucher ouvre sa fiche (T-098). */}
               {shown.length === 0 ? (
                 <p className="text-[0.8824rem] text-muted">Aucune balade pour ce choix.</p>
               ) : (
@@ -350,12 +379,12 @@ export default function Explorer() {
                     const on = w.id === highlight
                     return (
                       <li key={w.id} className="shrink-0">
-                        <button type="button" aria-pressed={on} onClick={() => setHighlight(on ? undefined : w.id)} className={`tap flex h-full w-[164px] flex-col items-start gap-1 rounded-[16px] border-2 border-solid bg-surface px-3 py-2.5 text-left text-text ${on ? 'border-primary' : 'border-[#E6EAE7]'}`}>
+                        <Link to={`/souvenir/${encodeURIComponent(w.id)}`} state={FROM_MAP} className={`tap flex h-full w-[164px] flex-col items-start gap-1 rounded-[16px] border-2 border-solid bg-surface px-3 py-2.5 text-left text-text no-underline ${on ? 'border-primary' : 'border-[#E6EAE7]'}`}>
                           <span className="h-1.5 w-7 rounded-full" style={{ background: colors.get(w.id) }} aria-hidden="true" />
                           <span className="title-card line-clamp-2">{w.name}</span>
                           <span className="text-[0.7647rem] text-[#3F4946]">{formatRelative(w.date, today).replace(/^./, (c) => c.toLocaleUpperCase('fr'))}</span>
                           <Stats items={[{ value: formatRouteDistance(w.route.distanceM), label: 'Distance' }, { value: w.route.durationMin ? formatDuration(w.route.durationMin) : '', label: 'Durée' }]} className="mt-auto self-stretch" />
-                        </button>
+                        </Link>
                       </li>
                     )
                   })}
@@ -367,12 +396,6 @@ export default function Explorer() {
                   </li>
                 </ul>
               )}
-              {highlighted && (
-                <button type="button" onClick={() => openWalk(highlighted.id)} className="btn-text -ml-1 self-start">
-                  La revoir et y placer des repères
-                  <ChevronRightIcon size={18} />
-                </button>
-              )}
               {/* T-089 : « Boucles pour Billy » (app iOS : on part de là en balade), seulement avec la position. */}
               {isNative() && !readOnly && here && <LoopsBlock walks={walks} here={here} known={cells} dogName={dog.name} birthDate={dog.birthDate} today={today} />}
             </>
@@ -383,6 +406,7 @@ export default function Explorer() {
           panneau (R-077), au-dessus du rond Accueil qui dépasse de 26 px de la barre (R-072). */}
       {!readOnly && (
           <div ref={footerRef} className={`absolute inset-x-0 bottom-0 z-[11] mx-auto flex max-w-[430px] flex-col gap-2 bg-surface px-5 pt-2 pb-9 ${selected || walk ? 'invisible' : ''}`}>
+            {highlighted && <TrackLine walk={highlighted} color={colors.get(highlighted.id)} today={today} />}
             {isNative() ? (
               <>
                 <Link to="/balade-en-cours?depart=1" className="tap btn btn-main min-h-[56px]">
@@ -402,7 +426,13 @@ export default function Explorer() {
             )}
           </div>
           )}
-      {walk && walkEntry && !selected && <WalkPanel readOnly={readOnly} entryId={walkEntry.id} source={walkEntry.source} name={walks.find((w) => w.id === walkEntry.id)?.name ?? 'La balade'} date={walkEntry.date} route={walk.route} color={walk.color} replaying={replaying} onReplay={() => setReplaying(!replaying)} onAddMark={addMark} onClose={closeWalk} />}
+      {/* Visiteur : pas d’action fixée en bas, la ligne du tracé touché y prend place seule. */}
+      {readOnly && highlighted && !selected && !walk && (
+        <div className="absolute inset-x-0 bottom-0 z-[11] mx-auto flex max-w-[430px] flex-col bg-surface px-5 pt-2 pb-9">
+          <TrackLine walk={highlighted} color={colors.get(highlighted.id)} today={today} />
+        </div>
+      )}
+      {walk && walkEntry && !selected && <WalkPanel readOnly={readOnly} source={walkEntry.source} name={walks.find((w) => w.id === walkEntry.id)?.name ?? 'La balade'} date={walkEntry.date} route={walk.route} color={walk.color} replaying={replaying} onReplay={() => setReplaying(!replaying)} onAddMark={addMark} onClose={backToSheet} />}
       {placing && walkRoute && (
         <PlaceMoment
           at={placing}
@@ -427,5 +457,19 @@ export default function Explorer() {
         />
       )}
     </div>
+  )
+}
+
+/** T-098 : la ligne d’un tracé touché sur la carte, « Balade du matin · 22 oct. · 2,1 km › » : la toucher ouvre sa fiche. */
+function TrackLine({ walk, color, today }: { walk: WalkItem; color?: string; today: string }) {
+  return (
+    <Link to={`/souvenir/${encodeURIComponent(walk.id)}`} state={FROM_MAP} aria-label={`${walk.name}, ${walkLineDetails(walk, today)}. Ouvrir sa fiche`} className="anim-pop tap -mx-2 flex min-h-12 items-center gap-2.5 rounded-[14px] bg-bg px-3 text-[0.9412rem] text-text no-underline">
+      <span className="h-1.5 w-6 shrink-0 rounded-full" style={{ background: color ?? ROUTE_COLOR }} aria-hidden="true" />
+      <span className="flex min-w-0 gap-1">
+        <span className="min-w-0 truncate font-bold">{walk.name}</span>
+        <span className="shrink-0 text-[#3F4946]">· {walkLineDetails(walk, today)}</span>
+      </span>
+      <ChevronRightIcon size={18} className="ml-auto shrink-0 text-primary" />
+    </Link>
   )
 }

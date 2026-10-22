@@ -36,8 +36,16 @@ export default function Walks() {
   const today = useToday()
   const navigate = useNavigate()
   const back = useBack('/territoire')
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
   const [filter, setFilter] = useState<WalkFilter>(() => (params.get('filtre') as WalkFilter | null) ?? 'toutes')
+  // T-098 : le filtre dans l’adresse (sans nouvelle entrée d’historique) : le retour de la fiche d’une balade le retrouve.
+  useEffect(() => {
+    const next = new URLSearchParams(params)
+    if (filter === 'toutes') next.delete('filtre')
+    else next.set('filtre', filter)
+    if (next.toString() !== params.toString()) setParams(next, { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter])
   const [all, setAll] = useState(false)
   const walks = useMemo(() => walkItems(entries), [entries])
   const shown = useMemo(() => filterWalks(walks, filter, today), [walks, filter, today])

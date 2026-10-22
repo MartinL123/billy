@@ -11,7 +11,7 @@ import { dogName } from '../../lib/dogName'
 /**
  * Le panneau du récap « Belle balade ! » (V6 § 6.3), après « Terminer » (GPS de Flair) ou à l’arrivée d’une balade de
  * la Watch : surtitre, une phrase, Stats (distance · % découvert gagné · os), les arrêts et « Raconter la balade » ;
- * sans arrêt à raconter, « Voir son territoire » et « Ajouter un souvenir », comme avant.
+ * sans arrêt à raconter, « Voir la balade » (sa fiche, T-098) et « Ajouter un souvenir ».
  * `fallback` : ce qu’on sait déjà si la balade n’est pas encore lue dans la base locale.
  */
 export function WalkRecap({ entryId, overline, subtitle, bones, fallback }: { entryId: string; overline?: string; subtitle?: string; bones?: number; fallback: { distanceM: number } }) {
@@ -55,8 +55,8 @@ export function WalkRecap({ entryId, overline, subtitle, bones, fallback }: { en
         </>
       ) : (
         <>
-          <button type="button" onClick={() => go(`/territoire?balade=${encodeURIComponent(entryId)}`)} className="btn btn-main mt-1 min-h-14">
-            Voir son territoire
+          <button type="button" onClick={() => go(`/souvenir/${encodeURIComponent(entryId)}`)} className="btn btn-main mt-1 min-h-14">
+            Voir la balade
           </button>
           <button type="button" onClick={() => go(`/souvenir/${entryId}/modifier`)} className="btn-text self-center px-4">
             Ajouter un souvenir

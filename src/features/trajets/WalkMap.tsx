@@ -3,6 +3,7 @@ import type { GeoJSONSource } from 'maplibre-gl'
 import { addMarker, cameraMs, createMap, dot, fitPoints, lngLat, ROUTE_COLOR, ROUTE_FAST_COLOR, ROUTE_STOP_COLOR, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
 import { routeMomentInfo, type Route } from '../../lib/route'
 import { paceSegments } from '../../lib/walkSheet'
+import { effectiveTrack } from '../../lib/trim'
 import type { PaceCategory } from '../../lib/walkStory'
 import { replayWalk } from '../balades/walkLayer'
 import { momentMarker } from './momentIcons'
@@ -55,7 +56,7 @@ export function WalkMap({ route, dogName, cursor, focus, replaying = false, onRe
     if (!m) return
     const markers: Marker[] = []
     whenReady(m, () => {
-      const segments = route.track && route.pace?.length ? paceSegments(route.track, route.pace).map((s) => ({ color: PACE_COLORS[s.category], points: s.points })) : [{ color: ROUTE_COLOR, points: route.points }]
+      const segments = route.track && route.pace?.length ? paceSegments(effectiveTrack(route)!, route.pace).map((s) => ({ color: PACE_COLORS[s.category], points: s.points })) : [{ color: ROUTE_COLOR, points: route.points }]
       const data = { type: 'FeatureCollection' as const, features: segments.filter((s) => s.points.length > 1).map((s) => ({ type: 'Feature' as const, properties: { color: s.color }, geometry: { type: 'LineString' as const, coordinates: s.points.map((p) => lngLat(p as LatLng)) } })) }
       const source = m.getSource('fiche') as GeoJSONSource | undefined
       if (source) source.setData(data)

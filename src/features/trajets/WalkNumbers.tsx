@@ -1,4 +1,5 @@
 import { useId, useState } from 'react'
+import { effectiveTrack } from '../../lib/trim'
 import { Stats } from '../../components/Stats'
 import { ChevronRightIcon } from '../../components/Icons'
 import type { Route } from '../../lib/route'
@@ -30,7 +31,8 @@ export function WalkNumbers({ route }: { route: Route }) {
   const [open, setOpen] = useState(false)
   const id = useId()
   const avg = averageKmh(route)
-  const splits = route.track ? kmSplits(route.track) : []
+  const track = effectiveTrack(route)
+  const splits = track ? kmSplits(track) : []
   const hr = hrSummary(route.hr)
   const src = sourceLabels(route)
   const weather = weatherText(route.weather)

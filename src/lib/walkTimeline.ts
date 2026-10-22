@@ -1,6 +1,7 @@
 import { distanceMeters } from './community'
 import { formatRouteDistance, routeMomentInfo, type Route, type RouteMoment } from './route'
 import type { Track } from './track'
+import { effectiveTrack } from './trim'
 import { clockAt, durationText, kmhText, weatherText } from './walkSheet'
 import { fastMoment, heartPeak } from './walkStory'
 
@@ -51,7 +52,8 @@ function indexOnPoints(points: Route['points'], p: { lat: number; lng: number })
  * · retour. Sans trajet daté : seulement les repères, dans l’ordre du tracé.
  */
 export function walkTimeline(route: Route, { startStreet }: { startStreet?: string } = {}): TimelineEvent[] {
-  const track = route.track
+  // Recadrée (§ 8.3) : départ et retour aux bouts de la portion gardée.
+  const track = effectiveTrack(route)
   const stops = route.stops ?? []
   const linked = new Set(stops.flatMap((s) => (s.momentIndex !== undefined ? [s.momentIndex] : [])))
   const loose = route.moments.flatMap((moment, momentIndex) => (linked.has(momentIndex) ? [] : [{ moment, momentIndex }]))

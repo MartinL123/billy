@@ -67,8 +67,18 @@ export interface Route {
   energyKcal?: number
   /** Les pauses de la séance Watch (secondes depuis le départ) : gardées pour recalculer les arrêts après un recadrage. */
   pauses?: Pause[]
-  /** Le début et la fin gardés après un recadrage (§ 8.3), en secondes depuis le départ. */
-  trimmed?: { startS: number; endS: number }
+  /**
+   * Le début et la fin gardés après un recadrage (§ 8.3), en secondes depuis le départ. `points`, `distanceM` et
+   * `durationMin` sont alors ceux de la portion gardée ; `original` garde ceux d’avant pour « Revenir au trajet
+   * d’origine » (le trajet daté, lui, n’est jamais coupé).
+   */
+  trimmed?: Trimmed
+}
+
+export interface Trimmed {
+  startS: number
+  endS: number
+  original?: { distanceM: number; durationMin?: number; points: StoredPoint[] }
 }
 
 /** Un arrêt de la balade (V6 § 3). */
@@ -157,6 +167,9 @@ export function readRoute(route: StoredRoute | undefined): Route | undefined {
   // Un trajet daté abîmé (colonnes de longueurs différentes) est ignoré, pas le reste de la balade.
   const valid = readTrack(track)
   if (valid) read.track = valid
+  // Un recadrage illisible (ou sans trajet daté) est ignoré : la balade se lit telle qu’elle est enregistrée.
+  const trim = route.trimmed
+  if (trim && !(valid && Number.isFinite(trim.startS) && Number.isFinite(trim.endS) && trim.endS > trim.startS)) delete read.trimmed
   return read
 }
 

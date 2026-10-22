@@ -141,3 +141,34 @@ export function trackForEntry(track: Track | undefined, entryWithoutTrack: objec
   if (!track) return undefined
   return fitTrack(track, MAX_ENTRY_BYTES - ENTRY_MARGIN_BYTES - docBytes(entryWithoutTrack) - firestoreBytes('track'))
 }
+
+/**
+ * La portion [début, fin] du trajet (secondes depuis le départ, § 8.3) : ses deux bouts interpolés et les points entre
+ * les deux. Les heures `t` ne sont pas décalées : elles restent comptées depuis `startTime`.
+ */
+export function sliceTrack(track: Track, [startS, endS]: [number, number]): Track {
+  const n = track.t.length
+  const a = Math.max(track.t[0]!, Math.min(startS, track.t[n - 1]!))
+  const b = Math.min(track.t[n - 1]!, Math.max(endS, a))
+  const lerp = (column: number[], s: number, decimals: number) => {
+    let i = 0
+    while (i < n - 2 && track.t[i + 1]! < s) i++
+    const t0 = track.t[i]!
+    const t1 = track.t[i + 1]!
+    const k = t1 > t0 ? Math.max(0, Math.min(1, (s - t0) / (t1 - t0))) : 0
+    return round(column[i]! + k * (column[i + 1]! - column[i]!), decimals)
+  }
+  const inside = [...Array(n).keys()].filter((i) => track.t[i]! > a && track.t[i]! < b)
+  const column = (values: number[], decimals: number) => [lerp(values, a, decimals), ...inside.map((i) => values[i]!), lerp(values, b, decimals)]
+  const out: Track = { t: [a, ...inside.map((i) => track.t[i]!), b], lat: column(track.lat, 5), lng: column(track.lng, 5) }
+  if (track.alt) out.alt = column(track.alt, 1)
+  if (track.v) out.v = column(track.v, 2)
+  return out
+}
+
+/** La longueur d’un trajet daté, en mètres. */
+export function trackDistance(track: Track): number {
+  let total = 0
+  for (let i = 1; i < track.t.length; i++) total += distanceMeters({ lat: track.lat[i - 1]!, lng: track.lng[i - 1]! }, { lat: track.lat[i]!, lng: track.lng[i]! })
+  return total
+}

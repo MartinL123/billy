@@ -7,6 +7,7 @@ import { discoveredShare, inPolygon, revealedCells } from './fog'
 import { ofName } from './gender'
 import { formatRouteDistance, type Route, type RoutePoint } from './route'
 import type { Track } from './track'
+import { effectiveTrack, trimWindow } from './trim'
 import { movingSeconds, paceCategory, positionAt, type PaceCategory } from './walkStory'
 
 // La fiche de balade (spec V6 § 6.1) : ce qui s’affiche et comment, calculé ici (fonctions pures, testées).
@@ -26,15 +27,18 @@ export const clockAt = (startTime: string, offsetS: number) => clockLabel(parisM
 const validTime = (time: string | undefined) => (time && !Number.isNaN(Date.parse(time)) ? time : undefined)
 
 /** « Jeudi 22 octobre · 8 h 12 → 8 h 44 · Vertbois » : seulement ce qu’on sait. */
-export function walkSubtitle({ date, startTime, endTime, commune }: { date: ISODate; startTime?: string; endTime?: string; commune?: string }): string {
+export function walkSubtitle({ date, startTime, endTime, commune, trimmed }: { date: ISODate; startTime?: string; endTime?: string; commune?: string; trimmed?: { startS: number; endS: number } }): string {
   const start = validTime(startTime)
   const end = validTime(endTime)
-  const hours = start ? (end ? `${clockAt(start, 0)} → ${clockAt(end, 0)}` : clockAt(start, 0)) : ''
+  // Recadrée (§ 8.3) : les heures de la portion gardée.
+  const hours = start ? (trimmed ? `${clockAt(start, trimmed.startS)} → ${clockAt(start, trimmed.endS)}` : end ? `${clockAt(start, 0)} → ${clockAt(end, 0)}` : clockAt(start, 0)) : ''
   return [formatDayHeading(date), hours, commune ?? ''].filter(Boolean).join(' · ')
 }
 
 /** La durée de la balade en secondes : début → fin, sinon le trajet daté, sinon la durée notée. */
-export function walkSeconds(route: Pick<Route, 'startTime' | 'endTime' | 'track' | 'durationMin'>): number | undefined {
+export function walkSeconds(route: Pick<Route, 'startTime' | 'endTime' | 'track' | 'durationMin' | 'trimmed'>): number | undefined {
+  const window = trimWindow(route)
+  if (window) return window[1] - window[0]
   const start = validTime(route.startTime)
   const end = validTime(route.endTime)
   if (start && end && Date.parse(end) > Date.parse(start)) return Math.round((Date.parse(end) - Date.parse(start)) / 1000)
@@ -52,7 +56,8 @@ export const kmhText = (kmh: number) => `${kmh.toFixed(1).replace('.', ',')} km
 /** Les chiffres de la fiche (composant Stats) : durée · distance · en marche · arrêts, seulement ce qu’on sait. */
 export function sheetStats(route: Route): { value: string; label: string; spoken?: string }[] {
   const seconds = walkSeconds(route)
-  const moving = route.track && route.stops ? movingSeconds(route.track, route.stops) : undefined
+  const track = effectiveTrack(route)
+  const moving = track && route.stops ? movingSeconds(track, route.stops) : undefined
   return [
     { value: seconds ? durationText(seconds) : '', label: 'Durée' },
     { value: formatRouteDistance(route.distanceM), label: 'Distance' },
@@ -63,7 +68,8 @@ export function sheetStats(route: Route): { value: string; label: string; spoken
 
 /** L’allure moyenne en marche (km/h, 1 décimale), arrêts retirés quand on les connaît. */
 export function averageKmh(route: Route): number | undefined {
-  const seconds = route.track && route.stops ? movingSeconds(route.track, route.stops) : walkSeconds(route)
+  const track = effectiveTrack(route)
+  const seconds = track && route.stops ? movingSeconds(track, route.stops) : walkSeconds(route)
   if (!seconds || route.distanceM <= 0) return undefined
   return Math.round((route.distanceM / seconds) * 3.6 * 10) / 10
 }
@@ -157,7 +163,7 @@ export function paceSegments(track: Track, pace: number[]): PaceSegment[] {
 /** Ce que montre le doigt posé sur la courbe d’allure : l’heure, la vitesse, la rue (si un arrêt ou un repère proche la connaît). */
 export function paceAt(route: Route, minute: number): { clock?: string; kmh: number; category: PaceCategory; street?: string; at: { lat: number; lng: number } } | undefined {
   const pace = route.pace ?? []
-  const track = route.track
+  const track = effectiveTrack(route)
   if (!track || minute < 0 || minute >= pace.length) return undefined
   const t0 = track.t[0] ?? 0
   const s = Math.min(t0 + minute * 60 + 30, track.t[track.t.length - 1] ?? 0)

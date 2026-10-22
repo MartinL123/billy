@@ -122,7 +122,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
         <div className="flex flex-col gap-1">
           <span className="surtitre text-primary">Balade avec {dog.name}</span>
           <h1 className="title-screen">{name || 'Balade'}</h1>
-          <p className="text-[0.9412rem] text-muted">{walkSubtitle({ date: entry.date, startTime: route.startTime, endTime: route.endTime, commune: entry.commune })}</p>
+          <p className="text-[0.9412rem] text-muted">{walkSubtitle({ date: entry.date, startTime: route.startTime, endTime: route.endTime, commune: entry.commune, trimmed: route.track ? route.trimmed : undefined })}</p>
           <Pending show={Boolean(entry.pending)} />
         </div>
         {notes && <p className="-mt-2 text-[1rem] leading-[1.45] whitespace-pre-wrap">{notes}</p>}
@@ -204,6 +204,12 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
             <Link to={`/souvenir/${entry.id}/modifier`} className="btn-text -ml-1">
               Modifier
             </Link>
+            {/* § 8.3 : seulement avec un trajet daté (les anciennes balades n’ont rien à recadrer). */}
+            {route.track && (
+              <Link to={`/souvenir/${entry.id}/recadrer`} className="btn-text">
+                Ajuster le début et la fin
+              </Link>
+            )}
             <button type="button" onClick={() => setConfirmDelete(true)} className="btn-text text-danger">
               Supprimer
             </button>

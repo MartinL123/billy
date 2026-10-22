@@ -16,6 +16,7 @@ const WRITE_ROUTES = [
   /^\/profil\/modifier$/,
   /^\/evenement\//,
   /^\/souvenir\/[^/]+\/modifier$/,
+  /^\/souvenir\/[^/]+\/recadrer$/,
   /^\/document\//,
   /^\/sante\/documents$/,
   /^\/meute/,

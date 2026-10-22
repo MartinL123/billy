@@ -8,8 +8,10 @@ import { placeSkill as place } from '../lib/garden'
 interface SkillText {
   /** Une phrase par étape, de la plus facile à la plus difficile. */
   steps: [string, string, string, string, string]
-  /** Les mêmes étapes en plus court, pour les badges de l’arbre : toujours avec les mots de la phrase complète. */
+  /** Le nom de l’étape en 1 ou 2 mots (≤ 12 signes), sous les points du chemin (T-104) : « Au parc », « Partout ». */
   short: [string, string, string, string, string]
+  /** Les mêmes étapes en plus court, pour les badges de l’arbre : toujours avec les mots de la phrase complète. */
+  brief: [string, string, string, string, string]
   /** Question du questionnaire de départ, à compléter par « à la maison » ou « même dehors ». */
   question: string
   /** Ce que veut dire « À la maison » pour cette compétence. */
@@ -21,70 +23,80 @@ interface SkillText {
 const TEXTS: Record<string, SkillText> = {
   lien: {
     steps: ['Regarde quand on l’appelle, à la maison au calme', 'Regarde quand on l’appelle, même occupé', 'Regarde quand on l’appelle dans une rue calme', 'Regarde quand on l’appelle malgré des passants', 'Regarde quand on l’appelle, partout'],
-    short: ['Regarde quand on l’appelle, au calme', 'Regarde quand on l’appelle, même occupé', 'Regarde quand on l’appelle, rue calme', 'Regarde quand on l’appelle malgré des passants', 'Regarde quand on l’appelle, partout'],
+    short: ['Au calme', 'En jouant', 'Rue calme', 'Passants', 'Partout'],
+    brief: ['Regarde quand on l’appelle, au calme', 'Regarde quand on l’appelle, même occupé', 'Regarde quand on l’appelle, rue calme', 'Regarde quand on l’appelle malgré des passants', 'Regarde quand on l’appelle, partout'],
     question: 'Quand vous dites son nom, {nom} vous regarde…',
     atHome: 'Même quand il est occupé',
     outside: 'Dans une rue calme',
   },
   calme: {
     steps: ['Se pose sur son tapis une demi-minute', 'Reste sur son tapis quand la maison s’active', 'Se pose sur son tapis dehors, au calme', 'Se pose sur un banc malgré le passage', 'Se pose partout où l’on s’arrête'],
-    short: ['Se pose sur son tapis', 'Reste sur son tapis, maison qui s’active', 'Se pose sur son tapis dehors', 'Se pose sur un banc malgré le passage', 'Se pose partout'],
+    short: ['Le tapis', 'Agitation', 'Dehors', 'Un banc', 'Partout'],
+    brief: ['Se pose sur son tapis', 'Reste sur son tapis, maison qui s’active', 'Se pose sur son tapis dehors', 'Se pose sur un banc malgré le passage', 'Se pose partout'],
     question: '{nom} sait se poser sur son tapis…',
     atHome: 'Même quand ça bouge autour de lui',
     outside: 'Dehors, dans un endroit calme',
   },
   soins: {
     steps: ['Se laisse toucher les pattes et les oreilles', 'Se laisse brosser et essuyer les pattes', 'Se laisse manipuler par une autre personne', 'Reste à l’aise pendant l’examen chez le véto', 'Se laisse soigner partout, par tout le monde'],
-    short: ['Se laisse toucher les pattes et les oreilles', 'Se laisse brosser et essuyer', 'Se laisse manipuler par une autre personne', 'Reste à l’aise chez le véto', 'Se laisse soigner partout'],
+    short: ['Pattes', 'Brosse', 'Un proche', 'Véto', 'Partout'],
+    brief: ['Se laisse toucher les pattes et les oreilles', 'Se laisse brosser et essuyer', 'Se laisse manipuler par une autre personne', 'Reste à l’aise chez le véto', 'Se laisse soigner partout'],
     question: '{nom} se laisse manipuler…',
     atHome: 'Brossage, pattes, oreilles',
     outside: 'Par une autre personne, ailleurs',
   },
   laisse: {
     steps: ['Marche quelques pas sans tirer, dans le salon', 'Suit les changements de direction au jardin', 'Marche sans tirer dans une rue calme', 'Marche sans tirer malgré les passants et les odeurs', 'Marche sans tirer partout'],
-    short: ['Marche quelques pas sans tirer', 'Suit les changements de direction', 'Marche sans tirer, rue calme', 'Marche sans tirer malgré les passants', 'Marche sans tirer partout'],
+    short: ['Au salon', 'Virages', 'Rue calme', 'Passants', 'Partout'],
+    brief: ['Marche quelques pas sans tirer', 'Suit les changements de direction', 'Marche sans tirer, rue calme', 'Marche sans tirer malgré les passants', 'Marche sans tirer partout'],
     question: 'En laisse, {nom} marche sans tirer…',
     atHome: 'Au jardin ou dans la cour',
     outside: 'Dans une rue calme',
   },
   rappel: {
     steps: ['Revient quand on l’appelle d’une autre pièce', 'Revient quand on l’appelle, même en laissant un jouet', 'Revient quand on l’appelle dans un parc calme', 'Revient malgré un autre chien au loin', 'Revient quand on l’appelle, partout'],
-    short: ['Revient d’une autre pièce', 'Revient même en laissant un jouet', 'Revient dans un parc calme', 'Revient malgré un autre chien', 'Revient partout'],
+    short: ['Une pièce', 'Un jouet', 'Au parc', 'Un chien', 'Partout'],
+    brief: ['Revient d’une autre pièce', 'Revient même en laissant un jouet', 'Revient dans un parc calme', 'Revient malgré un autre chien', 'Revient partout'],
     question: 'Quand vous l’appelez, {nom} revient…',
     atHome: 'Il revient d’une autre pièce',
     outside: 'Au parc, à quelques mètres',
   },
   manieres: {
     steps: ['S’assoit et se couche à la demande', 'Reste en place et attend à la porte', 'S’assoit, se couche et reste, dehors au calme', 'Ne saute pas sur les gens qui arrivent', 'Garde ses bonnes manières partout'],
-    short: ['S’assoit et se couche', 'Reste en place, attend à la porte', 'S’assoit, se couche et reste, dehors', 'Ne saute pas sur les gens', 'Garde ses bonnes manières partout'],
+    short: ['Assis', 'La porte', 'Dehors', 'Les gens', 'Partout'],
+    brief: ['S’assoit et se couche', 'Reste en place, attend à la porte', 'S’assoit, se couche et reste, dehors', 'Ne saute pas sur les gens', 'Garde ses bonnes manières partout'],
     question: 'Assis, couché, pas bouger : {nom} le fait…',
     atHome: 'Et il attend à la porte',
     outside: 'Dans un endroit calme',
   },
   nouveaute: {
     steps: ['Explore un objet nouveau à la maison', 'Reste détendu devant un son ou un reflet nouveau', 'Explore une nouveauté dehors, au calme', 'Reste à l’aise devant une nouveauté dans un lieu animé', 'Aborde la nouveauté sereinement, partout'],
-    short: ['Explore un objet nouveau', 'Reste détendu devant un son ou un reflet', 'Explore une nouveauté dehors', 'Reste à l’aise dans un lieu animé', 'Aborde la nouveauté sereinement'],
+    short: ['Un objet', 'Un son', 'Dehors', 'Lieu animé', 'Partout'],
+    brief: ['Explore un objet nouveau', 'Reste détendu devant un son ou un reflet', 'Explore une nouveauté dehors', 'Reste à l’aise dans un lieu animé', 'Aborde la nouveauté sereinement'],
     question: 'Devant un objet ou un bruit nouveau, {nom} reste à l’aise…',
     atHome: 'Objets, sols et sons de la maison',
     outside: 'Dans un endroit calme',
   },
   ville: {
     steps: ['Écoute les bruits de la ville en mangeant', 'Regarde la rue par la fenêtre, détendu', 'Se promène dix minutes dans une rue calme', 'Se promène dans une rue animée ou étroite', 'Se promène en ville, dans tous les quartiers'],
-    short: ['Écoute les bruits de la ville', 'Regarde la rue par la fenêtre', 'Se promène dans une rue calme', 'Se promène dans une rue animée', 'Se promène en ville, tous les quartiers'],
+    short: ['Les bruits', 'La fenêtre', 'Rue calme', 'Rue animée', 'Partout'],
+    brief: ['Écoute les bruits de la ville', 'Regarde la rue par la fenêtre', 'Se promène dans une rue calme', 'Se promène dans une rue animée', 'Se promène en ville, tous les quartiers'],
     question: 'En ville, {nom} est à l’aise…',
     atHome: 'Il regarde la rue par la fenêtre',
     outside: 'Dans une rue calme',
   },
   rencontres: {
     steps: ['Reste détendu quand un proche entre', 'Regarde les passants par la fenêtre, détendu', 'Croise des passants à distance, à l’aise', 'Reste à l’aise quand un inconnu nous parle', 'Reste à l’aise avec les inconnus, partout'],
-    short: ['Reste détendu quand un proche entre', 'Regarde les passants, détendu', 'Croise des passants à distance', 'Reste à l’aise quand un inconnu parle', 'Reste à l’aise avec les inconnus'],
+    short: ['Un proche', 'La fenêtre', 'Passants', 'Un inconnu', 'Partout'],
+    brief: ['Reste détendu quand un proche entre', 'Regarde les passants, détendu', 'Croise des passants à distance', 'Reste à l’aise quand un inconnu parle', 'Reste à l’aise avec les inconnus'],
     question: 'Avec les gens qu’il ne connaît pas, {nom} est à l’aise…',
     atHome: 'Quand quelqu’un vient à la maison',
     outside: 'En croisant des passants à distance',
   },
   congeneres: {
     steps: ['Reste détendu en entendant un chien', 'Regarde un chien par la fenêtre sans s’agiter', 'Croise un chien de loin, au calme', 'Croise un chien dans la rue poliment', 'Croise les autres chiens sereinement, partout'],
-    short: ['Reste détendu en entendant un chien', 'Regarde un chien par la fenêtre', 'Croise un chien de loin', 'Croise un chien poliment', 'Croise les chiens sereinement'],
+    short: ['Aboiement', 'La fenêtre', 'De loin', 'La rue', 'Partout'],
+    brief: ['Reste détendu en entendant un chien', 'Regarde un chien par la fenêtre', 'Croise un chien de loin', 'Croise un chien poliment', 'Croise les chiens sereinement'],
     question: 'Quand il voit un autre chien, {nom} reste calme…',
     atHome: 'Depuis la maison ou le jardin',
     outside: 'En le croisant de loin',
@@ -103,7 +115,10 @@ export const stepPhraseLower = (bossId: string, step: number): string => {
 }
 
 /** L’étape en 4 à 6 mots, pour un badge. */
-export const stepShort = (bossId: string, step: number): string => place(TEXTS[bossId]?.short[step - 1] ?? stepPhrase(bossId, step))
+export const stepShort = (bossId: string, step: number): string => place(TEXTS[bossId]?.brief[step - 1] ?? stepPhrase(bossId, step))
+
+/** Le nom de l’étape en 1 ou 2 mots, sous un point du chemin (T-104) : « Au parc ». */
+export const stepName = (bossId: string, step: number): string => TEXTS[bossId]?.short[step - 1] ?? `Étape ${step}`
 
 /** Les trois groupes affichés, dans l’ordre : Les bases, Le quotidien, Le monde. */
 export const SKILL_GROUPS: { tier: Tier; label: string }[] = [

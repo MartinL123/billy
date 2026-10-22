@@ -10,7 +10,7 @@ import { syncWatch, type WatchContext } from './watchImport'
 
 /**
  * App iOS (T-001) : les marches de l’Apple Watch arrivent seules, à l’ouverture et au retour au premier plan.
- * Si au moins une arrive, un bandeau en bas « 2 balades de la Watch ajoutées · Voir ». Rien sur le web.
+ * Si au moins une arrive, un bandeau en bas « 2 balades de la Watch ajoutées · Voir » (une seule : son récap). Rien sur le web.
  */
 export function WatchSync() {
   const { entries, bones, fog, communes, dog } = useData()
@@ -28,7 +28,8 @@ export function WatchSync() {
       if (document.visibilityState !== 'visible') return
       void syncWatch(
         () => latest.current,
-        (count) => show.current.toast(`🐾 ${watchAddedLine(count)}`, { label: 'Voir', run: () => show.current.navigate('/importer/resultat') }),
+        // V6 § 6.3 : une seule balade arrivée, « Voir » ouvre son récap « Belle balade ! » ; plusieurs, le résultat de l’import.
+        (count, ids) => show.current.toast(`🐾 ${watchAddedLine(count)}`, { label: 'Voir', run: () => show.current.navigate(count === 1 && ids[0] ? `/balade/recap/${ids[0]}` : '/importer/resultat') }),
       )
     }
     run()

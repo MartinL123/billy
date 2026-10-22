@@ -9,7 +9,7 @@ import { waitForPendingWrites } from 'firebase/firestore'
 import { db } from '../../firebase/app'
 import { knownImportKeys, parisMinutes } from '../../lib/activity'
 import { knownFog, revealedCells } from '../../lib/fog'
-import { doubtfulSegments, durationParts, elapsedMs, endWalkStats, gpsActivity, gpsDistance, territoryBits, tooShort, weakSignal, type GpsPoint } from '../../lib/gpsWalk'
+import { doubtfulSegments, durationParts, elapsedMs, gpsActivity, gpsDistance, territoryBits, tooShort, weakSignal, type GpsPoint } from '../../lib/gpsWalk'
 import { dayBudget, minutesOfDay, walksOfDay } from '../../lib/walkDay'
 import { formatRouteDistance } from '../../lib/route'
 import { errorText, withTimeout } from '../../lib/timeout'
@@ -29,6 +29,7 @@ import { ROUTE_COLOR } from '../../components/maplibre'
 import { importActivities } from './importRun'
 import { logEvent } from '../../firebase/journal'
 import { haptic } from '../../native/flair'
+import { WalkRecap } from '../trajets/WalkRecap'
 
 const toMin = (time: string) => {
   const [h, m] = time.split(':').map(Number)
@@ -48,7 +49,8 @@ interface Ended {
   entryId: string
   ms: number
   distanceM: number
-  stats: { value: string; label: string }[]
+  /** Les os de la note de cette balade (+3, dans la limite du jour). */
+  bones: number
   /** La sortie du créneau notée (« Sortie du soir »). */
   slotName?: string
 }
@@ -173,7 +175,7 @@ export default function LiveWalk() {
       const end = walk.stoppedAt ? Date.parse(walk.stoppedAt) : Date.now()
       logEvent({ type: 'walk_saved', source: 'gps', m: Math.round(saved.distanceM), min: Math.round(elapsedMs(walk.startedAt!, end) / 60_000) })
       haptic('success')
-      setEnded({ entryId: saved.entryId, ms: elapsedMs(walk.startedAt!, end), distanceM: saved.distanceM, stats: endWalkStats({ ms: elapsedMs(walk.startedAt!, end), distanceM: saved.distanceM, noteBones, bits: territoryBits(newCellsRef.current) }), ...(slotLabel ? { slotName: slotLabel } : {}) })
+      setEnded({ entryId: saved.entryId, ms: elapsedMs(walk.startedAt!, end), distanceM: saved.distanceM, bones: noteBones, ...(slotLabel ? { slotName: slotLabel } : {}) })
       setPhase('walking')
     } catch (error) {
       console.error('Balade non enregistrée', step, error)
@@ -388,21 +390,8 @@ export default function LiveWalk() {
       </div>
 
       {ended ? (
-        // « Belle balade ! » (V5) : ce que la balade a rapporté, puis « Voir son territoire ».
-        <section aria-label="Belle balade" className="animate-sheet flex flex-col items-center gap-3 rounded-t-[26px] bg-surface px-4 pt-6 pb-[calc(env(safe-area-inset-bottom)+24px)] text-center shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
-          <span className="anim-pop flex size-16 items-center justify-center rounded-full bg-primary text-white" style={{ animationDelay: '150ms' }}>
-            <CheckIcon size={34} />
-          </span>
-          <h1 className="title-screen">Belle balade !</h1>
-          <p className="text-[0.9412rem] text-[#3F4946]">Avec {dog.name}{ended.slotName ? ` · ${ended.slotName} notée` : ''}</p>
-          <Stats items={ended.stats} className="self-stretch text-left" />
-          <button type="button" onClick={() => navigate(`/territoire?balade=${encodeURIComponent(ended.entryId)}`, { replace: true })} className="btn btn-main mt-1.5 min-h-14 self-stretch">
-            Voir son territoire
-          </button>
-          <button type="button" onClick={() => navigate(`/souvenir/${ended.entryId}/modifier`, { replace: true })} className="btn-text self-center px-4">
-            Ajouter un souvenir
-          </button>
-        </section>
+        // « Belle balade ! » (V6 § 6.3) : la découverte, les os, et « Raconter la balade » s’il y a des arrêts.
+        <WalkRecap entryId={ended.entryId} bones={ended.bones} fallback={{ distanceM: ended.distanceM }} {...(ended.slotName ? { subtitle: `${ended.slotName} notée` } : {})} />
       ) : gone ? (
         <section aria-label="Balade pas gardée" className="animate-sheet flex flex-col gap-3.5 rounded-t-[26px] bg-surface px-4 pt-6 pb-[calc(env(safe-area-inset-bottom)+24px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
           <h1 className="title-screen">La balade n’a pas été gardée</h1>

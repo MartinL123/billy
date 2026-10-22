@@ -75,8 +75,8 @@ export interface WatchContext {
   times: WalkTimes
 }
 
-/** Lit les nouvelles marches et les importe. Appelle `onAdded(n)` si au moins une balade est arrivée. */
-export async function syncWatch(ctx: () => WatchContext, onAdded: (count: number) => void): Promise<void> {
+/** Lit les nouvelles marches et les importe. Appelle `onAdded(n, ids)` si au moins une balade est arrivée. */
+export async function syncWatch(ctx: () => WatchContext, onAdded: (count: number, entryIds: string[]) => void): Promise<void> {
   const now = Date.now()
   if (running || !shouldSync(lastRun, now)) return
   running = true
@@ -107,7 +107,7 @@ export async function syncWatch(ctx: () => WatchContext, onAdded: (count: number
       const result = await withTimeout(importActivities(fresh.length, async (i) => watchActivity(fresh[i]!), { knownKeys: knownImportKeys(data.entries), bones: data.bones, fog: data.fog, communes: data.communes, today: data.today, times: data.times }, () => undefined, { source: 'watch' }), 15_000 + 2_000 * fresh.length, 'enregistrement')
       // Rien n’avance tant que les marches ne sont pas dans la base locale (R-045) : sinon, elles seront relues.
       await ensureSavedLocally(result.walks.map((w) => w.entryId), entryInLocalCache)
-      if (result.walks.length) onAdded(result.walks.length)
+      if (result.walks.length) onAdded(result.walks.length, result.walks.map((w) => w.entryId))
     }
     // Seulement après un enregistrement réussi : en cas d’échec, la prochaine lecture reprend les mêmes marches
     // (celles déjà enregistrées sont écartées par leur clé).

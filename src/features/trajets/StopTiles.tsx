@@ -2,18 +2,18 @@ import { useState } from 'react'
 import { useToast } from '../../components/Toast'
 import { updateEntryRoute } from '../../firebase/db'
 import { routeMomentInfo, storeRoute, type Route, type RouteMomentType } from '../../lib/route'
-import { momentOnStop, STOP_TILES } from '../../lib/walkTell'
+import { STOP_TILES, tellMoment, type TellItem } from '../../lib/walkTell'
 import { MomentIcon } from './momentIcons'
 import { PlaceMoment } from './PlaceMoment'
 
 /**
  * Poser un repère sur un arrêt (V6 § 6.2) : un toucher l’enregistre, un bandeau « Annuler » le retire (10 s).
- * Renvoie vrai si le repère a été posé.
+ * Un repère « À raconter » (T-086) est remplacé par celui choisi ; « Annuler » le rend. Renvoie vrai si c’est fait.
  */
 export function usePlaceOnStop(entryId: string, route: Route) {
   const toast = useToast()
-  return (stopIndex: number, type: RouteMomentType, note?: string): boolean => {
-    const moments = momentOnStop(route, stopIndex, type, note)
+  return (item: TellItem, type: RouteMomentType, note?: string): boolean => {
+    const moments = tellMoment(route, item, type, note)
     if (!moments) return false
     const before = route.moments
     updateEntryRoute(entryId, storeRoute({ ...route, moments }))

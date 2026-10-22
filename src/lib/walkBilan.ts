@@ -77,7 +77,7 @@ export function monthReport(walks: BilanWalk[], month: string): MonthReport {
     walks: inMonth.length,
     distanceM: inMonth.reduce((s, w) => s + w.route.distanceM, 0),
     newCells: fresh.size,
-    toldStops: inMonth.reduce((s, w) => s + (w.route.stops ?? []).filter((st) => st.momentIndex !== undefined).length, 0),
+    toldStops: inMonth.reduce((s, w) => s + (w.route.stops ?? []).filter((st) => st.momentIndex !== undefined && w.route.moments[st.momentIndex]?.type !== 'araconter').length, 0),
     ...(top ? { topMoment: top } : {}),
   }
 }

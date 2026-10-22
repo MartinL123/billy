@@ -5,6 +5,8 @@ import CoreLocation
 import HealthKit
 import UserNotifications
 import CoreMotion
+import ActivityKit
+import AppIntents
 
 /// Le pont entre l'app web et l'iPhone (phase 2, docs/ios.md) : les marches de l'Apple Watch (HealthKit, T-001) et la
 /// balade enregistrée par le GPS de l'iPhone (T-036). Côté JS : `src/native/flair.ts`. Rien n'est écrit dans Santé.
@@ -28,7 +30,8 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         CAPPluginMethod(name: "haptic", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setWatchNotify", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "motionStatus", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "motionWalks", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "motionWalks", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setLiveWalk", returnType: CAPPluginReturnPromise)
     ]
 
     private let health = HKHealthStore()
@@ -38,6 +41,13 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         NotificationCenter.default.addObserver(forName: WatchArrivals.arrived, object: nil, queue: .main) { [weak self] _ in
             self?.notifyListeners("watchArrived", data: [:])
         }
+        // T-086 : « Repère » touché sur la Live Activity : l'écran « Balade en cours » le dit (« Repère posé »).
+        NotificationCenter.default.addObserver(forName: WalkMarkers.placed, object: nil, queue: .main) { [weak self] note in
+            self?.notifyListeners("walkMarker", data: (note.userInfo as? [String: Any]) ?? [:])
+        }
+        // Une Live Activity restée affichée sans balade à reprendre (enregistrée, effacée) disparaît.
+        let state = WalkFiles.readState()
+        if state == nil || state?["stoppedAt"] != nil || state?["savedAs"] != nil { LiveWalkActivity.end(dismissNow: true) }
     }
 
     /// `setWatchNotify({ optedIn, enabled, dogName })` (T-084) : ce qu'il faut savoir pour annoncer seul une balade de la
@@ -346,21 +356,16 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
     private var pendingStart: CAPPluginCall?
     private var recording = false
 
-    private var walkDir: URL {
-        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("balade-en-cours", isDirectory: true)
-    }
-    private var stateFile: URL { walkDir.appendingPathComponent("etat.json") }
+    private var walkDir: URL { WalkFiles.walkDir }
+    private var stateFile: URL { WalkFiles.stateFile }
     /// T-061 : les balades enregistrées dans la base locale mais pas encore arrivées au serveur (hors ligne) ; une
     /// par dossier, nommé par l'entrée. Effacées seulement quand l'envoi est confirmé (`clearSent`).
     private var sentDir: URL {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("balades-a-envoyer", isDirectory: true)
     }
-    private var pointsFile: URL { walkDir.appendingPathComponent("points.txt") }
+    private var pointsFile: URL { WalkFiles.pointsFile }
 
-    private func readState() -> [String: Any]? {
-        guard let data = try? Data(contentsOf: stateFile) else { return nil }
-        return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
-    }
+    private func readState() -> [String: Any]? { WalkFiles.readState() }
 
     /// Écrit l'état de la balade. Faux si l'écriture a échoué (stockage plein, T-062) : jamais d'échec muet au départ.
     @discardableResult
@@ -418,6 +423,9 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         var summary: [String: Any] = ["active": true, "recording": recording, "startedAt": startedAt, "autoStopped": state["autoStopped"] as? Bool ?? false, "stopped": state["stoppedAt"] != nil, "points": readPoints()]
         if let stoppedAt = state["stoppedAt"] as? String { summary["stoppedAt"] = stoppedAt }
         if let savedAs = state["savedAs"] as? String { summary["savedAs"] = savedAs }
+        // T-086 : les « Repère » touchés sur la Live Activity.
+        let markers = WalkMarkers.read()
+        if !markers.isEmpty { summary["markers"] = markers }
         // T-060 : « Position exacte » coupée dans Réglages : les points (plusieurs centaines de mètres) seront écartés.
         if let manager = location { summary["reducedAccuracy"] = manager.accuracyAuthorization == .reducedAccuracy }
         return summary
@@ -470,6 +478,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
                     state["stoppedAt"] = FlairNativePlugin.format(started.addingTimeInterval(maxDuration))
                     writeState(state)
                 }
+                LiveWalkActivity.end(dismissNow: true)
                 call.resolve(walkSummary())
                 return
             }
@@ -493,6 +502,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         recording = true
         resetFinishWatch()
         scheduleAutoStop()
+        startLiveActivity(dogName: call.getString("dogName"))
         call.resolve(walkSummary())
     }
 
@@ -511,7 +521,10 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
             }
             notifyListeners("walkPoint", data: FlairNativePlugin.pointData(point))
             watchForFinish(point)
+            WalkMarkers.lastLocation = point
+            addLiveDistance(point)
         }
+        updateLiveActivity()
         if Date() > limit { autoStop() }
     }
 
@@ -596,7 +609,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
     /// Arrêt automatique (R-043) : le chrono se fige à départ + 3 h.
     private func autoStop() {
         guard recording, var state = readState(), state["stoppedAt"] == nil, let started = (state["startedAt"] as? String).flatMap(FlairNativePlugin.parseDate) else { return }
-        stopUpdates()
+        stopUpdates(dismissLiveNow: false)
         let stoppedAt = FlairNativePlugin.format(started.addingTimeInterval(maxDuration))
         state["autoStopped"] = true
         state["stoppedAt"] = stoppedAt
@@ -604,7 +617,10 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         notifyListeners("walkStopped", data: ["stoppedAt": stoppedAt])
     }
 
-    private func stopUpdates() {
+    /// `dismissLiveNow` : la Live Activity disparaît tout de suite (« Terminer », « Ne pas garder ») ; sinon (arrêt à
+    /// 3 h) elle reste sur l'écran verrouillé, chrono figé, pour rappeler de garder la balade.
+    private func stopUpdates(dismissLiveNow: Bool = true) {
+        LiveWalkActivity.end(dismissNow: dismissLiveNow, distanceM: liveDistance, discovered: liveDiscovered, markers: WalkMarkers.read().count)
         cancelFinishPrompt()
         autoStopTimer?.invalidate()
         autoStopTimer = nil
@@ -631,6 +647,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
     @objc func clearWalk(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
             self.cancelFinishPrompt()
+            LiveWalkActivity.end(dismissNow: true)
             try? FileManager.default.removeItem(at: self.walkDir)
             call.resolve()
         }
@@ -702,6 +719,67 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
                 UISelectionFeedbackGenerator().selectionChanged()
             } else {
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
+            }
+            call.resolve()
+        }
+    }
+
+    // MARK: Live Activity (T-086)
+
+    /// La distance de la Live Activity, mêmes règles que `walkDistance` du JS (un point compte à 8 m ou plus du
+    /// précédent compté) ; reprise depuis le fichier si l'app a été tuée.
+    private var liveDistance: Double = 0
+    private var liveAnchor: CLLocation?
+    private var liveDiscovered = 0
+    private var liveUpdatedAt = Date.distantPast
+
+    private func addLiveDistance(_ point: CLLocation) {
+        guard let anchor = liveAnchor else {
+            liveAnchor = point
+            return
+        }
+        let d = point.distance(from: anchor)
+        if d >= 8 {
+            liveDistance += d
+            liveAnchor = point
+        }
+    }
+
+    /// Au départ (ou à la reprise) : la distance déjà faite, puis la Live Activity (seulement si elle est permise).
+    private func startLiveActivity(dogName: String?) {
+        liveDistance = 0
+        liveAnchor = nil
+        liveDiscovered = 0
+        for point in readPoints() {
+            guard let lat = point["lat"] as? Double, let lng = point["lng"] as? Double else { continue }
+            addLiveDistance(CLLocation(latitude: lat, longitude: lng))
+        }
+        guard let started = (readState()?["startedAt"] as? String).flatMap(FlairNativePlugin.parseDate) else { return }
+        let name = dogName ?? UserDefaults.standard.string(forKey: "flair.prenom") ?? ""
+        if !name.isEmpty { UserDefaults.standard.set(name, forKey: "flair.prenom") }
+        liveUpdatedAt = Date()
+        LiveWalkActivity.start(dogName: name, state: liveState(startedAt: started))
+    }
+
+    private func liveState(startedAt: Date) -> FlairWalkAttributes.ContentState {
+        FlairWalkAttributes.ContentState(startedAt: startedAt, distanceM: liveDistance, discovered: liveDiscovered, markers: WalkMarkers.read().count, recording: true, endedAt: nil)
+    }
+
+    /// Toutes les 15 s au plus : assez pour la distance, sans dépasser ce qu'iOS accepte.
+    private func updateLiveActivity(force: Bool = false) {
+        guard recording, force || Date().timeIntervalSince(liveUpdatedAt) >= 15,
+              let started = (readState()?["startedAt"] as? String).flatMap(FlairNativePlugin.parseDate) else { return }
+        liveUpdatedAt = Date()
+        LiveWalkActivity.update(liveState(startedAt: started))
+    }
+
+    /// `setLiveWalk({ bits })` : les bouts de territoire découverts (le brouillard vit dans le JS).
+    @objc func setLiveWalk(_ call: CAPPluginCall) {
+        let bits = call.getInt("bits") ?? 0
+        DispatchQueue.main.async {
+            if bits != self.liveDiscovered {
+                self.liveDiscovered = bits
+                self.updateLiveActivity(force: true)
             }
             call.resolve()
         }
@@ -930,5 +1008,189 @@ final class WatchArrivals {
         let withFraction = ISO8601DateFormatter()
         withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return withFraction.date(from: text) ?? ISO8601DateFormatter().date(from: text)
+    }
+}
+
+// MARK: - Balade en direct sur l'écran verrouillé (T-086)
+
+/// Les fichiers de la balade en cours (T-036), lisibles aussi sans le plugin : le bouton « Repère » de la Live Activity
+/// peut réveiller l'app en arrière-plan, sans page web ni plugin chargés.
+enum WalkFiles {
+    static var walkDir: URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("balade-en-cours", isDirectory: true)
+    }
+    static var stateFile: URL { walkDir.appendingPathComponent("etat.json") }
+    static var pointsFile: URL { walkDir.appendingPathComponent("points.txt") }
+    /// Les repères : une ligne « lat,lng,heure » par « Repère » touché.
+    static var markersFile: URL { walkDir.appendingPathComponent("reperes.txt") }
+
+    static func readState() -> [String: Any]? {
+        guard let data = try? Data(contentsOf: stateFile) else { return nil }
+        return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+    }
+
+    /// La dernière position gardée dans le fichier des points (app tuée puis réveillée par « Repère »).
+    static func lastPoint() -> CLLocation? {
+        guard let text = try? String(contentsOf: pointsFile, encoding: .utf8),
+              let line = text.split(separator: "\n").last else { return nil }
+        let parts = line.split(separator: ",", omittingEmptySubsequences: false)
+        guard parts.count >= 3, let lat = Double(parts[0]), let lng = Double(parts[1]) else { return nil }
+        let time = WalkMarkers.parse(String(parts[2])) ?? Date.distantPast
+        return CLLocation(coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng), altitude: 0, horizontalAccuracy: 10, verticalAccuracy: -1, timestamp: time)
+    }
+}
+
+/// « Repère » (T-086) : la position du moment est ajoutée à la balade en cours (fichier, comme les points : rien n'est
+/// perdu si l'app est tuée). Le JS la lit avec la balade (`markers`) et en fait un moment « À raconter ».
+enum WalkMarkers {
+    /// Posté quand un repère est posé : le plugin prévient le JS (`walkMarker`) si la page est là.
+    static let placed = Notification.Name("FlairWalkMarker")
+    /// La dernière position gardée par le suivi GPS (en mémoire, tant que l'app tourne).
+    static var lastLocation: CLLocation?
+
+    static func read() -> [[String: Any]] {
+        guard let text = try? String(contentsOf: WalkFiles.markersFile, encoding: .utf8) else { return [] }
+        return text.split(separator: "\n").compactMap { line in
+            let parts = line.split(separator: ",", omittingEmptySubsequences: false)
+            guard parts.count >= 3, let lat = Double(parts[0]), let lng = Double(parts[1]) else { return nil }
+            return ["lat": lat, "lng": lng, "time": String(parts[2])]
+        }
+    }
+
+    /// Pose un repère à la position la plus récente connue. Rien sans balade en cours (arrêtée, enregistrée, effacée)
+    /// ou sans position. Renvoie le repère posé.
+    @discardableResult
+    static func place() -> [String: Any]? {
+        guard let state = WalkFiles.readState(), state["startedAt"] != nil, state["stoppedAt"] == nil, state["savedAs"] == nil else { return nil }
+        // La plus récente : le suivi GPS, la position qu'iOS garde en mémoire, ou le dernier point du fichier.
+        var candidates: [CLLocation] = [lastLocation, WalkFiles.lastPoint()].compactMap { $0 }
+        let manager = CLLocationManager()
+        if manager.authorizationStatus == .authorizedWhenInUse || manager.authorizationStatus == .authorizedAlways, let cached = manager.location, cached.horizontalAccuracy >= 0, cached.horizontalAccuracy <= 100 {
+            candidates.append(cached)
+        }
+        guard let here = candidates.max(by: { $0.timestamp < $1.timestamp }) else { return nil }
+        let time = format(Date())
+        let line = "\(here.coordinate.latitude),\(here.coordinate.longitude),\(time)\n"
+        guard let data = line.data(using: .utf8) else { return nil }
+        do {
+            try FileManager.default.createDirectory(at: WalkFiles.walkDir, withIntermediateDirectories: true)
+            if FileManager.default.fileExists(atPath: WalkFiles.markersFile.path) {
+                let handle = try FileHandle(forWritingTo: WalkFiles.markersFile)
+                defer { try? handle.close() }
+                try handle.seekToEnd()
+                try handle.write(contentsOf: data)
+            } else {
+                try data.write(to: WalkFiles.markersFile)
+            }
+        } catch {
+            return nil
+        }
+        let marker: [String: Any] = ["lat": here.coordinate.latitude, "lng": here.coordinate.longitude, "time": time]
+        NotificationCenter.default.post(name: placed, object: nil, userInfo: marker)
+        LiveWalkActivity.setMarkers(read().count)
+        return marker
+    }
+
+    static func format(_ date: Date) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter.string(from: date)
+    }
+
+    static func parse(_ text: String) -> Date? {
+        let withFraction = ISO8601DateFormatter()
+        withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return withFraction.date(from: text) ?? ISO8601DateFormatter().date(from: text)
+    }
+}
+
+/// Démarre, met à jour et termine la Live Activity de la balade. Seulement si l'iPhone les permet (Réglages › Flair ›
+/// Activités en direct) ; sinon rien, la balade continue comme avant.
+enum LiveWalkActivity {
+    private static var current: Activity<FlairWalkAttributes>? { Activity<FlairWalkAttributes>.activities.first }
+    /// Au-delà de 3 h, la balade s'arrête seule : l'activité est périmée si elle n'a plus de nouvelles.
+    private static func staleDate(_ state: FlairWalkAttributes.ContentState) -> Date { state.startedAt.addingTimeInterval(3 * 3600 + 60) }
+
+    static func start(dogName: String, state: FlairWalkAttributes.ContentState) {
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
+        // La même balade reprise (app tuée puis rouverte) : on garde son activité ; une autre, plus ancienne, s'en va.
+        if let existing = current, existing.content.state.startedAt == state.startedAt {
+            Task { await existing.update(ActivityContent(state: state, staleDate: staleDate(state))) }
+            return
+        }
+        let old = Activity<FlairWalkAttributes>.activities
+        Task {
+            for activity in old { await activity.end(nil, dismissalPolicy: .immediate) }
+            _ = try? Activity.request(attributes: FlairWalkAttributes(dogName: dogName), content: ActivityContent(state: state, staleDate: staleDate(state)), pushType: nil)
+        }
+    }
+
+    static func update(_ state: FlairWalkAttributes.ContentState) {
+        guard let activity = current else { return }
+        Task { await activity.update(ActivityContent(state: state, staleDate: staleDate(state))) }
+    }
+
+    /// Le nombre de repères, tout de suite (le bouton vient d'être touché).
+    static func setMarkers(_ count: Int) {
+        guard let activity = current else { return }
+        var state = activity.content.state
+        state.markers = count
+        Task { await activity.update(ActivityContent(state: state, staleDate: staleDate(state))) }
+    }
+
+    /// `dismissNow` : disparaît tout de suite ; sinon l'état final (chrono figé) reste affiché le temps habituel d'iOS.
+    static func end(dismissNow: Bool, distanceM: Double? = nil, discovered: Int? = nil, markers: Int? = nil) {
+        let activities = Activity<FlairWalkAttributes>.activities
+        guard !activities.isEmpty else { return }
+        Task {
+            for activity in activities {
+                var state = activity.content.state
+                state.recording = false
+                state.endedAt = min(Date(), state.startedAt.addingTimeInterval(3 * 3600))
+                if let distanceM = distanceM, distanceM > 0 { state.distanceM = distanceM }
+                if let discovered = discovered, discovered > 0 { state.discovered = discovered }
+                if let markers = markers { state.markers = markers }
+                await activity.end(ActivityContent(state: state, staleDate: nil), dismissalPolicy: dismissNow ? .immediate : .default)
+            }
+        }
+    }
+}
+
+// ——— Les deux types partagés avec l'extension : MÊME définition dans ios/App/FlairWidget/FlairWidgetLiveActivity.swift
+// (ActivityKit et App Intents les reconnaissent par leur nom et leurs champs). Toute modification se fait des deux côtés. ———
+
+struct FlairWalkAttributes: ActivityAttributes {
+    public struct ContentState: Codable, Hashable {
+        /// Le départ de la balade : le chrono part de là.
+        var startedAt: Date
+        /// La distance parcourue (mêmes règles que `walkDistance` du JS : un point compte à 8 m ou plus du précédent).
+        var distanceM: Double
+        /// Les bouts de territoire découverts (donnés par le JS) ; 0 : rien à afficher.
+        var discovered: Int
+        /// Les « Repère » posés pendant la balade.
+        var markers: Int
+        /// Le GPS enregistre ; faux une fois la balade arrêtée (3 h, « Terminer »).
+        var recording: Bool
+        /// L'heure de l'arrêt : le chrono se fige.
+        var endedAt: Date?
+    }
+
+    /// « Balade avec Billy »
+    var dogName: String
+}
+
+/// « Repère » (bouton de la Live Activity). Une `LiveActivityIntent` s'exécute dans le processus de l'app (réveillée en
+/// arrière-plan si elle a été fermée) : c'est cette copie qui travaille ; celle de l'extension ne fait que déclarer le
+/// bouton.
+struct PlaceMarkerIntent: LiveActivityIntent {
+    static var title: LocalizedStringResource = "Poser un repère"
+    static var description = IntentDescription("Marque l’endroit de la balade, pour raconter ensuite ce qui s’y est passé.")
+    static var isDiscoverable = false
+
+    init() {}
+
+    func perform() async throws -> some IntentResult {
+        await MainActor.run { _ = WalkMarkers.place() }
+        return .result()
     }
 }

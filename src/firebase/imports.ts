@@ -40,7 +40,8 @@ export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: I
     route: storeRoute({
       points: walk.points,
       distanceM: walk.distanceM,
-      moments: [],
+      // T-086 : les « Repère » posés pendant la balade, « À raconter ».
+      moments: walk.moments ?? [],
       source: source === 'strava' ? 'gpx' : source,
       ...(walk.durationMin ? { durationMin: walk.durationMin } : {}),
       ...(walk.startTime ? { startTime: walk.startTime } : {}),

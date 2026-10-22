@@ -9,7 +9,7 @@ import { linkMoments, type Pause } from './walkStory'
 /** Un point : [latitude, longitude]. */
 export type RoutePoint = [number, number]
 
-export type RouteMomentType = 'peur' | 'grogne' | 'rencontre' | 'jeu' | 'marque' | 'reniflage' | 'rappel' | 'detendu' | 'note'
+export type RouteMomentType = 'peur' | 'grogne' | 'rencontre' | 'jeu' | 'marque' | 'reniflage' | 'rappel' | 'detendu' | 'araconter' | 'note'
 
 /**
  * Les repères d’une balade (trajets.md § 3, complétés par la fonction « Balades ») : « A eu peur » devient
@@ -26,9 +26,37 @@ export const ROUTE_MOMENTS: { id: RouteMomentType; label: string; color: string 
   { id: 'reniflage', label: 'Reniflage', color: '#6B7F3A' },
   { id: 'rappel', label: 'Super rappel', color: '#1E5A50' },
   { id: 'detendu', label: 'Bien détendu', color: '#2559A8' },
+  // T-086 : « Repère » touché pendant la balade (Live Activity) : un endroit à raconter ensuite, gris calme. On ne le
+  // choisit jamais dans la liste : raconter le remplace par ce qui s’est passé.
+  { id: 'araconter', label: 'À raconter', color: '#66706C' },
   { id: 'note', label: 'Note libre', color: '#5C6662' },
 ]
 export const routeMomentInfo = (id: string) => ROUTE_MOMENTS.find((m) => m.id === id) ?? ROUTE_MOMENTS[ROUTE_MOMENTS.length - 1]!
+/** Les repères qu’on choisit (« Autre », poser un repère sur la carte) : tous sauf « À raconter ». */
+export const PICKABLE_MOMENTS = ROUTE_MOMENTS.filter((m) => m.id !== 'araconter')
+/** Un endroit marqué pendant la balade, pas encore raconté (T-086). */
+export const isToTell = (m: Pick<RouteMoment, 'type'>) => m.type === 'araconter'
+
+/** Un « Repère » posé pendant la balade depuis l’écran verrouillé (T-086) : position et heure. */
+export interface WalkMarker {
+  lat: number
+  lng: number
+  time?: string
+}
+
+/** Les repères de la balade deviennent des moments « À raconter » (positions invalides écartées, doublons fusionnés). */
+export function markerMoments(markers: WalkMarker[] | undefined): RouteMoment[] {
+  const out: RouteMoment[] = []
+  for (const m of markers ?? []) {
+    if (!Number.isFinite(m.lat) || !Number.isFinite(m.lng) || Math.abs(m.lat) > 90 || Math.abs(m.lng) > 180) continue
+    const lat = Math.round(m.lat * 1e5) / 1e5
+    const lng = Math.round(m.lng * 1e5) / 1e5
+    // Deux touchers au même endroit (à moins de 10 m) : un seul repère.
+    if (out.some((o) => distanceMeters(o, { lat, lng }) < 10)) continue
+    out.push({ lat, lng, type: 'araconter' })
+  }
+  return out
+}
 
 export interface RouteMoment {
   lat: number
@@ -204,7 +232,7 @@ export function withMarkMoments(route: Route, spots: { lat: number; lng: number;
 /** Pour la carte « Ses balades » (trajets.md § 4) : les peurs et grognes d’un côté, les réussites de l’autre. */
 export const isHardMoment = (m: RouteMoment) => m.type === 'peur' || m.type === 'grogne'
 /** Une note libre n’est ni une peur ni une réussite. */
-export const isGoodMoment = (m: RouteMoment) => !isHardMoment(m) && m.type !== 'note'
+export const isGoodMoment = (m: RouteMoment) => !isHardMoment(m) && m.type !== 'note' && !isToTell(m)
 export const HARD_COLOR = '#C4423A'
 export const GOOD_COLOR = '#1E5A50'
 

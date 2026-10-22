@@ -1,6 +1,7 @@
 import { isNative } from '../native'
 import { registerPlugin, type PluginListenerHandle } from '@capacitor/core'
 import type { GpsPoint } from '../lib/gpsWalk'
+import type { WalkMarker } from '../lib/route'
 import type { WatchWalk } from '../lib/watch'
 import type { HealthExtras } from '../lib/walkHealth'
 import { withTimeout } from '../lib/timeout'
@@ -38,14 +39,19 @@ export interface CurrentWalk {
   reducedAccuracy?: boolean
   /** T-061 : déjà enregistrée dans la base locale (cette entrée), en attente d’envoi au serveur : rien à faire. */
   savedAs?: string
+  /** T-086 : les « Repère » touchés sur la Live Activity (écran verrouillé, Dynamic Island), gardés avec la balade. */
+  markers?: WalkMarker[]
 }
 
 interface FlairNativePlugin {
   getWalks(options: { since: string }): Promise<WatchWalks>
   /** T-080 : le cœur, les pas et l’énergie que Santé a sur cette fenêtre (vide si rien, ou si la lecture n’est pas permise). */
   healthWindow(options: { start: string; end: string }): Promise<HealthExtras>
-  /** Démarre, ou reprend la balade en cours. Rejet `denied` si la position n'est pas autorisée. */
-  startWalk(): Promise<CurrentWalk>
+  /**
+   * Démarre, ou reprend la balade en cours. Rejet `denied` si la position n'est pas autorisée. `dogName` : le nom
+   * affiché par la Live Activity (T-086, « Balade avec Billy ») ; une app iOS plus ancienne l’ignore.
+   */
+  startWalk(options?: { dogName?: string }): Promise<CurrentWalk>
   /** Arrête le GPS et renvoie la balade. Le fichier est gardé jusqu'à `clearWalk()` (R-042). */
   stopWalk(): Promise<CurrentWalk>
   /** Efface la balade : seulement après un enregistrement réussi. */
@@ -71,6 +77,8 @@ interface FlairNativePlugin {
   motionStatus(): Promise<{ available: boolean; status: MotionStatus }>
   /** T-085 : les périodes « à pied » brutes depuis `since` (la première fois, iOS demande l’accès). */
   motionWalks(options: { since: string }): Promise<{ periods: MotionPeriod[] }>
+  /** T-086 : ce que la Live Activity affiche en plus de la distance : les bouts de territoire découverts. */
+  setLiveWalk(options: { bits: number }): Promise<void>
   addListener(event: 'walkPoint', listener: (point: GpsPoint) => void): Promise<PluginListenerHandle>
   addListener(event: 'walkStopped', listener: (data: { stoppedAt?: string }) => void): Promise<PluginListenerHandle>
   /** La précision du GPS à chaque mise à jour (même pour un point écarté) : signal faible (T-051). */
@@ -78,6 +86,8 @@ interface FlairNativePlugin {
   addListener(event: 'walkError', listener: (data: { code: string }) => void): Promise<PluginListenerHandle>
   /** T-084 : une marche de la Watch vient d’arriver dans Santé, app ouverte. */
   addListener(event: 'watchArrived', listener: () => void): Promise<PluginListenerHandle>
+  /** T-086 : « Repère » touché sur la Live Activity : la position est gardée avec la balade. */
+  addListener(event: 'walkMarker', listener: (marker: WalkMarker) => void): Promise<PluginListenerHandle>
   addListener(event: 'walkSignal', listener: (data: { accuracy: number; time: string }) => void): Promise<PluginListenerHandle>
 }
 
@@ -129,4 +139,10 @@ export async function readMotionWalks(since: string): Promise<MotionPeriod[]> {
   } catch {
     return []
   }
+}
+
+/** T-086 : les bouts de territoire découverts, pour la Live Activity. Jamais bloquant (app iOS plus ancienne : rien). */
+export function setLiveWalk(bits: number): void {
+  if (!isNative()) return
+  FlairNative.setLiveWalk({ bits }).catch(() => undefined)
 }

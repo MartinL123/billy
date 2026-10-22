@@ -251,5 +251,5 @@ export function weatherText(w: Route['weather']): string | undefined {
   return w.humidity !== undefined ? `${temp} · ${w.humidity} % d’humidité` : temp
 }
 
-/** Les arrêts qui attendent encore un repère : « Raconter la balade » n’apparaît que s’il en reste. */
-export const untoldStops = (route: Pick<Route, 'stops'>) => (route.stops ?? []).filter((s) => s.momentIndex === undefined)
+/** Les arrêts qui attendent encore un repère (ou dont le repère est « À raconter », T-086). */
+export const untoldStops = (route: Pick<Route, 'stops'> & { moments?: Route['moments'] }) => (route.stops ?? []).filter((s) => s.momentIndex === undefined || route.moments?.[s.momentIndex]?.type === 'araconter')

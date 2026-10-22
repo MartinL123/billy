@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { routeMomentInfo } from '../../lib/route'
+import { isToTell, routeMomentInfo } from '../../lib/route'
 import { TIMELINE_PREVIEW, timelineText, type TimelineEvent } from '../../lib/walkTimeline'
 import { MomentIcon } from './momentIcons'
 
@@ -50,7 +50,8 @@ export function WalkTimeline({ events, startTime, preview = false, renderExtra }
       <ol className="card m-0 flex list-none flex-col px-3 py-1">
         {shown.map((event, i) => {
           const { title, detail, clock } = timelineText(event, startTime)
-          const moment = event.kind === 'stop' ? event.moment : undefined
+          // Un repère « À raconter » sur un arrêt : pas de pastille, les tuiles le remplacent (T-086).
+          const moment = event.kind === 'stop' && event.moment && !isToTell(event.moment) ? event.moment : undefined
           return (
             <li key={`${event.kind}-${event.atS ?? i}-${i}`} className={`relative flex gap-2.5 py-2.5 ${i ? 'border-t border-divider' : ''}`}>
               {hasClock && <span className="w-[3.4rem] shrink-0 pt-0.5 text-[0.8235rem] font-semibold text-muted tabular-nums">{clock}</span>}

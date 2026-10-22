@@ -11,6 +11,8 @@ const PATHS: Record<RouteMomentType, string[]> = {
   reniflage: ['M5 18c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0', 'M5 12.5c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0', 'M5 7c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0'],
   rappel: ['M9 14 4 9l5-5', 'M4 9h10a6 6 0 0 1 0 12h-3'],
   detendu: ['M4 12a8 8 0 1 0 16 0a8 8 0 1 0-16 0', 'M8.5 14.5s1.3 1.8 3.5 1.8 3.5-1.8 3.5-1.8', 'M9 9.5h.01', 'M15 9.5h.01'],
+  // T-086 : un petit drapeau, l’endroit marqué pendant la balade.
+  araconter: ['M6 21V4', 'M6 4h11l-2.5 4 2.5 4H6'],
   note: ['M4 20h4L19 9l-4-4L4 16z'],
 }
 

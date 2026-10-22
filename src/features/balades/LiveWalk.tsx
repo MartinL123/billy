@@ -22,7 +22,7 @@ import { recoverFromFirestoreCrash } from '../../firebase/recover'
 import { useToday } from '../../lib/useToday'
 import { slotForStart, walkName, walkTimes, WALK_SLOTS, type WalkSlot } from '../../lib/walks'
 import { isNative } from '../../native'
-import { FlairNative, readHealthWindow } from '../../native/flair'
+import { FlairNative, readHealthWindow, setLiveWalk } from '../../native/flair'
 import { watchOptedIn } from './watchImport'
 import { ExplorerMap } from './ExplorerMap'
 import { ROUTE_COLOR } from '../../components/maplibre'
@@ -155,7 +155,7 @@ export default function LiveWalk() {
       step = 'enregistrement (importActivities)'
       const d = data.current
       const result = await withTimeout(
-        importActivities(1, async () => gpsActivity(walk.points, walk.startedAt!, health), { knownKeys: knownImportKeys(d.entries), bones: d.bones, fog: d.fog, communes: d.communes, today: d.today, times: walkTimes(d.dog.walkTimes) }, () => undefined, { source: 'gps' }),
+        importActivities(1, async () => gpsActivity(walk.points, walk.startedAt!, health, walk.markers), { knownKeys: knownImportKeys(d.entries), bones: d.bones, fog: d.fog, communes: d.communes, today: d.today, times: walkTimes(d.dog.walkTimes) }, () => undefined, { source: 'gps' }),
         SAVE_MS,
         'enregistrement',
       )
@@ -241,7 +241,7 @@ export default function LiveWalk() {
       if (!current.active && !params.get('depart')) return navigate('/', { replace: true })
       try {
         const resumed = current.recording || current.autoStopped
-        const walk = resumed ? current : await FlairNative.startWalk()
+        const walk = resumed ? current : await FlairNative.startWalk({ dogName: data.current.dog.name })
         if (!resumed) logEvent({ type: 'walk_start' })
         if (!alive) return
         setReduced(Boolean(walk.reducedAccuracy))
@@ -275,6 +275,8 @@ export default function LiveWalk() {
       FlairNative.addListener('walkPoint', (point) => setPoints((list) => [...list, point])),
       FlairNative.addListener('walkStopped', (data) => setStoppedAt(data.stoppedAt ?? new Date().toISOString())),
       FlairNative.addListener('walkError', (data) => data.code === 'storage' && setStorageFull(true)),
+      // T-086 : « Repère » touché sur la Live Activity (écran verrouillé, Dynamic Island) : gardé avec la balade.
+      FlairNative.addListener('walkMarker', () => toast('Repère posé')),
       FlairNative.addListener('walkSignal', (data) => {
         setAccuracy(data.accuracy)
         setWeakSince((since) => (data.accuracy > 50 ? (since ?? Date.now()) : undefined))
@@ -332,6 +334,10 @@ export default function LiveWalk() {
     const timer = window.setTimeout(() => setFound(false), 3000)
     return () => window.clearTimeout(timer)
   }, [bits])
+  // T-086 : la Live Activity montre aussi les bouts de territoire découverts.
+  useEffect(() => {
+    if (phase === 'walking' && !ended) setLiveWalk(bits)
+  }, [bits, phase, ended])
   // La portion douteuse (GPS faible, trou de plus de 20 s) en pointillés ; le reste en trait plein.
   const tracks = useMemo(() => {
     const out: { id: string; color: string; points: [number, number][]; dashed?: boolean }[] = []

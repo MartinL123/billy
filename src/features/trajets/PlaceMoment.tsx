@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Sheet } from '../../components/Sheet'
-import { ROUTE_MOMENTS, type RouteMoment } from '../../lib/route'
+import { PICKABLE_MOMENTS, type RouteMoment } from '../../lib/route'
 import { streetName } from '../../lib/street'
 import { MomentIcon } from './momentIcons'
 
@@ -28,7 +28,7 @@ export function PlaceMoment({ at, onPlace, onCancel }: { at: { lat: number; lng:
         {street && <p className="source-note">Lieux © OpenStreetMap</p>}
       </div>
       <div className="grid grid-cols-2 gap-2">
-        {ROUTE_MOMENTS.map((m) => {
+        {PICKABLE_MOMENTS.map((m) => {
           const on = type === m.id
           return (
             <button key={m.id} type="button" aria-pressed={on} onClick={() => setType(m.id)} className="flex min-h-14 items-center gap-2.5 rounded-[16px] border-[3px] border-solid px-2.5 text-left text-[0.9412rem] leading-tight font-bold" style={on ? { background: m.color, borderColor: m.color, color: '#FFFFFF' } : { background: '#FFFFFF', borderColor: m.color, color: m.color }}>

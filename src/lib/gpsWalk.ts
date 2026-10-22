@@ -3,7 +3,7 @@ import { walkDistance } from './activity'
 import { healthFields, timedPoint, watchName, type WatchWalk } from './watch'
 import type { HealthExtras } from './walkHealth'
 import { formatDuration } from './balade'
-import { formatRouteDistance } from './route'
+import { formatRouteDistance, type WalkMarker } from './route'
 
 // La balade enregistrée par l'iPhone (app iOS, T-036) : démarrée et arrêtée par ses boutons, puis le même circuit que
 // l'import d'un fichier GPX. Ce fichier ne dépend ni de Capacitor ni de Firestore.
@@ -54,10 +54,11 @@ export function tooShort(points: GpsPoint[], startedAt: string, endedAt: number)
 
 /**
  * La balade terminée devient une activité, comme un fichier GPX lu (nom selon l'heure de départ). `health` : le cœur,
- * les pas et l’énergie lus dans Santé sur la même fenêtre (Watch au poignet), s’il y en a (V6 § 2.2).
+ * les pas et l’énergie lus dans Santé sur la même fenêtre (Watch au poignet), s’il y en a (V6 § 2.2). `markers` : les
+ * « Repère » touchés pendant la balade (T-086), qui deviennent des moments « À raconter ».
  */
-export function gpsActivity(points: GpsPoint[], startedAt: string, health?: HealthExtras): Activity {
-  return { name: watchName(startedAt, 'walking'), type: 'walking', points: points.map(timedPoint), ...healthFields(health) }
+export function gpsActivity(points: GpsPoint[], startedAt: string, health?: HealthExtras, markers?: WalkMarker[]): Activity {
+  return { name: watchName(startedAt, 'walking'), type: 'walking', points: points.map(timedPoint), ...healthFields(health), ...(markers?.length ? { markers } : {}) }
 }
 
 /** Part de la séance Watch couverte par une balade de l'iPhone (0 à 1). */

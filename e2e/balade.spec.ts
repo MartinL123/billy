@@ -260,3 +260,24 @@ test('T-087 · partager en direct : le lien montre la balade sans compte, puis �
   await other.close()
 })
 
+
+// T-086 : « Repère » sur la Live Activity : la position est gardée, puis racontée après la balade.
+test('T-086 · Repère sur l’écran verrouillé : « Repère posé », puis « À raconter » remplacé par ce qui s’est passé', async ({ fake, user, app }) => {
+  await startWalk(app)
+  await fake.walkPoints(app, 12)
+  await fake.placeMarker(app)
+  await expect(app.getByText('Repère posé')).toBeVisible()
+  await fake.walkPoints(app, 12)
+  await finishButton(app).click()
+  await expect(bravo(app)).toBeVisible()
+  await expect(app.getByText('1 repère posé. Que s’est-il passé ?')).toBeVisible()
+  await expectServerWalks(user, 1)
+  expect(JSON.stringify((await serverWalks(user.uid))[0]?.fields)).toContain('"type":{"stringValue":"araconter"}')
+
+  await app.getByRole('button', { name: 'Raconter la balade' }).click()
+  await expect(app.getByText('Repère posé pendant la balade')).toBeVisible()
+  await app.getByRole('button', { name: 'Jeu' }).click()
+  await expect(app.getByRole('heading', { name: 'C’est raconté !' })).toBeVisible()
+  await expect.poll(async () => JSON.stringify((await serverWalks(user.uid))[0]?.fields), { message: 'repère raconté au serveur' }).toContain('"type":{"stringValue":"jeu"}')
+  expect(JSON.stringify((await serverWalks(user.uid))[0]?.fields)).not.toContain('araconter')
+})

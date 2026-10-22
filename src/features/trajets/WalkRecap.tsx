@@ -4,7 +4,8 @@ import { Stats } from '../../components/Stats'
 import { useData } from '../../firebase/store'
 import { readRoute } from '../../lib/route'
 import { recapStats, stopChips, stopsLine } from '../../lib/walkRecap'
-import { discoverySentence, untoldStops, walkDiscovery } from '../../lib/walkSheet'
+import { discoverySentence, walkDiscovery } from '../../lib/walkSheet'
+import { tellQueue } from '../../lib/walkTell'
 
 /**
  * Le panneau du récap « Belle balade ! » (V6 § 6.3), après « Terminer » (GPS de Flair) ou à l’arrivée d’une balade de
@@ -20,7 +21,9 @@ export function WalkRecap({ entryId, overline, subtitle, bones, fallback }: { en
   const discovery = useMemo(() => (entry ? walkDiscovery(entryId, entries, communes) : undefined), [entryId, entries, communes, Boolean(entry)]) // eslint-disable-line react-hooks/exhaustive-deps
   // Les os de la note de cette balade (+3, dans la limite du jour), sauf si l’écran les connaît déjà.
   const gained = bones ?? allBones.filter((b) => b.reason === 'note' && b.refId === entryId).reduce((s, b) => s + b.amount, 0)
-  const untold = route ? untoldStops(route).length : 0
+  // T-086 : les arrêts sans repère et les repères « À raconter ».
+  const queue = route ? tellQueue(route) : []
+  const untold = queue.length
   const stops = route?.stops?.length ?? 0
   const go = (to: string) => navigate(to, { replace: true })
 
@@ -34,7 +37,7 @@ export function WalkRecap({ entryId, overline, subtitle, bones, fallback }: { en
       <Stats items={recapStats({ distanceM: route?.distanceM ?? fallback.distanceM, discovery, bones: gained })} className="rounded-[16px] bg-bg px-4 py-3" />
       {untold > 0 && route ? (
         <>
-          <p className="text-[0.9412rem] font-bold">{stopsLine(stops)}</p>
+          <p className="text-[0.9412rem] font-bold">{stopsLine(stops, queue.filter((q) => q.kind === 'marker').length)}</p>
           <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
             {stopChips(route).map((chip) => (
               <li key={chip.label} className={`rounded-full px-3 py-1.5 text-[0.8235rem] font-bold ${chip.todo ? 'bg-primary-soft text-primary-dark' : chip.hard ? 'bg-danger-soft text-danger' : 'bg-bg text-text'}`}>

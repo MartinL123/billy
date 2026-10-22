@@ -1,6 +1,7 @@
 import { ofName } from './gender'
-import { formatRouteDistance, routeMomentInfo, type Route } from './route'
+import { formatRouteDistance, isToTell, routeMomentInfo, type Route } from './route'
 import { clockAt, shareGain, type Discovery } from './walkSheet'
+import { tellQueue } from './walkTell'
 
 // Le récap « Belle balade ! » (spec V6 § 6.3) : fonctions pures, testées.
 
@@ -14,22 +15,23 @@ export function recapStats({ distanceM, discovery, bones }: { distanceM: number;
   ]
 }
 
-/** « 4 arrêts. Que s’est-il passé ? » */
-export const stopsLine = (n: number) => `${n} arrêt${n > 1 ? 's' : ''}. Que s’est-il passé ?`
+/** « 4 arrêts. Que s’est-il passé ? » ; sans arrêt, les repères posés pendant la balade (T-086). */
+export const stopsLine = (n: number, markers = 0) => (n || !markers ? `${n} arrêt${n > 1 ? 's' : ''}. Que s’est-il passé ?` : `${markers} repère${markers > 1 ? 's' : ''} posé${markers > 1 ? 's' : ''}. Que s’est-il passé ?`)
 
 /**
  * Les pastilles d’arrêts (2 ou 3) : les arrêts déjà racontés (« Jeu · 8 h 17 »), puis « 2 à raconter » ; sans heure
  * connue, « Arrêt 1 · 3 min ».
  */
-export function stopChips(route: Pick<Route, 'stops' | 'moments' | 'startTime'>): { label: string; hard?: boolean; todo?: boolean }[] {
+export function stopChips(route: Pick<Route, 'stops' | 'moments' | 'startTime' | 'track'>): { label: string; hard?: boolean; todo?: boolean }[] {
   const stops = route.stops ?? []
   const told = stops.flatMap((s) => {
     const m = s.momentIndex !== undefined ? route.moments[s.momentIndex] : undefined
-    if (!m) return []
+    if (!m || isToTell(m)) return []
     const label = m.type === 'peur' ? 'Stress' : routeMomentInfo(m.type).label
     return [{ label: route.startTime ? `${label} · ${clockAt(route.startTime, s.at)}` : label, ...(m.type === 'peur' || m.type === 'grogne' ? { hard: true } : {}) }]
   })
-  const untold = stops.length - told.length
+  // T-086 : les repères « À raconter » posés hors arrêt comptent aussi.
+  const untold = tellQueue(route).length
   const chips = told.slice(0, untold ? 2 : 3)
   if (untold) chips.push({ label: `${untold} à raconter`, todo: true } as { label: string; todo: boolean })
   return chips

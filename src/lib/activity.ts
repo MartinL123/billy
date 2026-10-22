@@ -1,7 +1,7 @@
 import { distanceMeters } from './community'
 import { simplifyWalk, type TimedPoint } from './balade'
 import type { ISODate } from './dates'
-import type { RoutePoint, RouteStop } from './route'
+import { markerMoments, type RouteMoment, type RoutePoint, type RouteStop, type WalkMarker } from './route'
 import { buildTrack, type Track } from './track'
 import { elevation, hrPerMinute, pausesSince, positiveRound, watchWeather, type HrSample, type TimeSpan, type WalkWeather } from './walkHealth'
 import { walkStory, type Pause } from './walkStory'
@@ -26,6 +26,8 @@ export interface Activity {
   weather?: { tempC?: number; humidity?: number }
   /** Pauses de la séance Watch. */
   pauses?: TimeSpan[]
+  /** T-086 : les « Repère » touchés pendant la balade (Live Activity) : ils deviennent des moments « À raconter ». */
+  markers?: WalkMarker[]
 }
 
 const attr = (attrs: string, name: string) => {
@@ -160,6 +162,8 @@ export interface ImportedActivity {
   weather?: WalkWeather
   energyKcal?: number
   pauses?: Pause[]
+  /** T-086 : les moments « À raconter » (repères posés pendant la balade). */
+  moments?: RouteMoment[]
   /** Points complets, avec l’heure : seulement en mémoire, pour le brouillard et les photos. Jamais enregistrés tels quels. */
   full: TimedPoint[]
 }
@@ -184,6 +188,7 @@ export function toImported(activity: Activity): ImportedActivity | undefined {
   const weather = watchWeather(activity.weather)
   const steps = positiveRound(activity.steps)
   const energyKcal = positiveRound(activity.energyKcal)
+  const moments = markerMoments(activity.markers)
   return {
     key: importKey(points),
     name: frenchName(activity.name, activity.type),
@@ -203,6 +208,7 @@ export function toImported(activity: Activity): ImportedActivity | undefined {
     ...(weather ? { weather } : {}),
     ...(energyKcal ? { energyKcal } : {}),
     ...(pauses ? { pauses } : {}),
+    ...(moments.length ? { moments } : {}),
     full: points,
   }
 }

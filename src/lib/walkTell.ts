@@ -1,6 +1,7 @@
 import { noteBone, type Bone, type BoneWithId } from './bones'
 import type { ISODate } from './dates'
-import type { Route, RouteMoment, RouteMomentType } from './route'
+import { isToTell, type Route, type RouteMoment, type RouteMomentType } from './route'
+import { timeOnTrack } from './walkTimeline'
 
 // « Que s’est-il passé ici ? » et « Raconter la balade » (spec V6 § 6.2). Fonctions pures.
 
@@ -21,8 +22,45 @@ export function momentOnStop(route: Pick<Route, 'stops' | 'moments'>, stopIndex:
   return [...route.moments, { lat: stop.lat, lng: stop.lng, type, ...(note ? { note } : {}), ...(stop.street ? { street: stop.street } : {}) }]
 }
 
-/** Les arrêts à raconter, dans l’ordre : leur numéro dans la balade (1 pour le premier). */
-export const stopsToTell = (route: Pick<Route, 'stops'>) => (route.stops ?? []).flatMap((s, i) => (s.momentIndex === undefined ? [i] : []))
+/** Un arrêt encore à raconter : sans repère, ou avec un repère « À raconter » (T-086). */
+const stopUntold = (route: Pick<Route, 'stops'> & { moments?: RouteMoment[] }, momentIndex: number | undefined) => {
+  if (momentIndex === undefined) return true
+  const m = route.moments?.[momentIndex]
+  return Boolean(m && isToTell(m))
+}
+
+/** Les arrêts à raconter, dans l’ordre : leur indice dans la balade (0 pour le premier). */
+export const stopsToTell = (route: Pick<Route, 'stops'> & { moments?: RouteMoment[] }) => (route.stops ?? []).flatMap((s, i) => (stopUntold(route, s.momentIndex) ? [i] : []))
+
+/**
+ * Ce qu’il reste à raconter (T-086) : un arrêt sans repère ou avec un repère « À raconter » (`momentIndex` alors
+ * donné), ou un repère « À raconter » hors arrêt. `atS` : secondes depuis le départ, si on les connaît.
+ */
+export type TellItem = { kind: 'stop'; stopIndex: number; momentIndex?: number; atS: number } | { kind: 'marker'; momentIndex: number; atS?: number }
+
+/** La file de « Raconter la balade », dans l’ordre de la balade (sans trajet daté : les arrêts, puis les repères). */
+export function tellQueue(route: Pick<Route, 'stops' | 'moments' | 'track'>): TellItem[] {
+  const stops = route.stops ?? []
+  const linked = new Set(stops.flatMap((s) => (s.momentIndex !== undefined ? [s.momentIndex] : [])))
+  const items: TellItem[] = stops.flatMap((s, stopIndex): TellItem[] => (stopUntold(route, s.momentIndex) ? [{ kind: 'stop', stopIndex, atS: s.at, ...(s.momentIndex !== undefined ? { momentIndex: s.momentIndex } : {}) }] : []))
+  route.moments.forEach((m, momentIndex) => {
+    if (isToTell(m) && !linked.has(momentIndex)) items.push({ kind: 'marker', momentIndex, ...(route.track ? { atS: timeOnTrack(route.track, m) } : {}) })
+  })
+  return items.map((item, i) => ({ item, i })).sort((a, b) => (a.item.atS ?? Infinity) - (b.item.atS ?? Infinity) || a.i - b.i).map(({ item }) => item)
+}
+
+/**
+ * Raconter un élément de la file : un arrêt sans repère reçoit un nouveau repère (`momentOnStop`) ; un repère
+ * « À raconter » est REMPLACÉ par ce qui s’est passé (même position, la rue de l’arrêt s’il n’en a pas).
+ */
+export function tellMoment(route: Pick<Route, 'stops' | 'moments'>, item: TellItem, type: RouteMomentType, note?: string): RouteMoment[] | undefined {
+  if (item.momentIndex === undefined) return item.kind === 'stop' ? momentOnStop(route, item.stopIndex, type, note) : undefined
+  const old = route.moments[item.momentIndex]
+  if (!old) return undefined
+  const street = old.street ?? (item.kind === 'stop' ? route.stops?.[item.stopIndex]?.street : undefined)
+  const told: RouteMoment = { lat: old.lat, lng: old.lng, type, ...(note ? { note } : {}), ...(street ? { street } : {}) }
+  return route.moments.map((m, i) => (i === item.momentIndex ? told : m))
+}
 
 /**
  * « C’est raconté ! » : +3 os une seule fois par balade (identifiant fixe, et `toldAt` sur la balade), dans la limite

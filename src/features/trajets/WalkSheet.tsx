@@ -12,11 +12,12 @@ import { useData } from '../../firebase/store'
 import type { Entry, WithId } from '../../firebase/types'
 import { useReadOnly } from '../../firebase/viewer'
 import { ofName } from '../../lib/gender'
-import { momentReaction, routeMomentInfo, storeRoute, type Route } from '../../lib/route'
+import { isToTell, momentReaction, routeMomentInfo, storeRoute, type Route } from '../../lib/route'
 import { stopStreet } from '../../lib/street'
 import { useBack } from '../../lib/useBack'
-import { discoverySentence, shareGain, sheetStats, sourceLabels, untoldStops, walkDiscovery, walkSubtitle, CELLS_PER_BIT } from '../../lib/walkSheet'
+import { discoverySentence, shareGain, sheetStats, sourceLabels, walkDiscovery, walkSubtitle, CELLS_PER_BIT } from '../../lib/walkSheet'
 import { walkTimeline, type TimelineEvent } from '../../lib/walkTimeline'
+import { tellQueue, type TellItem } from '../../lib/walkTell'
 import { postcardDateLine, postcardLine, postcardRoute } from '../../lib/postcard'
 import { MomentChips } from '../journal/EntryCard'
 import { PhotoViewer } from '../journal/PhotoViewer'
@@ -64,7 +65,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
   const events = useMemo(() => walkTimeline(route, { startStreet }), [route, startStreet])
   const discovery = useMemo(() => walkDiscovery(entry.id, entries, communes), [entry.id, entries, communes])
   const sources = sourceLabels(route)
-  const untold = untoldStops(route)
+  const untold = tellQueue(route)
   const showPace = Boolean(route.track && route.pace && route.pace.length > 1)
   const bits = discovery ? Math.floor(discovery.newCells / CELLS_PER_BIT) : 0
   const placeOnStop = usePlaceOnStop(entry.id, route)
@@ -72,12 +73,23 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
   // Sous un repère : « Ajouter à Comment il réagit » (peur, grogne : seulement si on le choisit) et « Retirer ».
   const momentActions = (event: TimelineEvent) => {
     const found = event.kind === 'moment' ? { moment: event.moment, index: event.momentIndex } : event.kind === 'stop' && event.moment && event.momentIndex !== undefined ? { moment: event.moment, index: event.momentIndex } : undefined
-    // Un arrêt sans repère : « Que s’est-il passé ici ? » et ses 6 tuiles (V6 § 6.2).
-    if (event.kind === 'stop' && !event.moment && !readOnly)
+    // Un arrêt sans repère, ou un repère « À raconter » (T-086) : « Que s’est-il passé ici ? » et ses 6 tuiles (V6 § 6.2).
+    const item: TellItem | undefined =
+      event.kind === 'stop' && (!event.moment || isToTell(event.moment))
+        ? { kind: 'stop', stopIndex: event.stopIndex, atS: event.atS, ...(event.moment && event.momentIndex !== undefined ? { momentIndex: event.momentIndex } : {}) }
+        : event.kind === 'moment' && isToTell(event.moment)
+          ? { kind: 'marker', momentIndex: event.momentIndex }
+          : undefined
+    if (item && !readOnly && (event.kind === 'stop' || event.kind === 'moment'))
       return (
         <div className="mt-1.5 flex flex-col gap-2">
           <span className="text-[0.8824rem] font-bold">Que s’est-il passé ici ?</span>
-          <StopTiles stop={event} onPick={(type, note) => placeOnStop(event.stopIndex, type, note)} />
+          <StopTiles stop={event.kind === 'moment' ? event.moment : event} onPick={(type, note) => placeOnStop(item, type, note)} />
+          {item.momentIndex !== undefined && (
+            <button type="button" aria-label="Retirer le repère À raconter" onClick={() => removeMoment(item.momentIndex!)} className="btn-text -ml-1 self-start text-[0.8824rem] text-muted">
+              Retirer
+            </button>
+          )}
         </div>
       )
     if (!found || readOnly) return null

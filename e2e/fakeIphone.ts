@@ -18,11 +18,13 @@ interface Walk {
   stoppedAt?: string
   savedAs?: string
   points: GpsPoint[]
+  /** T-086 : les « Repère » touchés sur la Live Activity (`reperes.txt`). */
+  markers?: GpsPoint[]
 }
 
 type Reply = { ok: true; data?: unknown } | { ok: false; error: { message: string; code?: string } }
 
-const FLAIR_METHODS = ['getWalks', 'healthWindow', 'startWalk', 'stopWalk', 'clearWalk', 'cancelWalk', 'currentWalk', 'keepAwake', 'markSaved', 'pendingSent', 'clearSent', 'setBackGesture', 'haptic', 'setWatchNotify', 'motionStatus', 'motionWalks']
+const FLAIR_METHODS = ['getWalks', 'healthWindow', 'startWalk', 'stopWalk', 'clearWalk', 'cancelWalk', 'currentWalk', 'keepAwake', 'markSaved', 'pendingSent', 'clearSent', 'setBackGesture', 'haptic', 'setWatchNotify', 'motionStatus', 'motionWalks', 'setLiveWalk']
 const NOTIFICATION_METHODS = ['checkPermissions', 'requestPermissions', 'getPending', 'cancel', 'schedule', 'getDeliveredNotifications', 'removeAllDeliveredNotifications', 'createChannel', 'listChannels', 'areEnabled']
 
 /**
@@ -121,6 +123,15 @@ export class FakeIphone {
     }
   }
 
+  /** T-086 : « Repère » touché sur la Live Activity : la dernière position est gardée, l'écran en est prévenu. */
+  async placeMarker(page: Page) {
+    const last = this.walk?.points[this.walk.points.length - 1]
+    if (!this.walk || !this.recording || !last) throw new Error('Pas de position pour un repère')
+    const marker: GpsPoint = { lat: last.lat, lng: last.lng, time: last.time }
+    this.walk.markers = [...(this.walk.markers ?? []), marker]
+    await page.evaluate(([m]) => (window as unknown as { __fakeIphoneEmit: (a: string, b: string, c: unknown) => void }).__fakeIphoneEmit('FlairNative', 'walkMarker', m), [marker] as const)
+  }
+
   private summary() {
     const walk = this.walk
     if (!walk) return { active: false, recording: false, points: [] }
@@ -133,6 +144,7 @@ export class FakeIphone {
       points: [...walk.points],
       ...(walk.stoppedAt ? { stoppedAt: walk.stoppedAt } : {}),
       ...(walk.savedAs ? { savedAs: walk.savedAs } : {}),
+      ...(walk.markers?.length ? { markers: [...walk.markers] } : {}),
     }
   }
 
@@ -189,6 +201,8 @@ export class FakeIphone {
       case 'setBackGesture':
       case 'haptic':
       case 'setWatchNotify':
+      // T-086 : la Live Activity n’est pas dessinée ici ; ses repères passent par `placeMarker`.
+      case 'setLiveWalk':
         return { ok: true }
       // T-085 : par défaut, pas de capteur de mouvement (aucune carte « C’était une sortie ? »).
       case 'motionStatus':

@@ -11,7 +11,7 @@ import { useReadOnly } from '../../firebase/viewer'
 import { readRoute } from '../../lib/route'
 import { useToday } from '../../lib/useToday'
 import { clockAt, durationText } from '../../lib/walkSheet'
-import { stopsToTell, tellBone } from '../../lib/walkTell'
+import { tellBone, tellQueue } from '../../lib/walkTell'
 import { StopTiles, usePlaceOnStop } from './StopTiles'
 import { WalkMap } from './WalkMap'
 
@@ -28,8 +28,8 @@ export default function TellWalk() {
   const navigate = useNavigate()
   const entry = entries.find((e) => e.id === id)
   const route = useMemo(() => readRoute(entry?.route), [entry?.route])
-  // Les arrêts à raconter, figés à l’ouverture : un repère posé ne fait pas sauter l’écran suivant.
-  const [queue] = useState(() => (route ? stopsToTell(route) : []))
+  // Les arrêts et les repères « À raconter » (T-086), figés à l’ouverture : un repère posé ne fait pas sauter l’écran suivant.
+  const [queue] = useState(() => (route ? tellQueue(route) : []))
   const [step, setStep] = useState(0)
   const placed = useRef(0)
   const [gained, setGained] = useState(0)
@@ -69,33 +69,39 @@ export default function TellWalk() {
       </main>
     )
 
-  const stopIndex = queue[step]!
-  const stop = route.stops![stopIndex]!
-  const when = route.startTime ? clockAt(route.startTime, stop.at) : undefined
+  const item = queue[step]!
+  // Un arrêt (numéroté), ou un repère « À raconter » posé hors arrêt (T-086).
+  const stop = item.kind === 'stop' ? route.stops![item.stopIndex]! : undefined
+  const marker = item.momentIndex !== undefined ? route.moments[item.momentIndex] : undefined
+  const place = stop ?? marker!
+  const when = route.startTime && item.atS !== undefined ? clockAt(route.startTime, item.atS) : undefined
+  const street = stop?.street ?? marker?.street
+  const onlyStops = queue.every((q) => q.kind === 'stop')
   return (
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col">
       <header className="flex items-center justify-between bg-bg px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
         <BackLink label="La balade" onClick={back} />
         <span className="text-[0.8235rem] font-semibold text-muted tabular-nums" aria-live="polite">
-          Arrêt {step + 1} sur {queue.length}
+          {onlyStops ? 'Arrêt ' : ''}
+          {step + 1} sur {queue.length}
         </span>
       </header>
-      <WalkMap route={route} dogName={dog.name} focus={{ lat: stop.lat, lng: stop.lng, number: stopIndex + 1 }} className="h-[38dvh] min-h-[180px]" />
-      <main key={stopIndex} className="anim-in flex flex-1 flex-col gap-3 px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+20px)]">
-        <span className="surtitre text-primary">Arrêt {stopIndex + 1}</span>
+      <WalkMap route={route} dogName={dog.name} focus={{ lat: place.lat, lng: place.lng, ...(item.kind === 'stop' ? { number: item.stopIndex + 1 } : {}) }} className="h-[38dvh] min-h-[180px]" />
+      <main key={step} className="anim-in flex flex-1 flex-col gap-3 px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+20px)]">
+        <span className="surtitre text-primary">{item.kind === 'stop' ? `Arrêt ${item.stopIndex + 1}` : 'Repère posé pendant la balade'}</span>
         <h1 className="title-section -mt-2">Que s’est-il passé ici ?</h1>
-        <p className="-mt-1 text-[0.9412rem] text-muted">{[when, `${durationText(stop.durS)} d’arrêt`, stop.street].filter(Boolean).join(' · ')}</p>
+        <p className="-mt-1 text-[0.9412rem] text-muted">{[when, stop ? `${durationText(stop.durS)} d’arrêt` : undefined, street].filter(Boolean).join(' · ')}</p>
         <StopTiles
-          stop={stop}
+          stop={place}
           onPick={(type, note) => {
-            if (placeOnStop(stopIndex, type, note)) placed.current++
+            if (placeOnStop(item, type, note)) placed.current++
             next()
           }}
         />
         <button type="button" onClick={next} className="btn-text mt-auto self-center px-4">
           Passer
         </button>
-        {stop.street && <p className="source-note text-center">Lieux © OpenStreetMap</p>}
+        {street && <p className="source-note text-center">Lieux © OpenStreetMap</p>}
       </main>
     </div>
   )

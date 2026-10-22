@@ -13,6 +13,12 @@ export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = { soin: true, sorti
 
 export const readPrefs = (saved?: Partial<NotificationPrefs>): NotificationPrefs => ({ ...DEFAULT_NOTIFICATION_PREFS, ...(saved ?? {}) })
 
+/**
+ * T-084 : « Quand une balade de la Watch arrive » (activé par défaut). Cette notification n'est pas planifiée ici : l'app
+ * iOS la programme seule, réveillée par Santé ; le choix lui est confié par `FlairNative.setWatchNotify`.
+ */
+export const watchArrivalOn = (saved?: { balade?: boolean }) => saved?.balade !== false
+
 /** iOS garde au plus 64 notifications en attente : on planifie au plus 14 jours, et jamais plus de 64. */
 export const PLAN_DAYS = 14
 export const MAX_PENDING = 64

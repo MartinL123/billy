@@ -3,13 +3,17 @@ import { SWITCH } from '../../components/Form'
 import { updateDog } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { ofName } from '../../lib/gender'
-import { readPrefs, type NotificationKind } from '../../lib/localNotifications'
+import { readPrefs, watchArrivalOn, type NotificationKind } from '../../lib/localNotifications'
 import { askNotificationPermission, notificationPermission, type Permission } from './localNotifications'
 
-const KINDS: { id: NotificationKind; title: string; detail: (name: string) => string }[] = [
+type SettingKind = NotificationKind | 'balade'
+
+const KINDS: { id: SettingKind; title: string; detail: (name: string) => string }[] = [
   { id: 'soin', title: 'Soin à venir', detail: () => 'La veille à 18\u00a0h\u00a0: « Vermifuge demain »' },
   { id: 'sortie', title: 'Sortie prévue', detail: () => '15\u00a0min avant chaque sortie, si elle n’est pas déjà notée' },
   { id: 'recap', title: 'Récap du dimanche', detail: (name) => `Le dimanche à 18\u00a0h, la semaine ${ofName(name)}` },
+  // T-084 : programmée par l’iPhone lui-même, réveillé par Santé ; jamais entre 22 h et 7 h.
+  { id: 'balade', title: 'Quand une balade de la Watch arrive', detail: (name) => `« Belle balade avec ${name.trim() || 'votre chien'}\u00a0! », jamais entre 22\u00a0h et 7\u00a0h` },
 ]
 
 /**
@@ -18,7 +22,7 @@ const KINDS: { id: NotificationKind; title: string; detail: (name: string) => st
  */
 export function NotificationSettings() {
   const { dog } = useData()
-  const prefs = readPrefs(dog.notifications)
+  const prefs = { ...readPrefs(dog.notifications), balade: watchArrivalOn(dog.notifications) }
   const [permission, setPermission] = useState<Permission>()
 
   useEffect(() => {
@@ -26,14 +30,14 @@ export function NotificationSettings() {
   }, [])
 
   // R-067 : l’autorisation d’abord ; refusée, l’interrupteur reste éteint et la phrase dessous explique pourquoi.
-  const toggle = async (kind: NotificationKind) => {
+  const toggle = async (kind: SettingKind) => {
     const on = !prefs[kind]
     if (on && permission !== 'granted') {
       const answer = await askNotificationPermission().catch(() => 'denied' as const)
       setPermission(answer)
       if (answer !== 'granted') return
     }
-    updateDog({ notifications: { ...prefs, [kind]: on } })
+    updateDog({ notifications: { ...dog.notifications, ...prefs, [kind]: on } })
   }
 
   return (

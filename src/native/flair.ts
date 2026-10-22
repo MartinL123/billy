@@ -59,11 +59,18 @@ interface FlairNativePlugin {
   /** T-061 : les entrées dont la copie attend que l’envoi soit confirmé. */
   pendingSent(): Promise<{ ids: string[] }>
   clearSent(options: { ids: string[] }): Promise<void>
+  /**
+   * T-084 : ce que l’iPhone doit savoir pour annoncer seul une balade de la Watch (réveillé par Santé, sans le JS) :
+   * la lecture des marches est choisie (R-079), la notification est voulue (Profil › Notifications), le prénom du chien.
+   */
+  setWatchNotify(options: { optedIn: boolean; enabled: boolean; dogName: string }): Promise<void>
   addListener(event: 'walkPoint', listener: (point: GpsPoint) => void): Promise<PluginListenerHandle>
   addListener(event: 'walkStopped', listener: (data: { stoppedAt?: string }) => void): Promise<PluginListenerHandle>
   /** La précision du GPS à chaque mise à jour (même pour un point écarté) : signal faible (T-051). */
   /** T-062 : un point n’a pas pu être écrit sur l’iPhone (`storage` : stockage plein). */
   addListener(event: 'walkError', listener: (data: { code: string }) => void): Promise<PluginListenerHandle>
+  /** T-084 : une marche de la Watch vient d’arriver dans Santé, app ouverte. */
+  addListener(event: 'watchArrived', listener: () => void): Promise<PluginListenerHandle>
   addListener(event: 'walkSignal', listener: (data: { accuracy: number; time: string }) => void): Promise<PluginListenerHandle>
 }
 
@@ -86,4 +93,10 @@ export async function readHealthWindow(start: string, end: string): Promise<Heal
   } catch {
     return {}
   }
+}
+
+/** T-084 : confie à l’iPhone les choix utiles au réveil par Santé. Jamais bloquant (app iOS plus ancienne : rien). */
+export function setWatchNotify(options: { optedIn: boolean; enabled: boolean; dogName: string }): void {
+  if (!isNative()) return
+  FlairNative.setWatchNotify(options).catch(() => undefined)
 }

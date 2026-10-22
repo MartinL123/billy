@@ -3,6 +3,7 @@ import UIKit
 import Capacitor
 import CoreLocation
 import HealthKit
+import UserNotifications
 
 /// Le pont entre l'app web et l'iPhone (phase 2, docs/ios.md) : les marches de l'Apple Watch (HealthKit, T-001) et la
 /// balade enregistrée par le GPS de l'iPhone (T-036). Côté JS : `src/native/flair.ts`. Rien n'est écrit dans Santé.
@@ -23,10 +24,26 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         CAPPluginMethod(name: "pendingSent", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "clearSent", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setBackGesture", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "haptic", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "haptic", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setWatchNotify", returnType: CAPPluginReturnPromise)
     ]
 
     private let health = HKHealthStore()
+
+    /// T-084 : une marche de la Watch arrive pendant que l'app est ouverte : le JS lance l'import (`watchArrived`).
+    override public func load() {
+        NotificationCenter.default.addObserver(forName: WatchArrivals.arrived, object: nil, queue: .main) { [weak self] _ in
+            self?.notifyListeners("watchArrived", data: [:])
+        }
+    }
+
+    /// `setWatchNotify({ optedIn, enabled, dogName })` (T-084) : ce qu'il faut savoir pour annoncer seul une balade de la
+    /// Watch, réveillé par Santé sans le JS. Lecture des marches choisie (R-079) : l'observation de Santé démarre.
+    @objc func setWatchNotify(_ call: CAPPluginCall) {
+        WatchArrivals.shared.configure(optedIn: call.getBool("optedIn") ?? false, enabled: call.getBool("enabled") ?? true, dogName: call.getString("dogName") ?? "")
+        call.resolve()
+    }
+
     /// Un point n'est gardé qu'à 5 m ou plus du précédent : assez pour le brouillard, sans noyer le pont JS.
     private let minStep: CLLocationDistance = 5
 
@@ -570,5 +587,221 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
             UIApplication.shared.isIdleTimerDisabled = on
             call.resolve()
         }
+    }
+}
+
+/// T-084 (spec V6 § 4) : les balades de la Watch arrivent seules. Santé réveille l'app quand une séance arrive sur
+/// l'iPhone (`HKObserverQuery` + `enableBackgroundDelivery`, entitlement `healthkit.background-delivery`) ; l'app lit les
+/// marches et randonnées en extérieur avec tracé, garde leur UUID (« à importer ») et programme UNE notification locale
+/// par balade, jamais entre 22 h et 7 h (elle attend 7 h). Toucher la notification ouvre `#/balade/arrivee` (côté JS :
+/// `WatchArrivalBridge`), où l'import habituel tourne. Sans réveil possible (compte gratuit, refus) : rien ne se passe,
+/// l'import à l'ouverture reste. Miroir testé du texte et de l'heure : `src/lib/watchArrival.ts`.
+final class WatchArrivals {
+    static let shared = WatchArrivals()
+    /// Posté quand une balade arrive app ouverte : le plugin prévient le JS, qui importe tout de suite.
+    static let arrived = Notification.Name("FlairWatchArrived")
+
+    // Copiés depuis le JS par `setWatchNotify` (UserDefaults : lisibles au réveil, avant tout chargement de la page).
+    private static let optedInKey = "flair.montre"
+    private static let enabledKey = "flair.notif-balade"
+    private static let dogNameKey = "flair.prenom"
+    /// Depuis quand annoncer (le choix de lire les marches) : jamais les marches d'avant.
+    private static let sinceKey = "flair.watch-depuis"
+    /// Dernière lecture : la suivante repart un jour avant (une séance arrive parfois sur l'iPhone après coup).
+    private static let lastReadKey = "flair.watch-lu"
+    /// Les balades annoncées (« à importer ») : UUID → départ ISO. Jamais deux notifications pour la même balade.
+    private static let announcedKey = "flair.watch-annoncees"
+
+    private let health = HKHealthStore()
+    private let defaults = UserDefaults.standard
+    private let queue = DispatchQueue(label: "fr.lanrezac.billy.watch-arrivals")
+    private var observer: HKObserverQuery?
+
+    func configure(optedIn: Bool, enabled: Bool, dogName: String) {
+        defaults.set(optedIn, forKey: WatchArrivals.optedInKey)
+        defaults.set(enabled, forKey: WatchArrivals.enabledKey)
+        defaults.set(dogName, forKey: WatchArrivals.dogNameKey)
+        if optedIn { DispatchQueue.main.async { self.start() } }
+    }
+
+    /// Au lancement (`AppDelegate`, aussi quand Santé relance l'app en arrière-plan) et au choix de lire les marches.
+    func start() {
+        guard observer == nil, HKHealthStore.isHealthDataAvailable(), defaults.bool(forKey: WatchArrivals.optedInKey) else { return }
+        if defaults.object(forKey: WatchArrivals.sinceKey) == nil {
+            defaults.set(Date().timeIntervalSince1970, forKey: WatchArrivals.sinceKey)
+        }
+        let query = HKObserverQuery(sampleType: HKObjectType.workoutType(), predicate: nil) { [weak self] _, completion, error in
+            guard let self = self, error == nil else {
+                completion()
+                return
+            }
+            self.check(completion)
+        }
+        observer = query
+        health.execute(query)
+        health.enableBackgroundDelivery(for: HKObjectType.workoutType(), frequency: .immediate) { _, _ in
+            // Refusé (profil sans l'entitlement, lecture non autorisée) : pas de réveil, l'import à l'ouverture reste.
+        }
+    }
+
+    /// Lit les séances arrivées et annonce les nouvelles balades. Une lecture à la fois (`queue` attend la fin de chacune,
+    /// les réponses de Santé arrivent sur d'autres fils) ; `completion` prévient Santé.
+    private func check(_ completion: @escaping () -> Void) {
+        queue.async {
+            guard self.defaults.bool(forKey: WatchArrivals.optedInKey) else {
+                completion()
+                return
+            }
+            let done = DispatchSemaphore(value: 0)
+            let since = Date(timeIntervalSince1970: self.defaults.double(forKey: WatchArrivals.sinceKey))
+            let lastRead = self.defaults.object(forKey: WatchArrivals.lastReadKey) as? Double
+            let from = max(since, lastRead.map { Date(timeIntervalSince1970: $0).addingTimeInterval(-86400) } ?? since)
+            let readAt = Date()
+            let predicate = HKQuery.predicateForSamples(withStart: from.addingTimeInterval(-6 * 3600), end: nil, options: [])
+            let byEnd = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: true)
+            let query = HKSampleQuery(sampleType: HKObjectType.workoutType(), predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [byEnd]) { _, samples, _ in
+                let announced = self.announced()
+                let walks = ((samples as? [HKWorkout]) ?? []).filter { workout in
+                    (workout.workoutActivityType == .walking || workout.workoutActivityType == .hiking)
+                        && workout.endDate > since
+                        && (workout.metadata?[HKMetadataKeyIndoorWorkout] as? Bool) != true
+                        && announced[workout.uuid.uuidString] == nil
+                }
+                self.withRoute(walks) { fresh in
+                    self.announce(fresh) {
+                        self.defaults.set(readAt.timeIntervalSince1970, forKey: WatchArrivals.lastReadKey)
+                        done.signal()
+                    }
+                }
+            }
+            self.health.execute(query)
+            _ = done.wait(timeout: .now() + 25)
+            completion()
+        }
+    }
+
+    private func announced() -> [String: String] {
+        (defaults.dictionary(forKey: WatchArrivals.announcedKey) as? [String: String]) ?? [:]
+    }
+
+    /// Seulement les séances avec un tracé GPS (une marche en intérieur ou sans GPS n'est pas une balade à montrer).
+    private func withRoute(_ walks: [HKWorkout], done: @escaping ([HKWorkout]) -> Void) {
+        let lock = NSLock()
+        var kept: [HKWorkout] = []
+        let group = DispatchGroup()
+        for workout in walks {
+            group.enter()
+            let query = HKSampleQuery(sampleType: HKSeriesType.workoutRoute(), predicate: HKQuery.predicateForObjects(from: workout), limit: 1, sortDescriptors: nil) { _, samples, _ in
+                if !(samples ?? []).isEmpty {
+                    lock.lock()
+                    kept.append(workout)
+                    lock.unlock()
+                }
+                group.leave()
+            }
+            health.execute(query)
+        }
+        group.notify(queue: .global()) { done(kept.sorted { $0.endDate < $1.endDate }) }
+    }
+
+    private func announce(_ walks: [HKWorkout], done: @escaping () -> Void) {
+        guard !walks.isEmpty else {
+            done()
+            return
+        }
+        // Sur le fil principal (état de l'app) ; jamais sur `queue`, qui attend la fin de cette lecture.
+        DispatchQueue.main.async {
+            let active = UIApplication.shared.applicationState == .active
+            do {
+                var announced = self.announced()
+                // Gardées 14 jours : assez pour ne jamais annoncer deux fois, sans grossir sans fin.
+                let limit = Date().addingTimeInterval(-14 * 86400)
+                announced = announced.filter { (WatchArrivals.parse($0.value) ?? Date()) > limit }
+                let enabled = self.defaults.object(forKey: WatchArrivals.enabledKey) as? Bool ?? true
+                for workout in walks {
+                    let start = WatchArrivals.format(workout.startDate)
+                    announced[workout.uuid.uuidString] = start
+                    // App ouverte : le JS importe tout de suite (bandeau « Voir »), pas de notification en plus.
+                    if enabled && !active { self.notify(workout, start: start) }
+                }
+                self.defaults.set(announced, forKey: WatchArrivals.announcedKey)
+                if active { NotificationCenter.default.post(name: WatchArrivals.arrived, object: nil) }
+                done()
+            }
+        }
+    }
+
+    private func notify(_ workout: HKWorkout, start: String) {
+        let content = UNMutableNotificationContent()
+        content.title = WatchArrivals.title(dogName: defaults.string(forKey: WatchArrivals.dogNameKey) ?? "")
+        content.body = WatchArrivals.body(distance: WatchArrivals.distance(of: workout), seconds: workout.duration)
+        content.sound = .default
+        // `cap_extra` : lu par @capacitor/local-notifications comme `notification.extra` quand on la touche.
+        content.userInfo = ["cap_extra": ["kind": "balade", "uuid": workout.uuid.uuidString, "start": start]]
+        var trigger: UNNotificationTrigger?
+        if let at = WatchArrivals.deliveryDate(Date()) {
+            trigger = UNCalendarNotificationTrigger(dateMatching: Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: at), repeats: false)
+        }
+        let request = UNNotificationRequest(identifier: "balade-\(workout.uuid.uuidString)", content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    // MARK: - Miroir de src/lib/watchArrival.ts (mêmes règles, mêmes textes)
+
+    /// Rien entre 22 h et 7 h : la date de 7 h suivante ; sinon nil (tout de suite).
+    static func deliveryDate(_ now: Date) -> Date? {
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: now)
+        if hour >= 7 && hour < 22 { return nil }
+        var day = calendar.startOfDay(for: now)
+        if hour >= 22 { day = calendar.date(byAdding: .day, value: 1, to: day) ?? day }
+        return calendar.date(bySettingHour: 7, minute: 0, second: 0, of: day)
+    }
+
+    /// « Belle balade avec Billy ! »
+    static func title(dogName: String) -> String {
+        let name = dogName.trimmingCharacters(in: .whitespaces)
+        return "Belle balade avec \(name.isEmpty ? "votre chien" : name)\u{00A0}!"
+    }
+
+    /// « 2,1 km · 32 min. Touchez pour voir ce qu’il a découvert. »
+    static func body(distance: Double, seconds: Double) -> String {
+        let nbsp = "\u{00A0}"
+        let length: String
+        if distance < 1000 {
+            length = "\(max(10, Int((distance / 10).rounded()) * 10))\(nbsp)m"
+        } else {
+            length = String(format: "%.1f", distance / 1000).replacingOccurrences(of: ".", with: ",") + "\(nbsp)km"
+        }
+        let minutes = max(1, Int((seconds / 60).rounded()))
+        let duration: String
+        if minutes < 60 {
+            duration = "\(minutes)\(nbsp)min"
+        } else if minutes % 60 == 0 {
+            duration = "\(minutes / 60) h"
+        } else {
+            duration = "\(minutes / 60) h \(String(format: "%02d", minutes % 60))"
+        }
+        return "\(length) · \(duration). Touchez pour voir ce qu’il a découvert."
+    }
+
+    private static func distance(of workout: HKWorkout) -> Double {
+        if #available(iOS 16.0, *), let type = HKQuantityType.quantityType(forIdentifier: .distanceWalkingRunning),
+           let sum = workout.statistics(for: type)?.sumQuantity() {
+            return sum.doubleValue(for: .meter())
+        }
+        return workout.totalDistance?.doubleValue(for: .meter()) ?? 0
+    }
+
+    private static func format(_ date: Date) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter.string(from: date)
+    }
+
+    private static func parse(_ text: String) -> Date? {
+        let withFraction = ISO8601DateFormatter()
+        withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return withFraction.date(from: text) ?? ISO8601DateFormatter().date(from: text)
     }
 }

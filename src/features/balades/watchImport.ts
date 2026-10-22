@@ -63,7 +63,8 @@ export function optInWatch(): void {
 }
 
 let lastRun: number | undefined
-let running = false
+/** La lecture en cours, s'il y en a une : jamais deux à la fois. */
+let current: Promise<void> | undefined
 let optedThisSession = false
 
 export interface WatchContext {
@@ -75,12 +76,23 @@ export interface WatchContext {
   times: WalkTimes
 }
 
-/** Lit les nouvelles marches et les importe. Appelle `onAdded(n, ids)` si au moins une balade est arrivée. */
-export async function syncWatch(ctx: () => WatchContext, onAdded: (count: number, entryIds: string[]) => void): Promise<void> {
+/**
+ * Lit les nouvelles marches et les importe. Appelle `onAdded(n, ids)` si au moins une balade est arrivée.
+ * `force` (T-084, notification touchée) passe outre le délai de 5 minutes ; si une lecture est déjà en cours, on attend
+ * la fin de celle-ci.
+ */
+export function syncWatch(ctx: () => WatchContext, onAdded: (count: number, entryIds: string[]) => void, options: { force?: boolean } = {}): Promise<void> {
+  if (current) return options.force ? current : Promise.resolve()
   const now = Date.now()
-  if (running || !shouldSync(lastRun, now)) return
-  running = true
+  if (!options.force && !shouldSync(lastRun, now)) return Promise.resolve()
   lastRun = now
+  current = readAndImport(ctx, onAdded, now).finally(() => {
+    current = undefined
+  })
+  return current
+}
+
+async function readAndImport(ctx: () => WatchContext, onAdded: (count: number, entryIds: string[]) => void, now: number): Promise<void> {
   try {
     const startedAt = new Date(now).toISOString()
     const saved = (await getDoc(accountDoc())).data() as { watchSyncedAt?: string } | undefined
@@ -116,7 +128,5 @@ export async function syncWatch(ctx: () => WatchContext, onAdded: (count: number
     console.error('Lecture des marches de la Watch impossible', error)
     // Firestore en panne (R-042) : l’app se recharge ; les mêmes marches seront relues (rien n’est perdu).
     if (isFirestoreCrash(error) || error instanceof NotSavedError) recoverFromFirestoreCrash()
-  } finally {
-    running = false
   }
 }

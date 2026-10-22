@@ -91,6 +91,16 @@ appelé depuis `src/native/flair.ts`, toujours derrière `isNative()`. Le site w
   que par ces boutons. Les points sont écrits au fur et à mesure dans un fichier de l'app : si l'app est tuée, l'accueil
   propose « Reprendre / Terminer ». Moins de 100 m ou 2 min : pas gardée. Une séance Watch qui recouvre à plus de la
   moitié une balade de l'iPhone est ignorée.
+- **Réveil par Santé (T-084, V6 § 4)** : une fois la lecture des marches choisie, `WatchArrivals` (dans
+  `FlairNativePlugin.swift`, démarré par `AppDelegate`) observe les séances (`HKObserverQuery`) et demande le réveil en
+  arrière-plan (`enableBackgroundDelivery`, entitlement `com.apple.developer.healthkit.background-delivery`, présent
+  dans le profil gratuit « iOS Team Provisioning Profile » du 22 octobre). Réveillée, l'app lit les marches et
+  randonnées en extérieur avec tracé, garde leur UUID (`UserDefaults`, « à importer ») et programme une notification
+  « Belle balade avec Billy ! » (une par balade, rien entre 22 h et 7 h : elle attend 7 h). La toucher ouvre
+  `#/balade/arrivee` : l'import habituel, puis le récap. App ouverte : pas de notification, l'import part tout de suite.
+  Le JS confie à l'iPhone le choix « lire mes marches », le réglage « Quand une balade de la Watch arrive » et le prénom
+  (`setWatchNotify`). Sans réveil (refus, profil sans l'entitlement) : rien d'affiché, l'import à l'ouverture reste.
+  Si un jour Xcode refuse de signer à cause de l'entitlement, l'enlever de `App.entitlements` : le code continue sans.
 
 Ne jamais perdre une balade (R-042) : « Terminer » arrête le GPS mais garde la balade sur l'iPhone ; elle n'est
 effacée (`clearWalk`) qu'une fois enregistrée. Chaque étape a un délai maximum ; en cas d'échec, « Réessayer » et

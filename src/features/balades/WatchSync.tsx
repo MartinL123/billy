@@ -6,6 +6,7 @@ import { watchAddedLine } from '../../lib/watch'
 import { useToday } from '../../lib/useToday'
 import { walkTimes } from '../../lib/walks'
 import { isNative } from '../../native'
+import { FlairNative } from '../../native/flair'
 import { syncWatch, type WatchContext } from './watchImport'
 
 /**
@@ -24,21 +25,26 @@ export function WatchSync() {
 
   useEffect(() => {
     if (!isNative()) return
-    const run = () => {
+    const sync = (force: boolean) => {
       if (document.visibilityState !== 'visible') return
       void syncWatch(
         () => latest.current,
         // V6 § 6.3 : une seule balade arrivée, « Voir » ouvre son récap « Belle balade ! » ; plusieurs, le résultat de l’import.
         (count, ids) => show.current.toast(`🐾 ${watchAddedLine(count)}`, { label: 'Voir', run: () => show.current.navigate(count === 1 && ids[0] ? `/balade/recap/${ids[0]}` : '/importer/resultat') }),
+        { force },
       )
     }
+    const run = () => sync(false)
     run()
+    // T-084 : Santé annonce une nouvelle séance pendant que l’app est ouverte : lecture tout de suite.
+    const arrived = FlairNative.addListener('watchArrived', () => sync(true))
     document.addEventListener('visibilitychange', run)
     // R-079 : juste après « Retrouver les balades de ma montre ».
     window.addEventListener('flair:montre', run)
     return () => {
       document.removeEventListener('visibilitychange', run)
       window.removeEventListener('flair:montre', run)
+      void arrived.then((h) => h.remove())
     }
   }, [])
 

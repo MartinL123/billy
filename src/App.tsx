@@ -10,6 +10,7 @@ import EntryForm from './features/journal/EntryForm'
 import EntryView from './features/journal/EntryView'
 import TellWalk from './features/trajets/TellWalk'
 import WalkArrival from './features/trajets/WalkArrival'
+import WatchArrivalScreen from './features/trajets/WatchArrivalScreen'
 import Billy from './features/billy/Billy'
 import Explorer from './features/balades/Explorer'
 import Walks from './features/balades/Walks'
@@ -27,6 +28,7 @@ import { StoryBackfill } from './features/balades/StoryBackfill'
 import { FilesKindBackfill } from './features/profile/FilesKindBackfill'
 import { MilestonesFix } from './features/calendar/MilestonesFix'
 import { WatchSync } from './features/balades/WatchSync'
+import { WatchArrivalBridge } from './features/balades/WatchArrivalBridge'
 import { PendingWalksSync } from './features/balades/PendingWalksSync'
 import { NotificationScheduler } from './features/notifications/NotificationScheduler'
 import { AppTheme } from './features/shop/Theme'
@@ -193,6 +195,7 @@ export default function App() {
           {!visitor && (
             <>
               <WatchSync />
+              <WatchArrivalBridge />
               <PendingWalksSync />
               <NotificationScheduler />
             </>
@@ -240,6 +243,7 @@ export default function App() {
             <Route path="souvenir/:id/modifier" element={<EntryForm />} />
             <Route path="souvenir/:id/raconter" element={<TellWalk />} />
             <Route path="balade/recap/:id" element={<WalkArrival />} />
+            <Route path="balade/arrivee" element={<WatchArrivalScreen />} />
             <Route path="exercice" element={<Exercise />} />
             <Route path="mission" element={<Mission />} />
             <Route path="sante/evenements" element={<HealthEvents />} />

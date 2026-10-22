@@ -147,7 +147,8 @@ export default function LiveWalk() {
         await withTimeout(FlairNative.clearWalk(), STOP_MS, 'clearWalk')
         logEvent({ type: 'walk_discarded', min: walk.startedAt ? Math.round(elapsedMs(walk.startedAt, endedAt) / 60_000) : 0 })
         toast('Balade trop courte, elle n’a pas été gardée.')
-        return navigate('/', { replace: true })
+        // T-099 : retour à l’onglet Balades (panneau à mi-hauteur), pas à l’accueil.
+        return navigate('/territoire', { replace: true })
       }
       // T-080 : le cœur, les pas et l’énergie de Santé sur la même fenêtre (Watch au poignet), seulement si la
       // lecture de Santé a été choisie (R-079). Rien ne bloque l’enregistrement si Santé ne donne rien.
@@ -309,6 +310,12 @@ export default function LiveWalk() {
     if (!ended && !gone) return
     const share = activeShare(liveShares.current, Date.now())
     if (share) endLiveShare(share.token, liveShares.current, ended?.distanceM)
+    // T-099 : « Ne pas la garder » ramène à l’onglet Balades, panneau à mi-hauteur (après l’arrêt du partage).
+    if (gone) {
+      toast('La balade n’a pas été gardée.')
+      navigate('/territoire', { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ended, gone])
 
   const latLngs = useMemo(() => points.map((p): [number, number] => [p.lat, p.lng]), [points])
@@ -422,15 +429,7 @@ export default function LiveWalk() {
       {ended ? (
         // « Belle balade ! » (V6 § 6.3) : la découverte, les os, et « Raconter la balade » s’il y a des arrêts.
         <WalkRecap entryId={ended.entryId} bones={ended.bones} fallback={{ distanceM: ended.distanceM }} {...(ended.slotName ? { subtitle: `${ended.slotName} notée` } : {})} />
-      ) : gone ? (
-        <section aria-label="Balade pas gardée" className="animate-sheet flex flex-col gap-3.5 rounded-t-[26px] bg-surface px-4 pt-6 pb-[calc(env(safe-area-inset-bottom)+24px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
-          <h1 className="title-screen">La balade n’a pas été gardée</h1>
-          <p className="text-[0.9412rem] text-[#3F4946]">Vous pourrez noter la sortie à la main depuis l’accueil.</p>
-          <button type="button" onClick={() => navigate('/', { replace: true })} className="btn btn-main min-h-14">
-            Retour à l’accueil
-          </button>
-        </section>
-      ) : (
+      ) : gone ? null : (
         <section aria-label="Balade en cours" className="flex flex-col gap-3.5 rounded-t-[26px] bg-surface px-4 pt-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
           <span className="flex items-center gap-2 text-milestone-dark surtitre">
             {!stoppedAt && <span aria-hidden="true" className="live-dot size-2.5 rounded-full bg-[#BF5519]" />}

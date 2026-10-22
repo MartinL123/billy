@@ -157,6 +157,17 @@ test('cas 11 · position refusée : « La position n’est pas autorisée » et 
   await expect(app).toHaveURL(/#\/$/)
 })
 
+test('T-099 · « Ne pas la garder » ramène à l’onglet Balades, rien n’est enregistré', async ({ fake, user, app }) => {
+  await startWalk(app)
+  await fake.walkPoints(app, 20)
+  await app.getByRole('button', { name: 'Ne pas garder' }).click()
+  await app.getByRole('button', { name: 'Ne pas la garder' }).click()
+  await expect(app).toHaveURL(/#\/territoire$/)
+  await expect(app.getByText('La balade n’a pas été gardée.')).toBeVisible()
+  expect(fake.walk).toBeUndefined()
+  expect(await serverWalks(user.uid)).toHaveLength(0)
+})
+
 test('cas 13 · deux balades le même jour : deux balades, pas d’os en double', async ({ fake, user, app }) => {
   // A : partie il y a 60 min ; B : partie il y a 15 min (après la fin du tracé de A).
   fake.startMinutesAgo = 60

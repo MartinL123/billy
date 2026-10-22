@@ -13,6 +13,7 @@ import WalkArrival from './features/trajets/WalkArrival'
 import WatchArrivalScreen from './features/trajets/WatchArrivalScreen'
 import Billy from './features/billy/Billy'
 import Explorer from './features/balades/Explorer'
+import LoopScreen from './features/balades/LoopScreen'
 import Walks from './features/balades/Walks'
 import ImportStrava from './features/balades/ImportStrava'
 import Mission from './features/training/Mission'
@@ -241,6 +242,7 @@ export default function App() {
             <Route path="importer" element={<ImportStrava />} />
             <Route path="importer/resultat" element={<ImportResult />} />
             <Route path="balade-en-cours" element={<LiveWalk />} />
+            <Route path="boucle/:id" element={<LoopScreen />} />
             <Route path="installer" element={<InstallRoute />} />
             <Route path="profil" element={<Profile />} />
             <Route path="profil/modifier" element={<ProfileEditScreen />} />

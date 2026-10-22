@@ -15,6 +15,7 @@ import { filterWalks, walkColors, walkItems, walksNear, type WalkFilter } from '
 import type { MapPlace, MapWalk } from './ExplorerMap'
 import { PlaceCard, type Selected } from './PlaceCard'
 import { WalkPanel } from './WalkPanel'
+import { LoopsBlock } from './LoopsBlock'
 import { useSheet } from './useSheet'
 import { PlaceMoment } from '../trajets/PlaceMoment'
 import { updateEntryRoute } from '../../firebase/db'
@@ -95,6 +96,7 @@ export default function Explorer() {
   const [myPos, setMyPos] = useState<{ lat: number; lng: number }>()
   const [locating, setLocating] = useState(false)
   const position = useGrantedPosition()
+  const here = myPos ?? position
   const start = myPos ?? position ?? (last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined)
   // La carte se cadre sur les balades du coin (Saint-Ouen, la Bretagne…), pas sur toute la France.
   const local = useMemo(() => walksNear(shown, start), [shown, start?.lat, start?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -368,6 +370,8 @@ export default function Explorer() {
                   <ChevronRightIcon size={18} />
                 </button>
               )}
+              {/* T-089 : « Boucles pour Billy » (app iOS : on part de là en balade), seulement avec la position. */}
+              {isNative() && !readOnly && here && <LoopsBlock walks={walks} here={here} known={cells} dogName={dog.name} birthDate={dog.birthDate} today={today} />}
             </>
           )}
         </div>

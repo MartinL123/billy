@@ -9,6 +9,7 @@ const WRITE_ROUTES = [
   /^\/boutique$/,
   /^\/importer/,
   /^\/balade-en-cours$/,
+  /^\/boucle\//,
   /^\/exercice$/,
   /^\/mission$/,
   /^\/en-cours$/,

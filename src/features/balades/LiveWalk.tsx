@@ -11,7 +11,7 @@ import { knownImportKeys, parisMinutes } from '../../lib/activity'
 import { knownFog, revealedCells } from '../../lib/fog'
 import { doubtfulSegments, durationParts, elapsedMs, gpsActivity, gpsDistance, territoryBits, tooShort, weakSignal, type GpsPoint } from '../../lib/gpsWalk'
 import { dayBudget, minutesOfDay, walksOfDay } from '../../lib/walkDay'
-import { formatRouteDistance } from '../../lib/route'
+import { formatRouteDistance, readRoute } from '../../lib/route'
 import { errorText, withTimeout } from '../../lib/timeout'
 import { isFirestoreCrash } from '../../lib/firestoreCrash'
 import { ensureSavedLocally, NotSavedError } from '../../lib/localSave'
@@ -34,6 +34,9 @@ import { LiveShareLine } from '../live/LiveShare'
 import { endLiveShare } from '../../firebase/live'
 import { activeShare } from '../../lib/liveShare'
 import { useLivePrivate } from '../live/useLivePrivate'
+
+/** La boucle suivie (T-089), en pointillés gris : le tracé du jour reste le vert carte. */
+const LOOP_COLOR = '#5C6662'
 
 const toMin = (time: string) => {
   const [h, m] = time.split(':').map(Number)
@@ -100,6 +103,10 @@ export default function LiveWalk() {
   const [found, setFound] = useState(false)
   const { walks } = useData()
   const finishing = useRef(false)
+  // T-089 : « Boucles pour Billy » : la balade passée choisie, affichée en pointillés pendant la balade.
+  const loopId = params.get('boucle')
+  const selfUrl = loopId ? `/balade-en-cours?boucle=${encodeURIComponent(loopId)}` : '/balade-en-cours'
+  const loopPoints = useMemo(() => (loopId ? (readRoute(entries.find((e) => e.id === loopId)?.route)?.points ?? []) : []), [loopId, entries])
   // Les données les plus récentes : « Réessayer » voit la balade déjà enregistrée (doublon écarté par sa clé).
   const data = useRef({ dog, entries, bones, fog, communes, today })
   data.current = { dog, entries, bones, fog, communes, today }
@@ -228,7 +235,7 @@ export default function LiveWalk() {
       if (current.active && (params.get('terminer') || (current.stopped && !current.autoStopped))) {
         // Une balade arrêtée qui attendait d’être enregistrée (R-042) : reprise après un incident.
         if (!params.get('terminer')) logEvent({ type: 'walk_recovered' })
-        if (params.get('depart') || params.get('terminer')) navigate('/balade-en-cours', { replace: true })
+        if (params.get('depart') || params.get('terminer')) navigate(selfUrl, { replace: true })
         return finish()
       }
       if (!current.active && !params.get('depart')) return navigate('/', { replace: true })
@@ -240,7 +247,8 @@ export default function LiveWalk() {
         setReduced(Boolean(walk.reducedAccuracy))
         // T-058 : plus de « ?depart=1 » dans l’adresse une fois la balade lancée ; un rechargement (mise à jour du site,
         // récupération R-042) reprend cette balade, et après la fin il ne peut plus en démarrer une nouvelle.
-        if (params.get('depart')) navigate('/balade-en-cours', { replace: true })
+        // T-089 : la boucle choisie (« ?boucle= ») reste dans l’adresse, pour la garder en pointillés après un rechargement.
+        if (params.get('depart')) navigate(selfUrl, { replace: true })
         setStartedAt(walk.startedAt)
         setPoints(walk.points)
         setStoppedAt(walk.autoStopped ? walk.stoppedAt : undefined)
@@ -326,8 +334,9 @@ export default function LiveWalk() {
   }, [bits])
   // La portion douteuse (GPS faible, trou de plus de 20 s) en pointillés ; le reste en trait plein.
   const tracks = useMemo(() => {
-    if (latLngs.length < 2) return []
     const out: { id: string; color: string; points: [number, number][]; dashed?: boolean }[] = []
+    if (loopPoints.length > 1) out.push({ id: 'boucle', color: LOOP_COLOR, points: loopPoints, dashed: true })
+    if (latLngs.length < 2) return out
     let from = 0
     doubtfulSegments(points).forEach(([a, b], i) => {
       if (a > from) out.push({ id: `en-cours-${i}`, color: ROUTE_COLOR, points: latLngs.slice(from, a + 1) })
@@ -336,7 +345,7 @@ export default function LiveWalk() {
     })
     if (from < latLngs.length - 1) out.push({ id: 'en-cours', color: ROUTE_COLOR, points: latLngs.slice(from) })
     return out
-  }, [latLngs, points])
+  }, [latLngs, points, loopPoints])
   const here = latLngs[latLngs.length - 1]
   const startFailed = Boolean(failure && (failure.step.startsWith('départ') || failure.step.startsWith('lecture')))
   const weak = weakSignal(accuracy, weakSince, now)

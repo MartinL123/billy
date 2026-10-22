@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Billy · Style guide</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Figtree:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
 :root{
   --primary:#1E5A50; --primary-dark:#143F38; --primary-soft:#DCEBE6;
@@ -20,9 +20,9 @@
 body{margin:0;background:var(--bg);color:var(--text);font-family:'Figtree',system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1040px;margin:0 auto;padding:40px 20px 80px}
 h1,h2,h3{font-family:'Bricolage Grotesque',system-ui,sans-serif;margin:0}
-h1{font-size:44px;font-weight:800;line-height:1.05}
-h2{font-size:28px;font-weight:800;margin:56px 0 6px}
-h3{font-size:18px;font-weight:700;margin:24px 0 10px}
+h1{font-size:44px;font-weight:600;line-height:1.05}
+h2{font-size:28px;font-weight:600;margin:56px 0 6px}
+h3{font-size:18px;font-weight:500;margin:24px 0 10px}
 p.lead{font-size:18px;color:var(--muted);max-width:640px;margin:12px 0 0}
 p.note{color:var(--muted);margin:4px 0 16px;max-width:720px}
 nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0}
@@ -34,10 +34,10 @@ nav.toc a{height:40px;padding:0 14px;border-radius:20px;border:2px solid var(--p
 @media (max-width:480px){.g2,.g3{grid-template-columns:1fr}}
 .card{background:#fff;border-radius:20px;padding:16px;border:1px solid var(--divider)}
 .sw{border-radius:16px;overflow:hidden;background:#fff;border:1px solid var(--divider)}
-.sw .chip{height:72px;display:flex;align-items:flex-end;padding:8px 10px;font-weight:800;font-size:13px}
+.sw .chip{height:72px;display:flex;align-items:flex-end;padding:8px 10px;font-weight:700;font-size:13px}
 .sw .meta{padding:10px 12px;font-size:13px;line-height:1.4}
 .sw code,code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--bg);padding:1px 6px;border-radius:6px}
-.tag{display:inline-block;font-size:11px;font-weight:800;padding:2px 7px;border-radius:8px;margin-top:4px}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;margin-top:4px}
 .ok{background:var(--primary-soft);color:var(--primary-dark)} .warn{background:var(--milestone-soft);color:var(--milestone-dark)} .bad{background:var(--danger-soft);color:var(--danger)}
 table{width:100%;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--divider);font-size:14px}
 th,td{text-align:left;padding:10px 12px;border-top:1px solid var(--divider);vertical-align:top}
@@ -73,9 +73,9 @@ ul.rules{margin:8px 0 0;padding-left:20px} ul.rules li{margin:4px 0}
 <div class="wrap">
 
 <header>
-<div style="font-size:13px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--primary)">App Billy · V3 « Billy, le jeu »</div>
+<div style="font-size:13px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--primary)">App Billy · V3 « Billy, le jeu »</div>
 <h1 style="margin-top:6px">Style guide</h1>
-<p class="lead">Couleurs, typographie, composants et règles d'écriture de l'app. Les tokens correspondent à <code>src/index.css</code> (<code>@theme</code>) et à <code>docs/maquettes/README.md</code>. Mis à jour le 14 octobre 2026 (os et boutique).</p>
+<p class="lead">Couleurs, typographie, composants et règles d'écriture de l'app. Les tokens correspondent à <code>src/index.css</code> (<code>@theme</code>) et à <code>docs/maquettes/README.md</code>. Mis à jour le 22 octobre 2026 (rendu façon Komoot, spec V6 § 1 : graisses moyennes, retour en chevron, actions en texte, Stats, mini-cartes, tracés verts).</p>
 <nav class="toc" aria-label="Sommaire">
 <a href="#principes">Principes</a><a href="#couleurs">Couleurs</a><a href="#territoires">Territoires</a><a href="#typo">Typographie</a><a href="#formes">Formes</a><a href="#boutons">Boutons</a><a href="#composants">Composants</a><a href="#jeu">Éléments de jeu</a><a href="#icones">Icônes</a><a href="#ecriture">Écriture</a><a href="#a11y">Accessibilité</a><a href="#mouvement">Mouvement</a>
 </nav>
@@ -118,6 +118,13 @@ ul.rules{margin:8px 0 0;padding-left:20px} ul.rules li{margin:4px 0}
 <div class="sw"><div class="chip" style="background:var(--milestone);color:#fff">milestone</div><div class="meta"><code>#D9661F</code> sur <code>#FBE6D4</code><br>Étapes de vie (6 mois, anniversaire). Blanc dessus 3,58 : icônes seulement.</div></div>
 </div>
 
+<h3>Tracés de balade</h3>
+<div class="grid g4">
+<div class="sw"><div class="chip" style="background:#2F8F6B;color:#fff">route</div><div class="meta"><code>#2F8F6B</code> · <code>--color-route</code><br>Tous les tracés (carte, mini-cartes, balade en cours), avec un liseré blanc. Chevrons blancs du sens de marche dessus : 4,0 <span class="tag ok">≥ 3</span>. L'orange reste réservé à l'action.</div></div>
+<div class="sw"><div class="chip" style="background:#E0A12E;color:#3D2A00">route-fast</div><div class="meta"><code>#E0A12E</code> · <code>--color-route-fast</code><br>Allure « rapide » (> 5,2 km/h) sur la fiche de balade.</div></div>
+<div class="sw"><div class="chip" style="background:#9AA5A0;color:#18201E">route-stop</div><div class="meta"><code>#9AA5A0</code> · <code>--color-route-stop</code><br>Arrêt (< 1,5 km/h).</div></div>
+</div>
+
 <h3>États</h3>
 <div class="grid g4">
 <div class="sw"><div class="chip" style="background:var(--danger);color:#fff">danger</div><div class="meta"><code>#B3261E</code> sur <code>#FDF1F0</code><br>Retard, erreur, « Décocher », « Supprimer ». Jamais pour un jour sans entraînement.</div></div>
@@ -138,24 +145,26 @@ ul.rules{margin:8px 0 0;padding-left:20px} ul.rules li{margin:4px 0}
 <h2>Territoires de l'arbre</h2>
 <p class="note">Chaque compétence appartient à un étage de l'arbre. Sa couleur sert aux badges, au chemin, à la quête et aux étiquettes du Carnet.</p>
 <div class="grid g3">
-<div class="card" style="background:var(--maison-soft);border:none"><div style="font-size:12px;font-weight:800;letter-spacing:.6px;color:var(--maison)">ÉTAGE 1 · LES RACINES</div><div style="font:800 22px 'Bricolage Grotesque';color:var(--maison)">La Maison</div><div style="font-size:14px;margin:4px 0 10px">Le Lien · Le Calme · Les Soins</div><code>#1E5A50</code> sur <code>#DCEBE6</code> (6,48)</div>
-<div class="card" style="background:var(--quartier-soft);border:none"><div style="font-size:12px;font-weight:800;letter-spacing:.6px;color:var(--quartier)">ÉTAGE 2 · LE TRONC</div><div style="font:800 22px 'Bricolage Grotesque';color:var(--quartier)">Le Quartier</div><div style="font-size:14px;margin:4px 0 10px">La Laisse · Le Rappel · Les Bonnes manières · La Nouveauté</div><code>#2559A8</code> sur <code>#E3EAF8</code> (5,66)</div>
-<div class="card" style="background:var(--monde-soft);border:none"><div style="font-size:12px;font-weight:800;letter-spacing:.6px;color:var(--milestone-dark)">ÉTAGE 3 · LES BRANCHES</div><div style="font:800 22px 'Bricolage Grotesque';color:var(--monde)">Le Grand Monde</div><div style="font-size:14px;margin:4px 0 10px">La Ville · Les Rencontres · Les Congénères</div><code>#C2571A</code> sur <code>#FBE6D4</code> (3,72 : titres ≥ 19 px gras) · petit texte en <code>#8A3E0C</code> (6,26)</div>
+<div class="card" style="background:var(--maison-soft);border:none"><div style="font-size:12px;font-weight:700;letter-spacing:.6px;color:var(--maison)">ÉTAGE 1 · LES RACINES</div><div style="font:600 22px 'Bricolage Grotesque';color:var(--maison)">La Maison</div><div style="font-size:14px;margin:4px 0 10px">Le Lien · Le Calme · Les Soins</div><code>#1E5A50</code> sur <code>#DCEBE6</code> (6,48)</div>
+<div class="card" style="background:var(--quartier-soft);border:none"><div style="font-size:12px;font-weight:700;letter-spacing:.6px;color:var(--quartier)">ÉTAGE 2 · LE TRONC</div><div style="font:600 22px 'Bricolage Grotesque';color:var(--quartier)">Le Quartier</div><div style="font-size:14px;margin:4px 0 10px">La Laisse · Le Rappel · Les Bonnes manières · La Nouveauté</div><code>#2559A8</code> sur <code>#E3EAF8</code> (5,66)</div>
+<div class="card" style="background:var(--monde-soft);border:none"><div style="font-size:12px;font-weight:700;letter-spacing:.6px;color:var(--milestone-dark)">ÉTAGE 3 · LES BRANCHES</div><div style="font:600 22px 'Bricolage Grotesque';color:var(--monde)">Le Grand Monde</div><div style="font-size:14px;margin:4px 0 10px">La Ville · Les Rencontres · Les Congénères</div><code>#C2571A</code> sur <code>#FBE6D4</code> (3,72 : titres ≥ 19 px gras) · petit texte en <code>#8A3E0C</code> (6,26)</div>
 </div>
 <p class="note" style="margin-top:12px">Le Grand Monde partage la couleur du bouton principal : sur sa carte de quête, le bouton « Commencer » passe en <code>#9A4413</code> (blanc : 6,54) pour ne pas se confondre avec « Noter ce qu'on a fait ».</p>
 </section>
 
 <section id="typo">
 <h2>Typographie</h2>
-<p class="note">Titres en <b>Bricolage Grotesque</b>, texte en <b>Figtree</b>. Jamais moins de 16 px dans un champ (sinon Safari zoome au focus).</p>
+<p class="note">Titres en <b>Bricolage Grotesque</b>, texte en <b>Figtree</b>. Graisses moyennes, façon Komoot : <b>jamais de 800</b>. Jamais moins de 16 px dans un champ (sinon Safari zoome au focus).</p>
 <div class="card">
-<div class="typo-row"><small>Titre d'écran<br>Bricolage 800 · 28–30 px</small><div style="font:800 30px/1.1 'Bricolage Grotesque'">L'arbre de Billy</div></div>
-<div class="typo-row"><small>Titre de section<br>Bricolage 800 · 20–22 px</small><div style="font:800 21px 'Bricolage Grotesque'">Son programme</div></div>
-<div class="typo-row"><small>Nom de badge<br>Bricolage 800 · 16 px</small><div style="font:800 16px 'Bricolage Grotesque'">Le Rappel</div></div>
-<div class="typo-row"><small>Surtitre<br>Figtree 800 · 12–13 px · majuscules · +0,6 px</small><div style="font:800 13px 'Figtree';letter-spacing:.6px;text-transform:uppercase;color:var(--primary)">Quête du jour · La Maison</div></div>
+<div class="typo-row"><small>Titre d'écran · <code>title-screen</code><br>Bricolage 600 · 28 px</small><div style="font:600 28px/1.15 'Bricolage Grotesque'">L'arbre de Billy</div></div>
+<div class="typo-row"><small>Titre de section · <code>title-section</code><br>Bricolage 600 · 22 px</small><div style="font:600 22px 'Bricolage Grotesque'">Son programme</div></div>
+<div class="typo-row"><small>Titre de carte · <code>title-card</code><br>Bricolage 500 · 17 px</small><div style="font:500 17px 'Bricolage Grotesque'">Boucle du parc</div></div>
+<div class="typo-row"><small>Gros chiffre (Stats, « 4 % découvert », os)<br>Bricolage 700 · chiffres à largeur fixe</small><div style="font:700 20px 'Bricolage Grotesque';font-variant-numeric:tabular-nums">2,1<span style="font-size:15px;font-weight:600">&#8239;km</span></div></div>
+<div class="typo-row"><small>Surtitre · <code>surtitre</code><br>Figtree 700 · 12 px · majuscules · +0,6 px</small><div style="font:700 12px 'Figtree';letter-spacing:.6px;text-transform:uppercase;color:var(--primary)">Balade avec Billy</div></div>
 <div class="typo-row"><small>Corps<br>Figtree 400–600 · 16–17 px · 1,45</small><div style="font-size:17px">Dites son mot de rappel une seule fois, d'une voix joyeuse.</div></div>
 <div class="typo-row"><small>Bouton<br>Figtree 700 · 17–19 px</small><div style="font:700 18px 'Figtree'">Noter ce qu'on a fait</div></div>
 <div class="typo-row"><small>Secondaire<br>Figtree 500–600 · 13–15 px · muted</small><div style="font-size:14px;color:var(--muted)">5 mois · 6 mois le 13 novembre</div></div>
+<div class="typo-row"><small>Source · <code>source-note</code><br>Figtree 400 · 12 px · muted</small><div style="font-size:12px;color:var(--muted)">Enregistré par l'Apple Watch · Météo : Open-Meteo · Lieux © OpenStreetMap</div></div>
 </div>
 </section>
 
@@ -185,7 +194,15 @@ ul.rules{margin:8px 0 0;padding-left:20px} ul.rules li{margin:4px 0}
 </div>
 <div class="card stack">
 <div class="row"><a class="btn btn-outline" href="#boutons">Faire un exercice</a><a class="btn btn-on" href="#boutons">Aujourd'hui</a></div>
-<div><b>btn-outline</b> — action secondaire, contour vert de 2 px. <b>btn-on</b> — choix sélectionné dans un groupe.</div>
+<div><b>btn-outline</b> — <b>un seul</b> choix secondaire important par écran, contour vert de 2 px. <b>btn-on</b> — choix sélectionné dans un groupe.</div>
+</div>
+<div class="card stack">
+<div class="row"><a href="#boutons" style="display:inline-flex;align-items:center;min-height:44px;padding:0 4px;font:700 16px 'Figtree';color:var(--primary);text-decoration:none">Une autre idée</a><a href="#boutons" style="display:inline-flex;align-items:center;min-height:44px;padding:0 4px;font:700 16px 'Figtree';color:var(--primary);text-decoration:none">Plus tard</a></div>
+<div><b>btn-text</b> — les autres actions secondaires (« Une autre idée », « Plus tard », « Voir tout son chemin », « Annuler ») : texte vert gras 16 px, sans contour ni fond, 44 px de zone tactile.</div>
+</div>
+<div class="card stack">
+<div class="row"><a href="#boutons" style="display:inline-flex;align-items:center;gap:2px;min-height:44px;margin-left:-7px;font:600 16px 'Figtree';color:var(--primary);text-decoration:none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 5 8 12 15 19"/></svg>Ses balades</a></div>
+<div><b>BackLink</b> (<code>components/BackLink.tsx</code>) — le retour : chevron et texte vert, sans cadre ni fond, 44 px de haut, le chevron aligné sur la marge de 16 px. Sur un en-tête coloré : en blanc. Plus jamais de pilule « ‹ Accueil ».</div>
 </div>
 <div class="card stack">
 <div class="row"><a class="btn btn-quiet" href="#boutons">Changer</a><button class="btn-close" aria-label="Fermer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3F4946" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button></div>
@@ -211,6 +228,24 @@ ul.rules{margin:8px 0 0;padding-left:20px} ul.rules li{margin:4px 0}
 <div class="grid g2">
 
 <div class="card stack">
+<h3 style="margin-top:0">Stats</h3>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+<div><div style="font:700 20px 'Bricolage Grotesque';font-variant-numeric:tabular-nums">32<span style="font-size:15px;font-weight:600">&#8239;min</span></div><div style="font-size:13px;color:var(--muted)">Durée</div></div>
+<div><div style="font:700 20px 'Bricolage Grotesque';font-variant-numeric:tabular-nums">2,1<span style="font-size:15px;font-weight:600">&#8239;km</span></div><div style="font-size:13px;color:var(--muted)">Distance</div></div>
+<div><div style="font:700 20px 'Bricolage Grotesque';font-variant-numeric:tabular-nums">28<span style="font-size:15px;font-weight:600">&#8239;min</span></div><div style="font-size:13px;color:var(--muted)">En marche</div></div>
+<div><div style="font:700 20px 'Bricolage Grotesque';font-variant-numeric:tabular-nums">3</div><div style="font-size:13px;color:var(--muted)">Arrêts</div></div>
+</div>
+<div style="font-size:12px;color:var(--muted)">Enregistré par l'Apple Watch</div>
+<div style="font-size:14px;color:var(--muted)"><code>components/Stats.tsx</code> : 2 à 4 colonnes égales ; valeur Bricolage 700 20 px, chiffres à largeur fixe, unité collée en 15 px ; libellé Figtree 13 px gris dessous. Passe sur 2 colonnes si la place manque (petit écran, texte agrandi). Sur les écrans de balade, aucune donnée chiffrée hors de Stats. La source, en 12 px gris, sous le bloc.</div>
+</div>
+
+<div class="card stack">
+<h3 style="margin-top:0">Mini-carte et avatar</h3>
+<div class="row"><svg width="64" height="64" viewBox="0 0 100 100" style="border-radius:14px;background:#EDEAE3" aria-hidden="true"><path d="M0 30 L100 40 M20 0 L35 100 M60 0 L70 100 M0 75 L100 70" stroke="#F6D36B" stroke-width="5"/><path d="M28 70 C20 40 40 22 62 28 S82 62 60 74 S35 80 28 70" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/><path d="M28 70 C20 40 40 22 62 28 S82 62 60 74 S35 80 28 70" fill="none" stroke="#2F8F6B" stroke-width="4.5" stroke-linecap="round"/><circle cx="28" cy="70" r="6" fill="#1E5A50" stroke="#fff" stroke-width="2"/></svg><span style="width:64px;height:64px;border-radius:32px;background:var(--primary-soft);color:var(--primary-dark);display:inline-flex;align-items:center;justify-content:center;font:600 26px 'Bricolage Grotesque'">B</span></div>
+<div style="font-size:14px;color:var(--muted)">Mini-carte : le tracé vert sur un vrai fond de carte (OpenFreeMap, sans noms), jamais un tracé sur fond uni. Une seule carte cachée dessine les vignettes l'une après l'autre (images gardées hors ligne). Un souvenir sans photo ni trajet : une icône calme, sans carré de couleur. Avatar sans photo : la lettre du nom sur <code>primary-soft</code>, sans bord orange.</div>
+</div>
+
+<div class="card stack">
 <h3 style="margin-top:0">Champ</h3>
 <div><label class="lbl" for="ex1">Un mot sur la séance ? <span style="font-weight:500;color:var(--muted)">(facultatif)</span></label><input id="ex1" class="field" value="Ping-pong du rappel au parc"></div>
 <div style="font-size:14px;color:var(--muted)">Libellé toujours visible au-dessus (jamais seulement un placeholder), 16 px minimum, « (facultatif) » en gris.</div>
@@ -226,7 +261,7 @@ ul.rules{margin:8px 0 0;padding-left:20px} ul.rules li{margin:4px 0}
 <h3 style="margin-top:0">Panneau du bas (feuille)</h3>
 <div style="background:#fff;border:1px solid var(--divider);border-radius:24px 24px 0 0;box-shadow:0 -6px 24px rgba(24,32,30,.12);padding:10px 16px 16px" class="stack">
 <span style="align-self:center;width:44px;height:5px;border-radius:3px;background:var(--border)"></span>
-<b style="font:800 19px 'Bricolage Grotesque'">Revient même s'il joue</b>
+<b style="font:600 19px 'Bricolage Grotesque'">Revient même s'il joue</b>
 <span style="font-size:14px;color:var(--muted)">Le Rappel · acquise le 8 octobre</span>
 <a class="btn btn-danger" href="#composants">Décocher cette étape</a>
 </div>
@@ -278,19 +313,19 @@ ul.rules{margin:8px 0 0;padding-left:20px} ul.rules li{margin:4px 0}
 
 <div class="card stack">
 <h3 style="margin-top:0">Niveau et titre</h3>
-<div class="row" style="gap:14px"><div style="width:64px;height:64px;border-radius:32px;background:var(--milestone-soft);border:3px solid var(--gold)"></div><div style="flex:1"><b style="font:800 20px 'Bricolage Grotesque'">Niveau 8 · Explorateur</b><div style="height:10px;border-radius:5px;background:var(--placeholder);margin:6px 0"><div style="width:50%;height:100%;background:var(--gold);border-radius:5px"></div></div><span style="font-size:13px;color:var(--muted)">Encore 1 étape avant le niveau 9</span></div></div>
+<div class="row" style="gap:14px"><div style="width:64px;height:64px;border-radius:32px;background:var(--milestone-soft);border:3px solid var(--gold)"></div><div style="flex:1"><b style="font:600 20px 'Bricolage Grotesque'">Niveau 8 · Explorateur</b><div style="height:10px;border-radius:5px;background:var(--placeholder);margin:6px 0"><div style="width:50%;height:100%;background:var(--gold);border-radius:5px"></div></div><span style="font-size:13px;color:var(--muted)">Encore 1 étape avant le niveau 9</span></div></div>
 <div style="font-size:14px;color:var(--muted)">Niveau = 1 + étapes acquises ÷ 2 (1 à 26). Titres : Chiot curieux (1–3) · Apprenti (4–7) · Explorateur (8–12) · Compagnon (13–18) · Complice (19–25) · Légende (26). Jamais d'XP.</div>
 </div>
 
 <div class="card stack">
 <h3 style="margin-top:0">« Ce que ça fait avancer »</h3>
-<div class="row"><span style="background:var(--gold);color:var(--gold-dark);font-weight:800;font-size:13px;padding:4px 10px;border-radius:10px">▲ Le Rappel</span><span style="background:var(--primary-soft);color:var(--primary);font-weight:800;font-size:13px;padding:4px 10px;border-radius:10px">▲ Le Lien</span></div>
+<div class="row"><span style="background:var(--gold);color:var(--gold-dark);font-weight:700;font-size:13px;padding:4px 10px;border-radius:10px">▲ Le Rappel</span><span style="background:var(--primary-soft);color:var(--primary);font-weight:700;font-size:13px;padding:4px 10px;border-radius:10px">▲ Le Lien</span></div>
 <div style="font-size:14px;color:var(--muted)">Remplace tout « +XP » sur la mission, le défi et « C'est réussi ! ». Les os gagnés s'affichent à côté (« +10 os »).</div>
 </div>
 
 <div class="card stack">
 <h3 style="margin-top:0">Les os (monnaie de l'effort)</h3>
-<div class="row"><span style="height:44px;padding:0 14px;border-radius:22px;background:#FFF8E6;border:2px solid #F2B544;display:inline-flex;align-items:center;gap:8px;font:800 18px 'Bricolage Grotesque';color:#3D2A00"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><g fill="#F6E7C8" stroke="#8A6514" stroke-width="1.6"><circle cx="5.5" cy="9" r="3"/><circle cx="5.5" cy="15" r="3"/><circle cx="18.5" cy="9" r="3"/><circle cx="18.5" cy="15" r="3"/></g><rect x="5.5" y="9.2" width="13" height="5.6" fill="#F6E7C8"/><path d="M6 9.2h12M6 14.8h12" stroke="#8A6514" stroke-width="1.6"/></svg>240</span><span style="background:#FFF8E6;color:#3D2A00;font-size:13px;font-weight:800;padding:3px 8px;border-radius:10px;display:inline-flex;align-items:center;gap:4px">+10 <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><g fill="#F6E7C8" stroke="#8A6514" stroke-width="1.6"><circle cx="5.5" cy="9" r="3"/><circle cx="5.5" cy="15" r="3"/><circle cx="18.5" cy="9" r="3"/><circle cx="18.5" cy="15" r="3"/></g><rect x="5.5" y="9.2" width="13" height="5.6" fill="#F6E7C8"/><path d="M6 9.2h12M6 14.8h12" stroke="#8A6514" stroke-width="1.6"/></svg></span><span style="height:44px;padding:0 16px;border-radius:22px;border:2px solid #8A6514;background:#FFF8E6;color:#3D2A00;display:inline-flex;align-items:center;gap:6px;font-weight:800">Acheter · 120 <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><g fill="#F6E7C8" stroke="#8A6514" stroke-width="1.6"><circle cx="5.5" cy="9" r="3"/><circle cx="5.5" cy="15" r="3"/><circle cx="18.5" cy="9" r="3"/><circle cx="18.5" cy="15" r="3"/></g><rect x="5.5" y="9.2" width="13" height="5.6" fill="#F6E7C8"/><path d="M6 9.2h12M6 14.8h12" stroke="#8A6514" stroke-width="1.6"/></svg></span></div>
+<div class="row"><span style="height:44px;padding:0 14px;border-radius:22px;background:#FFF8E6;border:2px solid #F2B544;display:inline-flex;align-items:center;gap:8px;font:600 18px 'Bricolage Grotesque';color:#3D2A00"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><g fill="#F6E7C8" stroke="#8A6514" stroke-width="1.6"><circle cx="5.5" cy="9" r="3"/><circle cx="5.5" cy="15" r="3"/><circle cx="18.5" cy="9" r="3"/><circle cx="18.5" cy="15" r="3"/></g><rect x="5.5" y="9.2" width="13" height="5.6" fill="#F6E7C8"/><path d="M6 9.2h12M6 14.8h12" stroke="#8A6514" stroke-width="1.6"/></svg>240</span><span style="background:#FFF8E6;color:#3D2A00;font-size:13px;font-weight:700;padding:3px 8px;border-radius:10px;display:inline-flex;align-items:center;gap:4px">+10 <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><g fill="#F6E7C8" stroke="#8A6514" stroke-width="1.6"><circle cx="5.5" cy="9" r="3"/><circle cx="5.5" cy="15" r="3"/><circle cx="18.5" cy="9" r="3"/><circle cx="18.5" cy="15" r="3"/></g><rect x="5.5" y="9.2" width="13" height="5.6" fill="#F6E7C8"/><path d="M6 9.2h12M6 14.8h12" stroke="#8A6514" stroke-width="1.6"/></svg></span><span style="height:44px;padding:0 16px;border-radius:22px;border:2px solid #8A6514;background:#FFF8E6;color:#3D2A00;display:inline-flex;align-items:center;gap:6px;font-weight:700">Acheter · 120 <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><g fill="#F6E7C8" stroke="#8A6514" stroke-width="1.6"><circle cx="5.5" cy="9" r="3"/><circle cx="5.5" cy="15" r="3"/><circle cx="18.5" cy="9" r="3"/><circle cx="18.5" cy="15" r="3"/></g><rect x="5.5" y="9.2" width="13" height="5.6" fill="#F6E7C8"/><path d="M6 9.2h12M6 14.8h12" stroke="#8A6514" stroke-width="1.6"/></svg></span></div>
 <div style="font-size:14px;color:var(--muted)">Icône os dessinée (crème <code>#F6E7C8</code>, contour <code>#8A6514</code>), jamais un émoji. Fond des cartes <code>#FFF8E6</code>, bord <code>#F2B544</code>. Gagnés par l'effort, jamais perdus, jamais comparés. Pas assez d'os : bouton gris « Encore 60 », jamais rouge.</div>
 </div>
 

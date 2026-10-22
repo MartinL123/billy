@@ -1,17 +1,22 @@
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type PointerEvent, type RefObject } from 'react'
-import { nearestSnap, type Snap } from '../../lib/sheetSnap'
+import { nearestSnap, sheetPositions, type Snap } from '../../lib/sheetSnap'
 import { haptic } from '../../native/flair'
 
 // Le panneau glissant du bas de la carte : celui des balades et celui d’une balade mise en avant (même geste partout).
 // R-077 : trois crans comme dans Plans. Réduit (poignée et titre), moitié (à l’ouverture), haut (juste sous les
 // boutons de la carte). Hors du cran haut, glisser n’importe où déplace le panneau et la liste ne défile pas ; au cran
 // haut, la liste défile, et tout en haut de la liste, tirer vers le bas fait redescendre le panneau.
+// R-091, R-082 : au cran du milieu, les premières actions (ou la première rangée de balades) sont entières au-dessus de
+// l’action fixée en bas ou du rond Accueil (règle : sheetPositions).
+
+/** Le rond Accueil dépasse de 26 px de la barre d’onglets : sans action fixée en bas, le panneau garde 36 px dessous. */
+export const HOME_CLEARANCE = 36
 
 export type { Snap }
 
 const SNAP_EASE = 'transform 0.34s cubic-bezier(0.3, 1.15, 0.5, 1)'
 
-export function useSheet({ start = 'half', peekRef, bottomInset = 0 }: { start?: Snap; /** Le bas de cet élément borne la partie visible réduit (sinon : le haut du contenu). */ peekRef?: RefObject<HTMLElement | null>; /** Hauteur couverte en bas par une barre fixe (l’action principale). */ bottomInset?: number } = {}) {
+export function useSheet({ start = 'half', peekRef, halfRef, bottomInset = 0 }: { start?: Snap; /** Le bas de cet élément borne la partie visible réduit (sinon : le haut du contenu). */ peekRef?: RefObject<HTMLElement | null>; /** Le bas de cet élément est visible au cran du milieu (les premières actions, la première rangée). */ halfRef?: RefObject<HTMLElement | null>; /** Hauteur couverte en bas par une barre fixe (l’action principale) ou le rond Accueil. */ bottomInset?: number } = {}) {
   const ref = useRef<HTMLElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   const [snap, setSnap] = useState<Snap>(start)
@@ -25,20 +30,39 @@ export function useSheet({ start = 'half', peekRef, bottomInset = 0 }: { start?:
     const body = bodyRef.current
     if (!el || !body) return
     const measure = () => {
-      const height = el.offsetHeight
-      const container = el.parentElement?.clientHeight ?? height
-      // (Le panneau et son titre bougent ensemble : l’écart entre eux ne dépend pas du cran.)
-      const peekBottom = peekRef?.current ? peekRef.current.getBoundingClientRect().bottom - el.getBoundingClientRect().top : body.offsetTop
-      const half = Math.max(0, height - container / 2)
-      const collapsed = Math.max(half, height - peekBottom - 12 - bottomInset)
-      setPositions({ full: 0, half, collapsed })
+      const top = el.getBoundingClientRect().top
+      // (Le panneau et son contenu bougent ensemble : l’écart entre eux ne dépend pas du cran ; seul le défilement de la
+      // liste, au cran haut, est retiré.)
+      const below = (node: HTMLElement) => node.getBoundingClientRect().bottom - top + (body.contains(node) ? body.scrollTop : 0)
+      const next = sheetPositions({
+        height: el.offsetHeight,
+        container: el.parentElement?.clientHeight ?? el.offsetHeight,
+        peekBottom: peekRef?.current ? below(peekRef.current) : body.offsetTop,
+        halfBottom: halfRef?.current ? below(halfRef.current) : undefined,
+        bottomInset,
+      })
+      setPositions((p) => (p.half === next.half && p.collapsed === next.collapsed ? p : next))
     }
     measure()
+    // Le contenu change (une balade mise en avant, un texte agrandi) : les tailles de ses éléments suffisent à le dire.
     const observer = new ResizeObserver(measure)
-    observer.observe(el)
-    if (el.parentElement) observer.observe(el.parentElement)
-    return () => observer.disconnect()
-  }, [peekRef, bottomInset])
+    const watch = () => {
+      observer.disconnect()
+      observer.observe(el)
+      if (el.parentElement) observer.observe(el.parentElement)
+      for (const child of Array.from(body.children)) observer.observe(child)
+    }
+    watch()
+    const added = new MutationObserver(() => {
+      watch()
+      measure()
+    })
+    added.observe(body, { childList: true })
+    return () => {
+      observer.disconnect()
+      added.disconnect()
+    }
+  }, [peekRef, halfRef, bottomInset])
 
   // Hors du cran haut, la liste revient en haut ; tout en haut, tirer vers le bas reste au panneau (touch-action).
   const syncTouch = () => {
@@ -50,6 +74,13 @@ export function useSheet({ start = 'half', peekRef, bottomInset = 0 }: { start?:
     syncTouch()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [snap])
+
+  // Petit écran et grand texte : quand le cran du milieu rejoint le haut, le panneau y est « en haut » (la liste
+  // défile jusqu’aux actions, toujours au-dessus du rond Accueil ou de l’action fixée).
+  const halfIsFull = positions.half === 0 && positions.collapsed > 0
+  useEffect(() => {
+    if (halfIsFull && snap === 'half') setSnap('full')
+  }, [halfIsFull, snap])
 
   const offset = positions[snap]
   const place = (y: number, animate: boolean) => {
@@ -116,7 +147,7 @@ export function useSheet({ start = 'half', peekRef, bottomInset = 0 }: { start?:
   }
 
   /** La poignée : réduit → moitié → haut → moitié. */
-  const cycle = () => settle(snap === 'collapsed' ? 'half' : snap === 'half' ? 'full' : 'half')
+  const cycle = () => settle(snap === 'collapsed' ? (halfIsFull ? 'full' : 'half') : snap === 'half' ? 'full' : halfIsFull ? 'collapsed' : 'half')
 
   return {
     ref,

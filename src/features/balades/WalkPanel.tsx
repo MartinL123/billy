@@ -6,14 +6,18 @@ import { PinIcon } from '../../components/Icons'
 import { formatDuration } from '../../lib/balade'
 import { formatLong } from '../../lib/dates'
 import { durationLabel, formatRouteDistance, type Route } from '../../lib/route'
-import { useSheet } from './useSheet'
+import { useRef } from 'react'
+import { HOME_CLEARANCE, useSheet } from './useSheet'
 
 /**
  * Le panneau d’une balade ouverte sur la carte : ce qu’elle est, la revoir, y placer des repères. Il se glisse vers le
  * bas comme le panneau des balades (même geste) : réduit, il garde le nom de la balade et la carte prend l’écran.
  */
 export function WalkPanel({ entryId, name, date, route, color, replaying, onReplay, onAddMark, onClose, readOnly = false }: { readOnly?: boolean; entryId: string; name: string; date: string; route: Route; color?: string; replaying: boolean; onReplay: () => void; /** R-059 : `visibleBottom` = le haut du panneau (la carte visible s’arrête là). */ onAddMark: (visibleBottom: number) => void; onClose: () => void }) {
-  const sheet = useSheet()
+  // R-091 : au cran du milieu, « Revoir la balade » et « Ajouter un repère » entiers, au-dessus du rond Accueil.
+  const actionsEnd = useRef<HTMLButtonElement>(null)
+  const sheet = useSheet({ halfRef: actionsEnd, bottomInset: HOME_CLEARANCE })
+  const canMark = !readOnly && route.points.length > 0
   const stats = [
     { value: formatRouteDistance(route.distanceM), label: 'Distance' },
     { value: route.durationMin ? (route.source ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', label: 'Durée' },
@@ -53,7 +57,7 @@ export function WalkPanel({ entryId, name, date, route, color, replaying, onRepl
         {route.source === 'watch' && <p className="source-note">Enregistré par l’Apple Watch</p>}
         <p className="text-[0.8824rem] text-[#3F4946]">{readOnly ? 'Touchez une autre balade pour l’ouvrir.' : 'Touchez le tracé pour ajouter un repère, une autre balade pour l’ouvrir.'}</p>
         {route.points.length > 1 && (
-          <button type="button" onClick={onReplay} className="btn btn-main min-h-[52px] gap-2">
+          <button ref={canMark ? undefined : actionsEnd} type="button" onClick={onReplay} className="btn btn-main min-h-[52px] gap-2">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               {replaying ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />}
             </svg>
@@ -61,8 +65,8 @@ export function WalkPanel({ entryId, name, date, route, color, replaying, onRepl
           </button>
         )}
         {/* R-059 : la même chose que toucher le tracé, sans viser (VoiceOver, Switch Control). */}
-        {!readOnly && route.points.length > 0 && (
-          <button type="button" onClick={() => onAddMark(sheet.ref.current?.getBoundingClientRect().top ?? window.innerHeight)} className={`${outlineButton} gap-2`}>
+        {canMark && (
+          <button ref={actionsEnd} type="button" onClick={() => onAddMark(sheet.ref.current?.getBoundingClientRect().top ?? window.innerHeight)} className={`${outlineButton} gap-2`}>
             <PinIcon size={20} />
             Ajouter un repère
           </button>

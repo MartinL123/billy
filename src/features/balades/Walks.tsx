@@ -17,13 +17,22 @@ import { useToday } from '../../lib/useToday'
 import { communesOf, filterWalks, walkColors, walkItems, walksSummary, walkTags, type WalkFilter } from '../../lib/walkList'
 import { RouteThumb } from '../trajets/RouteThumb'
 import { useReadOnly } from '../../firebase/viewer'
+import { communeAt } from '../../lib/commune'
+import { discoveredShare, inPolygon, knownFog } from '../../lib/fog'
+import { bilanStats, monthReport, monthStats, topMomentLine, walkPhotos } from '../../lib/walkBilan'
+import { PhotoViewer } from '../journal/PhotoViewer'
 
 const PAGE = 12
+/** Les photos de balade montrées d’abord (miniatures) ; « Voir les N photos » pour le reste. */
+const PHOTOS = 9
 
-/** « Ses balades » (maquette V3-Balades) : toutes les balades, filtres, groupées par mois. */
+/**
+ * « Ses balades » (maquette V3-Balades) : toutes les balades, filtres, groupées par mois. En haut, le bilan (V6 § 8.5) :
+ * les Stats de toujours, le bilan du mois et toutes les photos de balade. Seulement ce qui monte, sans comparaison.
+ */
 export default function Walks() {
   const readOnly = useReadOnly()
-  const { entries, dog } = useData()
+  const { entries, dog, fog, communes: communeShapes } = useData()
   const today = useToday()
   const navigate = useNavigate()
   const back = useBack('/territoire')
@@ -35,6 +44,17 @@ export default function Walks() {
   const communes = useMemo(() => communesOf(walks), [walks])
   // La même couleur que sur la carte.
   const colors = useMemo(() => walkColors(walks), [walks])
+  // Le bilan : la part découverte de la commune de la dernière balade (comme l’accueil), le mois, les photos.
+  const discovered = useMemo(() => {
+    const start = walks[0]?.route.points[0]
+    const commune = start ? communeAt(communeShapes, { lat: start[0], lng: start[1] }, inPolygon) : undefined
+    return commune ? { share: discoveredShare(knownFog(fog), commune), commune: commune.name } : undefined
+  }, [walks, communeShapes, fog])
+  const month = useMemo(() => monthReport(walks, today.slice(0, 7)), [walks, today])
+  const photos = useMemo(() => walkPhotos(entries), [entries])
+  const [allPhotos, setAllPhotos] = useState(false)
+  const [viewer, setViewer] = useState<number | null>(null)
+  const momentLine = topMomentLine(month.topMoment)
 
   // La commune de chaque balade, demandée une fois (géocodage inverse du départ) puis gardée avec elle.
   useEffect(() => {
@@ -83,7 +103,7 @@ export default function Walks() {
         <div className="flex flex-col gap-1">
           <h1 className="title-screen">Ses balades</h1>
           {/* Sans balade, pas de « 0 balade · 0,0 km » au-dessus de l’état vide (R-036). */}
-          {!(rows.length === 0 && filter === 'toutes') && shown.length > 0 && <Stats items={walksSummary(shown)} className="mt-2" />}
+          {walks.length > 0 && <Stats items={bilanStats(walks, discovered)} className="mt-2" />}
         </div>
         {/* « Noter un souvenir » vit ici depuis la V5 (il a quitté l’accueil). */}
         {!readOnly && (
@@ -91,6 +111,36 @@ export default function Walks() {
             <PlusIcon size={20} />
             Noter un souvenir
           </Link>
+        )}
+        {/* Le bilan du mois : le récap du dimanche en plus grand. */}
+        {month.walks > 0 && (
+          <section className="flex flex-col gap-2">
+            <h2 className="title-section">
+              Ce mois-ci <span className="sr-only">({formatMonthYear(`${today.slice(0, 7)}-01`)})</span>
+            </h2>
+            <div className="card flex flex-col gap-3 p-4">
+              <Stats items={monthStats(month)} />
+              {momentLine && <p className="m-0 text-[0.9412rem] leading-snug">{momentLine}</p>}
+            </div>
+          </section>
+        )}
+        {/* Toutes les photos de balade : les miniatures ; la photo entière à l’ouverture. */}
+        {photos.length > 0 && (
+          <section className="flex flex-col gap-2">
+            <h2 className="title-section">Photos de balade</h2>
+            <div className="grid grid-cols-3 gap-1.5">
+              {(allPhotos ? photos : photos.slice(0, PHOTOS)).map((photo, i) => (
+                <button key={photo.fileId} type="button" aria-label={`Voir la photo ${i + 1} sur ${photos.length} en plein écran`} onClick={() => setViewer(i)} className="tap block overflow-hidden rounded-[14px] border-0 bg-transparent p-0">
+                  <FileImage fileId={photo.thumbFileId} alt="" className="aspect-square w-full" />
+                </button>
+              ))}
+            </div>
+            {!allPhotos && photos.length > PHOTOS && (
+              <button type="button" onClick={() => setAllPhotos(true)} className="btn-text -ml-1 self-start">
+                Voir les {photos.length} photos
+              </button>
+            )}
+          </section>
         )}
         {rows.length === 0 && filter === 'toutes' ? (
           // Rien du tout : un vrai état vide, qui propose d’importer (audit R-010).
@@ -117,6 +167,8 @@ export default function Walks() {
                 </button>
               ))}
             </div>
+            {/* Un filtre : ses balades à lui, en chiffres. */}
+            {filter !== 'toutes' && shown.length > 0 && <Stats items={walksSummary(shown)} />}
             {groups.length === 0 && <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[1rem] text-[#1D3F73]">Aucune balade pour ce filtre.</p>}
             {groups.map((group) => (
               <section key={group.key} className="flex flex-col gap-2">
@@ -176,6 +228,7 @@ export default function Walks() {
           </>
         )}
       </main>
+      {viewer !== null && <PhotoViewer photos={photos} start={viewer} onClose={() => setViewer(null)} />}
       {/* Pas de « Voir cette balade sur la carte » quand la liste est vide. */}
       {shown.length > 0 && (
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">

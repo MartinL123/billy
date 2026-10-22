@@ -110,10 +110,11 @@ export function formatRelative(iso: ISODate, today: ISODate): string {
   return diff > 0 ? `dans ${diff} jours` : `il y a ${-diff} jours`
 }
 
-/** « 14 h 00 » à partir de « 14:00 » */
+/** R-087 : « 14 h » à partir de « 14:00 », « 8 h 30 » à partir de « 08:30 » (espaces insécables). */
 export function formatTime(time: string): string {
   const [h, min] = time.split(':')
-  return `${Number(h)} h ${min ?? '00'}`
+  const m = Number(min ?? 0)
+  return m ? `${Number(h)}\u00a0h\u00a0${String(m).padStart(2, '0')}` : `${Number(h)}\u00a0h`
 }
 
 export function monthKey(iso: ISODate): string {

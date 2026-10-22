@@ -3,6 +3,7 @@ import { NativePickerInput } from '../../components/Form'
 import { useEffect, useState } from 'react'
 import { canPush, deviceRef, disablePush, enablePush, isInstalled, readPush } from '../../firebase/push'
 import { DEFAULT_REMINDER_TIME } from '../../lib/reminder'
+import { formatTime } from '../../lib/dates'
 
 /**
  * Rappel du soir : une notification pour remplir le carnet, envoyée par une tâche planifiée (aucun serveur payant).
@@ -33,7 +34,7 @@ export function EveningReminder({ dogName }: { dogName: string }) {
     const error = await enablePush('evening', { time })
     if (error) return setMessage(error)
     setEnabled(true)
-    setMessage(`C’est noté : un rappel chaque soir vers ${time.replace(':', ' h ')}, sauf si vous avez déjà noté quelque chose.`)
+    setMessage(`C’est noté : un rappel chaque soir vers ${formatTime(time)}, sauf si vous avez déjà noté quelque chose.`)
   }
 
   const turnOff = async () => {

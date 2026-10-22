@@ -11,8 +11,10 @@ describe('dates', () => {
     expect(formatWeekdayShort('2026-10-01')).toBe('Jeu. 1er oct.')
     expect(formatMonthYear('2026-10-05')).toBe('Octobre 2026')
     expect(formatDayHeading('2026-10-13')).toBe('Mardi 13 octobre')
-    expect(formatTime('14:00')).toBe('14 h 00')
-    expect(formatTime('09:05')).toBe('9 h 05')
+    expect(formatTime('14:00')).toBe('14\u00a0h')
+    expect(formatTime('09:05')).toBe('9\u00a0h\u00a005')
+    expect(formatTime('08:30')).toBe('8\u00a0h\u00a030')
+    expect(formatTime('08:00')).toBe('8\u00a0h')
   })
 
   it('donne des dates relatives', () => {

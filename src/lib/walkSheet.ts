@@ -8,6 +8,7 @@ import { ofName } from './gender'
 import { formatRouteDistance, type Route, type RoutePoint } from './route'
 import type { Track } from './track'
 import { effectiveTrack, trimWindow } from './trim'
+import { walkSourceLabel } from './walkSource'
 import { movingSeconds, paceCategory, positionAt, type PaceCategory } from './walkStory'
 
 // La fiche de balade (spec V6 § 6.1) : ce qui s’affiche et comment, calculé ici (fonctions pures, testées).
@@ -234,14 +235,14 @@ export function discoverySentence(dogName: string, newCells: number): string {
   return `Une balade sur des chemins qu’il connaît`
 }
 
-/** D’où viennent les chiffres (sources en 12 px). */
-export function sourceLabels(route: Pick<Route, 'source' | 'weather' | 'hr' | 'steps' | 'energyKcal' | 'stops' | 'moments'>): { track?: string; health?: string; weather?: string; places?: string } {
-  const track = route.source === 'watch' ? 'Enregistré par l’Apple Watch' : route.source === 'gps' ? 'Enregistré par le GPS de l’iPhone' : route.source === 'gpx' ? 'Importé d’un fichier GPX' : undefined
+/** D’où viennent les chiffres (sources en 12 px). `track` : l’étiquette de la liste (R-092), « Watch », « iPhone »… */
+export function sourceLabels(route: Pick<Route, 'source' | 'weather' | 'hr' | 'steps' | 'energyKcal' | 'stops' | 'moments'>, entrySource?: string): { track?: string; health?: string; weather?: string; places?: string } {
+  const track = walkSourceLabel(entrySource, route.source)
   const fromHealth = Boolean(route.hr?.length || route.steps || route.energyKcal)
-  const health = fromHealth ? (route.source === 'watch' ? 'Apple Watch' : route.source === 'gps' ? 'Santé (Apple Watch)' : 'Fichier GPX') : undefined
+  const health = fromHealth ? (route.source === 'watch' ? 'Apple Watch' : route.source === 'gps' ? 'Santé (Apple Watch)' : 'Fichier') : undefined
   const weather = route.weather ? (route.weather.source === 'watch' ? 'Météo : Apple Watch' : 'Météo : Open-Meteo') : undefined
   const places = route.stops?.some((s) => s.street) || route.moments.some((m) => m.street) ? 'Lieux © OpenStreetMap' : undefined
-  return { ...(track ? { track } : {}), ...(health ? { health } : {}), ...(weather ? { weather } : {}), ...(places ? { places } : {}) }
+  return { track, ...(health ? { health } : {}), ...(weather ? { weather } : {}), ...(places ? { places } : {}) }
 }
 
 /** « 14 °C » ou « 14 °C · 80 % d’humidité » */

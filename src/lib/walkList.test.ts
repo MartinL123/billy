@@ -30,8 +30,8 @@ describe('toutes les balades', () => {
     ])
     expect(communesOf(withTowns)).toEqual(['Bourg', 'Ville'])
     expect(filterWalks(withTowns, 'commune:Ville', '2026-10-17').map((w) => w.id)).toEqual(['b'])
-    expect(walkTags(withTowns[0]!)).toEqual(['Strava'])
-    expect(walkTags(withTowns[1]!)).toEqual(['Tracé à la main', 'Une peur'])
+    expect(walkTags(withTowns[0]!)).toEqual(['Fichier'])
+    expect(walkTags(withTowns[1]!)).toEqual(['Notée', 'Une peur'])
   })
 })
 

@@ -64,7 +64,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
 
   const events = useMemo(() => walkTimeline(route, { startStreet }), [route, startStreet])
   const discovery = useMemo(() => walkDiscovery(entry.id, entries, communes), [entry.id, entries, communes])
-  const sources = sourceLabels(route)
+  const sources = sourceLabels(route, entry.source)
   const untold = tellQueue(route)
   const showPace = Boolean(route.track && route.pace && route.pace.length > 1)
   const bits = discovery ? Math.floor(discovery.newCells / CELLS_PER_BIT) : 0
@@ -220,10 +220,11 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
         )}
 
         {/* 8. Tous les chiffres, repliés. */}
-        {hasNumbers(route) && <WalkNumbers route={route} />}
+        {hasNumbers(route) && <WalkNumbers route={route} entrySource={entry.source} />}
 
         {/* 9. Sources, puis Modifier et Supprimer. */}
-        {(sources.track || sources.weather || sources.places) && <p className="source-note -mt-2">{[sources.track, sources.weather, sources.places].filter(Boolean).join(' · ')}</p>}
+        {/* R-092 : « Source : Fichier », la même étiquette que dans la liste des balades. */}
+        <p className="source-note -mt-2">{[`Source\u00a0: ${sources.track}`, sources.weather, sources.places].filter(Boolean).join(' · ')}</p>
         {!readOnly && (
           <div className="flex flex-wrap items-center gap-x-6 border-t border-divider pt-2">
             <Link to={`/souvenir/${entry.id}/modifier`} className="btn-text -ml-1">

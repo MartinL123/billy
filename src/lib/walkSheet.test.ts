@@ -91,9 +91,11 @@ describe('les chiffres', () => {
   })
 
   it('sources : chaque chiffre dit d’où il vient', () => {
-    expect(sourceLabels({ source: 'watch', hr: [90], moments: [], weather: { tempC: 12, source: 'watch' } })).toEqual({ track: 'Enregistré par l’Apple Watch', health: 'Apple Watch', weather: 'Météo : Apple Watch' })
-    expect(sourceLabels({ source: 'gps', steps: 3000, moments: [], weather: { tempC: 12, source: 'open-meteo' }, stops: [{ at: 1, durS: 40, lat: 0, lng: 0, street: 'Rue A' }] })).toEqual({ track: 'Enregistré par le GPS de l’iPhone', health: 'Santé (Apple Watch)', weather: 'Météo : Open-Meteo', places: 'Lieux © OpenStreetMap' })
-    expect(sourceLabels({ moments: [] })).toEqual({})
+    expect(sourceLabels({ source: 'watch', hr: [90], moments: [], weather: { tempC: 12, source: 'watch' } })).toEqual({ track: 'Watch', health: 'Apple Watch', weather: 'Météo : Apple Watch' })
+    expect(sourceLabels({ source: 'gps', steps: 3000, moments: [], weather: { tempC: 12, source: 'open-meteo' }, stops: [{ at: 1, durS: 40, lat: 0, lng: 0, street: 'Rue A' }] })).toEqual({ track: 'iPhone', health: 'Santé (Apple Watch)', weather: 'Météo : Open-Meteo', places: 'Lieux © OpenStreetMap' })
+    expect(sourceLabels({ moments: [] })).toEqual({ track: 'Notée' })
+    expect(sourceLabels({ source: 'gpx', moments: [] }, 'strava')).toEqual({ track: 'Fichier' })
+    expect(sourceLabels({ moments: [] }, 'strava')).toEqual({ track: 'Fichier' })
   })
 })
 

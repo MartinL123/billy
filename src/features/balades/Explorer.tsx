@@ -401,7 +401,7 @@ export default function Explorer() {
             )}
           </div>
           )}
-      {walk && walkEntry && !selected && <WalkPanel readOnly={readOnly} entryId={walkEntry.id} name={walks.find((w) => w.id === walkEntry.id)?.name ?? 'La balade'} date={walkEntry.date} route={walk.route} color={walk.color} replaying={replaying} onReplay={() => setReplaying(!replaying)} onAddMark={addMark} onClose={closeWalk} />}
+      {walk && walkEntry && !selected && <WalkPanel readOnly={readOnly} entryId={walkEntry.id} source={walkEntry.source} name={walks.find((w) => w.id === walkEntry.id)?.name ?? 'La balade'} date={walkEntry.date} route={walk.route} color={walk.color} replaying={replaying} onReplay={() => setReplaying(!replaying)} onAddMark={addMark} onClose={closeWalk} />}
       {placing && walkRoute && (
         <PlaceMoment
           at={placing}

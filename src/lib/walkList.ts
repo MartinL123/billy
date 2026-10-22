@@ -1,5 +1,6 @@
 import type { ISODate } from './dates'
 import { isHardMoment, readRoute, type Route, type StoredRoute } from './route'
+import { walkSourceLabel } from './walkSource'
 
 // Toutes les balades et leurs filtres (carte-a-decouvrir.md § 7 bis). Un filtre change les trajets dessinés et la
 // liste ; le brouillard, lui, reste calculé sur toutes les balades (on ne « reperd » jamais un territoire).
@@ -61,7 +62,8 @@ export function communesOf(items: WalkItem[]): string[] {
 
 /** Étiquettes d’une ligne : d’où vient le trajet, et ses moments (« 1 peur », « Super rappel »). */
 export function walkTags(item: WalkItem): string[] {
-  const tags = [item.source === 'watch' || item.route.source === 'watch' ? 'Apple Watch' : item.source === 'gps' || item.route.source === 'gps' ? 'iPhone' : item.source === 'strava' || item.route.source ? 'Strava' : 'Tracé à la main']
+  // R-092 : la même étiquette que sur la fiche.
+  const tags: string[] = [walkSourceLabel(item.source, item.route.source)]
   const fears = item.route.moments.filter((m) => m.type === 'peur' || m.type === 'grogne').length
   // Pas de chiffre hors du composant Stats sur les écrans de balade (V6 § 1).
   if (fears) tags.push(fears > 1 ? 'Des peurs' : 'Une peur')

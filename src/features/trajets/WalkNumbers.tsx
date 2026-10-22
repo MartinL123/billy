@@ -27,14 +27,14 @@ export function hasNumbers(route: Route): boolean {
  * « Tous les chiffres » (V6 § 6.1), replié : allure moyenne, km par km, pas, montée et descente, énergie, cœur moyen et
  * maximum avec sa petite courbe, météo. Chaque groupe dit d’où il vient (12 px). Jamais de record ni de comparaison.
  */
-export function WalkNumbers({ route }: { route: Route }) {
+export function WalkNumbers({ route, entrySource }: { route: Route; entrySource?: string }) {
   const [open, setOpen] = useState(false)
   const id = useId()
   const avg = averageKmh(route)
   const track = effectiveTrack(route)
   const splits = track ? kmSplits(track) : []
   const hr = hrSummary(route.hr)
-  const src = sourceLabels(route)
+  const src = sourceLabels(route, entrySource)
   const weather = weatherText(route.weather)
   const rows: { value: string; label: string }[][] = []
   for (let i = 0; i < splits.length; i += 4) rows.push(splits.slice(i, i + 4).map((s) => ({ value: splitTime(s.seconds), label: splitLabel(s) })))
@@ -78,7 +78,7 @@ export function WalkNumbers({ route }: { route: Route }) {
               {src.weather && <p className="source-note">{src.weather}</p>}
             </div>
           )}
-          {src.track && <p className="source-note">Allure et distance : {src.track.replace(/^./, (c) => c.toLocaleLowerCase('fr'))}</p>}
+          {src.track && <p className="source-note">Allure et distance : {src.track}</p>}
         </div>
       )}
     </section>

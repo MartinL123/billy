@@ -6,6 +6,7 @@ import { PinIcon } from '../../components/Icons'
 import { formatDuration } from '../../lib/balade'
 import { formatLong } from '../../lib/dates'
 import { durationLabel, formatRouteDistance, type Route } from '../../lib/route'
+import { walkSourceLabel } from '../../lib/walkSource'
 import { useRef } from 'react'
 import { HOME_CLEARANCE, useSheet } from './useSheet'
 
@@ -13,7 +14,7 @@ import { HOME_CLEARANCE, useSheet } from './useSheet'
  * Le panneau d’une balade ouverte sur la carte : ce qu’elle est, la revoir, y placer des repères. Il se glisse vers le
  * bas comme le panneau des balades (même geste) : réduit, il garde le nom de la balade et la carte prend l’écran.
  */
-export function WalkPanel({ entryId, name, date, route, color, replaying, onReplay, onAddMark, onClose, readOnly = false }: { readOnly?: boolean; entryId: string; name: string; date: string; route: Route; color?: string; replaying: boolean; onReplay: () => void; /** R-059 : `visibleBottom` = le haut du panneau (la carte visible s’arrête là). */ onAddMark: (visibleBottom: number) => void; onClose: () => void }) {
+export function WalkPanel({ entryId, source, name, date, route, color, replaying, onReplay, onAddMark, onClose, readOnly = false }: { readOnly?: boolean; entryId: string; source?: string; name: string; date: string; route: Route; color?: string; replaying: boolean; onReplay: () => void; /** R-059 : `visibleBottom` = le haut du panneau (la carte visible s’arrête là). */ onAddMark: (visibleBottom: number) => void; onClose: () => void }) {
   // R-091 : au cran du milieu, « Revoir la balade » et « Ajouter un repère » entiers, au-dessus du rond Accueil.
   const actionsEnd = useRef<HTMLButtonElement>(null)
   const sheet = useSheet({ halfRef: actionsEnd, bottomInset: HOME_CLEARANCE })
@@ -54,7 +55,8 @@ export function WalkPanel({ entryId, name, date, route, color, replaying, onRepl
       <div ref={sheet.bodyRef} onScroll={sheet.onBodyScroll} className={`-mx-5 flex min-h-0 flex-1 flex-col gap-2.5 overscroll-contain px-5 pb-9 [&>*]:shrink-0 ${sheet.snap === 'full' ? 'overflow-y-auto' : 'overflow-y-hidden'}`} aria-hidden={sheet.collapsed || undefined} inert={sheet.collapsed || undefined}>
         <p className="text-[0.8824rem] text-muted">{formatLong(date)}</p>
         <Stats items={stats} />
-        {route.source === 'watch' && <p className="source-note">Enregistré par l’Apple Watch</p>}
+        {/* R-092 : la même étiquette que dans la liste et sur la fiche. */}
+        <p className="source-note">Source{'\u00a0'}: {walkSourceLabel(source, route.source)}</p>
         <p className="text-[0.8824rem] text-[#3F4946]">{readOnly ? 'Touchez une autre balade pour l’ouvrir.' : 'Touchez le tracé pour ajouter un repère, une autre balade pour l’ouvrir.'}</p>
         {route.points.length > 1 && (
           <button ref={canMark ? undefined : actionsEnd} type="button" onClick={onReplay} className="btn btn-main min-h-[52px] gap-2">

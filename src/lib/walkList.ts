@@ -1,12 +1,12 @@
-import type { ISODate } from './dates'
+import { addDays, dayNumber, type ISODate } from './dates'
 import { isHardMoment, readRoute, type Route, type StoredRoute } from './route'
 import { walkSourceLabel } from './walkSource'
 
 // Toutes les balades et leurs filtres (carte-a-decouvrir.md § 7 bis). Un filtre change les trajets dessinés et la
 // liste ; le brouillard, lui, reste calculé sur toutes les balades (on ne « reperd » jamais un territoire).
 
-/** Les filtres ; `commune:Saint-Briac` pour une commune visitée. */
-export type WalkFilter = 'toutes' | 'mois' | 'peur' | 'long' | `commune:${string}`
+/** Les filtres ; `commune:Saint-Briac` pour une commune visitée. V6.1 § 3 : « 24 h » et « Cette semaine » en plus. */
+export type WalkFilter = 'toutes' | '24h' | 'semaine' | 'mois' | 'peur' | 'long' | `commune:${string}`
 
 export interface WalkItem {
   id: string
@@ -33,12 +33,49 @@ export const FILTERS: { id: WalkFilter; label: string }[] = [
   { id: 'long', label: 'Plus de 3 km' },
 ]
 
-export function filterWalks(items: WalkItem[], filter: WalkFilter, today: ISODate): WalkItem[] {
+/** Les filtres du panneau de la carte (V6.1 § 3), un seul choix ; la pastille ne porte pas de nombre. */
+export const PANEL_FILTERS: { id: WalkFilter; label: string }[] = [
+  { id: 'toutes', label: 'Toutes' },
+  { id: '24h', label: '24\u00a0h' },
+  { id: 'semaine', label: 'Cette semaine' },
+  { id: 'mois', label: 'Ce mois' },
+]
+
+/** Le lundi de la semaine de `today` (« Cette semaine » = depuis lundi). */
+export const weekStart = (today: ISODate): ISODate => addDays(today, -((dayNumber(today) + 3) % 7))
+
+/**
+ * L’heure d’une balade, pour « 24 h » : sa fin (sinon son départ) ; une balade sans heure (ancienne, notée à la main)
+ * compte pour midi, heure de l’appareil, le jour de sa date.
+ */
+export function walkInstant(w: { date: ISODate; route: Pick<Route, 'startTime' | 'endTime'> }): number {
+  const t = Date.parse(w.route.endTime ?? w.route.startTime ?? '')
+  return Number.isFinite(t) ? t : new Date(`${w.date}T12:00:00`).getTime()
+}
+
+const DAY_MS = 86_400_000
+
+/**
+ * Les balades d’un filtre. « 24 h » : les dernières 24 heures (`now`) ; « Cette semaine » : depuis lundi ; « Ce mois » :
+ * le mois du calendrier de `today`.
+ */
+export function filterWalks(items: WalkItem[], filter: WalkFilter, today: ISODate, now: number = Date.now()): WalkItem[] {
+  if (filter === '24h') return items.filter((w) => walkInstant(w) > now - DAY_MS && walkInstant(w) <= now + 60_000)
+  if (filter === 'semaine') return items.filter((w) => w.date >= weekStart(today) && w.date <= today)
   if (filter === 'mois') return items.filter((w) => w.date.startsWith(today.slice(0, 7)))
   if (filter === 'peur') return items.filter((w) => w.route.moments.some(isHardMoment))
   if (filter === 'long') return items.filter((w) => w.route.distanceM > 3000)
   if (filter.startsWith('commune:')) return items.filter((w) => w.commune === filter.slice(8))
   return items
+}
+
+/** L’état vide d’un filtre du panneau (V6.1 § 4) : « Aucune balade cette semaine. ». */
+export function emptyFilterText(filter: WalkFilter): string {
+  if (filter === '24h') return 'Aucune balade ces dernières 24\u00a0heures.'
+  if (filter === 'semaine') return 'Aucune balade cette semaine.'
+  if (filter === 'mois') return 'Aucune balade ce mois-ci.'
+  if (filter === 'toutes') return 'Pas encore de balade.'
+  return 'Aucune balade pour ce choix.'
 }
 
 /** « 9 h 40 », « 45 min » : le temps de balade (V6.1 § 1 : « 9 h 40 de balade », jamais « ensemble »). */

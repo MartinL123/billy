@@ -10,7 +10,7 @@ import { useData } from '../../firebase/store'
 import { knownFog } from '../../lib/fog'
 import { readMapPrefs, writeMapPrefs } from '../../lib/mapPrefs'
 import { useToday } from '../../lib/useToday'
-import { filterWalks, walkColors, walkItems, walksNear, walksTotals, type WalkFilter, type WalkItem } from '../../lib/walkList'
+import { emptyFilterText, filterWalks, PANEL_FILTERS, walkColors, walkItems, walksNear, walksTotals, type WalkFilter, type WalkItem } from '../../lib/walkList'
 import type { MapPlace, MapWalk } from './ExplorerMap'
 import { PlaceCard, type Selected } from './PlaceCard'
 import { WalkPanel } from './WalkPanel'
@@ -30,16 +30,11 @@ import { ROUTE_COLOR } from '../../components/maplibre'
 
 const ExplorerMap = lazy(() => import('./ExplorerMap').then((m) => ({ default: m.ExplorerMap })))
 
-const chip = (on: boolean) => `min-h-11 shrink-0 rounded-full border-0 px-3 text-[0.8235rem] font-bold ${on ? 'bg-primary text-white' : 'bg-bg text-text'}`
+/** Une pastille de filtre (maquette V6-Billy-et-journal) : 32 px dessinés dans une zone de 44 px. */
+const chip = (on: boolean) => `flex h-8 items-center rounded-full border border-solid px-3 text-[0.8235rem] font-bold whitespace-nowrap ${on ? 'border-primary bg-primary text-white' : 'border-[#D3D9D6] bg-surface text-text'}`
 
 /** Balades en cartes dans le panneau ; les autres sont dans « Ses balades ». */
 const LIST_MAX = 8
-
-/** Les filtres compacts du panneau (V5) ; les autres restent dans la liste des balades. */
-const PANEL_FILTERS: { id: WalkFilter; label: string }[] = [
-  { id: 'toutes', label: 'Mes balades' },
-  { id: 'mois', label: 'Ce mois' },
-]
 
 /** T-098 : le cran du panneau gardé dans l’adresse (« ?cran= »), pour le retrouver au retour de la fiche d’une balade. */
 const SNAPS: Snap[] = ['collapsed', 'half', 'full']
@@ -327,17 +322,18 @@ export default function Explorer() {
               <p className="text-[0.8824rem] leading-snug text-[#3F4946]" aria-live="polite">
                 {territoryHint(highlighted, today)}
               </p>
-              <div role="group" aria-label="Quoi afficher" className="scroll-row -mx-5 flex gap-1.5 px-5">
+              {/* V6.1 § 3 : un seul choix, sans nombre sur la pastille ; le résumé suit. (« Spots de la meute » irait dans
+                  « Affichage », mais la meute reste gelée, T-072.) */}
+              <div role="group" aria-label="Filtrer les balades" className="scroll-row -mx-5 -my-1.5 flex gap-1.5 px-5">
                 {PANEL_FILTERS.map((f) => (
-                  <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className={chip(filter === f.id)}>
-                    {f.label}
+                  <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className="flex min-h-11 shrink-0 items-center border-0 bg-transparent p-0">
+                    <span className={chip(filter === f.id)}>{f.label}</span>
                   </button>
                 ))}
-                {/* Gelé (T-072) : le bouton « Spots de la meute » est retiré. */}
               </div>
               {/* Les balades en cartes, à l’horizontale : un toucher ouvre sa fiche (T-098). */}
               {shown.length === 0 ? (
-                <p className="text-[0.8824rem] text-muted">Aucune balade pour ce choix.</p>
+                <p className="text-[0.8824rem] text-muted">{emptyFilterText(filter)}</p>
               ) : (
                 <ul ref={firstRow} className="scroll-row m-0 -mx-5 flex list-none gap-2 px-5 py-0.5">
                   {local.slice(0, LIST_MAX).map((w) => {

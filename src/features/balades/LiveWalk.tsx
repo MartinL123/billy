@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Stats } from '../../components/Stats'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { Sheet } from '../../components/Sheet'
-import { CheckIcon } from '../../components/Icons'
+import { CheckIcon, CloseIcon } from '../../components/Icons'
 import { DangerButton, MapButton } from '../../components/Buttons'
 import { useToast } from '../../components/Toast'
 import { useData } from '../../firebase/store'
@@ -385,6 +385,12 @@ export default function LiveWalk() {
             <span />
             {/* T-106 : « Me situer » (cible), comme sur la carte des Balades : la carte revient sur le chien si on l’a déplacée. */}
             {here && !ended && !gone && <MapButton kind="locate" onClick={() => setRecenter((n) => n + 1)} />}
+            {/* Maquette BelleBalade : une croix en haut à droite ferme le récap (retour à l’accueil, comme « Plus tard »). */}
+            {ended && (
+              <button type="button" aria-label="Fermer" onClick={() => navigate('/', { replace: true })} className="tap pointer-events-auto flex size-11 items-center justify-center rounded-full border-0 bg-surface text-text shadow-float">
+                <CloseIcon size={20} />
+              </button>
+            )}
           </div>
           {park.offer && !ended && !gone && (
             // T-101 : le bandeau en haut ; « Commencer » ouvre la mission par-dessus, la balade continue.
@@ -420,7 +426,7 @@ export default function LiveWalk() {
 
       {ended ? (
         // « Belle balade ! » (V6 § 6.3) : les chiffres, les os, et « Raconter la balade » s’il y a des arrêts.
-        <WalkRecap entryId={ended.entryId} bones={ended.bones} fallback={{ distanceM: ended.distanceM }} {...(ended.slotName ? { subtitle: `${ended.slotName} notée` } : {})} />
+        <WalkRecap entryId={ended.entryId} fallback={{ distanceM: ended.distanceM }} {...(ended.slotName ? { subtitle: `${ended.slotName} notée` } : {})} />
       ) : gone ? null : (
         <section aria-label="Balade en cours" className="panel flex flex-col gap-3.5 px-4 pt-5 pb-[calc(env(safe-area-inset-bottom)+20px)]">
           <span className="flex items-center gap-2 text-milestone-dark surtitre">

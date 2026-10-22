@@ -5,14 +5,21 @@ import { tellQueue } from './walkTell'
 
 // Le récap « Belle balade ! » (spec V6 § 6.3) : fonctions pures, testées.
 
-/** Stats du récap : distance · durée · os (seulement ce qu’il y a). V6.1 § 1 : plus de pourcentage découvert. */
-export function recapStats({ distanceM, durationMin, bones }: { distanceM: number; durationMin?: number; bones: number }): { value: string; label: string }[] {
+/**
+ * Stats du récap : distance · durée · nouvelles rues (maquette BelleBalade du 22/10 : plus d’os ici), seulement ce
+ * qu’il y a. Les rues arrivent après l’enregistrement (Nominatim) : sans elles, le troisième chiffre n’est pas affiché.
+ */
+export function recapStats({ distanceM, durationMin, newStreets }: { distanceM: number; durationMin?: number; newStreets?: number }): { value: string; label: string }[] {
   return [
     { value: formatRouteDistance(distanceM), label: 'Distance' },
     { value: durationMin ? formatDuration(durationMin) : '', label: 'Durée' },
-    { value: bones > 0 ? `+${bones}` : '', label: 'Os gagnés' },
+    ...(newStreets !== undefined ? [{ value: newStreets ? `+${newStreets}` : '0', label: newStreets > 1 ? 'Nouvelles rues' : 'Nouvelle rue' }] : []),
   ]
 }
+
+/** « Billy a reniflé 2 rues qu’il ne connaissait pas » (maquette BelleBalade), s’il y en a. */
+export const sniffLine = (name: string, newStreets: number | undefined) =>
+  newStreets ? `${name} a reniflé ${newStreets} rue${newStreets > 1 ? 's' : ''} qu’il ne connaissait pas` : undefined
 
 /** « 4 arrêts. Que s’est-il passé ? » ; sans arrêt, les repères posés pendant la balade (T-086). */
 export const stopsLine = (n: number, markers = 0) => (n || !markers ? `${n} arrêt${n > 1 ? 's' : ''}. Que s’est-il passé ?` : `${markers} repère${markers > 1 ? 's' : ''} posé${markers > 1 ? 's' : ''}. Que s’est-il passé ?`)

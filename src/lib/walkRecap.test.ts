@@ -1,11 +1,19 @@
 import { describe, expect, it } from 'vitest'
-import { recapStats, stopChips, stopsLine } from './walkRecap'
+import { recapStats, sniffLine, stopChips, stopsLine } from './walkRecap'
 
 describe('le récap « Belle balade ! » (V6 § 6.3)', () => {
-  it('Stats : distance · durée · os, seulement ce qu’il y a (V6.1 : plus de pourcentage)', () => {
+  it('Stats : distance · durée · nouvelles rues, seulement ce qu’il y a (maquette du 22/10 : plus d’os)', () => {
     const nb = (list: { value: string; label: string }[]) => list.filter((s) => s.value).map((s) => `${s.label} ${s.value.replace(/\u00a0/g, ' ')}`)
-    expect(nb(recapStats({ distanceM: 2100, durationMin: 32, bones: 3 }))).toEqual(['Distance 2,1 km', 'Durée 32 min', 'Os gagnés +3'])
-    expect(nb(recapStats({ distanceM: 650, bones: 0 }))).toEqual(['Distance 650 m'])
+    expect(nb(recapStats({ distanceM: 2100, durationMin: 32, newStreets: 2 }))).toEqual(['Distance 2,1 km', 'Durée 32 min', 'Nouvelles rues +2'])
+    expect(nb(recapStats({ distanceM: 650 }))).toEqual(['Distance 650 m'])
+    expect(nb(recapStats({ distanceM: 650, newStreets: 0 }))).toEqual(['Distance 650 m', 'Nouvelle rue 0'])
+  })
+
+  it('« Billy a reniflé 2 rues qu’il ne connaissait pas », seulement s’il y en a', () => {
+    expect(sniffLine('Billy', 2)).toBe('Billy a reniflé 2 rues qu’il ne connaissait pas')
+    expect(sniffLine('Billy', 1)).toBe('Billy a reniflé 1 rue qu’il ne connaissait pas')
+    expect(sniffLine('Billy', 0)).toBeUndefined()
+    expect(sniffLine('Billy', undefined)).toBeUndefined()
   })
 
   it('les arrêts : la phrase et 2 ou 3 pastilles', () => {

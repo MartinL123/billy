@@ -3,24 +3,27 @@ import { useNavigate } from 'react-router-dom'
 import { Stats } from '../../components/Stats'
 import { useData } from '../../firebase/store'
 import { readRoute } from '../../lib/route'
-import { recapStats, stopChips, stopsLine } from '../../lib/walkRecap'
+import { recapStats, sniffLine, stopChips, stopsLine } from '../../lib/walkRecap'
+import { importNewStreets } from '../../lib/walkFacts'
+import { place } from '../../lib/garden'
 import { tellQueue } from '../../lib/walkTell'
 import { dogName } from '../../lib/dogName'
 import { RecapPhotos } from './RecapPhotos'
 
 /**
  * Le panneau du récap « Belle balade ! » (V6 § 6.3), après « Terminer » (GPS de Flair) ou à l’arrivée d’une balade de
- * la Watch : surtitre, une phrase, Stats (distance · durée · os ; V6.1 : plus de pourcentage découvert), les arrêts et « Raconter la balade » ;
+ * la Watch : surtitre, une phrase, Stats (distance · durée · nouvelles rues, plus d’os depuis la maquette du 22/10 ; V6.1 : plus de pourcentage découvert), les arrêts et « Raconter la balade » ;
  * sans arrêt à raconter, « Voir la balade » (sa fiche, T-098) et « Ajouter un souvenir ».
  * `fallback` : ce qu’on sait déjà si la balade n’est pas encore lue dans la base locale.
  */
-export function WalkRecap({ entryId, overline, subtitle, bones, fallback }: { entryId: string; overline?: string; subtitle?: string; bones?: number; fallback: { distanceM: number } }) {
-  const { dog, entries, bones: allBones } = useData()
+export function WalkRecap({ entryId, overline, subtitle, fallback }: { entryId: string; overline?: string; subtitle?: string; fallback: { distanceM: number } }) {
+  const { dog, entries } = useData()
   const navigate = useNavigate()
   const entry = entries.find((e) => e.id === entryId)
   const route = useMemo(() => readRoute(entry?.route), [entry?.route])
-  // Les os de la note de cette balade (+3, dans la limite du jour), sauf si l’écran les connaît déjà.
-  const gained = bones ?? allBones.filter((b) => b.reason === 'note' && b.refId === entryId).reduce((s, b) => s + b.amount, 0)
+  // T-111 (maquette BelleBalade) : les nouvelles rues, dès qu’elles sont connues (elles arrivent après, avec le réseau).
+  const newStreets = importNewStreets(route?.streets ? [{ streets: route.streets }] : [])
+  const sniff = sniffLine(dogName(dog), newStreets)
   // T-086 : les arrêts sans repère et les repères « À raconter ».
   const queue = route ? tellQueue(route) : []
   const untold = queue.length
@@ -32,9 +35,9 @@ export function WalkRecap({ entryId, overline, subtitle, bones, fallback }: { en
       <div className="flex flex-col items-center gap-1 text-center">
         {overline && <span className="surtitre text-milestone-dark">{overline}</span>}
         <h1 className="title-screen">Belle balade !</h1>
-        <p className="text-[0.9412rem] text-[#3F4946]">{`Avec ${dogName(dog)}`}{subtitle ? ` · ${subtitle}` : ''}</p>
+        <p className="text-[0.9412rem] text-[#3F4946]">{sniff ? place(sniff.charAt(0).toLocaleUpperCase('fr') + sniff.slice(1)) : `Avec ${dogName(dog)}${subtitle ? ` · ${subtitle}` : ''}`}</p>
       </div>
-      <Stats items={recapStats({ distanceM: route?.distanceM ?? fallback.distanceM, ...(route?.durationMin ? { durationMin: route.durationMin } : {}), bones: gained })} className="rounded-field bg-bg px-4 py-3" />
+      <Stats items={recapStats({ distanceM: route?.distanceM ?? fallback.distanceM, ...(route?.durationMin ? { durationMin: route.durationMin } : {}), ...(newStreets !== undefined ? { newStreets } : {}) })} className="rounded-field bg-bg px-4 py-3" />
       {/* T-103 : les photos prises pendant la balade (app iOS, avec l’accord de la personne). */}
       {route && <RecapPhotos entryId={entryId} route={route} />}
       {untold > 0 && route ? (

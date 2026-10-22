@@ -155,7 +155,9 @@ export default function Explorer() {
     observer.observe(footer)
     return () => observer.disconnect()
   }, [readOnly])
-  const sheet = useSheet({ peekRef, bottomInset: footerHeight })
+  // R-082 : au cran du milieu, la première rangée de balades entière au-dessus de l’action fixée en bas.
+  const firstRow = useRef<HTMLUListElement>(null)
+  const sheet = useSheet({ peekRef, halfRef: firstRow, bottomInset: footerHeight })
 
   // Une balade ouverte depuis son souvenir (?balade=…) : mise en avant, replay, repères à placer.
   const walkId = params.get('balade')
@@ -342,7 +344,7 @@ export default function Explorer() {
               {shown.length === 0 ? (
                 <p className="text-[0.8824rem] text-muted">Aucune balade pour ce choix.</p>
               ) : (
-                <ul className="scroll-row m-0 -mx-5 flex list-none gap-2 px-5 py-0.5">
+                <ul ref={firstRow} className="scroll-row m-0 -mx-5 flex list-none gap-2 px-5 py-0.5">
                   {local.slice(0, LIST_MAX).map((w) => {
                     const on = w.id === highlight
                     return (

@@ -15,16 +15,14 @@ import { PasswordSheet } from '../account/PasswordSheet'
 import { useData } from '../../firebase/store'
 import type { Contact } from '../../firebase/types'
 import { formatAgeShort } from '../../lib/age'
-import { formatLong, formatShort, formatTime, isValidISO } from '../../lib/dates'
-import { questionnaireStatus, reactionSentence, reactionsFromFears, statusLabel } from '../../lib/questionnaire'
-import { sortMeals } from '../../lib/feeding'
+import { formatLong, formatShort, isValidISO } from '../../lib/dates'
+import { questionnaireStatus, reactionsFromFears, statusLabel, worryPills } from '../../lib/questionnaire'
 import { useBack } from '../../lib/useBack'
 import { useToday } from '../../lib/useToday'
 import { DogPhoto } from '../shop/DogPhoto'
 import { NotificationSettings } from '../notifications/NotificationSettings'
 import { WalkSettings } from './WalkSettings'
 import { ProfileEdit } from './ProfileEdit'
-import { gamesLabel, treatsLabel } from '../../lib/training-plan'
 import { place } from '../../lib/garden'
 import { ofName } from '../../lib/gender'
 import { isNative } from '../../native'
@@ -35,6 +33,7 @@ import { WatchOptIn } from '../balades/WatchOptIn'
 import { MotionSetting } from '../motion/MotionSetting'
 import { WalkPhotosSetting } from './WalkPhotosSetting'
 import { ProchesSection } from '../live/Proches'
+import { watchOptedIn } from '../balades/watchImport'
 
 
 function InfoRow({ label, value, first }: { label: string; value: string; first?: boolean }) {
@@ -149,6 +148,8 @@ export default function Profile() {
   const [deleting, setDeleting] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
   const [used, setUsed] = useState<number>()
+  // T-110 : « Réglages » : une ligne par réglage, qui ouvre son panneau.
+  const [setting, setSetting] = useState<'notifications' | 'detectees' | 'proches'>()
   // Visiteur (T-048) : il regarde le profil, sans rien régler.
   const readOnly = useReadOnly()
 
@@ -171,16 +172,15 @@ export default function Profile() {
   const email = auth.currentUser?.email ?? ''
   const space = used ?? usage
   const spaceLevel = usageLevel(space)
-  const sentences = (dog.reactions ?? reactionsFromFears(dog.fears ?? [])).map(reactionSentence)
+  const pills = worryPills(dog.reactions ?? reactionsFromFears(dog.fears ?? []))
   const lastWeight = weights[0]
   const status = questionnaireStatus(dog.questionnaire)
 
   return (
     <div className="mx-auto flex max-w-[430px] flex-col gap-5 px-5 pb-[calc(env(safe-area-inset-bottom)+40px)]">
       <header className="sticky top-0 z-10 -mx-5 flex items-center justify-between bg-bg px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
-        <BackLink label="Retour" onClick={back} />
-        <span className="text-lg font-bold">Son profil</span>
-        <div className="w-[104px]" />
+        {/* T-110 (maquette Profil) : « ‹ Billy », sans titre au centre : son nom est juste dessous. */}
+        <BackLink label={dog.name} onClick={back} />
       </header>
 
       <div className="flex flex-col items-center gap-2 text-center">
@@ -197,10 +197,10 @@ export default function Profile() {
       </div>
 
       <section className="flex flex-col gap-2.5">
-        <h2 className="title-section">Son identité</h2>
+        <SectionHead title="Son identité" to="/profil/modifier" label="Modifier son identité" />
         <Pending show={dog.pending} />
         <div className="card px-4 py-1">
-          <InfoRow first label={place('Né le')} value={isValidISO(dog.birthDate) ? `${formatLong(dog.birthDate)} · ${formatAgeShort(dog.birthDate, today)}` : 'Pas encore renseigné'} />
+          <InfoRow first label={place('Né le')} value={isValidISO(dog.birthDate) ? formatLong(dog.birthDate) : 'Pas encore renseigné'} />
           {/* Une ligne par information : « Sexe : Femelle », puis la stérilisation (R-052). */}
           {dog.sex && <InfoRow label="Sexe" value={dog.sex} />}
           {dog.neutered && <InfoRow label="Stérilisation" value={dog.neutered === 'Oui' ? place('Stérilisé') : dog.neutered === 'Non' ? place('Non stérilisé') : 'Prévue'} />}
@@ -209,40 +209,23 @@ export default function Profile() {
           <InfoRow label="Puce" value={dog.chip || 'Pas encore renseignée'} />
           {lastWeight && <InfoRow label="Poids" value={`${String(lastWeight.kg).replace('.', ',')} kg · ${formatShort(lastWeight.date)}`} />}
         </div>
-        <EditLink to="/profil/modifier" className="btn btn-tertiary">
-          Modifier son identité
-        </EditLink>
       </section>
 
-      {dog.feeding && (
-        <section className="flex flex-col gap-2.5">
-          <h2 className="title-section">Au quotidien</h2>
-          <div className="card px-4 py-1">
-            <InfoRow first label="Ration" value={`${dog.feeding.gramsPerDay} g par jour`} />
-            <InfoRow label="Repas" value={sortMeals(dog.feeding.meals).map((m) => formatTime(m.time)).join(' · ') || 'À compléter'} />
-            {treatsLabel(dog.treats) && <InfoRow label={place('Il adore')} value={treatsLabel(dog.treats)!} />}
-            {gamesLabel(dog.games) ? <InfoRow label="Ses jeux" value={gamesLabel(dog.games)!} /> : null}
-            {dog.aloneTime && <InfoRow label={place('Seul')} value={`${dog.aloneTime.toLocaleLowerCase('fr')}${dog.aloneTime === 'Jamais' ? '' : ' par jour'}`} />}
-          </div>
-        </section>
-      )}
-
+      {/* T-110 : « Ce qui l’inquiète » : pastilles orange (inquiet, peur), vertes (à l’aise), tirées du questionnaire. */}
       <section className="flex flex-col gap-2.5">
-        <h2 className="title-section">{place('Comment il réagit')}</h2>
+        <SectionHead title={place('Ce qui l’inquiète')} to="/questionnaire?etape=reactions" label="Modifier ses réactions" />
         <div className="card flex flex-col gap-3 p-4">
-          {sentences.length > 0 ? (
-            <ul className="m-0 flex list-none flex-col gap-1.5 p-0 text-[1rem] leading-snug">
-              {sentences.map((sentence) => (
-                <li key={sentence}>{sentence}</li>
+          {pills.length > 0 ? (
+            <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+              {pills.map((pill) => (
+                <li key={pill.label} className={`rounded-full px-3 py-1.5 text-[0.8235rem] font-bold whitespace-nowrap ${pill.tone === 'worry' ? 'bg-milestone-soft text-milestone-dark' : 'bg-primary-soft text-primary-dark'}`}>
+                  {pill.label}
+                </li>
               ))}
             </ul>
           ) : (
             <p className="text-[1rem] leading-snug text-muted">Pas encore renseigné.</p>
           )}
-          {dog.homeMood && <p className="text-[1rem] leading-snug">{place(`À la maison, il est plutôt ${dog.homeMood.toLocaleLowerCase('fr')}.`)}</p>}
-          <EditLink to="/questionnaire?etape=reactions" className="btn-text -ml-1 self-start">
-            Modifier ses réactions
-          </EditLink>
         </div>
       </section>
 
@@ -260,26 +243,6 @@ export default function Profile() {
         <>
       <WalkSettings />
 
-      {/* R-079 : les marches de l’Apple Watch, seulement si on le choisit (app iOS). */}
-      {isNative() && (
-        <section className="flex flex-col gap-2.5">
-          <h2 className="title-section">Apple Watch</h2>
-          <WatchOptIn />
-        </section>
-      )}
-
-      {/* T-085 : sans montre, Mouvements et forme (app iOS). */}
-      {isNative() && <MotionSetting />}
-
-      {/* T-103 : les photos prises pendant les balades, ajoutées à leurs souvenirs (app iOS). */}
-      {isNative() && <WalkPhotosSetting />}
-
-      {/* App iOS : les notifications locales (T-042). Gelé (T-072) : le rappel du soir en web push (EveningReminder) n’est plus proposé. */}
-      {isNative() && <NotificationSettings />}
-
-      {/* T-087 : à qui partager une balade en direct (app iOS). */}
-      {isNative() && <ProchesSection />}
-
       {/* Une fois terminé, on arrive sur le résultat : c’est là qu’on corrige ce qu’il savait déjà faire. */}
       <Link to={status.complete ? '/questionnaire?etape=fin' : '/questionnaire'} className="card-link min-h-16">
         <NoteIcon size={24} className="shrink-0 text-primary" />
@@ -291,6 +254,19 @@ export default function Profile() {
       </Link>
 
       <FamilySection />
+
+      {/* T-110 (maquette Profil, T-075) : les réglages regroupés, une ligne chacun. Notifications, balades détectées et partage
+          en direct n’existent que dans l’app iOS ; les unités sont fixes (km, kg). */}
+      <section className="flex flex-col gap-2.5">
+        <h2 className="title-section">Réglages</h2>
+        <div className="card px-4 py-1">
+          {isNative() && <SettingRow first title="Notifications" detail="Missions, soins, exercices au parc" onClick={() => setSetting('notifications')} />}
+          {isNative() && <SettingRow title="Balades détectées" detail="Apple Watch et iPhone" value={watchOptedIn() ? 'Montre' : 'iPhone'} onClick={() => setSetting('detectees')} />}
+          {/* T-087 : à qui partager une balade en direct. */}
+          {isNative() && <SettingRow title="Partage en direct" detail="Les proches qui suivent la balade" onClick={() => setSetting('proches')} />}
+          <SettingRow first={!isNative()} title="Unités" value="km, kg" />
+        </div>
+      </section>
 
       <section className="flex flex-col gap-2.5">
         <h2 className="title-section">Compte</h2>
@@ -353,6 +329,29 @@ export default function Profile() {
         Version du {new Date(__BUILD_TIME__).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
       </p>
 
+      {setting === 'notifications' && (
+        <Sheet label="Notifications" onClose={() => setSetting(undefined)}>
+          <NotificationSettings />
+        </Sheet>
+      )}
+      {setting === 'detectees' && (
+        // R-079 (Apple Watch), T-085 (sans montre), T-103 (photos des balades) : ce que l’app iOS repère seule.
+        <Sheet label="Balades détectées" onClose={() => setSetting(undefined)}>
+          <section className="flex flex-col gap-2.5">
+            <h2 className="title-section">Apple Watch</h2>
+            <WatchOptIn />
+          </section>
+          <MotionSetting />
+          <WalkPhotosSetting />
+        </Sheet>
+      )}
+
+      {setting === 'proches' && (
+        <Sheet label="Partage en direct" onClose={() => setSetting(undefined)}>
+          <ProchesSection />
+        </Sheet>
+      )}
+
       {changingPassword && <PasswordSheet onClose={() => setChangingPassword(false)} />}
       {deleting && <DeleteAccountSheet dogName={dog.name} online={online} onClose={() => setDeleting(false)} />}
 
@@ -370,6 +369,40 @@ export default function Profile() {
         />
       )}
     </div>
+  )
+}
+
+/** Le titre d’un bloc et son « Modifier » à droite (maquette Profil), masqué chez un visiteur. */
+function SectionHead({ title, to, label }: { title: string; to: string; label: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <h2 className="title-section">{title}</h2>
+      <EditLink to={to} aria-label={label} className="btn-text -mr-3 shrink-0 px-3">
+        Modifier
+      </EditLink>
+    </div>
+  )
+}
+
+/** Une ligne de « Réglages » : son titre, sa précision, sa valeur ; un chevron si elle s’ouvre. */
+function SettingRow({ title, detail, value, onClick, first }: { title: string; detail?: string; value?: string; onClick?: () => void; first?: boolean }) {
+  const body = (
+    <>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="text-[1rem] font-bold">{title}</span>
+        {detail && <span className="text-[0.8235rem] leading-snug text-muted">{detail}</span>}
+      </span>
+      {value && <span className="shrink-0 text-[0.8824rem] whitespace-nowrap text-muted">{value}</span>}
+      {onClick && <ChevronRightIcon size={18} className="shrink-0 text-[#8C9692]" />}
+    </>
+  )
+  const cls = `flex min-h-14 w-full items-center gap-2 py-3 text-left text-text ${first ? '' : 'border-t border-divider'}`
+  return onClick ? (
+    <button type="button" onClick={onClick} className={`${cls} border-x-0 border-b-0 bg-transparent px-0`}>
+      {body}
+    </button>
+  ) : (
+    <div className={cls}>{body}</div>
   )
 }
 

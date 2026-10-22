@@ -309,3 +309,39 @@ export function statusLabel(status: QuestionnaireStatus): string {
   if (status.answered === 0) return `À compléter · ${status.total} questions`
   return `À compléter · ${status.answered} réponse${status.answered > 1 ? 's' : ''} sur ${status.total}`
 }
+
+/** T-110 (maquette Profil) : « Ce qui l’inquiète » en pastilles courtes : ce qui l’inquiète (orange), ce qui va bien (vert). */
+const PILLS: Record<string, { worry: string; ok: string }> = {
+  'il croise un adulte inconnu': { worry: 'Les inconnus', ok: 'À l’aise avec les gens' },
+  'il croise des enfants': { worry: 'Les enfants', ok: 'À l’aise avec les enfants' },
+  'il croise un autre chien': { worry: 'Les autres chiens', ok: 'À l’aise avec les chiens' },
+  'il entend les bruits de la ville': { worry: 'Bruits de la ville', ok: 'Calme en ville' },
+  'il passe dans une rue étroite': { worry: 'Rues étroites', ok: 'À l’aise dans les rues étroites' },
+  'il prend les transports': { worry: 'Les transports', ok: 'À l’aise en transports' },
+  'il voit son reflet': { worry: 'Son reflet', ok: 'Calme devant son reflet' },
+  'il découvre un objet nouveau': { worry: 'Objets nouveaux', ok: 'Curieux des objets nouveaux' },
+  'il monte en voiture': { worry: 'La voiture', ok: 'À l’aise en voiture' },
+  'il y a un orage': { worry: 'L’orage', ok: 'Calme pendant l’orage' },
+  'il monte un escalier': { worry: 'Les escaliers', ok: 'À l’aise dans les escaliers' },
+  'on lui touche les pattes ou les oreilles': { worry: 'Toucher ses pattes', ok: 'Se laisse manipuler' },
+  'il va chez le véto': { worry: 'Le véto', ok: 'À l’aise chez le véto' },
+  'il reste seul': { worry: 'Rester seul', ok: 'Reste seul sans souci' },
+}
+
+export interface WorryPill {
+  label: string
+  /** `worry` : un peu inquiet, peur, ou une réaction écrite à la main ; `ok` : à l’aise. */
+  tone: 'worry' | 'ok'
+}
+
+/** Les pastilles de « Ce qui l’inquiète » : d’abord ce qui l’inquiète, puis ce qui va bien, sans doublon. */
+export function worryPills(reactions: Reaction[]): WorryPill[] {
+  const pills = reactions.map((r): WorryPill => {
+    const tone = r.reaction === 'aise' ? 'ok' : 'worry'
+    const known = PILLS[r.situation]
+    const free = r.situation.charAt(0).toLocaleUpperCase('fr') + r.situation.slice(1)
+    return { tone, label: known ? known[tone] : tone === 'ok' ? `À l’aise : ${r.situation}` : free }
+  })
+  const seen = new Set<string>()
+  return [...pills.filter((p) => p.tone === 'worry'), ...pills.filter((p) => p.tone === 'ok')].filter((p) => !seen.has(p.label) && seen.add(p.label))
+}

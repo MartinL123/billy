@@ -31,3 +31,27 @@ describe('fin de « Compléter son profil » (T-022)', () => {
     expect(q.allPartsDone({ answers: before }, lastPart)).toBe(true)
   })
 })
+
+describe('« Ce qui l’inquiète » en pastilles (T-110)', () => {
+  it('inquiet ou peur en orange d’abord, à l’aise en vert ensuite, sans doublon', () => {
+    expect(
+      q.worryPills([
+        { situation: 'il croise un adulte inconnu', reaction: 'aise' },
+        { situation: 'il entend les bruits de la ville', reaction: 'peur' },
+        { situation: 'il passe dans une rue étroite', reaction: 'inquiet' },
+        { situation: 'il croise des enfants', reaction: 'peur' },
+        { situation: 'il croise des enfants', reaction: 'peur' },
+      ]),
+    ).toEqual([
+      { label: 'Bruits de la ville', tone: 'worry' },
+      { label: 'Rues étroites', tone: 'worry' },
+      { label: 'Les enfants', tone: 'worry' },
+      { label: 'À l’aise avec les gens', tone: 'ok' },
+    ])
+  })
+
+  it('une situation écrite à la main garde ses mots ; rien de renseigné, aucune pastille', () => {
+    expect(q.worryPills([{ situation: 'les trottinettes', reaction: 'il aboie' }])).toEqual([{ label: 'Les trottinettes', tone: 'worry' }])
+    expect(q.worryPills([])).toEqual([])
+  })
+})

@@ -17,6 +17,7 @@ import { stopStreet } from '../../lib/street'
 import { useBack } from '../../lib/useBack'
 import { discoverySentence, shareGain, sheetStats, sourceLabels, untoldStops, walkDiscovery, walkSubtitle, CELLS_PER_BIT } from '../../lib/walkSheet'
 import { walkTimeline, type TimelineEvent } from '../../lib/walkTimeline'
+import { postcardDateLine, postcardLine, postcardRoute } from '../../lib/postcard'
 import { MomentChips } from '../journal/EntryCard'
 import { PhotoViewer } from '../journal/PhotoViewer'
 import { setDraftPhotos } from '../journal/draft'
@@ -26,6 +27,7 @@ import { WalkMap } from './WalkMap'
 import { WalkTimeline } from './WalkTimeline'
 import { ToProfile } from './ToProfile'
 import { StopTiles, usePlaceOnStop } from './StopTiles'
+import { Postcard } from './Postcard'
 
 type WalkEntry = WithId<Entry> & { pending?: boolean }
 
@@ -43,6 +45,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
   const [cursor, setCursor] = useState<{ lat: number; lng: number }>()
   const [viewer, setViewer] = useState<number | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [postcard, setPostcard] = useState(false)
 
   const [name, ...rest] = entry.text.split('\n')
   const notes = rest.join('\n').trim()
@@ -130,6 +133,16 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
 
         {/* 3. Stats : durée · distance · en marche · arrêts. */}
         <Stats items={sheetStats(route)} />
+        {/* § 8.4 : la carte postale, en action secondaire (l’orange reste « Raconter la balade »). */}
+        {!readOnly && (
+          <button type="button" onClick={() => setPostcard(true)} className="btn-text -mt-2 -ml-1 self-start">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" />
+              <path d="M8 11H6a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-2" />
+            </svg>
+            Partager
+          </button>
+        )}
 
         {/* 4. L’allure minute par minute. */}
         {showPace && (
@@ -228,6 +241,13 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
         </div>
       )}
 
+      {postcard && (
+        <Postcard
+          date={entry.date}
+          onClose={() => setPostcard(false)}
+          input={{ points: postcardRoute(route.points, route.distanceM), title: name || 'Balade', line: postcardLine(route.distanceM, discovery?.newCells ?? 0), dateLine: postcardDateLine(entry.date, entry.commune), dogName: dog.name, ...(dog.photoThumbFileId || dog.photoFileId ? { dogPhotoFileId: dog.photoThumbFileId ?? dog.photoFileId } : {}) }}
+        />
+      )}
       {viewer !== null && <PhotoViewer photos={entry.photos} start={viewer} onClose={() => setViewer(null)} />}
       {confirmDelete && (
         <ConfirmSheet

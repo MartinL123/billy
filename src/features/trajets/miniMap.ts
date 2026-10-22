@@ -63,22 +63,27 @@ const idle = (map: MapLibreMap) =>
     map.triggerRepaint()
   })
 
-async function draw(points: RoutePoint[], moments: RouteMoment[], size: number): Promise<Blob | null> {
+async function draw(points: RoutePoint[], moments: RouteMoment[], size: number, startDot: boolean): Promise<Blob | null> {
   const { map, host } = getRenderer()
   host.style.width = `${size}px`
   host.style.height = `${size}px`
   map.resize()
   await new Promise<void>((resolve) => whenReady(map, resolve))
   const latLngs = points as LatLng[]
-  setLine(map, 'mini-liseré', [latLngs], { color: '#FFFFFF', width: size > 80 ? 6 : 4.5 })
-  setLine(map, 'mini-trace', [latLngs], { color: ROUTE_COLOR, width: size > 80 ? 3.5 : 2.5 })
-  const dots = { type: 'FeatureCollection' as const, features: [{ at: points[0]!, color: '#1E5A50' }, ...moments.map((m) => ({ at: [m.lat, m.lng] as RoutePoint, color: routeMomentInfo(m.type).color }))].map((d) => ({ type: 'Feature' as const, properties: { color: d.color }, geometry: { type: 'Point' as const, coordinates: [d.at[1], d.at[0]] } })) }
+  // Une grande image (carte postale, § 8.4) garde un trait aussi lisible qu’une vignette.
+  const k = size >= 300 ? 2 : 1
+  setLine(map, 'mini-liseré', [latLngs], { color: '#FFFFFF', width: (size > 80 ? 6 : 4.5) * k })
+  setLine(map, 'mini-trace', [latLngs], { color: ROUTE_COLOR, width: (size > 80 ? 3.5 : 2.5) * k })
+  const dots = { type: 'FeatureCollection' as const, features: [...(startDot ? [{ at: points[0]!, color: '#1E5A50' }] : []), ...moments.map((m) => ({ at: [m.lat, m.lng] as RoutePoint, color: routeMomentInfo(m.type).color }))].map((d) => ({ type: 'Feature' as const, properties: { color: d.color }, geometry: { type: 'Point' as const, coordinates: [d.at[1], d.at[0]] } })) }
   const source = map.getSource('mini-points') as { setData: (d: typeof dots) => void } | undefined
   if (source) source.setData(dots)
   else {
     map.addSource('mini-points', { type: 'geojson', data: dots })
-    map.addLayer({ id: 'mini-points', type: 'circle', source: 'mini-points', paint: { 'circle-radius': size > 80 ? 5 : 3.5, 'circle-color': ['get', 'color'], 'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 1.5 } })
+    map.addLayer({ id: 'mini-points', type: 'circle', source: 'mini-points', paint: { 'circle-color': ['get', 'color'], 'circle-stroke-color': '#FFFFFF' } })
   }
+  // La même carte sert à toutes les tailles : le rayon des points suit celle de l’image.
+  map.setPaintProperty('mini-points', 'circle-radius', (size > 80 ? 5 : 3.5) * k)
+  map.setPaintProperty('mini-points', 'circle-stroke-width', 1.5 * k)
   const pad = Math.round(size * 0.16)
   fitPoints(map, latLngs, { top: pad, bottom: pad, left: pad, right: pad })
   await idle(map)
@@ -103,8 +108,8 @@ async function toCache(key: string, blob: Blob) {
 }
 
 /** L’image de la mini-carte d’un trajet (URL d’objet), ou null si la carte n’a pas pu se dessiner. */
-export function miniMapImage(points: RoutePoint[], moments: RouteMoment[], size: number): Promise<string | null> {
-  const key = miniMapKey(points, moments, size)
+export function miniMapImage(points: RoutePoint[], moments: RouteMoment[], size: number, { startDot = true }: { /** Le point de départ (pas sur la carte postale : le tracé y est coupé). */ startDot?: boolean } = {}): Promise<string | null> {
+  const key = `${miniMapKey(points, moments, size)}${startDot ? '' : '-sans-depart'}`
   const known = memory.get(key)
   if (known) return Promise.resolve(known)
   const running = pending.get(key)
@@ -115,7 +120,7 @@ export function miniMapImage(points: RoutePoint[], moments: RouteMoment[], size:
     // Une vignette à la fois, sur la même carte cachée.
     const result = queue.then(async () => {
       try {
-        const blob = await draw(points, moments, size)
+        const blob = await draw(points, moments, size, startDot)
         if (!blob) return null
         void toCache(key, blob)
         return URL.createObjectURL(blob)

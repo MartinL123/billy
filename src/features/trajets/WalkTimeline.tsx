@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { isToTell, routeMomentInfo } from '../../lib/route'
 import { TIMELINE_PREVIEW, timelineText, type TimelineEvent } from '../../lib/walkTimeline'
+import { PencilIcon } from '../../components/Icons'
 import { MomentIcon } from './momentIcons'
 
 /** Le rond d’une ligne de la frise : départ et retour en vert, arrêt numéroté, repère, moment rapide, cœur. */
@@ -40,33 +41,49 @@ function EventDot({ event }: { event: TimelineEvent }) {
 /**
  * La frise « Ce qui s’est passé » (V6 § 6.2) : une ligne par événement, l’heure à gauche. `preview` : les 5 premières
  * lignes, puis « Voir toute la balade ». `renderExtra` : ce qui s’ajoute sous une ligne (les tuiles d’un arrêt).
+ * `onOpenStop` (T-107) : chaque arrêt se touche et ouvre « Raconter la balade » sur lui ; un arrêt raconté montre sa
+ * réponse avec un petit crayon.
  */
-export function WalkTimeline({ events, startTime, preview = false, renderExtra }: { events: TimelineEvent[]; startTime?: string; preview?: boolean; renderExtra?: (event: TimelineEvent) => ReactNode }) {
+export function WalkTimeline({ events, startTime, preview = false, renderExtra, onOpenStop }: { events: TimelineEvent[]; startTime?: string; preview?: boolean; renderExtra?: (event: TimelineEvent) => ReactNode; onOpenStop?: (stopIndex: number) => void }) {
   const [all, setAll] = useState(!preview)
   const shown = all ? events : events.slice(0, TIMELINE_PREVIEW)
   const hasClock = Boolean(startTime) && events.some((e) => e.atS !== undefined)
   return (
-    <div className="flex flex-col gap-1">
-      <ol className="card m-0 flex list-none flex-col px-3 py-1">
+    <div className="card flex flex-col px-4 py-1.5">
+      <ol className="m-0 flex list-none flex-col p-0">
         {shown.map((event, i) => {
           const { title, detail, clock } = timelineText(event, startTime)
           // Un repère « À raconter » sur un arrêt : pas de pastille, les tuiles le remplacent (T-086).
           const moment = event.kind === 'stop' && event.moment && !isToTell(event.moment) ? event.moment : undefined
-          return (
-            <li key={`${event.kind}-${event.atS ?? i}-${i}`} className={`relative flex gap-2.5 py-2.5 ${i ? 'border-t border-divider' : ''}`}>
-              {hasClock && <span className="w-[3.4rem] shrink-0 pt-0.5 text-[0.8235rem] font-semibold text-muted tabular-nums">{clock}</span>}
+          const open = event.kind === 'stop' && onOpenStop ? () => onOpenStop(event.stopIndex) : undefined
+          const head = (
+            <>
+              {hasClock && <span className="w-[3.2rem] shrink-0 pt-0.5 text-[0.7647rem] font-bold whitespace-nowrap text-muted tabular-nums">{clock}</span>}
               <EventDot event={event} />
-              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="text-[0.9412rem] leading-snug font-semibold">{title}</span>
                 {detail && <span className="text-[0.8235rem] leading-snug text-muted">{detail}</span>}
                 {moment && (
-                  <span className="mt-1 flex items-center gap-1.5 self-start rounded-full py-0.5 pr-2.5 pl-0.5 text-[0.8235rem] font-bold text-text" style={{ background: `${routeMomentInfo(moment.type).color}1F` }}>
+                  <span className="mt-1 flex items-center gap-1.5 self-start rounded-full py-0.5 pr-2.5 pl-0.5 text-[0.7647rem] font-bold whitespace-nowrap text-text" style={{ background: `${routeMomentInfo(moment.type).color}1F` }}>
                     <MomentIcon type={moment.type} size={20} />
                     {routeMomentInfo(moment.type).label}
+                    {open && <PencilIcon size={13} className="opacity-60" />}
                   </span>
                 )}
-                {renderExtra?.(event)}
-              </div>
+              </span>
+            </>
+          )
+          const extra = renderExtra?.(event)
+          return (
+            <li key={`${event.kind}-${event.atS ?? i}-${i}`} className={`flex flex-col py-2.5 ${i ? 'border-t border-divider' : ''}`}>
+              {open ? (
+                <button type="button" onClick={open} aria-label={`${clock ? `${clock}, ` : ''}${title}${detail ? `, ${detail}` : ''}${moment ? `, ${routeMomentInfo(moment.type).label}` : ''}. ${moment ? 'Changer' : 'Raconter'} cet arrêt`} className="tap -mx-1 flex min-h-11 w-[calc(100%+0.5rem)] gap-2.5 rounded-field border-0 bg-transparent px-1 text-left text-text">
+                  {head}
+                </button>
+              ) : (
+                <div className="flex gap-2.5">{head}</div>
+              )}
+              {extra && <div className={`mt-1.5 flex flex-col ${hasClock ? 'pl-[calc(3.2rem+26px+1.25rem)]' : 'pl-[calc(26px+0.625rem)]'}`}>{extra}</div>}
             </li>
           )
         })}

@@ -13,6 +13,29 @@ export const WALK_PADDING = { top: 120, bottom: 300, left: 40, right: 40 }
 const walkPadding = (m: MapLibreMap) => fitPadding(WALK_PADDING, m.getContainer().clientWidth, m.getContainer().clientHeight)
 
 /**
+ * La miniature d’une photo posée sur une carte (44 px, bord blanc) : un bouton qui l’ouvre en grand. L’adresse de
+ * l’image est ajoutée à `urls`, à libérer quand la miniature est retirée.
+ */
+export function photoMarker(thumbFileId: string, onOpen: () => void, urls: string[], label = 'Voir la photo prise ici'): HTMLButtonElement {
+  const el = document.createElement('button')
+  el.type = 'button'
+  el.setAttribute('aria-label', label)
+  el.style.cssText = 'width:44px;height:44px;padding:0;border-radius:10px;border:3px solid #fff;overflow:hidden;background:#E3E6E4;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer'
+  el.addEventListener('click', (e) => {
+    e.stopPropagation()
+    onOpen()
+  })
+  loadFile(thumbFileId)
+    .then((blob) => {
+      const url = URL.createObjectURL(blob)
+      urls.push(url)
+      el.innerHTML = `<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`
+    })
+    .catch(() => undefined)
+  return el
+}
+
+/**
  * Une balade mise en avant sur la carte unique : son tracé plein, le départ, l’arrivée, ses repères et ses photos.
  * Renvoie de quoi tout retirer.
  */
@@ -50,24 +73,7 @@ export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPh
   if (first && last && route.points.length > 1 && distanceMeters({ lat: first[0], lng: first[1] }, { lat: last[0], lng: last[1] }) > 30) markers.push(addMarker(m, last, dot('#18201E', 16, 'Arrivée')))
   for (const mo of route.moments) markers.push(addMarker(m, [mo.lat, mo.lng], momentMarker(mo.type)))
   // Les photos prises pendant la balade : leur miniature, là où elles ont été prises.
-  for (const photo of photos) {
-    const el = document.createElement('button')
-    el.type = 'button'
-    el.setAttribute('aria-label', 'Voir la photo prise ici')
-    el.style.cssText = 'width:44px;height:44px;padding:0;border-radius:12px;border:3px solid #fff;overflow:hidden;background:#E3E6E4;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer'
-    el.addEventListener('click', (e) => {
-      e.stopPropagation()
-      onPhoto(photo.index)
-    })
-    loadFile(photo.thumbFileId)
-      .then((blob) => {
-        const url = URL.createObjectURL(blob)
-        urls.push(url)
-        el.innerHTML = `<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`
-      })
-      .catch(() => undefined)
-    markers.push(addMarker(m, [photo.lat, photo.lng], el, { anchor: 'bottom' }))
-  }
+  for (const photo of photos) markers.push(addMarker(m, [photo.lat, photo.lng], photoMarker(photo.thumbFileId, () => onPhoto(photo.index), urls), { anchor: 'bottom' }))
   return () => {
     cancelAnimationFrame(frame)
     markers.forEach((marker) => marker.remove())

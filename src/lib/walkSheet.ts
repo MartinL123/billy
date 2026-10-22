@@ -26,11 +26,14 @@ const validTime = (time: string | undefined) => (time && !Number.isNaN(Date.pars
 
 /** « Jeudi 22 octobre · 8 h 12 → 8 h 44 · Vertbois » : seulement ce qu’on sait. */
 export function walkSubtitle({ date, startTime, endTime, commune, trimmed }: { date: ISODate; startTime?: string; endTime?: string; commune?: string; trimmed?: { startS: number; endS: number } }): string {
+  return [formatDayHeading(date), walkHours({ startTime, endTime, trimmed }), commune ?? ''].filter(Boolean).join(' · ')
+}
+
+/** « 8 h 12 → 8 h 44 » (recadrée, § 8.3 : les heures de la portion gardée), « 8 h 12 », ou rien sans heure. */
+export function walkHours({ startTime, endTime, trimmed }: { startTime?: string; endTime?: string; trimmed?: { startS: number; endS: number } }): string {
   const start = validTime(startTime)
   const end = validTime(endTime)
-  // Recadrée (§ 8.3) : les heures de la portion gardée.
-  const hours = start ? (trimmed ? `${clockAt(start, trimmed.startS)} → ${clockAt(start, trimmed.endS)}` : end ? `${clockAt(start, 0)} → ${clockAt(end, 0)}` : clockAt(start, 0)) : ''
-  return [formatDayHeading(date), hours, commune ?? ''].filter(Boolean).join(' · ')
+  return start ? (trimmed ? `${clockAt(start, trimmed.startS)} → ${clockAt(start, trimmed.endS)}` : end ? `${clockAt(start, 0)} → ${clockAt(end, 0)}` : clockAt(start, 0)) : ''
 }
 
 /** La durée de la balade en secondes : début → fin, sinon le trajet daté, sinon la durée notée. */

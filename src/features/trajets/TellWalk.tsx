@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { BackLink } from '../../components/BackLink'
 import { CheckIcon } from '../../components/Icons'
 import { Stats } from '../../components/Stats'
@@ -28,9 +28,11 @@ export default function TellWalk() {
   const navigate = useNavigate()
   const entry = entries.find((e) => e.id === id)
   const route = useMemo(() => readRoute(entry?.route), [entry?.route])
+  // T-107 : ouvert depuis un arrêt de la fiche (`?arret=2`) : tous les arrêts, déjà racontés compris, en commençant par lui.
+  const stopNumber = Number(useSearchParams()[0].get('arret')) || 0
   // Les arrêts et les repères « À raconter » (T-086), figés à l’ouverture : un repère posé ne fait pas sauter l’écran suivant.
-  const [queue] = useState(() => (route ? tellQueue(route) : []))
-  const [step, setStep] = useState(0)
+  const [queue] = useState(() => (route ? tellQueue(route, { told: stopNumber > 0 }) : []))
+  const [step, setStep] = useState(() => Math.max(0, queue.findIndex((q) => q.kind === 'stop' && q.stopIndex === stopNumber - 1)))
   const placed = useRef(0)
   const [gained, setGained] = useState(0)
   const placeOnStop = usePlaceOnStop(id ?? '', route ?? { points: [], distanceM: 0, moments: [] })

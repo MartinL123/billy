@@ -194,3 +194,18 @@ export function PawIcon({ size = 52, color = '#FFFFFF' }: { size?: number; color
     </svg>
   )
 }
+/** Partager, façon iOS : une boîte ouverte et une flèche qui monte (T-107). */
+export const ShareIcon = icon(
+  <>
+    <path d="M12 3v12" />
+    <path d="M8 7l4-4 4 4" />
+    <path d="M7 10H5v11h14V10h-2" />
+  </>,
+)
+/** Modifier : un crayon (T-107). */
+export const PencilIcon = icon(
+  <>
+    <path d="M4 20h4L19 9l-4-4L4 16v4Z" />
+    <path d="M13.5 6.5l4 4" />
+  </>,
+)

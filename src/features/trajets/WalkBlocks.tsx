@@ -1,8 +1,9 @@
 import { useId, useState, type ReactNode } from 'react'
 import { Stats } from '../../components/Stats'
 import type { Route } from '../../lib/route'
-import { altitudeProfile, DAYLIGHT_LABELS, rainText, sheetFigures, sheetSplits, streetsSummary, type RoutePlace, type RouteStreet } from '../../lib/walkFacts'
-import { averageKmh, hrSummary, kmhText, splitLabel, splitTime } from '../../lib/walkSheet'
+import { altitudeProfile, DAYLIGHT_LABELS, rainText, sheetFigures, type RoutePlace, type RouteStreet } from '../../lib/walkFacts'
+import { longestWalkWithoutStop, parcoursRows } from '../../lib/walkFiche'
+import { averageKmh, durationText, hrSummary, kmhText } from '../../lib/walkSheet'
 import { PaceChart } from './PaceChart'
 
 // T-102 (V6.1 § 7) : les blocs de la fiche, tous visibles (plus de « Tous les chiffres » replié). Chaque bloc ne
@@ -43,62 +44,51 @@ function ShortList<T>({ items, render, label }: { items: T[]; render: (item: T, 
   )
 }
 
-/** 4. L’allure : la courbe minute par minute (glissable), vitesse moyenne en marche, vitesse max, km par km. */
+/**
+ * 4. L’allure (maquette Fiche, T-107) : la courbe minute par minute (glissable), puis « Allure moyenne · Au plus vite ·
+ * Sans pause » (la plus longue marche sans arrêt). Plus de km par km.
+ */
 export function PaceBlock({ route, onScrub }: { route: Route; onScrub: (at: { lat: number; lng: number } | undefined) => void }) {
   const avg = averageKmh(route)
   const { maxSpeed } = sheetFigures(route)
-  const splits = sheetSplits(route)
+  const longest = longestWalkWithoutStop(route)
   const showCurve = Boolean(route.track && route.pace && route.pace.length > 1)
-  const rows: { value: string; label: string }[][] = []
-  for (let i = 0; i < splits.length; i += 4) rows.push(splits.slice(i, i + 4).map((s) => ({ value: splitTime(s.seconds), label: splitLabel(s) })))
-  if (!showCurve && !avg && !maxSpeed && !rows.length) return null
+  if (!showCurve && !avg && !maxSpeed && !longest) return null
   return (
     <Block title="Allure">
       {showCurve && <PaceChart route={route} onScrub={onScrub} />}
-      <Stats items={[{ value: avg ? kmhText(avg) : '', label: route.track && route.stops ? 'Moyenne en marche' : 'Vitesse moyenne' }, { value: maxSpeed ? kmhText(maxSpeed) : '', label: 'Vitesse max' }]} />
-      {rows.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <h3 className="title-card">Km par km</h3>
-          {rows.slice(0, LIST_PREVIEW).map((row, i) => (
-            <Stats key={i} items={row} />
-          ))}
-        </div>
-      )}
+      <Stats
+        className={showCurve ? 'border-t border-divider pt-2.5' : ''}
+        items={[
+          { value: avg ? kmhText(avg) : '', label: 'Allure moyenne' },
+          { value: maxSpeed ? kmhText(maxSpeed) : '', label: 'Au plus vite' },
+          { value: longest ? durationText(longest) : '', label: 'Sans pause', ...(longest ? { spoken: `${durationText(longest)} de marche sans pause` } : {}) },
+        ]}
+      />
     </Block>
   )
 }
 
-/** 6. Le parcours : les rues dans l’ordre (nouvelles en gras), les parcs et lieux, le même trajet déjà fait. */
-export function RouteBlock({ streets, places, again }: { streets: RouteStreet[]; places: RoutePlace[]; again?: string }) {
-  if (!streets.length && !places.length && !again) return null
+/**
+ * 6. Le parcours (maquette Fiche, T-107) : les rues dans l’ordre puis les parcs, chacun sur sa ligne, la pastille
+ * alignée à droite : « nouvelle » (vert) pour une rue jamais vue, « parc » (gris) pour un parc, un square, un jardin.
+ * Aucun compteur de passages.
+ */
+export function RouteBlock({ streets, places }: { streets: RouteStreet[]; places: RoutePlace[] }) {
+  const rows = parcoursRows(streets, places)
+  if (!rows.length) return null
   return (
     <Block title="Le parcours">
-      {again && <p className="m-0 text-[1rem] leading-snug font-semibold">{again}</p>}
-      {streets.length > 0 && (
-        <div className="flex flex-col gap-1">
-          <h3 className="title-card">{streetsSummary(streets)}</h3>
-          <ShortList
-            items={streets}
-            label="Rues traversées, dans l’ordre"
-            render={(s) =>
-              s.new ? (
-                <>
-                  <span className="min-w-0 font-bold">{s.name}</span>
-                  <span className="whitespace-nowrap shrink-0 rounded-full bg-primary-soft px-2 py-0.5 text-[0.7647rem] font-bold text-primary">nouvelle</span>
-                </>
-              ) : (
-                <span className="min-w-0">{s.name}</span>
-              )
-            }
-          />
-        </div>
-      )}
-      {places.length > 0 && (
-        <div className="flex flex-col gap-1">
-          <h3 className="title-card">{places.length > 1 ? 'Parcs et lieux traversés' : 'Lieu traversé'}</h3>
-          <ShortList items={places} label="Parcs et lieux traversés" render={(p) => <span className="min-w-0">{p.name}</span>} />
-        </div>
-      )}
+      <ShortList
+        items={rows}
+        label="Rues et lieux traversés, dans l’ordre"
+        render={(row) => (
+          <>
+            <span className={`min-w-0 flex-1 ${row.tag === 'nouvelle' ? 'font-bold' : ''}`}>{row.name}</span>
+            {row.tag && <span className={`shrink-0 rounded-full px-2 py-0.5 text-[0.7059rem] font-bold whitespace-nowrap ${row.tag === 'nouvelle' ? 'bg-primary-soft text-primary' : 'bg-[#EEF1EF] text-muted'}`}>{row.tag}</span>}
+          </>
+        )}
+      />
     </Block>
   )
 }

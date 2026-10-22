@@ -1,5 +1,5 @@
 import { useDeferredValue, useMemo, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { BackLink } from '../../components/BackLink'
 import { Stats } from '../../components/Stats'
 import { useToast } from '../../components/Toast'
@@ -36,7 +36,9 @@ export default function TrimWalk() {
   const shownEnd = useDeferredValue(range[1])
   const preview = useMemo(() => (route ? trimRoute(route, shownStart, shownEnd) : undefined), [route, shownStart, shownEnd])
   const fullPace = useMemo(() => (track ? paceByMinute(track) : []), [track])
-  const back = () => navigate(`/souvenir/${id}`, { replace: true })
+  // T-107 : ouvert depuis « Modifier la balade » (ligne « Début et fin du trajet ») : on y revient.
+  const fromForm = (useLocation().state as { retour?: string } | null)?.retour === 'modifier'
+  const back = () => (fromForm ? navigate(-1) : navigate(`/souvenir/${id}`, { replace: true }))
 
   if (!entry || !route || !track || !preview || readOnly) return <Navigate to={id ? `/souvenir/${id}` : '/balades'} replace />
   const start = route.startTime && !Number.isNaN(Date.parse(route.startTime)) ? route.startTime : undefined
@@ -57,7 +59,7 @@ export default function TrimWalk() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col">
       <header className="flex items-center px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
-        <BackLink label="La balade" onClick={back} />
+        <BackLink label={fromForm ? 'Modifier' : 'La balade'} onClick={back} />
       </header>
       <WalkMap route={preview} dogName={dog.name} className="h-[30dvh] min-h-[150px]" />
       <div className="flex flex-1 flex-col gap-4 px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+112px)]">

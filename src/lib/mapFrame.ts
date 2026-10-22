@@ -13,8 +13,8 @@ export interface Padding {
 const FREE = 0.3
 
 /** Les marges voulues, réduites dans les mêmes proportions si elles ne laissent pas assez de place. */
-export function fitPadding(wanted: Padding, width: number, height: number): Padding {
-  const scale = (a: number, b: number, size: number) => (size > 0 && a + b > size * (1 - FREE) ? (size * (1 - FREE)) / (a + b) : 1)
+export function fitPadding(wanted: Padding, width: number, height: number, free = FREE): Padding {
+  const scale = (a: number, b: number, size: number) => (size > 0 && a + b > size * (1 - free) ? (size * (1 - free)) / (a + b) : 1)
   const v = scale(wanted.top, wanted.bottom, height)
   const h = scale(wanted.left, wanted.right, width)
   return { top: Math.floor(wanted.top * v), bottom: Math.floor(wanted.bottom * v), left: Math.floor(wanted.left * h), right: Math.floor(wanted.right * h) }

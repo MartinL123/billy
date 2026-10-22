@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { DangerButton } from '../../components/Buttons'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { FilePicker } from '../../components/FilePicker'
 import { FormScreen, NativePickerInput } from '../../components/Form'
-import { PlusIcon } from '../../components/Icons'
+import { ChevronRightIcon, PlusIcon } from '../../components/Icons'
 import { ConfirmSheet } from '../../components/Sheet'
 import { deleteEntry, newId, saveEntry } from '../../firebase/db'
 import { deleteFile, saveImage } from '../../firebase/files'
@@ -21,6 +21,7 @@ import { placePhoto, type PhotoClue } from '../../lib/balade'
 import { routeTimedPoints } from '../../lib/walkPhotos'
 import { readPhotoClue } from '../../lib/photoClue'
 import { readRoute } from '../../lib/route'
+import { walkHours } from '../../lib/walkSheet'
 
 const MAX_PHOTOS = 10
 
@@ -152,7 +153,7 @@ export default function EntryForm() {
   return (
     <>
       <FormScreen
-        title={existing ? 'Modifier le souvenir' : 'Nouveau souvenir'}
+        title={existing ? (route ? 'Modifier la balade' : 'Modifier le souvenir') : 'Nouveau souvenir'}
         submitLabel={saving ? 'Enregistrement…' : 'Enregistrer'}
         busy={saving || Boolean(progress)}
         onCancel={back}
@@ -249,7 +250,7 @@ export default function EntryForm() {
           </div>
         </fieldset>
 
-        <div className="flex min-h-[52px] items-center justify-between gap-3 rounded-field border-2 border-border bg-surface px-4">
+        <div className="card flex min-h-[56px] items-center justify-between gap-3 rounded-field px-4">
           <label htmlFor="dt" className="text-[1rem] font-semibold">
             Date
           </label>
@@ -262,6 +263,17 @@ export default function EntryForm() {
             className="btn btn-tertiary text-right"
           />
         </div>
+
+        {/* T-107 (maquette ModifierSouvenir) : un seul « Modifier » ; l’écran Ajuster s’ouvre d’ici (trajet daté seulement). */}
+        {existing && route?.track && (
+          <Link to={`/souvenir/${existing.id}/recadrer`} state={{ retour: 'modifier' }} className="card tap flex min-h-[64px] items-center gap-3 rounded-field px-4 py-3 text-text no-underline">
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="text-[1rem] font-bold">Début et fin du trajet</span>
+              <span className="text-[0.8235rem] leading-snug text-muted">{[walkHours({ startTime: route.startTime, endTime: route.endTime, trimmed: route.trimmed }), 'retirer un départ en trop'].filter(Boolean).join(' · ')}</span>
+            </span>
+            <ChevronRightIcon size={20} className="shrink-0 text-muted" />
+          </Link>
+        )}
 
         {error && (
           <div role="alert" className="rounded-field bg-danger-soft px-3.5 py-3 text-sm leading-snug font-medium text-danger">

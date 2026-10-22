@@ -6,7 +6,9 @@ import { paceSegments } from '../../lib/walkSheet'
 import { directionArrows } from '../../lib/walkFacts'
 import { effectiveTrack } from '../../lib/trim'
 import type { PaceCategory } from '../../lib/walkStory'
-import { replayWalk } from '../balades/walkLayer'
+import { photoMarker, replayWalk } from '../balades/walkLayer'
+import { fitPadding, type Padding } from '../../lib/mapFrame'
+import type { PhotoPin } from '../../lib/walkFiche'
 import { momentMarker } from './momentIcons'
 
 const PACE_COLORS: Record<PaceCategory, string> = { tranquille: ROUTE_COLOR, rapide: ROUTE_FAST_COLOR, arret: ROUTE_STOP_COLOR }
@@ -39,8 +41,9 @@ function arrowMarker(deg: number): HTMLElement {
  * ouvre la carte du territoire. `cursor` : le repère posé par le doigt sur la courbe d’allure ; `focus` : un arrêt à
  * regarder de près (mode « Raconter la balade »).
  */
-export function WalkMap({ route, dogName, cursor, focus, replaying = false, onReplayEnd, className = '' }: { route: Route; dogName: string; cursor?: { lat: number; lng: number }; focus?: { lat: number; lng: number; number?: number }; replaying?: boolean; onReplayEnd?: () => void; className?: string }) {
+export function WalkMap({ route, dogName, cursor, focus, replaying = false, onReplayEnd, className = '', padding = PAD, photos = [], onPhoto, interactive = false, center }: { route: Route; dogName: string; cursor?: { lat: number; lng: number }; focus?: { lat: number; lng: number; number?: number }; replaying?: boolean; onReplayEnd?: () => void; className?: string; /** T-107 : la partie de la carte couverte (boutons en haut, panneau en bas) ; le tracé se cadre dans le reste. */ padding?: Padding; /** T-107 : les photos, en miniatures là où elles ont été prises. */ photos?: PhotoPin[]; onPhoto?: (index: number) => void; /** T-107 : la carte en grand se déplace et se zoome au doigt. */ interactive?: boolean; /** T-108 : « Voir sur la carte » d’une photo : la carte s’y déplace. */ center?: { lat: number; lng: number } }) {
   const host = useRef<HTMLDivElement>(null)
+  const pad = () => (host.current ? fitPadding(padding, host.current.clientWidth, host.current.clientHeight, 0.2) : padding)
   const map = useRef<MapLibreMap | null>(null)
   const [ready, setReady] = useState(false)
   const endRef = useRef(onReplayEnd)
@@ -49,7 +52,8 @@ export function WalkMap({ route, dogName, cursor, focus, replaying = false, onRe
   useEffect(() => {
     if (!host.current) return
     const points = route.points as LatLng[]
-    const m = createMap(host.current, { interactive: false, ...(focus ? { center: [focus.lat, focus.lng], zoom: 17 } : points.length > 1 ? { bounds: { points, padding: PAD } } : points[0] ? { center: points[0], zoom: 16 } : {}) })
+    // Toujours interactive pour MapLibre, ses gestes coupés tant que la carte n’est pas « en grand » (plus bas).
+    const m = createMap(host.current, { interactive: true, ...(focus ? { center: [focus.lat, focus.lng], zoom: 17 } : points.length > 1 ? { bounds: { points, padding: pad() } } : points[0] ? { center: points[0], zoom: 16 } : {}) })
     map.current = m
     whenReady(m, () => setReady(true))
     return () => {
@@ -111,7 +115,7 @@ export function WalkMap({ route, dogName, cursor, focus, replaying = false, onRe
   useEffect(() => {
     const m = map.current
     if (!m || !replaying) return
-    return replayWalk(m, route, dogName, () => endRef.current?.(), PAD)
+    return replayWalk(m, route, dogName, () => endRef.current?.(), pad())
   }, [replaying]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Le cadre suit la taille de la carte (rotation, texte agrandi).
@@ -121,11 +125,58 @@ export function WalkMap({ route, dogName, cursor, focus, replaying = false, onRe
     if (!m || !el || focus) return
     const observer = new ResizeObserver(() => {
       m.resize()
-      if (!replaying) whenReady(m, () => fitPoints(m, route.points as LatLng[], PAD))
+      if (!replaying) whenReady(m, () => fitPoints(m, route.points as LatLng[], pad()))
     })
     observer.observe(el)
     return () => observer.disconnect()
   }, [route.points, replaying, Boolean(focus)]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // T-107 : le panneau monte ou descend : le tracé se recadre dans ce qui reste visible.
+  const firstPad = useRef(true)
+  useEffect(() => {
+    const m = map.current
+    if (!m || focus) return
+    if (firstPad.current) {
+      firstPad.current = false
+      return
+    }
+    whenReady(m, () => fitPoints(m, route.points as LatLng[], pad(), true))
+  }, [padding.top, padding.bottom, padding.left, padding.right]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Les gestes de la carte : seulement quand elle est en grand (sinon la page défile par-dessus).
+  useEffect(() => {
+    const m = map.current
+    if (!m) return
+    for (const h of [m.dragPan, m.scrollZoom, m.boxZoom, m.keyboard, m.doubleClickZoom, m.touchZoomRotate]) {
+      if (interactive) h.enable()
+      else h.disable()
+    }
+    if (interactive) m.touchZoomRotate.disableRotation()
+    // Fixe, la carte n’est pas un arrêt du clavier ni de VoiceOver (le tracé est décrit par `role="img"`).
+    m.getCanvas().tabIndex = interactive ? 0 : -1
+  }, [interactive])
+
+  // Les photos de la balade, là où elles ont été prises (T-107).
+  const photoKey = photos.map((p) => `${p.thumbFileId}@${p.lat},${p.lng}`).join('|')
+  const onPhotoRef = useRef(onPhoto)
+  onPhotoRef.current = onPhoto
+  useEffect(() => {
+    const m = map.current
+    if (!m || !photos.length) return
+    const urls: string[] = []
+    const markers = photos.map((p) => addMarker(m, [p.lat, p.lng], photoMarker(p.thumbFileId, () => onPhotoRef.current?.(p.index), urls, `Voir la photo ${p.index + 1} en grand`), { anchor: 'bottom' }))
+    return () => {
+      markers.forEach((marker) => marker.remove())
+      urls.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [photoKey]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // « Voir sur la carte » (T-108) : la carte va à la photo.
+  useEffect(() => {
+    const m = map.current
+    if (!m || !center) return
+    whenReady(m, () => m.easeTo({ center: lngLat([center.lat, center.lng]), zoom: 17, padding: pad(), duration: cameraMs(400) }))
+  }, [center?.lat, center?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className={`relative isolate overflow-hidden bg-[#E8EFE9] ${className}`}>

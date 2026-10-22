@@ -48,11 +48,15 @@ export function suggestedMoment(stop: Pick<RouteStop, 'durS' | 'park'>, moment: 
 
 export type TellItem = { kind: 'stop'; stopIndex: number; momentIndex?: number; atS: number } | { kind: 'marker'; momentIndex: number; atS?: number }
 
-/** La file de « Raconter la balade », dans l’ordre de la balade (sans trajet daté : les arrêts, puis les repères). */
-export function tellQueue(route: Pick<Route, 'stops' | 'moments' | 'track'>): TellItem[] {
+/**
+ * La file de « Raconter la balade », dans l’ordre de la balade (sans trajet daté : les arrêts, puis les repères).
+ * `told` (T-107) : ouverte depuis un arrêt de la fiche, la file a TOUS les arrêts, déjà racontés compris (leur réponse
+ * peut être changée).
+ */
+export function tellQueue(route: Pick<Route, 'stops' | 'moments' | 'track'>, { told = false }: { told?: boolean } = {}): TellItem[] {
   const stops = route.stops ?? []
   const linked = new Set(stops.flatMap((s) => (s.momentIndex !== undefined ? [s.momentIndex] : [])))
-  const items: TellItem[] = stops.flatMap((s, stopIndex): TellItem[] => (stopUntold(route, s.momentIndex) ? [{ kind: 'stop', stopIndex, atS: s.at, ...(s.momentIndex !== undefined ? { momentIndex: s.momentIndex } : {}) }] : []))
+  const items: TellItem[] = stops.flatMap((s, stopIndex): TellItem[] => (told || stopUntold(route, s.momentIndex) ? [{ kind: 'stop', stopIndex, atS: s.at, ...(s.momentIndex !== undefined ? { momentIndex: s.momentIndex } : {}) }] : []))
   route.moments.forEach((m, momentIndex) => {
     if (isToTell(m) && !linked.has(momentIndex)) items.push({ kind: 'marker', momentIndex, ...(route.track ? { atS: timeOnTrack(route.track, m) } : {}) })
   })

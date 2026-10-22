@@ -75,6 +75,16 @@ describe('raconter un repère (T-086)', () => {
     expect(untoldStops(route)).toHaveLength(2)
   })
 
+  it('T-107 : ouverte depuis un arrêt de la fiche, la file a tous les arrêts, déjà racontés compris', () => {
+    const told = { ...route, moments: tellMoment(route, tellQueue(route)[0]!, 'marque')! }
+    const stored = storeRoute(told)
+    const all = tellQueue({ ...told, stops: stored.stops }, { told: true })
+    expect(all.map((i) => (i.kind === 'stop' ? `arrêt ${i.stopIndex}` : `repère ${i.momentIndex}`))).toEqual(['arrêt 0', 'arrêt 1', 'repère 1'])
+    expect(all[0]).toEqual({ kind: 'stop', stopIndex: 0, momentIndex: 0, atS: 100 })
+    // Changer la réponse d’un arrêt déjà raconté la remplace (le bandeau « Annuler » rend l’ancienne).
+    expect(tellMoment(told, all[0]!, 'jeu')![0]).toMatchObject({ type: 'jeu', street: 'Rue des Lilas' })
+  })
+
   it('choisir une tuile REMPLACE le repère « À raconter » (même position, rue de l’arrêt)', () => {
     const [onStop, , loose] = tellQueue(route)
     const a = tellMoment(route, onStop!, 'reniflage')!

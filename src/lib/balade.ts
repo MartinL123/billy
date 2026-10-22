@@ -7,6 +7,10 @@ export interface TimedPoint {
   lng: number
   /** Heure ISO du point (« 2026-10-12T07:31:02Z »), si le fichier la donne. */
   time?: string
+  /** Altitude en mètres, si la source la donne (GPX `<ele>`, GPS de l’iPhone ou de la Watch). */
+  alt?: number
+  /** Vitesse en m/s mesurée par le GPS (iPhone ou Watch), si elle est connue. */
+  speed?: number
 }
 
 /** Tolérance de la simplification : la forme reste la même à 5 m près. */

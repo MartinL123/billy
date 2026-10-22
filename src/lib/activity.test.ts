@@ -19,13 +19,13 @@ const STRAVA = `<?xml version="1.0" encoding="UTF-8"?>
 </gpx>`
 
 describe('lecture des fichiers Strava', () => {
-  it('lit le nom, le type, les points et leur heure, sans rythme cardiaque ni altitude', () => {
+  it('lit le nom, le type, les points, leur heure et leur altitude (V6 § 2.1), sans rythme cardiaque', () => {
     const activity = parseActivity(STRAVA)
     expect(activity.name).toBe('Afternoon Walk')
     expect(activity.type).toBe('walking')
     expect(activity.points).toHaveLength(4)
-    expect(activity.points[0]).toEqual({ lat: 45, lng: 1, time: '2026-10-12T14:00:00Z' })
-    expect(JSON.stringify(activity)).not.toMatch(/hr|ele|98|12\.4/)
+    expect(activity.points[0]).toEqual({ lat: 45, lng: 1, time: '2026-10-12T14:00:00Z', alt: 12.4 })
+    expect(JSON.stringify(activity)).not.toMatch(/hr|98/)
   })
 
   it('garde un trajet allégé, la distance (sauts du GPS ignorés), la durée et la date à Paris', () => {
@@ -38,6 +38,23 @@ describe('lecture des fichiers Strava', () => {
     expect(walk.distanceM).toBeLessThan(205)
     expect(walk.points.length).toBeLessThanOrEqual(200)
     expect(JSON.stringify(walk.points)).not.toMatch(/T14/)
+  })
+
+  it('garde le trajet daté : secondes depuis le départ, altitude, vitesse (V6 § 2.1)', () => {
+    const walk = toImported(parseActivity(STRAVA))!
+    // Le point de 14:00:05 est à 5 s du premier : gardé (un point toutes les 5 s au plus).
+    expect(walk.track!.t).toEqual([0, 5, 60, 1440])
+    expect(walk.track!.alt).toEqual([12.4, 12.5, 13, 13.2])
+    expect(walk.track!.lat[2]).toBe(45.0009)
+    expect(walk.track!.v).toHaveLength(4)
+    // ~100 m en 55 s
+    expect(walk.track!.v![2]).toBeGreaterThan(1.7)
+    expect(walk.track!.v![2]).toBeLessThan(1.9)
+  })
+
+  it('sans heures dans le fichier, pas de trajet daté', () => {
+    const walk = toImported({ points: [{ lat: 45, lng: 1 }, { lat: 45.001, lng: 1 }] })!
+    expect(walk.track).toBeUndefined()
   })
 
   it('traduit les noms par défaut, garde les autres', () => {

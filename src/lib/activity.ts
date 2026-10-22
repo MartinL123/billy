@@ -2,10 +2,11 @@ import { distanceMeters } from './community'
 import { simplifyWalk, type TimedPoint } from './balade'
 import type { ISODate } from './dates'
 import type { RoutePoint } from './route'
+import { buildTrack, type Track } from './track'
 
 // Import des balades Strava (docs/specs/carte-a-decouvrir.md § 6) : fichiers GPX de l’archive ou d’une seule balade.
-// Billy ne garde que le trajet allégé, la distance, la durée, la date et le nom. Jamais le rythme cardiaque,
-// l’altitude point par point ni l’heure de chaque point.
+// Billy garde le trajet allégé (la carte), la distance, la durée, la date, le nom et, depuis la V6 (§ 2.1), le trajet
+// daté : un point toutes les 5 s avec son heure, son altitude et sa vitesse (`track`).
 
 export interface Activity {
   name?: string
@@ -31,8 +32,8 @@ const decode = (text: string) =>
     .trim()
 
 /**
- * Lit un GPX (texte) : le nom et le type de l’activité, et les points du parcours avec leur heure.
- * Le rythme cardiaque (gpxtpx:hr) et l’altitude (ele) sont ignorés dès la lecture.
+ * Lit un GPX (texte) : le nom et le type de l’activité, et les points du parcours avec leur heure et leur altitude.
+ * Le rythme cardiaque (gpxtpx:hr) est ignoré dès la lecture.
  */
 export function parseActivity(xml: string): Activity {
   const track = /<trk\b[\s\S]*?<\/trk>/.exec(xml)?.[0] ?? ''
@@ -46,7 +47,9 @@ export function parseActivity(xml: string): Activity {
     const lng = attr(m[2]!, 'lon')
     if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180 || (lat === 0 && lng === 0)) continue
     const time = m[4] ? tag(m[4], 'time') : undefined
-    points.push({ lat, lng, ...(time ? { time } : {}) })
+    const eleText = m[4] ? tag(m[4], 'ele') : undefined
+    const alt = eleText ? Number(eleText) : NaN
+    points.push({ lat, lng, ...(time ? { time } : {}), ...(Number.isFinite(alt) ? { alt } : {}) })
   }
   return { ...(name ? { name: decode(name) } : {}), ...(type ? { type: decode(type).toLowerCase() } : {}), points }
 }
@@ -128,7 +131,9 @@ export interface ImportedActivity {
   distanceM: number
   /** Trajet allégé (200 points au plus) : c’est tout ce qui est enregistré du parcours. */
   points: RoutePoint[]
-  /** Points complets, avec l’heure : seulement en mémoire, pour le brouillard et les photos. Jamais enregistrés. */
+  /** Le trajet daté (V6 § 2.1) : un point toutes les 5 s au plus. Absent si le fichier n’a pas d’heures. */
+  track?: Track
+  /** Points complets, avec l’heure : seulement en mémoire, pour le brouillard et les photos. Jamais enregistrés tels quels. */
   full: TimedPoint[]
 }
 
@@ -143,6 +148,7 @@ export function toImported(activity: Activity): ImportedActivity | undefined {
   const startTime = times[0]
   const endTime = times[times.length - 1]
   const durationMin = startTime && endTime ? Math.round((Date.parse(endTime) - Date.parse(startTime)) / 60000) : undefined
+  const track = buildTrack(points, startTime)
   return {
     key: importKey(points),
     name: frenchName(activity.name, activity.type),
@@ -154,6 +160,7 @@ export function toImported(activity: Activity): ImportedActivity | undefined {
       points.map((p): RoutePoint => [p.lat, p.lng]),
       MAX_STORED_POINTS,
     ),
+    ...(track ? { track } : {}),
     full: points,
   }
 }

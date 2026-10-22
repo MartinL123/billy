@@ -1,6 +1,7 @@
 import { distanceMeters } from './community'
 import type { ISODate } from './dates'
 import type { Reaction } from './questionnaire'
+import { readTrack, type Track } from './track'
 
 // Les trajets de balade (docs/specs/trajets.md) : tracés après coup sur la carte, jamais suivis en direct.
 
@@ -47,6 +48,35 @@ export interface Route {
   source?: 'gpx' | 'watch' | 'gps'
   startTime?: string
   endTime?: string
+  // ——— V6 § 2.1 : tout est optionnel, les anciennes balades restent lisibles ———
+  /** Le trajet daté (un point toutes les 5 s au plus) ; `points` reste pour la carte. */
+  track?: Track
+  /** Les arrêts (V6 § 3) : `at` en secondes depuis le départ. */
+  stops?: RouteStop[]
+  /** Vitesse moyenne par minute (km/h, 1 décimale). */
+  pace?: number[]
+  /** Rythme cardiaque par minute (bpm), Watch ou GPX ; privé. */
+  hr?: number[]
+  steps?: number
+  ascentM?: number
+  descentM?: number
+  weather?: { tempC: number; humidity?: number; source: 'watch' | 'open-meteo' }
+  energyKcal?: number
+  /** Le début et la fin gardés après un recadrage (§ 8.3), en secondes depuis le départ. */
+  trimmed?: { startS: number; endS: number }
+}
+
+/** Un arrêt de la balade (V6 § 3). */
+export interface RouteStop {
+  /** Secondes depuis le départ. */
+  at: number
+  durS: number
+  lat: number
+  lng: number
+  /** La rue (Nominatim), ajoutée quand le réseau le permet. */
+  street?: string
+  /** Le repère posé à moins de 40 m de l’arrêt. */
+  momentIndex?: number
 }
 
 export const durationLabel = (min: number) => (min >= 60 ? '1 h +' : `${min} min`)
@@ -114,7 +144,15 @@ export type StoredRoute = Omit<Route, 'points'> & { points: StoredPoint[] }
 export const toStored = (points: RoutePoint[]): StoredPoint[] => points.map(([lat, lng]) => ({ lat, lng }))
 export const fromStored = (points: StoredPoint[] | undefined): RoutePoint[] => (points ?? []).map((p) => [p.lat, p.lng])
 export const storeRoute = (route: Route): StoredRoute => ({ ...route, points: toStored(route.points) })
-export const readRoute = (route: StoredRoute | undefined): Route | undefined => (route ? { ...route, points: fromStored(route.points), moments: route.moments ?? [] } : undefined)
+export function readRoute(route: StoredRoute | undefined): Route | undefined {
+  if (!route) return undefined
+  const { track, ...rest } = route
+  const read: Route = { ...rest, points: fromStored(route.points), moments: route.moments ?? [] }
+  // Un trajet daté abîmé (colonnes de longueurs différentes) est ignoré, pas le reste de la balade.
+  const valid = readTrack(track)
+  if (valid) read.track = valid
+  return read
+}
 
 const lowerFirst = (text: string) => text.replace(/^./, (c) => c.toLocaleLowerCase('fr'))
 

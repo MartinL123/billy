@@ -4,6 +4,7 @@ import { momentBones, noteBone, walkBone, type Bone, type BoneWithId } from '../
 import type { ISODate } from '../lib/dates'
 import { earnsBones } from '../lib/importPlan'
 import { storeRoute } from '../lib/route'
+import { trackForEntry } from '../lib/track'
 import { parisMinutes } from '../lib/activity'
 import { slotForStart, type WalkSlot, type WalkTimes } from '../lib/walks'
 import { db } from './app'
@@ -47,6 +48,9 @@ export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: I
     }),
   }
   if (slot) entry.walkSlot = { date, creneau: slot }
+  // Le trajet daté (V6 § 2.1), allégé si besoin pour que le document reste sous 900 Ko.
+  const track = trackForEntry(walk.track, entry)
+  if (track && entry.route) entry.route.track = track
   const batch = writeBatch(db)
   batch.set(userDoc('entries', entryId), entry)
   const recent = earnsBones(walk.date, today)

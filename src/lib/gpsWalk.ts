@@ -1,6 +1,6 @@
 import type { Activity } from './activity'
 import { walkDistance } from './activity'
-import { watchName, type WatchWalk } from './watch'
+import { timedPoint, watchName, type WatchWalk } from './watch'
 import { formatDuration } from './balade'
 import { formatRouteDistance } from './route'
 
@@ -11,6 +11,10 @@ export interface GpsPoint {
   lat: number
   lng: number
   time: string
+  /** V6 § 2.1 : altitude (m), vitesse (m/s) et précision (m) du GPS, si iOS les donne. */
+  alt?: number
+  speed?: number
+  accuracy?: number
 }
 
 /** En dessous de 100 m ou de 2 minutes, la balade n'est pas gardée (un départ par erreur). */
@@ -49,7 +53,7 @@ export function tooShort(points: GpsPoint[], startedAt: string, endedAt: number)
 
 /** La balade terminée devient une activité, comme un fichier GPX lu (nom selon l'heure de départ). */
 export function gpsActivity(points: GpsPoint[], startedAt: string): Activity {
-  return { name: watchName(startedAt, 'walking'), type: 'walking', points: points.map((p) => ({ lat: p.lat, lng: p.lng, time: p.time })) }
+  return { name: watchName(startedAt, 'walking'), type: 'walking', points: points.map(timedPoint) }
 }
 
 /** Part de la séance Watch couverte par une balade de l'iPhone (0 à 1). */

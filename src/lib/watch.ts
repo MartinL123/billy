@@ -11,7 +11,8 @@ export interface WatchWalk {
   start: string
   end: string
   type: 'walking' | 'hiking'
-  points: { lat: number; lng: number; time: string }[]
+  /** V6 § 2.1 : avec l’altitude, la vitesse et la précision de chaque point quand Santé les donne. */
+  points: { lat: number; lng: number; time: string; alt?: number; speed?: number; accuracy?: number }[]
 }
 
 /** La première lecture remonte 30 jours en arrière. */
@@ -51,9 +52,18 @@ export function watchName(start: string, type: WatchWalk['type']): string {
   return `${type === 'hiking' ? 'Randonnée' : 'Balade'} ${moment}`
 }
 
+/** Ce qu’un point du GPS (iPhone ou Watch) garde pour le trajet daté : la précision ne sert qu’au signal faible. */
+export const timedPoint = (p: { lat: number; lng: number; time: string; alt?: number; speed?: number }) => ({
+  lat: p.lat,
+  lng: p.lng,
+  time: p.time,
+  ...(typeof p.alt === 'number' && Number.isFinite(p.alt) ? { alt: p.alt } : {}),
+  ...(typeof p.speed === 'number' && Number.isFinite(p.speed) && p.speed >= 0 ? { speed: p.speed } : {}),
+})
+
 /** Une séance de la Watch devient une activité, comme un fichier GPX lu. */
 export function watchActivity(walk: WatchWalk): Activity {
-  return { name: watchName(walk.start, walk.type), type: walk.type, points: walk.points.map((p) => ({ lat: p.lat, lng: p.lng, time: p.time })) }
+  return { name: watchName(walk.start, walk.type), type: walk.type, points: walk.points.map(timedPoint) }
 }
 
 /**

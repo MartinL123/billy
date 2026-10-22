@@ -41,8 +41,18 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         return formatter.string(from: date)
     }
 
+    /// Un point pour le JS (V6 § 2.1) : `lat`, `lng`, `time`, et `alt` (m), `speed` (m/s), `accuracy` (m) quand iOS les
+    /// connaît (une valeur négative veut dire « inconnue » : elle n'est pas envoyée).
+    private static func pointData(_ location: CLLocation) -> [String: Any] {
+        var data: [String: Any] = ["lat": location.coordinate.latitude, "lng": location.coordinate.longitude, "time": format(location.timestamp)]
+        if location.verticalAccuracy >= 0 { data["alt"] = location.altitude }
+        if location.speed >= 0 { data["speed"] = location.speed }
+        if location.horizontalAccuracy >= 0 { data["accuracy"] = location.horizontalAccuracy }
+        return data
+    }
+
     /// `getWalks({ since })` : les marches et randonnées depuis `since` (ISO), avec leur tracé.
-    /// Renvoie `{ available, walks: [{ uuid, start, end, type, points: [{ lat, lng, time }] }], withoutRoute, workouts }`.
+    /// Renvoie `{ available, walks: [{ uuid, start, end, type, points: [{ lat, lng, time, alt?, speed?, accuracy? }] }], withoutRoute, workouts }`.
     @objc func getWalks(_ call: CAPPluginCall) {
         guard HKHealthStore.isHealthDataAvailable() else {
             call.resolve(["available": false, "walks": [], "withoutRoute": 0, "workouts": 0])
@@ -86,7 +96,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
                             "start": FlairNativePlugin.format(workout.startDate),
                             "end": FlairNativePlugin.format(workout.endDate),
                             "type": workout.workoutActivityType == .hiking ? "hiking" : "walking",
-                            "points": locations.map { ["lat": $0.coordinate.latitude, "lng": $0.coordinate.longitude, "time": FlairNativePlugin.format($0.timestamp)] }
+                            "points": locations.map { FlairNativePlugin.pointData($0) }
                         ])
                     }
                     lock.unlock()
@@ -185,19 +195,28 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         }
     }
 
-    /// Les points enregistrés : une ligne « lat,lng,heure » par point.
+    /// Les points enregistrés : une ligne « lat,lng,heure,altitude,vitesse,précision » par point (V6 § 2.1 ; les trois
+    /// derniers vides s'ils sont inconnus). Les lignes d'avant la V6 (« lat,lng,heure ») restent lisibles.
     private func readPoints() -> [[String: Any]] {
         guard let text = try? String(contentsOf: pointsFile, encoding: .utf8) else { return [] }
         return text.split(separator: "\n").compactMap { line in
-            let parts = line.split(separator: ",")
-            guard parts.count == 3, let lat = Double(parts[0]), let lng = Double(parts[1]) else { return nil }
-            return ["lat": lat, "lng": lng, "time": String(parts[2])]
+            let parts = line.split(separator: ",", omittingEmptySubsequences: false)
+            guard parts.count >= 3, let lat = Double(parts[0]), let lng = Double(parts[1]) else { return nil }
+            var point: [String: Any] = ["lat": lat, "lng": lng, "time": String(parts[2])]
+            if parts.count >= 6 {
+                if let alt = Double(parts[3]) { point["alt"] = alt }
+                if let speed = Double(parts[4]) { point["speed"] = speed }
+                if let accuracy = Double(parts[5]) { point["accuracy"] = accuracy }
+            }
+            return point
         }
     }
 
     /// Ajoute un point au fichier. Faux si l'écriture a échoué (stockage plein) : l'écran le dit (`walkError`, T-062).
     private func append(_ point: CLLocation) -> Bool {
-        let line = "\(point.coordinate.latitude),\(point.coordinate.longitude),\(FlairNativePlugin.format(point.timestamp))\n"
+        let alt = point.verticalAccuracy >= 0 ? "\(point.altitude)" : ""
+        let speed = point.speed >= 0 ? "\(point.speed)" : ""
+        let line = "\(point.coordinate.latitude),\(point.coordinate.longitude),\(FlairNativePlugin.format(point.timestamp)),\(alt),\(speed),\(point.horizontalAccuracy)\n"
         guard let data = line.data(using: .utf8) else { return false }
         do {
             if FileManager.default.fileExists(atPath: pointsFile.path) {
@@ -309,7 +328,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
                 notifyListeners("walkError", data: ["code": "storage"])
                 continue
             }
-            notifyListeners("walkPoint", data: ["lat": point.coordinate.latitude, "lng": point.coordinate.longitude, "time": FlairNativePlugin.format(point.timestamp)])
+            notifyListeners("walkPoint", data: FlairNativePlugin.pointData(point))
         }
         if Date() > limit { autoStop() }
     }

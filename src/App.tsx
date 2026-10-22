@@ -38,6 +38,8 @@ import { InstallGuide } from './features/account/Install'
 import { useBack } from './lib/useBack'
 import EnCours from './features/billy/EnCours'
 import Skill from './features/billy/Skill'
+import AllProgress from './features/billy/AllProgress'
+import DaySessions from './features/billy/DaySessions'
 import Noter from './features/journal/Noter'
 import DocumentForm from './features/profile/DocumentForm'
 import DocumentView from './features/profile/DocumentView'
@@ -237,6 +239,9 @@ export default function App() {
             <Route path="raconter" element={<Navigate to="/noter" replace />} />
             <Route path="competence/:id" element={<Skill />} />
             <Route path="en-cours" element={<EnCours />} />
+            {/* T-104 : le fil complet de ses progrès, et les séances d’un jour de « Sa semaine ». */}
+            <Route path="billy/progres" element={<AllProgress />} />
+            <Route path="billy/jour/:date" element={<DaySessions />} />
             <Route path="balades" element={<Walks />} />
             <Route path="exploration" element={<Navigate to="/territoire" replace />} />
             <Route path="ajouter-balade" element={<Navigate to="/territoire" replace />} />

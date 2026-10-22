@@ -63,7 +63,7 @@ export function Result() {
 
   return (
     <>
-      <h1 className="font-display text-[1.6471rem] leading-tight font-extrabold" aria-live="polite">
+      <h1 className="title-screen" aria-live="polite">
         {dog.name} commence avec {steps} étape{steps > 1 ? 's' : ''} déjà acquise{steps > 1 ? 's' : ''}
       </h1>
       <p className="rounded-2xl bg-[#FFF8E6] px-3.5 py-3 text-[0.8824rem] leading-[1.45] text-gold-dark">
@@ -72,7 +72,7 @@ export function Result() {
 
       {TERRITORIES.map((territory) => (
         <section key={territory.tier} className="flex flex-col gap-3">
-          <h2 className="mx-1 mt-2 text-[0.7647rem] font-extrabold tracking-[0.6px] uppercase" style={{ color: territory.color }}>
+          <h2 className="mx-1 mt-2 surtitre" style={{ color: territory.color }}>
             {territory.name}
           </h2>
           {SKILLS.filter((s) => s.tier === territory.tier).map((skill) => {
@@ -82,7 +82,7 @@ export function Result() {
               <div key={skill.id} role="group" aria-label={skill.name} className="flex flex-col rounded-[20px] border-0 border-l-[6px] border-solid bg-surface px-3.5 pt-3 pb-1" style={{ borderColor: territory.color }}>
                 <div className="flex items-center gap-2.5 pb-2">
                   <Badge bossId={skill.id} acquired={progress.level} size={44} />
-                  <h3 className="font-display text-lg font-extrabold">{skill.name}</h3>
+                  <h3 className="title-card">{skill.name}</h3>
                 </div>
                 {steps.map((step) => {
                   const acquired = step <= progress.level

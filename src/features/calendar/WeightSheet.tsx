@@ -49,7 +49,7 @@ export function WeightSheet({ today, weights, editing, onClose }: WeightSheetPro
         }}
       >
         <div className="flex items-center justify-between gap-3">
-          <h2 className="font-display text-2xl font-bold">{editing ? 'Modifier la pesée' : 'Nouvelle pesée'}</h2>
+          <h2 className="title-section">{editing ? 'Modifier la pesée' : 'Nouvelle pesée'}</h2>
           {previous && <span className="text-sm text-muted">Dernière : {formatKg(previous.kg)} kg</span>}
         </div>
 

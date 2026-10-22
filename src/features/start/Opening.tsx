@@ -79,7 +79,7 @@ export default function Opening() {
           </span>
         </span>
       </button>
-      <span className="op-name mt-[18px] font-display text-[2.7059rem] leading-none font-extrabold tracking-[-0.5px]">{dog.name}</span>
+      <span className="op-name mt-[18px] font-display text-[2.7059rem] leading-none font-semibold tracking-[-0.5px]">{dog.name}</span>
       <button type="button" onClick={enter} className="op-cta mt-3.5 flex min-h-[52px] items-center rounded-full border-0 bg-white/18 px-[26px] text-[1rem] font-bold text-white">
         Touchez sa photo pour entrer
       </button>
@@ -93,7 +93,7 @@ export default function Opening() {
         >
           <NoteIcon size={26} className="shrink-0" />
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="text-[1rem] font-bold">Questionnaire de départ</span>
+            <span className="title-card">Questionnaire de départ</span>
             <span className="text-sm text-white/85">{ESSENTIALS.length} questions pour commencer</span>
           </span>
           <ChevronRightIcon size={22} className="shrink-0" />

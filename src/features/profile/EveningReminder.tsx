@@ -61,7 +61,7 @@ export function EveningReminder({ dogName }: { dogName: string }) {
 
   return (
     <section className="flex flex-col gap-2.5">
-      <h2 className="text-xl font-bold">Rappel du soir</h2>
+      <h2 className="title-section">Rappel du soir</h2>
       <div className="card flex flex-col gap-3 p-4">
         {!canPush() ? (
           <p className="text-[1rem] leading-snug text-muted">Le rappel du soir n’est pas disponible sur cet appareil.</p>

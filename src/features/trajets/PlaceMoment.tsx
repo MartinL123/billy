@@ -23,14 +23,15 @@ export function PlaceMoment({ at, onPlace, onCancel }: { at: { lat: number; lng:
   return (
     <Sheet label="Qu’est-ce qui s’est passé ici ?" onClose={onCancel}>
       <div className="mt-1 flex flex-col gap-0.5">
-        <h2 className="font-display text-[1.2941rem] font-extrabold">Qu’est-ce qui s’est passé ici ?</h2>
+        <h2 className="title-section">Qu’est-ce qui s’est passé ici ?</h2>
         {street && <p className="text-[0.8824rem] font-semibold text-muted">{street}</p>}
+        {street && <p className="source-note">Lieux © OpenStreetMap</p>}
       </div>
       <div className="grid grid-cols-2 gap-2">
         {ROUTE_MOMENTS.map((m) => {
           const on = type === m.id
           return (
-            <button key={m.id} type="button" aria-pressed={on} onClick={() => setType(m.id)} className="flex min-h-14 items-center gap-2.5 rounded-[16px] border-[3px] border-solid px-2.5 text-left text-[0.9412rem] leading-tight font-extrabold" style={on ? { background: m.color, borderColor: m.color, color: '#FFFFFF' } : { background: '#FFFFFF', borderColor: m.color, color: m.color }}>
+            <button key={m.id} type="button" aria-pressed={on} onClick={() => setType(m.id)} className="flex min-h-14 items-center gap-2.5 rounded-[16px] border-[3px] border-solid px-2.5 text-left text-[0.9412rem] leading-tight font-bold" style={on ? { background: m.color, borderColor: m.color, color: '#FFFFFF' } : { background: '#FFFFFF', borderColor: m.color, color: m.color }}>
               <MomentIcon type={m.id} size={30} />
               {m.label}
             </button>

@@ -38,7 +38,7 @@ export function NotificationSettings() {
 
   return (
     <section className="flex flex-col gap-2.5">
-      <h2 className="text-xl font-bold">Notifications</h2>
+      <h2 className="title-section">Notifications</h2>
       <div className="card flex flex-col p-4">
         {KINDS.map((kind, i) => (
           <label key={kind.id} className={`flex min-h-14 items-center justify-between gap-3.5 py-2 ${i ? 'border-t border-divider' : ''}`}>

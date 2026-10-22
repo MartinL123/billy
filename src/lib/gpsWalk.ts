@@ -1,6 +1,8 @@
 import type { Activity } from './activity'
 import { walkDistance } from './activity'
 import { watchName, type WatchWalk } from './watch'
+import { formatDuration } from './balade'
+import { formatRouteDistance } from './route'
 
 // La balade enregistrée par l'iPhone (app iOS, T-036) : démarrée et arrêtée par ses boutons, puis le même circuit que
 // l'import d'un fichier GPX. Ce fichier ne dépend ni de Capacitor ni de Firestore.
@@ -93,12 +95,18 @@ export function doubtfulSegments(points: GpsPoint[]): [number, number][] {
 export const CELLS_PER_BIT = 40
 export const territoryBits = (newCells: number) => Math.floor(newCells / CELLS_PER_BIT)
 
-/** Les pastilles de « Belle balade ! », dans l’ordre : os (seulement s’il y en a), territoire, sortie notée. */
-export function endWalkPills({ noteBones, bits, slotName }: { noteBones: number; bits: number; slotName?: string }): string[] {
-  const out: string[] = []
-  if (noteBones > 0) out.push(`+${noteBones} os`)
-  if (bits > 0) out.push(bits === 1 ? 'Un nouveau bout de territoire' : `${bits} nouveaux bouts de territoire`)
-  if (slotName) out.push(`${slotName} notée`)
+/**
+ * « Belle balade ! » en chiffres (composant Stats, V6 § 1) : durée, distance, puis les os (seulement s’ils sont donnés)
+ * et les nouveaux bouts de territoire (seulement s’il y en a).
+ */
+export function endWalkStats({ ms, distanceM, noteBones, bits }: { ms: number; distanceM: number; noteBones: number; bits: number }): { value: string; label: string }[] {
+  const { min, sec } = durationParts(ms)
+  const out = [
+    { value: min ? formatDuration(min) : `${sec}\u00a0s`, label: 'Durée' },
+    { value: formatRouteDistance(distanceM), label: 'Distance' },
+  ]
+  if (noteBones > 0) out.push({ value: `+${noteBones}`, label: 'Os gagnés' })
+  if (bits > 0) out.push({ value: String(bits), label: bits === 1 ? 'Nouveau bout de territoire' : 'Nouveaux bouts de territoire' })
   return out
 }
 

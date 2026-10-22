@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Stats } from '../../components/Stats'
+import { BackLink } from '../../components/BackLink'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { isNative } from '../../native'
 import { FileImage } from '../../components/FileImage'
-import { ChevronLeftIcon, NoteIcon, PlusIcon } from '../../components/Icons'
+import { NoteIcon, PlusIcon } from '../../components/Icons'
 import { setEntryCommune } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { formatDuration } from '../../lib/balade'
@@ -74,17 +76,14 @@ export default function Walks() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
-      <header className="flex items-center bg-bg px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5">
-        <button type="button" onClick={back} className="btn btn-quiet min-h-12 px-4">
-          <ChevronLeftIcon size={20} />
-          La carte
-        </button>
+      <header className="flex items-center bg-bg px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
+        <BackLink label="La carte" onClick={back} />
       </header>
       <main className="flex flex-col gap-4 px-5 pt-1 pb-[calc(env(safe-area-inset-bottom)+120px)]">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-[1.6471rem] leading-tight font-extrabold">Ses balades</h1>
+          <h1 className="title-screen">Ses balades</h1>
           {/* Sans balade, pas de « 0 balade · 0,0 km » au-dessus de l’état vide (R-036). */}
-          {!(rows.length === 0 && filter === 'toutes') && <p className="text-[1rem] text-muted">{walksSummary(shown)}</p>}
+          {!(rows.length === 0 && filter === 'toutes') && shown.length > 0 && <Stats items={walksSummary(shown)} className="mt-2" />}
         </div>
         {/* « Noter un souvenir » vit ici depuis la V5 (il a quitté l’accueil). */}
         {!readOnly && (
@@ -98,10 +97,10 @@ export default function Walks() {
           <section className="card flex flex-col items-center gap-3 px-5 py-6 text-center">
             <svg width="120" height="90" viewBox="0 0 120 90" aria-hidden="true">
               <rect x="4" y="10" width="112" height="72" rx="16" fill="#E8EFE9" />
-              <path d="M22 66 C40 40 58 70 76 44 S100 30 104 26" fill="none" stroke="#9A4413" strokeWidth="5" strokeLinecap="round" strokeDasharray="2 9" />
+              <path d="M22 66 C40 40 58 70 76 44 S100 30 104 26" fill="none" stroke="var(--color-route)" strokeWidth="5" strokeLinecap="round" strokeDasharray="2 9" />
               <circle cx="22" cy="66" r="7" fill="#1E5A50" stroke="#fff" strokeWidth="3" />
             </svg>
-            <h2 className="font-display text-[1.2941rem] font-extrabold">Pas encore de balade</h2>
+            <h2 className="title-section">Pas encore de balade</h2>
             <p className="text-[1rem] leading-snug text-[#3F4946]">{isNative() ? 'Vos marches de l’Apple Watch arrivent ici toutes seules' : 'Importez vos balades Strava : elles arrivent ici'}, et le brouillard se lève sur la carte {ofName(dog.name)}.</p>
             {!readOnly && (
               <Link to="/importer" className={`btn ${isNative() ? 'btn-outline min-h-12' : 'btn-main min-h-[56px]'} self-stretch`}>
@@ -121,7 +120,7 @@ export default function Walks() {
             {groups.length === 0 && <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[1rem] text-[#1D3F73]">Aucune balade pour ce filtre.</p>}
             {groups.map((group) => (
               <section key={group.key} className="flex flex-col gap-2">
-                <h2 className="text-sm font-bold tracking-[0.6px] text-muted uppercase">{formatMonthYear(`${group.key}-01`)}</h2>
+                <h2 className="text-muted surtitre">{formatMonthYear(`${group.key}-01`)}</h2>
                 <ul className="card m-0 flex list-none flex-col p-0">
                   {group.items.map((row, i) =>
                     row.kind === 'souvenir' ? (
@@ -130,26 +129,28 @@ export default function Walks() {
                           {row.thumb ? (
                             <FileImage fileId={row.thumb} alt="" className="size-14 shrink-0 rounded-[14px]" />
                           ) : (
-                            <span className="flex size-14 shrink-0 items-center justify-center rounded-[14px] bg-bg text-primary">
-                              <NoteIcon size={24} />
+                            // V6 § 1 : une icône calme, sans carré de couleur.
+                            <span className="flex size-14 shrink-0 items-center justify-center text-primary">
+                              <NoteIcon size={28} />
                             </span>
                           )}
                           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                            <span className="truncate text-[1rem] font-bold">{row.text}</span>
+                            <span className="title-card truncate">{row.text}</span>
                             <span className="text-[0.8824rem] text-muted">{formatShort(row.date)} · un souvenir</span>
                           </span>
                         </Link>
                       </li>
                     ) : (
                       <li key={row.item.id} className={i ? 'border-t border-divider' : ''}>
-                        <Link to={`/souvenir/${row.item.id}`} className="tap flex items-center gap-3 px-3 py-2.5 text-text no-underline">
-                          <RouteThumb points={row.item.route.points} moments={row.item.route.moments} size={56} />
-                          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <Link to={`/souvenir/${row.item.id}`} className="tap flex items-start gap-3 px-3 py-3 text-text no-underline">
+                          <RouteThumb points={row.item.route.points} moments={row.item.route.moments} size={64} />
+                          <span className="flex min-w-0 flex-1 flex-col gap-1">
                             <span className="flex min-w-0 items-center gap-2">
                               <span className="h-1.5 w-5 shrink-0 rounded-full" style={{ background: colors.get(row.item.id) }} aria-hidden="true" />
-                              <span className="truncate text-[1rem] font-bold">{row.item.name}</span>
+                              <span className="title-card truncate">{row.item.name}</span>
                             </span>
-                            <span className="text-[0.8824rem] text-muted">{[formatShort(row.item.date), row.item.commune, formatRouteDistance(row.item.route.distanceM), row.item.route.durationMin ? formatDuration(row.item.route.durationMin) : ''].filter(Boolean).join(' · ')}</span>
+                            <span className="text-[0.8824rem] text-muted">{[formatShort(row.item.date), row.item.commune].filter(Boolean).join(' · ')}</span>
+                            <Stats items={[{ value: formatRouteDistance(row.item.route.distanceM), label: 'Distance' }, { value: row.item.route.durationMin ? formatDuration(row.item.route.durationMin) : '', label: 'Durée' }]} />
                             <span className="flex flex-wrap gap-1.5">
                               {walkTags(row.item).map((t) => (
                                 <span key={t} className="rounded-full bg-bg px-2 py-0.5 text-[0.7647rem] font-semibold text-[#3F4946]">
@@ -165,8 +166,10 @@ export default function Walks() {
                 </ul>
               </section>
             ))}
+            {/* Les communes viennent d’OpenStreetMap (Nominatim) : la source est dite (V6 § 1). */}
+            {visible.some((r) => r.kind === 'balade' && r.item.commune) && <p className="source-note">Lieux © OpenStreetMap</p>}
             {!all && rows.length > PAGE && (
-              <button type="button" onClick={() => setAll(true)} className="btn btn-outline">
+              <button type="button" onClick={() => setAll(true)} className="btn-text self-center px-4">
                 Voir les {rows.length - PAGE} plus anciens
               </button>
             )}

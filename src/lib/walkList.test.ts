@@ -20,7 +20,7 @@ describe('toutes les balades', () => {
     expect(filterWalks(items, 'toutes', '2026-10-17')).toHaveLength(2)
   })
   it('résumé', () => {
-    expect(walksSummary(items)).toBe('2 balades · 5,6 km · 1 h 34 ensemble')
+    expect(walksSummary(items).map((s) => `${s.value.replace(/\u00a0/g, ' ')} ${s.label}`)).toEqual(['2 Balades', '5,6 km Distance', '1 h 34 Ensemble'])
   })
   it('communes et étiquettes', () => {
     const withTowns = walkItems([
@@ -31,7 +31,7 @@ describe('toutes les balades', () => {
     expect(communesOf(withTowns)).toEqual(['Bourg', 'Ville'])
     expect(filterWalks(withTowns, 'commune:Ville', '2026-10-17').map((w) => w.id)).toEqual(['b'])
     expect(walkTags(withTowns[0]!)).toEqual(['Strava'])
-    expect(walkTags(withTowns[1]!)).toEqual(['Tracé à la main', '1 peur'])
+    expect(walkTags(withTowns[1]!)).toEqual(['Tracé à la main', 'Une peur'])
   })
 })
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { BackLink } from '../../components/BackLink'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ChevronLeftIcon, ImportIcon, TrashIcon } from '../../components/Icons'
+import { ImportIcon, TrashIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
 import { ConfirmSheet } from '../../components/Sheet'
 import { deleteDocument } from '../../firebase/db'
@@ -124,16 +125,13 @@ export default function DocumentView() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
-      <header className="sticky top-0 z-10 flex items-center bg-bg px-3 py-1.5 pt-[calc(env(safe-area-inset-top)+6px)]">
-        <button type="button" onClick={back} className="btn btn-outline">
-          <ChevronLeftIcon />
-          Retour
-        </button>
+      <header className="sticky top-0 z-10 flex items-center bg-bg px-4 pb-1 pt-[calc(env(safe-area-inset-top)+4px)]">
+        <BackLink label="Retour" onClick={back} />
       </header>
 
       <main className="flex flex-col gap-4 px-5 pb-[calc(env(safe-area-inset-bottom)+120px)]">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-[1.5294rem] leading-tight font-bold">{document_.title}</h1>
+          <h1 className="title-screen">{document_.title}</h1>
           <p className="text-[0.8824rem] text-muted">
             {categoryLabel(document_.category)} · {formatLong(document_.date)}
           </p>

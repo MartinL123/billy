@@ -118,7 +118,7 @@ export default function Meute() {
   if (welcome) {
     return (
       <div className="flex flex-col gap-5 px-5">
-        <h1 className="font-display text-[1.8824rem] font-extrabold">La meute</h1>
+        <h1 className="title-screen">La meute</h1>
         <p className="text-[1rem] leading-snug text-[#3F4946]">La meute, ce sont les amis qui ont un compte {APP_NAME}. Pas d’invitation, pas de classement.</p>
         <ul className="card m-0 flex list-none flex-col gap-3.5 p-4">
           {[
@@ -163,7 +163,7 @@ export default function Meute() {
   return (
     <div className="flex flex-col gap-4">
       <header className="flex flex-col gap-0.5 px-5">
-        <h1 className="font-display text-[1.8824rem] font-extrabold">La meute</h1>
+        <h1 className="title-screen">La meute</h1>
         <p className="text-[0.8824rem] text-muted">
           {members.length} chien{members.length > 1 ? 's' : ''} · seulement les amis qui ont un compte
         </p>
@@ -222,7 +222,7 @@ export default function Meute() {
 
       {/* Sans heure, jamais : « aujourd’hui », c’est tout. */}
       <section className="flex flex-col gap-2.5 px-5">
-        <h2 className="text-xl font-bold">Aujourd’hui dans la meute</h2>
+        <h2 className="title-section">Aujourd’hui dans la meute</h2>
         <div className="card flex flex-col p-1">
           {todayMarks.length === 0 && feed.filter((f) => diffDays(f.date, today) <= 1).length === 0 ? (
             <p className="px-3 py-3 text-[0.8824rem] text-muted">Rien encore aujourd’hui. Touchez « Marquer » pendant votre balade.</p>
@@ -258,7 +258,7 @@ export default function Meute() {
       </section>
 
       <section className="flex flex-col gap-2.5 px-5">
-        <h2 className="text-xl font-bold">La meute</h2>
+        <h2 className="title-section">La meute</h2>
         {others.length === 0 && <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[0.8824rem] leading-snug text-[#1D3F73]">Vous êtes seul pour l’instant. Martin peut créer un compte pour un ami.</p>}
         <div className="flex flex-col gap-2">
           {members.map((m) => (
@@ -294,7 +294,7 @@ export default function Meute() {
 
       {marking && (
         <Sheet label={place(`Où ${dog.name} marque-t-il ?`)} onClose={() => setMarking(false)}>
-          <h2 className="mt-1 font-display text-[1.4118rem] font-extrabold">{place(`Où ${dog.name} marque-t-il ?`)}</h2>
+          <h2 className="title-section mt-1">{place(`Où ${dog.name} marque-t-il ?`)}</h2>
           <p className="text-[0.8824rem] text-muted">{position ? 'Les spots de la meute à moins de 300 m.' : 'Sans votre position, choisissez le spot où vous êtes.'}</p>
           {position === null && (
             <button type="button" onClick={() => locate()} className="btn btn-outline">
@@ -350,14 +350,14 @@ export default function Meute() {
           <svg width="96" height="96" viewBox="0 0 24 24" aria-hidden="true" className="cel-badge">
             <path d="M12 3s-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11z" fill="#F2B544" />
           </svg>
-          <h1 className="cel-text font-display text-[1.7647rem] leading-tight font-extrabold">
+          <h1 className="title-screen cel-text">
             {dog.name} a marqué {marked.spot} !
           </h1>
           {marked.first && <p className="cel-text text-[1rem] text-[#F7D58A]">Nouveau spot pour {dog.name}</p>}
           <p className="cel-text text-xl">
             <BonesGained amount={marked.bones} />
           </p>
-          <button type="button" onClick={() => setMarked(null)} className="mt-6 flex min-h-[60px] w-full max-w-[360px] items-center justify-center rounded-full border-0 bg-gold text-[1.1176rem] font-extrabold text-gold-dark">
+          <button type="button" onClick={() => setMarked(null)} className="mt-6 flex min-h-[60px] w-full max-w-[360px] items-center justify-center rounded-full border-0 bg-gold text-[1.1176rem] font-bold text-gold-dark">
             Continuer
           </button>
         </div>
@@ -383,10 +383,10 @@ function SpotSheet({ spot, meters, addedBy, passed, passedToday, calm, canMark, 
   const slot = slotOf(new Date().getHours())
   return (
     <Sheet label={spot.name} onClose={onClose}>
-      <h2 className="mt-1 font-display text-[1.4118rem] leading-tight font-extrabold">{spot.name}</h2>
+      <h2 className="title-section mt-1">{spot.name}</h2>
       <p className="text-[0.8824rem] text-muted">{[info.label, meters !== undefined && Number.isFinite(meters) ? formatDistance(meters) : '', addedBy ? `ajouté par ${addedBy}` : ''].filter(Boolean).join(' · ')}</p>
       <section className="rounded-[18px] bg-bg p-3.5">
-        <h3 className="text-[0.7647rem] font-bold tracking-[0.5px] text-muted uppercase">Niveau de calme</h3>
+        <h3 className="text-muted surtitre">Niveau de calme</h3>
         {calm ? (
           <>
             <p className="text-[1rem] font-bold">{calm.headline}</p>
@@ -457,7 +457,7 @@ function NewSpotSheet({ onCancel, onCreate }: { onCancel: () => void; onCreate: 
   }
   return (
     <Sheet label="Nouveau spot" onClose={onCancel}>
-      <h2 className="mt-1 font-display text-[1.4118rem] font-extrabold">Nouveau spot</h2>
+      <h2 className="title-section mt-1">Nouveau spot</h2>
       <p className="text-[0.8824rem] text-muted">Un lieu public que la meute peut retrouver. Jamais un domicile.</p>
       <label className="flex flex-col gap-1.5">
         <span className="text-[0.8824rem] font-semibold">Son nom</span>

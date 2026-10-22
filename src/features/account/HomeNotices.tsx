@@ -32,7 +32,7 @@ export function PasswordPrompt() {
         <button type="button" onClick={() => setOpen(true)} className="btn btn-outline bg-surface whitespace-nowrap">
           Le changer
         </button>
-        <button type="button" onClick={() => updateDog({ passwordPromptDone: true })} className="btn btn-quiet px-4">
+        <button type="button" onClick={() => updateDog({ passwordPromptDone: true })} className="btn-text px-3">
           Plus tard
         </button>
       </div>

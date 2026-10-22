@@ -93,7 +93,7 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
         ) : dog.photoThumbFileId ? (
           <FileImage fileId={dog.photoThumbFileId} alt={`Photo ${ofName(dog.name)}`} className="size-[120px] rounded-full border-4 border-white shadow-[0_2px_8px_rgba(24,32,30,0.12)]" eager />
         ) : (
-          <div className="flex size-[120px] items-center justify-center rounded-full border-4 border-white bg-milestone-soft font-display text-5xl font-bold text-milestone-dark">
+          <div className="flex size-[120px] items-center justify-center rounded-full border-4 border-white bg-primary-soft font-display text-5xl font-semibold text-primary-dark">
             {dog.name.charAt(0).toUpperCase()}
           </div>
         )}

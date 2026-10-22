@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BackLink } from '../../components/BackLink'
 import { CheckIcon } from '../../components/Icons'
 import { useToast } from '../../components/Toast'
 import { inkOn, SKILLS, stepShort, TERRITORIES } from '../../content/phrases'
@@ -37,16 +38,14 @@ export default function EnCours() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
-      <header className="sticky top-0 z-10 flex items-center justify-between bg-bg px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5">
-        <button type="button" onClick={back} className="btn btn-quiet min-h-12 px-4">
-          Retour
-        </button>
+      <header className="sticky top-0 z-10 flex items-center justify-between bg-bg px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
+        <BackLink label={dog.unnamed ? 'Votre chien' : dog.name} onClick={back} className="min-w-[92px]" />
         <span className="text-lg font-bold">En cours</span>
         <div className="w-[92px]" />
       </header>
 
       <main className="flex flex-col gap-4 px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+130px)]">
-        <h1 className="font-display text-[1.5294rem] leading-tight font-extrabold">Sur quoi travailler en ce moment ?</h1>
+        <h1 className="title-screen">Sur quoi travailler en ce moment ?</h1>
         <p className="text-[0.8824rem] leading-snug text-[#3F4946]">
           Choisissez jusqu’à <strong>{MAX_ACTIVE} compétences</strong>. La mission du jour vous proposera leurs exercices, à tour de rôle. Les autres ne sont pas oubliées : elles reviennent de temps en temps en révision.
         </p>
@@ -56,7 +55,7 @@ export default function EnCours() {
 
         {TERRITORIES.map((territory) => (
           <section key={territory.tier} className="flex flex-col gap-2">
-            <h2 className="mt-1 text-[0.7647rem] font-bold tracking-[0.6px] uppercase" style={{ color: inkOn(territory) }}>
+            <h2 className="mt-1 surtitre" style={{ color: inkOn(territory) }}>
               {territory.name}
             </h2>
             {SKILLS.filter((s) => s.tier === territory.tier).map((skill) => {

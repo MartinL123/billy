@@ -33,11 +33,11 @@ export default function HealthWeight() {
       <section className="card flex flex-col gap-3 p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex flex-col gap-0.5">
-            <h2 className="text-[1.1176rem] font-bold">Poids</h2>
+            <h2 className="title-section">Poids</h2>
             <div className="text-[0.7647rem] text-muted">{lastWeight ? `Pesé le ${formatShort(lastWeight.date, year)}` : 'Aucune pesée pour l’instant'}</div>
           </div>
           {lastWeight && (
-            <div className="font-display text-[1.7647rem] font-bold">
+            <div className="font-display text-[1.7647rem] font-bold tabular-nums">
               {formatKg(lastWeight.kg)} <span className="font-sans text-base font-semibold text-muted">kg</span>
             </div>
           )}

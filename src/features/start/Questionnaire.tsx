@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BackLink } from '../../components/BackLink'
 import { NativePickerInput } from '../../components/Form'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
@@ -311,13 +312,11 @@ export default function Questionnaire() {
         {/* « Retour » toujours en haut à gauche, sur toutes les questions (audit R-019). */}
         <div className="flex items-center justify-between gap-3">
           {pos > 0 ? (
-            <button type="button" onClick={() => go(pos - 1)} className="btn btn-quiet -ml-3 min-h-12 px-3 whitespace-nowrap">
-              Retour
-            </button>
+            <BackLink label="Retour" onClick={() => go(pos - 1)} className="whitespace-nowrap" />
           ) : (
             <span />
           )}
-          <button type="button" onClick={later} className="btn btn-quiet -mr-3 min-h-12 px-3 whitespace-nowrap">
+          <button type="button" onClick={later} className="btn-text -mr-1 whitespace-nowrap">
             Continuer plus tard
           </button>
         </div>
@@ -326,7 +325,7 @@ export default function Questionnaire() {
           <div className="h-full origin-left rounded-full bg-primary transition-transform duration-[250ms] ease-[cubic-bezier(.2,.8,.3,1)]" style={{ transform: `scaleX(${(pos + 1) / flow.length})` }} />
         </div>
         {/* La partie est rappelée ici, sous la barre : la ligne du haut garde ses boutons sur une seule ligne. */}
-        <p className="flex flex-wrap justify-between gap-x-3 text-[0.7647rem] font-bold tracking-[0.6px] uppercase" aria-live="polite">
+        <p className="flex flex-wrap justify-between gap-x-3 surtitre" aria-live="polite">
           <span className="text-primary">{route.kind === 'depart' ? 'Pour commencer' : PARTS[step.part - 1]}</span>
           <span className="text-muted">{route.kind === 'tout' ? `Partie ${step.part} sur ${PARTS.length}` : `Question ${pos + 1} sur ${flow.length}`}</span>
         </p>
@@ -336,7 +335,7 @@ export default function Questionnaire() {
       <div key={pos} className={`flex flex-1 flex-col gap-5 ${direction > 0 ? 'q-next' : direction < 0 ? 'q-prev' : ''}`}>
         {step.kind !== 'fin' && step.kind !== 'skill' && (
           <div className="flex flex-col gap-2">
-            <h1 className="font-display text-[1.6471rem] leading-tight font-bold">{title}</h1>
+            <h1 className="title-screen">{title}</h1>
             {step.help && <p className="text-[1rem] leading-snug text-muted">{g(step.help)}</p>}
           </div>
         )}
@@ -410,7 +409,7 @@ export default function Questionnaire() {
             {dog.photoThumbFileId ? (
               <FileImage fileId={dog.photoThumbFileId} alt={`Photo ${ofName(dog.name)}`} className="size-40 rounded-full" eager />
             ) : (
-              <span className="flex size-40 items-center justify-center rounded-full bg-milestone-soft font-display text-6xl font-bold text-milestone-dark">{(draft.nom || '?').charAt(0).toUpperCase()}</span>
+              <span className="flex size-40 items-center justify-center rounded-full bg-primary-soft font-display text-6xl font-semibold text-primary-dark">{(draft.nom || '?').charAt(0).toUpperCase()}</span>
             )}
             <FilePicker accept="image/*" multiple={false} onFiles={(files) => void choosePhoto(files)} className="btn btn-outline w-full">
               {dog.photoThumbFileId ? 'Changer la photo' : 'Choisir une photo'}
@@ -516,9 +515,9 @@ export default function Questionnaire() {
               <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary-dark">
                 <BossIcon bossId={skill.id} size={30} />
               </span>
-              <span className="font-display text-2xl font-bold">{skill.name}</span>
+              <span className="title-section">{skill.name}</span>
             </div>
-            <h1 className="font-display text-[1.5294rem] leading-tight font-bold">{title}</h1>
+            <h1 className="title-screen">{title}</h1>
             <div role="radiogroup" aria-label={skill.name} className="flex flex-col gap-2.5">
               {skillOptions(skill.id).map(({ value, label: text }) => {
                 const current = skillValue(skill.id)

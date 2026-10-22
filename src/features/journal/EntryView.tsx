@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
+import { BackLink } from '../../components/BackLink'
 import { Link, useParams } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
-import { ChevronLeftIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
 import { Bytes } from 'firebase/firestore'
 import { shareMoment, unshareMoment, watchShared } from '../../firebase/community'
@@ -40,14 +40,11 @@ export default function EntryView() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
-      <header className="sticky top-0 z-10 flex items-center bg-bg px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5">
-        <button type="button" onClick={back} className="btn btn-quiet min-h-12 px-4">
-          <ChevronLeftIcon size={20} />
-          Ses balades
-        </button>
+      <header className="sticky top-0 z-10 flex items-center bg-bg px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
+        <BackLink label="Ses balades" onClick={back} />
       </header>
       <main className="flex flex-col gap-4 px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+40px)]">
-        <h1 className="font-display text-[1.5294rem] leading-tight font-extrabold">Le {formatLong(entry.date)}</h1>
+        <h1 className="title-screen">Le {formatLong(entry.date)}</h1>
         <Pending show={entry.pending} />
         {entry.text && <p className="text-[1.1176rem] leading-[1.45] whitespace-pre-wrap">{entry.text}</p>}
         <MomentChips entry={entry} />

@@ -24,7 +24,7 @@ export function CalmSpotCard() {
         <PinIcon />
       </span>
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-muted uppercase">Un spot calme pour ça</span>
+        <span className="text-muted surtitre">Un spot calme pour ça</span>
         <span className="text-[1rem] font-bold">{spot.name}</span>
         <span className="text-[0.8824rem] text-muted">{[spot.headline, spot.meters !== undefined ? formatDistance(spot.meters) : ''].filter(Boolean).join(' · ')}</span>
       </span>

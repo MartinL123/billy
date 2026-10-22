@@ -38,7 +38,7 @@ export function Meals({ dogName, feeding, today }: { dogName: string; feeding: F
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-[1.1176rem] font-bold">Repas</h2>
+        <h2 className="title-section">Repas</h2>
         <span className="text-sm text-muted">
           {feeding.gramsPerDay} g par jour{grams ? ` · ${grams} g par repas` : ''}
         </span>

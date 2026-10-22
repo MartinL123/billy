@@ -1,4 +1,4 @@
-import { addMarker, dot, fitPoints, lngLat, setDirectionArrows, setLine, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
+import { addMarker, dot, fitPoints, lngLat, ROUTE_COLOR, setDirectionArrows, setLine, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
 import { loadFile } from '../../firebase/files'
 import { distanceMeters } from '../../lib/community'
 import { bearing, cumulative, easeInOut, pointAlong, REPLAY_MS, turnToward } from '../../lib/replay'
@@ -16,7 +16,7 @@ const walkPadding = (m: MapLibreMap) => fitPadding(WALK_PADDING, m.getContainer(
  * Une balade mise en avant sur la carte unique : son tracé plein, le départ, l’arrivée, ses repères et ses photos.
  * Renvoie de quoi tout retirer.
  */
-export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPhoto: (index: number) => void, color = '#9A4413'): () => void {
+export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPhoto: (index: number) => void, color = ROUTE_COLOR): () => void {
   const markers: Marker[] = []
   const urls: string[] = []
   let frame = 0

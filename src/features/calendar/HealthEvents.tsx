@@ -48,7 +48,7 @@ export default function HealthEvents() {
     <SubScreen title="Tous les événements">
       {toComplete.length > 0 && (
         <section className="flex flex-col gap-3">
-          <h2 className="text-[1.1176rem] font-bold">À compléter</h2>
+          <h2 className="title-section">À compléter</h2>
           <div className="card overflow-hidden">
             {toComplete.map((event, i) => (
               <CalendarEventRow key={event.id} event={event} today={today} first={i === 0} />
@@ -58,7 +58,7 @@ export default function HealthEvents() {
       )}
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-[1.1176rem] font-bold">À venir</h2>
+        <h2 className="title-section">À venir</h2>
         <div role="group" aria-label="Filtrer par catégorie" className="scroll-row -mx-5 flex gap-2 px-5 pt-0.5 pb-1">
           {CARE_FILTERS.map((item) => {
             const on = filter === item.id
@@ -102,7 +102,7 @@ export default function HealthEvents() {
 
       {done.length > 0 && (
         <section className="flex flex-col gap-3">
-          <h2 className="text-[1.1176rem] font-bold">Faits</h2>
+          <h2 className="title-section">Faits</h2>
           <div className="card overflow-hidden">
             {(showAllDone ? done : done.slice(0, DONE_PREVIEW)).map((event, i) => (
               <CalendarEventRow key={event.id} event={event} today={today} first={i === 0} />

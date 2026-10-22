@@ -35,7 +35,7 @@ export default function Invitation() {
             {state === 'busy' ? 'Un instant…' : 'Accepter'}
           </button>
         )}
-        <Link to="/" className="btn btn-quiet min-h-11">
+        <Link to="/" className="btn-text self-center px-4">
           {state === 'error' ? 'Retour' : 'Plus tard'}
         </Link>
       </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import { BackLink } from '../../components/BackLink'
 import { BoneIcon } from '../../components/BoneIcon'
-import { CheckIcon, ChevronLeftIcon } from '../../components/Icons'
+import { CheckIcon } from '../../components/Icons'
 import { Sheet } from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
 import { buttonState, SHOP, SHOP_CATEGORIES, shopItem, slotOf, type ShopCategory, type ShopItem } from '../../content/shop'
@@ -48,24 +49,21 @@ export default function Shop() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
-      <header className="sticky top-0 z-10 flex items-center justify-between bg-bg px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5">
-        <button type="button" onClick={back} className="btn btn-quiet min-h-12 px-4">
-          <ChevronLeftIcon size={20} />
-          L’arbre
-        </button>
-        <span className="flex items-center gap-1.5 rounded-full bg-[#FFF8E6] px-3.5 py-2 text-[1rem] font-extrabold text-gold-dark" aria-label={`${solde} os`}>
+      <header className="sticky top-0 z-10 flex items-center justify-between bg-bg px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
+        <BackLink label="L’arbre" onClick={back} />
+        <span className="flex items-center gap-1.5 rounded-full bg-[#FFF8E6] px-3.5 py-2 text-[1rem] font-bold text-gold-dark" aria-label={`${solde} os`}>
           <BoneIcon size={22} />
           {solde}
         </span>
       </header>
 
       <main className="flex flex-col gap-4 px-5 pt-1 pb-[calc(env(safe-area-inset-bottom)+40px)]">
-        <h1 className="font-display text-[1.6471rem] font-extrabold">La boutique</h1>
+        <h1 className="title-screen">La boutique</h1>
 
         <section aria-label="Aperçu" className="card flex items-center gap-4 p-4">
           <DogPhoto size={96} tryOn={tryOn} />
           <span className="flex min-w-0 flex-col gap-1">
-            <span className="font-display text-xl font-extrabold">{dog.name}</span>
+            <span className="title-section">{dog.name}</span>
             <span className="text-[0.8824rem] font-semibold text-[#3F4946]">{trying ? `Essaie : ${trying.name.toLocaleLowerCase('fr')}` : wearing ? `Porte : ${wearing.name.toLocaleLowerCase('fr')}` : 'Ne porte rien pour l’instant'}</span>
             <span className="text-[0.7647rem] leading-snug text-muted">Touchez un objet pour l’essayer avant de l’acheter.</span>
           </span>
@@ -157,7 +155,7 @@ export default function Shop() {
           <div className="flex items-center gap-4">
             <ItemArt id={buying.id} category={buying.category} />
             <span className="flex flex-col gap-1">
-              <span className="font-display text-[1.2941rem] font-extrabold">{buying.name}</span>
+              <span className="title-section">{buying.name}</span>
               <span className="flex items-center gap-1 text-[1rem] font-bold text-gold-dark">
                 {buying.price}
                 <BoneIcon size={18} />

@@ -18,12 +18,12 @@ export function FormScreen({ title, submitLabel, onCancel, onSubmit, busy, child
   }
   return (
     <form onSubmit={submit} noValidate className="mx-auto max-w-[430px]">
-      <header className="sticky top-0 z-10 flex items-center justify-between bg-bg px-2 pt-[env(safe-area-inset-top)]">
-        <button type="button" onClick={onCancel} className="btn btn-quiet my-1.5 min-h-12 px-4">
+      <header className="sticky top-0 z-10 flex items-center justify-between bg-bg px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
+        <button type="button" onClick={onCancel} className="btn-text -ml-1 min-w-[76px] justify-start">
           Annuler
         </button>
         <h1 className="text-[1rem] font-bold">{title}</h1>
-        <div className="w-[92px]" />
+        <div className="w-[76px]" />
       </header>
       <div className="flex flex-col gap-5 px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+120px)]">{children}</div>
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">

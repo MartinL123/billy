@@ -59,7 +59,7 @@ type Action = { label: string; to?: string; href?: string; run?: () => void }
 
 /** Le bouton plein (principal) ou discret de la carte. */
 function CardButton({ action, main }: { action: Action; main?: boolean }) {
-  const cls = main ? 'btn btn-main min-h-[56px]' : 'btn btn-quiet min-h-11 self-center px-4 text-[0.8824rem] text-primary'
+  const cls = main ? 'btn btn-main min-h-[56px]' : 'btn-text self-center px-4'
   if (action.to)
     return (
       <Link to={action.to} className={cls}>
@@ -318,13 +318,11 @@ export default function Today() {
         {/* La photo et le nom forment un seul bouton vers l’écran du chien (audit R-009).
             VoiceOver (R-067) : « Bonjour, Billy » d’abord, comme à l’écran, puis la date et la destination. */}
         <Link to="/billy" aria-label={`Bonjour, ${dog.name}, ${formatDayHeading(today)}. Voir ses progrès`} className="tap flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-[20px] text-text no-underline">
-          <span className="shrink-0 overflow-hidden rounded-full border-[3px] border-solid border-milestone">
-            <DogPhoto size={52} />
-          </span>
+          <DogPhoto size={52} />
           <span className="flex min-w-0 flex-col">
             <span className="text-[0.8824rem] font-medium text-muted">{formatDayHeading(today)}</span>
             {/* Jamais coupé (V5) : plus petit sur un écran étroit, puis à la ligne. */}
-            <span className="font-display text-[clamp(21px,7vw,26px)] leading-tight font-extrabold break-words">Bonjour, {dog.name}</span>
+            <span className="font-display text-[clamp(21px,7vw,26px)] leading-tight font-semibold break-words">Bonjour, {dog.name}</span>
           </span>
         </Link>
         {/* Gelé (T-072) : la pastille d’os vers la boutique est retirée ; les os restent en base. */}
@@ -333,11 +331,11 @@ export default function Today() {
       {/* Une nouvelle carte du moment (soin fait, mission faite…) monte à la place de l’ancienne (T-033). */}
       {!readOnly && (
       <section key={cardKey(card)} aria-label="À faire maintenant" className={`card flex flex-col gap-3 rounded-[26px] p-4 ${cardKey(card) !== firstCard ? 'anim-in' : ''}`}>
-        <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{content.badge}</span>
+        <span className="text-milestone-dark surtitre">{content.badge}</span>
         {/* Texte agrandi (V5, R-056) ou écran bas : l’illustration disparaît d’abord, puis la ligne d’aide ; le bouton reste visible.
             Le texte n’est jamais coupé (R-076) : il s’affiche en entier ou pas du tout. */}
         {content.scene && <Illustration scene={content.scene} className="h-[130px] bg-bg [@media(max-height:34em)]:hidden [.texte-grand_&]:hidden" />}
-        <h1 className="font-display text-[1.5294rem] leading-tight font-extrabold">{content.title}</h1>
+        <h1 className="title-screen">{content.title}</h1>
         <p className="text-[1rem] leading-snug text-[#3F4946] [@media(max-height:30em)]:hidden [.texte-tres-grand_&]:hidden">{content.text}</p>
         {content.action && <CardButton action={content.action} main />}
         {content.other && <CardButton action={content.other} />}

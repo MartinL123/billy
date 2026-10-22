@@ -181,12 +181,12 @@ export default function Noter() {
       }}
       className="mx-auto max-w-[430px]"
     >
-      <header className="sticky top-0 z-10 flex items-center justify-between bg-bg px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5">
-        <button type="button" onClick={leave} className="btn btn-quiet min-h-12 px-4">
+      <header className="sticky top-0 z-10 flex items-center justify-between bg-bg px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
+        <button type="button" onClick={leave} className="btn-text -ml-1 min-w-[76px] justify-start">
           Annuler
         </button>
         <h1 className="text-lg font-bold">{fromQuest ? 'Mission réussie ?' : 'Un souvenir'}</h1>
-        <div className="w-[92px]" />
+        <div className="w-[76px]" />
       </header>
 
       <div className="flex flex-col gap-6 px-5 pt-2 pb-[calc(env(safe-area-inset-bottom)+130px)]">
@@ -292,7 +292,7 @@ export default function Noter() {
             return (
               <fieldset key={id} className="card m-0 flex flex-col gap-3 border-0 p-4">
                 <legend className="sr-only">{skill.name} : prochaine étape</legend>
-                <span className="text-[0.7647rem] font-bold tracking-[0.6px] text-milestone-dark uppercase">{skill.name} · prochaine étape</span>
+                <span className="text-milestone-dark surtitre">{skill.name} · prochaine étape</span>
                 <p className="text-[1rem] leading-snug font-semibold">
                   {stepPhrase(id, left.target ?? 1)}. {date === today ? "C’est réussi aujourd’hui ?" : "C’est réussi ?"}
                 </p>

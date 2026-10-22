@@ -1,4 +1,4 @@
-import { ChevronLeftIcon } from '../../components/Icons'
+import { BackLink } from '../../components/BackLink'
 import { useBack } from '../../lib/useBack'
 import { ImportFooter } from './ImportFooter'
 import { APP_NAME } from '../../appName'
@@ -19,23 +19,20 @@ export default function ImportStrava() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
-      <header className="flex items-center bg-bg px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5">
-        <button type="button" onClick={back} className="btn btn-quiet min-h-12 px-4">
-          <ChevronLeftIcon size={20} />
-          La carte
-        </button>
+      <header className="flex items-center bg-bg px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
+        <BackLink label="La carte" onClick={back} />
       </header>
       <main className="flex flex-col gap-4 px-5 pt-1 pb-[calc(env(safe-area-inset-bottom)+130px)]">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-[1.6471rem] leading-tight font-extrabold">Importer vos balades Strava</h1>
+          <h1 className="title-screen">Importer vos balades Strava</h1>
           <p className="text-[1rem] text-muted">Une fois par mois suffit. Les balades déjà importées sont sautées.</p>
         </div>
         <ol className="m-0 flex list-none flex-col gap-3 p-0">
           {STEPS.map((step, i) => (
             <li key={step.title} className="card flex items-start gap-3 p-4">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-[1rem] font-extrabold text-white">{i + 1}</span>
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-[1rem] font-bold text-white">{i + 1}</span>
               <span className="flex min-w-0 flex-col gap-1">
-                <span className="text-[1rem] font-bold">{step.title}</span>
+                <span className="title-card">{step.title}</span>
                 <span className="text-[0.8824rem] leading-snug text-[#3F4946]">{step.text}</span>
                 {step.link && (
                   <a href={step.link.href} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex min-h-11 items-center gap-1 self-start font-bold text-primary underline">

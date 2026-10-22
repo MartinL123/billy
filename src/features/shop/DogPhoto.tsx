@@ -12,7 +12,7 @@ export function DogPhoto({ size, className = '', alt = '', tryOn }: { size: numb
   const frame = tryOn?.frame ?? dog.cosmetics?.frame
   return (
     <span className={`relative inline-flex shrink-0 ${className}`} style={{ width: size, height: size }}>
-      <span className="flex size-full items-center justify-center overflow-hidden rounded-full bg-milestone-soft font-display font-bold text-milestone-dark" style={{ fontSize: size * 0.4 }}>
+      <span className="flex size-full items-center justify-center overflow-hidden rounded-full bg-primary-soft font-display font-semibold text-primary-dark" style={{ fontSize: size * 0.4 }}>
         {dog.photoThumbFileId ? <FileImage fileId={dog.photoThumbFileId} alt={alt} className="size-full" eager /> : dog.name.charAt(0).toUpperCase()}
       </span>
       <Worn accessory={accessory} frame={frame} />

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Stats } from '../../components/Stats'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { Sheet } from '../../components/Sheet'
 import { CheckIcon, CloseIcon, PawIcon } from '../../components/Icons'
@@ -8,7 +9,7 @@ import { waitForPendingWrites } from 'firebase/firestore'
 import { db } from '../../firebase/app'
 import { knownImportKeys, parisMinutes } from '../../lib/activity'
 import { knownFog, revealedCells } from '../../lib/fog'
-import { doubtfulSegments, durationParts, elapsedMs, endWalkPills, gpsActivity, gpsDistance, territoryBits, tooShort, weakSignal, type GpsPoint } from '../../lib/gpsWalk'
+import { doubtfulSegments, durationParts, elapsedMs, endWalkStats, gpsActivity, gpsDistance, territoryBits, tooShort, weakSignal, type GpsPoint } from '../../lib/gpsWalk'
 import { dayBudget, minutesOfDay, walksOfDay } from '../../lib/walkDay'
 import { formatRouteDistance } from '../../lib/route'
 import { errorText, withTimeout } from '../../lib/timeout'
@@ -23,6 +24,7 @@ import { slotForStart, walkName, walkTimes, WALK_SLOTS, type WalkSlot } from '..
 import { isNative } from '../../native'
 import { FlairNative } from '../../native/flair'
 import { ExplorerMap } from './ExplorerMap'
+import { ROUTE_COLOR } from '../../components/maplibre'
 import { importActivities } from './importRun'
 import { logEvent } from '../../firebase/journal'
 import { haptic } from '../../native/flair'
@@ -45,7 +47,9 @@ interface Ended {
   entryId: string
   ms: number
   distanceM: number
-  pills: string[]
+  stats: { value: string; label: string }[]
+  /** La sortie du créneau notée (« Sortie du soir »). */
+  slotName?: string
 }
 
 /** Ce qui a échoué, pour « Copier le détail ». */
@@ -164,7 +168,7 @@ export default function LiveWalk() {
       const end = walk.stoppedAt ? Date.parse(walk.stoppedAt) : Date.now()
       logEvent({ type: 'walk_saved', source: 'gps', m: Math.round(saved.distanceM), min: Math.round(elapsedMs(walk.startedAt!, end) / 60_000) })
       haptic('success')
-      setEnded({ entryId: saved.entryId, ms: elapsedMs(walk.startedAt!, end), distanceM: saved.distanceM, pills: endWalkPills({ noteBones, bits: territoryBits(newCellsRef.current), ...(slotLabel ? { slotName: slotLabel } : {}) }) })
+      setEnded({ entryId: saved.entryId, ms: elapsedMs(walk.startedAt!, end), distanceM: saved.distanceM, stats: endWalkStats({ ms: elapsedMs(walk.startedAt!, end), distanceM: saved.distanceM, noteBones, bits: territoryBits(newCellsRef.current) }), ...(slotLabel ? { slotName: slotLabel } : {}) })
       setPhase('walking')
     } catch (error) {
       console.error('Balade non enregistrée', step, error)
@@ -305,11 +309,11 @@ export default function LiveWalk() {
     const out: { id: string; color: string; points: [number, number][]; dashed?: boolean }[] = []
     let from = 0
     doubtfulSegments(points).forEach(([a, b], i) => {
-      if (a > from) out.push({ id: `en-cours-${i}`, color: '#F2B544', points: latLngs.slice(from, a + 1) })
-      out.push({ id: `douteux-${i}`, color: '#F2B544', points: [latLngs[a]!, latLngs[b]!], dashed: true })
+      if (a > from) out.push({ id: `en-cours-${i}`, color: ROUTE_COLOR, points: latLngs.slice(from, a + 1) })
+      out.push({ id: `douteux-${i}`, color: ROUTE_COLOR, points: [latLngs[a]!, latLngs[b]!], dashed: true })
       from = b
     })
-    if (from < latLngs.length - 1) out.push({ id: 'en-cours', color: '#F2B544', points: latLngs.slice(from) })
+    if (from < latLngs.length - 1) out.push({ id: 'en-cours', color: ROUTE_COLOR, points: latLngs.slice(from) })
     return out
   }, [latLngs, points])
   const here = latLngs[latLngs.length - 1]
@@ -332,7 +336,7 @@ export default function LiveWalk() {
   if (phase === 'denied')
     return (
       <main className="flex min-h-dvh flex-col justify-end gap-4 px-5 pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+24px)]">
-        <h1 className="font-display text-[1.5294rem] leading-tight font-extrabold">La position n’est pas autorisée</h1>
+        <h1 className="title-screen">La position n’est pas autorisée</h1>
         <p className="text-[1rem] leading-snug text-[#3F4946]">Pour enregistrer la balade : Réglages › Flair › Position › « Pendant l’utilisation de l’app ».</p>
         <button type="button" onClick={() => navigate('/', { replace: true })} className="btn btn-main min-h-[56px]">
           Retour à l’accueil
@@ -384,29 +388,19 @@ export default function LiveWalk() {
           <span className="anim-pop flex size-16 items-center justify-center rounded-full bg-primary text-white" style={{ animationDelay: '150ms' }}>
             <CheckIcon size={34} />
           </span>
-          <h1 className="font-display text-[1.6471rem] leading-tight font-extrabold">Belle balade !</h1>
-          <p className="text-[0.9412rem] text-[#3F4946]">
-            {durationParts(ended.ms).min} min {durationParts(ended.ms).sec} s · {formatRouteDistance(ended.distanceM)} avec {dog.name}
-          </p>
-          {ended.pills.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-2">
-              {ended.pills.map((text, i) => (
-                <span key={text} className={`anim-pop rounded-full px-3 py-2 text-[0.8824rem] font-bold ${i === 0 && text.startsWith('+') ? 'bg-gold-soft font-extrabold text-[#3D2A00]' : text.endsWith('notée') ? 'bg-primary-soft text-primary-dark' : 'bg-info-soft text-[#1D4685]'}`} style={{ animationDelay: `${300 + i * 80}ms` }}>
-                  {text}
-                </span>
-              ))}
-            </div>
-          )}
+          <h1 className="title-screen">Belle balade !</h1>
+          <p className="text-[0.9412rem] text-[#3F4946]">Avec {dog.name}{ended.slotName ? ` · ${ended.slotName} notée` : ''}</p>
+          <Stats items={ended.stats} className="self-stretch text-left" />
           <button type="button" onClick={() => navigate(`/territoire?balade=${encodeURIComponent(ended.entryId)}`, { replace: true })} className="btn btn-main mt-1.5 min-h-14 self-stretch">
             Voir son territoire
           </button>
-          <button type="button" onClick={() => navigate(`/souvenir/${ended.entryId}/modifier`, { replace: true })} className="btn btn-outline min-h-[50px] self-stretch">
+          <button type="button" onClick={() => navigate(`/souvenir/${ended.entryId}/modifier`, { replace: true })} className="btn-text self-center px-4">
             Ajouter un souvenir
           </button>
         </section>
       ) : gone ? (
         <section aria-label="Balade pas gardée" className="animate-sheet flex flex-col gap-3.5 rounded-t-[26px] bg-surface px-4 pt-6 pb-[calc(env(safe-area-inset-bottom)+24px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
-          <h1 className="font-display text-[1.4118rem] font-extrabold">La balade n’a pas été gardée</h1>
+          <h1 className="title-screen">La balade n’a pas été gardée</h1>
           <p className="text-[0.9412rem] text-[#3F4946]">Vous pourrez noter la sortie à la main depuis l’accueil.</p>
           <button type="button" onClick={() => navigate('/', { replace: true })} className="btn btn-main min-h-14">
             Retour à l’accueil
@@ -414,29 +408,20 @@ export default function LiveWalk() {
         </section>
       ) : (
         <section aria-label="Balade en cours" className="flex flex-col gap-3.5 rounded-t-[26px] bg-surface px-4 pt-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
-          <span className="flex items-center gap-2 text-[0.7647rem] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">
+          <span className="flex items-center gap-2 text-milestone-dark surtitre">
             {!stoppedAt && <span aria-hidden="true" className="live-dot size-2.5 rounded-full bg-[#BF5519]" />}
             {stoppedAt ? 'Arrêtée après 3 h' : `Balade en cours avec ${dog.name}`}
           </span>
-          <div className="flex items-end justify-between gap-3">
-            <span className="flex flex-col">
-              <span className="text-[0.8235rem] font-semibold text-[#5A6662]">Durée</span>
-              <span className="font-display text-[2.8235rem] leading-[52px] font-extrabold tabular-nums" aria-label={`${min} minutes ${sec} secondes`}>
-                {min}
-                <span className="text-[1.4118rem]"> min </span>
-                <span className="text-[1.7647rem] text-[#3F4946]">{sec}</span>
-                <span className="text-[1.1765rem] text-[#3F4946]"> s</span>
-              </span>
-            </span>
-            <span className="flex flex-col items-end">
-              <span className="text-[0.8235rem] font-semibold text-[#5A6662]">Distance</span>
-              <span className="font-display text-[1.7647rem] leading-10 font-extrabold text-primary">{weak ? `≈ ${distance}` : distance}</span>
-            </span>
-          </div>
+          <Stats
+            items={[
+              { value: `${min}\u00a0min ${String(sec).padStart(2, '0')}\u00a0s`, label: 'Durée', spoken: `${min} minutes ${sec} secondes` },
+              { value: weak ? `≈ ${distance}` : distance, label: weak ? 'Distance (GPS faible)' : 'Distance' },
+            ]}
+          />
           {slotLabel && advised && elapsed >= advised * 60_000 && (
             <span className="anim-pop flex items-center gap-1.5 self-start rounded-full bg-primary-soft px-3 py-1.5 text-[0.8235rem] font-bold text-primary-dark">
               <CheckIcon size={16} />
-              Ses {advised} min {slotLabel.replace(/^Sortie /, '')} sont faites
+              Durée conseillée atteinte pour la sortie {slotLabel.replace(/^Sortie /, '')}
             </span>
           )}
           {phase === 'failed' ? (
@@ -447,7 +432,7 @@ export default function LiveWalk() {
               <button type="button" onClick={() => (startFailed ? window.location.reload() : void finish())} className="btn btn-main min-h-[58px] text-[1.1176rem]">
                 Réessayer
               </button>
-              <button type="button" onClick={copyDetail} className="btn btn-quiet min-h-11 self-center px-4 text-[0.8824rem]">
+              <button type="button" onClick={copyDetail} className="btn-text self-center px-4">
                 Copier le détail
               </button>
             </>
@@ -465,7 +450,7 @@ export default function LiveWalk() {
       {fewPoints && (
         // T-060 : le GPS n’a presque rien donné. On ne perd pas la sortie : on la note, ou on choisit de ne pas la garder.
         <Sheet label="Le GPS n’a presque rien enregistré" onClose={() => setFewPoints(undefined)}>
-          <h2 className="mt-1 font-display text-[1.5294rem] leading-tight font-extrabold">Le GPS n’a presque rien enregistré</h2>
+          <h2 className="title-section mt-1">Le GPS n’a presque rien enregistré</h2>
           <p className="text-[0.9412rem] leading-snug text-[#3F4946]">
             {fewPoints.minutes} min de sortie, mais trop peu de positions pour un tracé. Vous pouvez noter la sortie : elle compte dans sa journée.
           </p>
@@ -501,7 +486,7 @@ export default function LiveWalk() {
       {confirmCancel && (
         // « Continuer la balade » en orange, « Ne pas la garder » en contour rouge : plus de « Annuler » ambigu (V5).
         <Sheet label="Ne pas garder cette balade ?" onClose={() => setConfirmCancel(false)}>
-          <h2 className="mt-1 font-display text-[1.5294rem] leading-tight font-extrabold">Ne pas garder cette balade ?</h2>
+          <h2 className="title-section mt-1">Ne pas garder cette balade ?</h2>
           <p className="text-[0.9412rem] leading-snug text-[#3F4946]">Le tracé sera effacé : pas de brouillard levé, pas d’os.</p>
           <button type="button" onClick={() => setConfirmCancel(false)} className="btn btn-main min-h-14">
             Continuer la balade

@@ -68,15 +68,15 @@ export default function Calendar() {
   return (
     <div className="flex flex-col gap-4 px-5 pb-[88px]">
       <div className="flex flex-col gap-1">
-        <h1 className="font-display text-[1.8824rem] leading-tight font-extrabold">Santé</h1>
+        <h1 className="title-screen">Santé</h1>
         <p className="text-[1rem] leading-snug text-[#3F4946]">{healthStatus(events, today)}</p>
       </div>
 
       {/* Un soin en retard passe en tête : seul cas de rouge. */}
       {late && late.date && (
         <section aria-label="Soin en retard" className="card flex flex-col gap-2.5 rounded-[24px] p-4">
-          <span className="self-start rounded-full border-2 border-solid border-danger px-2.5 py-0.5 text-[0.7647rem] font-extrabold text-danger">À faire</span>
-          <Link to={`/evenement/${late.id}`} className="font-display text-[1.2941rem] leading-tight font-extrabold text-text no-underline">
+          <span className="self-start rounded-full border-2 border-solid border-danger px-2.5 py-0.5 text-[0.7647rem] font-bold text-danger">À faire</span>
+          <Link to={`/evenement/${late.id}`} className="title-section text-text no-underline">
             {late.title}
           </Link>
           <p className="text-[0.9412rem] text-[#3F4946]">Prévu le {formatLong(late.date)}</p>
@@ -85,7 +85,7 @@ export default function Calendar() {
               <button type="button" onClick={() => setEventDone(late, true)} className="btn btn-main min-h-[54px]">
                 C’est fait
               </button>
-              <Link to={`/evenement/${late.id}`} className="btn btn-outline min-h-12">
+              <Link to={`/evenement/${late.id}`} className="btn-text self-center px-4">
                 Le décaler
               </Link>
             </>
@@ -101,7 +101,7 @@ export default function Calendar() {
               {ofDay.map((event) => (
                 <li key={event.id}>
                   <Link to={`/evenement/${event.id}`} className="flex min-h-11 items-center gap-2.5 text-text no-underline">
-                    <span className="rounded-full px-2.5 py-0.5 text-[0.7647rem] font-extrabold text-white" style={{ background: typeInfo(event.type).pill ?? typeInfo(event.type).color }}>
+                    <span className="rounded-full px-2.5 py-0.5 text-[0.7647rem] font-bold text-white" style={{ background: typeInfo(event.type).pill ?? typeInfo(event.type).color }}>
                       {typeInfo(event.type).label}
                     </span>
                     <span className="text-[0.8824rem] font-semibold">{event.title}</span>
@@ -117,8 +117,8 @@ export default function Calendar() {
 
       {next && next.date && (
         <section aria-label="Prochaine chose" className="card flex flex-col gap-2 rounded-[24px] p-4">
-          <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">Prochaine chose</span>
-          <Link to={`/evenement/${next.id}`} className="font-display text-[1.2941rem] leading-tight font-extrabold text-text no-underline">
+          <span className="text-milestone-dark surtitre">Prochaine chose</span>
+          <Link to={`/evenement/${next.id}`} className="title-section text-text no-underline">
             {next.title}
           </Link>
           <p className="text-[0.9412rem] text-[#3F4946]">{whenLine(next.date, today)}</p>
@@ -130,7 +130,7 @@ export default function Calendar() {
           )}
           {/* R-068 : le jour d’une étape de vie, on la fête : un souvenir plutôt qu’une case à cocher. */}
           {!readOnly && isLifeStep(next) && canMarkDone(next.date, today) && (
-            <Link to="/noter" className="btn btn-outline min-h-12">
+            <Link to="/noter" className="btn-text self-start -ml-1">
               Noter un souvenir
             </Link>
           )}
@@ -139,7 +139,7 @@ export default function Calendar() {
 
       {coming.length > 0 && (
         <section aria-labelledby="a-venir" className="flex flex-col gap-2">
-          <h2 id="a-venir" className="font-display text-[1.1765rem] font-extrabold">
+          <h2 id="a-venir" className="title-section">
             À venir
           </h2>
           <div className="card flex flex-col p-0">
@@ -156,7 +156,7 @@ export default function Calendar() {
         {lines.map((line, i) => (
           <Link key={line.title} to={line.to} className={`tap flex min-h-[60px] items-center gap-3 px-4 py-2.5 text-text no-underline ${i ? 'border-t border-divider' : ''}`}>
             <span className="flex min-w-0 flex-1 flex-col">
-              <span className="text-[1rem] font-bold">{line.title}</span>
+              <span className="title-card">{line.title}</span>
               <span className={`truncate text-[0.8824rem] ${line.late ? 'font-semibold text-danger' : 'text-[#3F4946]'}`}>{line.detail}</span>
             </span>
             {line.ok && <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-1 text-[0.7647rem] font-bold text-primary-dark">À jour</span>}

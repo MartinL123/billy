@@ -34,7 +34,7 @@ export function PasswordSheet({ onClose }: { onClose: () => void }) {
 
   return (
     <Sheet label="Changer mon mot de passe" onClose={busy ? () => undefined : onClose}>
-      <h2 className="mt-1 font-display text-[1.4118rem] font-extrabold">Changer mon mot de passe</h2>
+      <h2 className="title-section mt-1">Changer mon mot de passe</h2>
       {/* Un vrai formulaire avec l’identifiant caché : le trousseau iCloud propose et met à jour le bon mot de passe (R-067). */}
       <form
         noValidate

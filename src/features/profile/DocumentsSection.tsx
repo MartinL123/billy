@@ -14,7 +14,7 @@ export function DocumentsSection() {
   return (
     <section className="flex flex-col gap-2.5">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-[1.1176rem] font-bold">Documents</h2>
+        <h2 className="title-section">Documents</h2>
         {documents.length > 0 && (
           <span className="text-sm text-muted">
             {documents.length} document{documents.length > 1 ? 's' : ''}

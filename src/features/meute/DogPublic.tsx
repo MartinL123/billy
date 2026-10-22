@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
+import { BackLink } from '../../components/BackLink'
 import { useParams } from 'react-router-dom'
-import { ChevronLeftIcon } from '../../components/Icons'
 import { watchFeed, watchMarks, watchMembers, watchSpots, type FeedItem, type Mark, type Member, type Spot, type WithId } from '../../firebase/community'
 import { formatAgeShort } from '../../lib/age'
 import { formatShort } from '../../lib/dates'
@@ -37,25 +37,22 @@ export default function DogPublic() {
   const shared = feed.filter((f) => f.uid === id).sort((a, b) => b.date.localeCompare(a.date))
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
-      <header className="sticky top-0 z-10 flex items-center bg-bg px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5">
-        <button type="button" onClick={back} className="btn btn-quiet min-h-12 px-4">
-          <ChevronLeftIcon size={20} />
-          La meute
-        </button>
+      <header className="sticky top-0 z-10 flex items-center bg-bg px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
+        <BackLink label="La meute" onClick={back} />
       </header>
       <main className="flex flex-col gap-5 px-5 pt-1 pb-[calc(env(safe-area-inset-bottom)+40px)]">
         <div className="flex flex-col items-center gap-2 text-center">
           <MemberAvatar member={member} size={112} />
-          <h1 className="font-display text-[1.7647rem] font-extrabold">{member.dogName}</h1>
+          <h1 className="title-screen">{member.dogName}</h1>
           <p className="text-[0.8824rem] text-muted">{[member.birthDate ? formatAgeShort(member.birthDate, today) : '', member.breed].filter(Boolean).join(' · ')}</p>
         </div>
         <section className="flex flex-col gap-2">
-          <h2 className="text-xl font-bold">Son territoire</h2>
+          <h2 className="title-section">Son territoire</h2>
           <p className="text-[1rem]">{territory.length ? `${territory.length} spot${territory.length > 1 ? 's' : ''} marqué${territory.length > 1 ? 's' : ''} : ${territory.join(', ')}` : 'Aucun spot marqué pour l’instant.'}</p>
         </section>
         {shared.length > 0 && (
           <section className="flex flex-col gap-2">
-            <h2 className="text-xl font-bold">Moments partagés</h2>
+            <h2 className="title-section">Moments partagés</h2>
             {shared.map((f) => (
               <div key={f.id} className="card flex flex-col gap-2 p-4">
                 <span className="text-sm font-semibold text-muted">{formatShort(f.date)}</span>

@@ -1,4 +1,6 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Stats } from '../../components/Stats'
+import { formatDuration } from '../../lib/balade'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { isNative } from '../../native'
 import { ChevronRightIcon, PlusIcon } from '../../components/Icons'
@@ -24,6 +26,7 @@ import { sharePercent, territoryHint } from '../../lib/territory'
 import { ofName } from '../../lib/gender'
 import { useReadOnly } from '../../firebase/viewer'
 import { WatchOptIn } from './WatchOptIn'
+import { ROUTE_COLOR } from '../../components/maplibre'
 
 const ExplorerMap = lazy(() => import('./ExplorerMap').then((m) => ({ default: m.ExplorerMap })))
 
@@ -83,7 +86,7 @@ export default function Explorer() {
   // Une balade touchée dans le panneau : son trait s’épaissit, les autres passent à 25 % ; un autre toucher la relâche.
   const [highlight, setHighlight] = useState<string>()
   const tracks = useMemo<MapWalk[]>(() => {
-    const all = shown.map((w) => ({ id: w.id, color: colors.get(w.id) ?? '#FF7A1A', points: w.route.points, bold: w.id === highlight, faded: Boolean(highlight) && w.id !== highlight }))
+    const all = shown.map((w) => ({ id: w.id, color: colors.get(w.id) ?? ROUTE_COLOR, points: w.route.points, bold: w.id === highlight, faded: Boolean(highlight) && w.id !== highlight }))
     // La balade mise en avant est dessinée en dernier, au-dessus des autres.
     return [...all.filter((t) => !t.bold), ...all.filter((t) => t.bold)]
   }, [shown, colors, highlight])
@@ -184,7 +187,8 @@ export default function Explorer() {
           // Une petite fenêtre de lieu ouverte : le toucher la referme seulement.
           onLeave: () => !selectedId && closeWalk(),
           onPhoto: () => navigate(`/souvenir/${walkEntry.id}`),
-          color: colors.get(walkEntry.id),
+          // V6 § 1 : la balade ouverte, en vert carte.
+          color: ROUTE_COLOR,
         }
       : undefined
   // Toucher un tracé (ou une balade de la liste) : elle passe au premier plan ; « Toutes les balades » revient à la vue d’ensemble.
@@ -296,12 +300,12 @@ export default function Explorer() {
           {/* V5 : le quartier, le pourcentage découvert en grand et sa barre dorée (visibles même réduit). */}
           <div ref={peekRef} className="flex items-end justify-between gap-3">
             <div className="flex min-w-0 flex-col">
-              <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">Le quartier</span>
-              <h1 className="font-display text-[1.2941rem] leading-tight font-extrabold">Le territoire {ofName(dog.name)}</h1>
+              <span className="text-milestone-dark surtitre">Le quartier</span>
+              <h1 className="title-section">Le territoire {ofName(dog.name)}</h1>
             </div>
             {share !== undefined && commune && (
               <p className="flex shrink-0 flex-col items-end leading-none" aria-label={shareLabel(share, commune.name)}>
-                <span className="font-display text-[2rem] font-extrabold text-milestone-dark">{sharePercent(share)}</span>
+                <span className="font-display text-[2rem] font-bold text-milestone-dark tabular-nums">{sharePercent(share)}</span>
                 <span className="text-[0.7647rem] font-bold text-[#3F4946]">découvert</span>
               </p>
             )}
@@ -341,12 +345,11 @@ export default function Explorer() {
                     const on = w.id === highlight
                     return (
                       <li key={w.id} className="shrink-0">
-                        <button type="button" aria-pressed={on} onClick={() => setHighlight(on ? undefined : w.id)} className={`tap flex h-full w-[148px] flex-col items-start gap-1 rounded-[16px] border-2 border-solid bg-surface px-3 py-2.5 text-left text-text ${on ? 'border-primary' : 'border-[#E6EAE7]'}`}>
+                        <button type="button" aria-pressed={on} onClick={() => setHighlight(on ? undefined : w.id)} className={`tap flex h-full w-[164px] flex-col items-start gap-1 rounded-[16px] border-2 border-solid bg-surface px-3 py-2.5 text-left text-text ${on ? 'border-primary' : 'border-[#E6EAE7]'}`}>
                           <span className="h-1.5 w-7 rounded-full" style={{ background: colors.get(w.id) }} aria-hidden="true" />
-                          <span className="line-clamp-2 text-[0.8824rem] leading-tight font-bold">{w.name}</span>
-                          <span className="text-[0.7647rem] text-[#3F4946]">
-                            {formatRelative(w.date, today).replace(/^./, (c) => c.toLocaleUpperCase('fr'))} · {formatRouteDistance(w.route.distanceM)}
-                          </span>
+                          <span className="title-card line-clamp-2">{w.name}</span>
+                          <span className="text-[0.7647rem] text-[#3F4946]">{formatRelative(w.date, today).replace(/^./, (c) => c.toLocaleUpperCase('fr'))}</span>
+                          <Stats items={[{ value: formatRouteDistance(w.route.distanceM), label: 'Distance' }, { value: w.route.durationMin ? formatDuration(w.route.durationMin) : '', label: 'Durée' }]} className="mt-auto self-stretch" />
                         </button>
                       </li>
                     )
@@ -360,7 +363,7 @@ export default function Explorer() {
                 </ul>
               )}
               {highlighted && (
-                <button type="button" onClick={() => openWalk(highlighted.id)} className="btn btn-quiet min-h-11 self-start px-0 text-[0.8824rem] text-primary">
+                <button type="button" onClick={() => openWalk(highlighted.id)} className="btn-text -ml-1 self-start">
                   La revoir et y placer des repères
                   <ChevronRightIcon size={18} />
                 </button>

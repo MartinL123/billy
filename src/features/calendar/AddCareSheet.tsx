@@ -48,12 +48,12 @@ export function AddCareSheet({ onClose, onSaved }: { onClose: () => void; onSave
     onClose()
   }
 
-  const option = (on: boolean) => `tap min-h-[52px] rounded-[16px] border-2 border-solid text-[0.9412rem] font-extrabold ${on ? 'border-primary bg-primary-soft text-primary-dark' : 'border-line-strong bg-surface text-text'}`
+  const option = (on: boolean) => `tap min-h-[52px] rounded-[16px] border-2 border-solid text-[0.9412rem] font-bold ${on ? 'border-primary bg-primary-soft text-primary-dark' : 'border-line-strong bg-surface text-text'}`
   return (
     <Sheet label={type ? 'Quand\u00a0?' : 'Qu’ajoutez-vous\u00a0?'} onClose={onClose}>
       {!type ? (
         <>
-          <h2 className="mt-1 font-display text-[1.4118rem] font-extrabold">Qu’ajoutez-vous ?</h2>
+          <h2 className="title-section mt-1">Qu’ajoutez-vous ?</h2>
           <div className="grid grid-cols-2 gap-2.5">
             {TILES.map((tile) => (
               <button key={tile.id} type="button" onClick={() => pick(tile.id)} className="tap flex min-h-[72px] items-center gap-2.5 rounded-[18px] border-2 border-solid border-[#E6EAE7] bg-surface px-3.5 text-left text-[0.9412rem] font-bold text-text">
@@ -65,8 +65,8 @@ export function AddCareSheet({ onClose, onSaved }: { onClose: () => void; onSave
         </>
       ) : (
         <>
-          <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{EVENT_TYPES[type].title}</span>
-          <h2 className="font-display text-[1.4118rem] font-extrabold">Quand ?</h2>
+          <span className="text-milestone-dark surtitre">{EVENT_TYPES[type].title}</span>
+          <h2 className="title-section">Quand ?</h2>
           <div role="radiogroup" aria-label="Quand" className="grid grid-cols-3 gap-2.5">
             <button type="button" role="radio" aria-checked={when === 'today'} onClick={() => setWhen('today')} className={option(when === 'today')}>
               Aujourd’hui
@@ -82,7 +82,7 @@ export function AddCareSheet({ onClose, onSaved }: { onClose: () => void; onSave
           <button type="button" onClick={save} disabled={!isValidISO(date)} className="btn btn-main min-h-14">
             Enregistrer
           </button>
-          <button type="button" onClick={() => setType(undefined)} className="btn btn-quiet min-h-11 self-center px-4 text-[0.8824rem]">
+          <button type="button" onClick={() => setType(undefined)} className="btn-text self-center px-4">
             Choisir autre chose
           </button>
         </>

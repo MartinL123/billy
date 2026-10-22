@@ -1,4 +1,5 @@
 import { Link, Navigate } from 'react-router-dom'
+import { Stats } from '../../components/Stats'
 import { formatDuration } from '../../lib/balade'
 import { formatLong } from '../../lib/dates'
 import { formatRouteDistance } from '../../lib/route'
@@ -31,40 +32,36 @@ export default function ImportResult() {
     <div className="mx-auto min-h-dvh max-w-[430px]">
       <main className="flex flex-col gap-4 px-5 pt-[calc(env(safe-area-inset-top)+24px)] pb-[calc(env(safe-area-inset-bottom)+120px)]">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-[1.7647rem] leading-tight font-extrabold">{nothing ? `Tout était déjà dans ${APP_NAME}` : 'Le brouillard s’est levé !'}</h1>
+          <h1 className="title-screen">{nothing ? `Tout était déjà dans ${APP_NAME}` : 'Le brouillard s’est levé !'}</h1>
           <p className="text-[1rem] text-muted">{nothing ? 'Aucune nouvelle balade dans ces fichiers.' : `${dog.name} a un nouveau bout de territoire.`}</p>
         </div>
         {!nothing && (
           <>
-            {result.share && gained >= 1 && <span className="self-start rounded-full bg-gold px-3 py-1.5 text-[0.8824rem] font-extrabold text-gold-dark">+ {gained} % découvert</span>}
-            {/* Des km et un % de la commune, pas de « cases » (audit R-018). */}
-            <div className={`grid gap-2 text-center ${result.share ? 'grid-cols-3' : 'grid-cols-2'}`}>
-              {[
-                [String(result.walks.length), `balade${result.walks.length > 1 ? 's' : ''} ajoutée${result.walks.length > 1 ? 's' : ''}`],
-                [formatRouteDistance(result.distanceM), 'parcourus'],
-                ...(result.share ? [[`${percent(result.share.after)} %`, `${ofName(result.share.name)} découvert`]] : []),
-              ].map(([value, label]) => (
-                <div key={label} className="card flex flex-col items-center gap-0.5 px-2 py-3">
-                  <span className="font-display text-[1.2941rem] font-extrabold">{value}</span>
-                  <span className="text-[0.7647rem] leading-tight text-muted">{label}</span>
-                </div>
-              ))}
-            </div>
+            {/* Des km et un % de la commune, pas de « cases » (audit R-018) ; en Stats (V6 § 1). */}
+            <Stats
+              items={[
+                { value: String(result.walks.length), label: `Balade${result.walks.length > 1 ? 's' : ''} ajoutée${result.walks.length > 1 ? 's' : ''}` },
+                { value: formatRouteDistance(result.distanceM), label: 'Parcourus' },
+                ...(result.share ? [{ value: `${percent(result.share.after)}\u00a0%`, label: `${ofName(result.share.name)} découvert` }] : []),
+                ...(result.share && gained >= 1 ? [{ value: `+${gained}\u00a0%`, label: 'Gagnés' }] : []),
+              ]}
+            />
             {notice && <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[1rem] leading-snug text-[#1D3F73]">{notice}</p>}
             <ul className="card m-0 flex list-none flex-col p-0">
               {result.walks.slice(0, 30).map((w, i) => (
                 <li key={w.entryId} className={i ? 'border-t border-divider' : ''}>
                   <Link to={`/souvenir/${w.entryId}`} className="flex min-h-14 items-center gap-3 px-3 py-2.5 text-text no-underline">
-                    <RouteThumb points={w.points} size={48} />
+                    <RouteThumb points={w.points} size={56} />
                     <span className="flex min-w-0 flex-1 flex-col">
-                      <span className="text-[1rem] font-bold">{w.name}</span>
-                      <span className="text-[0.8824rem] text-muted">{[formatLong(w.date), formatRouteDistance(w.distanceM), w.durationMin ? formatDuration(w.durationMin) : ''].filter(Boolean).join(' · ')}</span>
+                      <span className="title-card">{w.name}</span>
+                      <span className="text-[0.8824rem] text-muted">{formatLong(w.date)}</span>
+                      <Stats items={[{ value: formatRouteDistance(w.distanceM), label: 'Distance' }, { value: w.durationMin ? formatDuration(w.durationMin) : '', label: 'Durée' }]} className="mt-1" />
                     </span>
                   </Link>
                 </li>
               ))}
             </ul>
-            {result.walks.length > 30 && <p className="text-[0.8824rem] text-muted">Et {result.walks.length - 30} autres, dans ses balades.</p>}
+            {result.walks.length > 30 && <p className="text-[0.8824rem] text-muted">Et les autres, dans ses balades.</p>}
           </>
         )}
         {result.line && <p className="text-[0.8824rem] text-muted">{result.line}</p>}

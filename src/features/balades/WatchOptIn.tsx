@@ -28,7 +28,7 @@ export function WatchOptIn({ compact = false }: { compact?: boolean }) {
       </button>
       {asking && (
         <Sheet label="Les balades de votre montre" onClose={() => setAsking(false)}>
-          <h2 className="mt-1 font-display text-[1.5294rem] leading-tight font-extrabold">Les balades de votre montre</h2>
+          <h2 className="title-section mt-1">Les balades de votre montre</h2>
           <p className="text-[0.9412rem] leading-snug text-[#3F4946]">
             Quand vous lancez une séance « Marche » sur votre Apple Watch, la balade arrive seule dans {APP_NAME}, avec son tracé.
           </p>
@@ -46,7 +46,7 @@ export function WatchOptIn({ compact = false }: { compact?: boolean }) {
           >
             Continuer
           </button>
-          <button type="button" onClick={() => setAsking(false)} className="btn btn-quiet min-h-11">
+          <button type="button" onClick={() => setAsking(false)} className="btn-text self-center px-4">
             Plus tard
           </button>
         </Sheet>

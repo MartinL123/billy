@@ -37,7 +37,7 @@ export function ExportButton() {
   }
 
   return (
-    <button type="button" onClick={run} disabled={busy} className="btn btn-outline">
+    <button type="button" onClick={run} disabled={busy} className="btn-text self-start -ml-1">
       {busy ? 'Un instant…' : 'Exporter mes données'}
     </button>
   )

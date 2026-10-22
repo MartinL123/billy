@@ -211,7 +211,7 @@ export default function DocumentForm() {
 
       {picking && (
         <Sheet label="Lier à un événement" onClose={() => setPicking(false)}>
-          <h2 className="my-1 font-display text-2xl font-bold">Lier à un événement</h2>
+          <h2 className="title-section my-1">Lier à un événement</h2>
           <div className="flex flex-col">
             {[undefined, ...pickerEvents].map((event) => {
               const active = (event?.id ?? '') === (linkedEvent?.id ?? '')

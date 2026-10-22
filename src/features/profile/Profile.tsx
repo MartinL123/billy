@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { BackLink } from '../../components/BackLink'
 import { Link } from 'react-router-dom'
-import { ChevronLeftIcon, ChevronRightIcon, CloudCheckIcon, CloudPendingIcon, NoteIcon, PhoneIcon } from '../../components/Icons'
+import { ChevronRightIcon, CloudCheckIcon, CloudPendingIcon, NoteIcon, PhoneIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
 import { ConfirmSheet, Sheet } from '../../components/Sheet'
 import { auth } from '../../firebase/app'
@@ -59,12 +60,12 @@ function ContactRow({ role, callLabel, contact, first }: { role: string; callLab
       </div>
       {/* « Appeler » seulement si un numéro est enregistré. */}
       {phone ? (
-        <a href={`tel:${phone}`} aria-label={callLabel} className="btn btn-outline min-h-12 shrink-0 px-4">
+        <a href={`tel:${phone}`} aria-label={callLabel} className="btn-text shrink-0 px-3">
           <PhoneIcon size={20} />
           Appeler
         </a>
       ) : (
-        <EditLink to="/profil/modifier" aria-label={`Ajouter : ${role.toLocaleLowerCase('fr')}`} className="btn btn-outline min-h-12 shrink-0 px-4">
+        <EditLink to="/profil/modifier" aria-label={`Ajouter : ${role.toLocaleLowerCase('fr')}`} className="btn-text shrink-0 px-3">
           Ajouter
         </EditLink>
       )}
@@ -109,7 +110,7 @@ function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; onl
 
   return (
     <Sheet label="Supprimer mon compte" onClose={busy ? () => undefined : onClose}>
-      <h2 className="mt-1 font-display text-[1.4118rem] leading-tight font-extrabold">Supprimer mon compte et mes données ?</h2>
+      <h2 className="title-section mt-1">Supprimer mon compte et mes données ?</h2>
       <p className="text-[1rem] leading-snug">Tout ce qui concerne {dogName} sera effacé pour toujours : profil, carnet, photos, documents, calendrier et progression. On ne peut pas revenir en arrière.</p>
       <label className="flex flex-col gap-1.5">
         <span className="text-[0.8824rem] font-semibold">Votre mot de passe, pour confirmer</span>
@@ -172,30 +173,27 @@ export default function Profile() {
 
   return (
     <div className="mx-auto flex max-w-[430px] flex-col gap-5 px-5 pb-[calc(env(safe-area-inset-bottom)+40px)]">
-      <header className="sticky top-0 z-10 -mx-5 flex items-center justify-between bg-bg px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-1.5">
-        <button type="button" onClick={back} className="btn btn-quiet min-h-12 px-4">
-          <ChevronLeftIcon size={20} />
-          Retour
-        </button>
+      <header className="sticky top-0 z-10 -mx-5 flex items-center justify-between bg-bg px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
+        <BackLink label="Retour" onClick={back} />
         <span className="text-lg font-bold">Son profil</span>
         <div className="w-[104px]" />
       </header>
 
       <div className="flex flex-col items-center gap-2 text-center">
         <DogPhoto size={120} alt={`Photo ${ofName(dog.name)}`} className="rounded-full shadow-[0_2px_8px_rgba(24,32,30,0.12)]" />
-        <h1 className="mt-1 font-display text-[1.8824rem] leading-none font-extrabold">{dog.name}</h1>
+        <h1 className="title-screen mt-1">{dog.name}</h1>
         <p className="text-base text-muted">
           {[formatAgeShort(dog.birthDate, today)].filter(Boolean).join(' · ')}
         </p>
         {!readOnly && (
-          <EditLink to="/profil/modifier" className="btn btn-outline mt-1">
+          <EditLink to="/profil/modifier" className="btn-text px-4">
             {dog.photoThumbFileId ? 'Changer la photo' : 'Ajouter une photo'}
           </EditLink>
         )}
       </div>
 
       <section className="flex flex-col gap-2.5">
-        <h2 className="text-xl font-bold">Son identité</h2>
+        <h2 className="title-section">Son identité</h2>
         <Pending show={dog.pending} />
         <div className="card px-4 py-1">
           <InfoRow first label={place('Né le')} value={isValidISO(dog.birthDate) ? `${formatLong(dog.birthDate)} · ${formatAgeShort(dog.birthDate, today)}` : 'Pas encore renseigné'} />
@@ -214,7 +212,7 @@ export default function Profile() {
 
       {dog.feeding && (
         <section className="flex flex-col gap-2.5">
-          <h2 className="text-xl font-bold">Au quotidien</h2>
+          <h2 className="title-section">Au quotidien</h2>
           <div className="card px-4 py-1">
             <InfoRow first label="Ration" value={`${dog.feeding.gramsPerDay} g par jour`} />
             <InfoRow label="Repas" value={sortMeals(dog.feeding.meals).map((m) => formatTime(m.time)).join(' · ') || 'À compléter'} />
@@ -226,7 +224,7 @@ export default function Profile() {
       )}
 
       <section className="flex flex-col gap-2.5">
-        <h2 className="text-xl font-bold">{place('Comment il réagit')}</h2>
+        <h2 className="title-section">{place('Comment il réagit')}</h2>
         <div className="card flex flex-col gap-3 p-4">
           {sentences.length > 0 ? (
             <ul className="m-0 flex list-none flex-col gap-1.5 p-0 text-[1rem] leading-snug">
@@ -238,14 +236,14 @@ export default function Profile() {
             <p className="text-[1rem] leading-snug text-muted">Pas encore renseigné.</p>
           )}
           {dog.homeMood && <p className="text-[1rem] leading-snug">{place(`À la maison, il est plutôt ${dog.homeMood.toLocaleLowerCase('fr')}.`)}</p>}
-          <EditLink to="/questionnaire?etape=reactions" className="btn btn-outline">
+          <EditLink to="/questionnaire?etape=reactions" className="btn-text -ml-1 self-start">
             Modifier ses réactions
           </EditLink>
         </div>
       </section>
 
       <section className="flex flex-col gap-2.5">
-        <h2 className="text-xl font-bold">Contacts</h2>
+        <h2 className="title-section">Contacts</h2>
         <div className="card px-4 py-1">
           <ContactRow first role="Vétérinaire" callLabel="Appeler le vétérinaire" contact={dog.vet} />
           <ContactRow role="Éducateur" callLabel="Appeler l’éducateur" contact={dog.trainer} />
@@ -261,7 +259,7 @@ export default function Profile() {
       {/* R-079 : les marches de l’Apple Watch, seulement si on le choisit (app iOS). */}
       {isNative() && (
         <section className="flex flex-col gap-2.5">
-          <h2 className="text-xl font-bold">Apple Watch</h2>
+          <h2 className="title-section">Apple Watch</h2>
           <WatchOptIn />
         </section>
       )}
@@ -273,7 +271,7 @@ export default function Profile() {
       <Link to={status.complete ? '/questionnaire?etape=fin' : '/questionnaire'} className="card-link min-h-16">
         <NoteIcon size={24} className="shrink-0 text-primary" />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[1rem] font-bold">Questionnaire de départ</span>
+          <span className="title-card">Questionnaire de départ</span>
           <span className="text-sm text-muted">{statusLabel(status)}</span>
         </span>
         <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
@@ -282,7 +280,7 @@ export default function Profile() {
       <FamilySection />
 
       <section className="flex flex-col gap-2.5">
-        <h2 className="text-xl font-bold">Compte</h2>
+        <h2 className="title-section">Compte</h2>
         <div className="card px-4 py-1">
           <div className="flex items-center gap-3 py-3.5">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-placeholder font-bold text-[#3F4946]">{email.charAt(0).toUpperCase()}</div>
@@ -315,14 +313,14 @@ export default function Profile() {
             {spaceLevel !== 'ok' && <p role="status" className="text-[0.8824rem] leading-snug text-milestone-dark">{spaceLevel === 'plein' ? FULL_MESSAGE : ALMOST_FULL_MESSAGE}</p>}
           </div>
         </div>
-        <button type="button" onClick={() => setChangingPassword(true)} className="btn btn-outline">
+        <button type="button" onClick={() => setChangingPassword(true)} className="btn-text self-start -ml-1">
           Changer mon mot de passe
         </button>
         {/* T-065 : dates, durées, sources et compteurs, sans lieux ni textes ; le fichier reste sur l'appareil. */}
         <ExportButton />
         {/* Dans l’app iOS, elle est déjà sur le téléphone. */}
         {!isNative() && (
-          <Link to="/installer" className="btn btn-outline">
+          <Link to="/installer" className="btn-text self-start -ml-1">
             Mettre l’app sur mon téléphone
           </Link>
         )}

@@ -89,7 +89,7 @@ export default function Mission() {
 
       {finished ? (
         <main className="flex flex-1 flex-col gap-4 pt-10">
-          <h1 className="font-display text-[1.7647rem] leading-tight font-extrabold">Ça s’est bien passé ?</h1>
+          <h1 className="title-screen">Ça s’est bien passé ?</h1>
           <p className="text-[1rem] text-muted">Une seule réponse, la prochaine mission s’adapte.</p>
           <div className="grid grid-cols-3 gap-2.5">
             {FEELINGS.map(({ value, label }) => (
@@ -104,10 +104,10 @@ export default function Mission() {
       ) : (
         <main className="flex flex-1 flex-col gap-3 pt-6">
           <p className="text-[0.8824rem] font-bold text-milestone-dark">{reminder}</p>
-          <h1 className="font-display text-[1.7647rem] leading-tight font-extrabold">{step.title}</h1>
+          <h1 className="title-screen">{step.title}</h1>
           {step.help && <p className="text-[1rem] leading-snug text-[#3F4946]">{step.help}</p>}
           {step.seconds ? (
-            <p role="timer" aria-live="off" className="font-display text-[3.2941rem] leading-none font-extrabold text-primary tabular-nums">
+            <p role="timer" aria-live="off" className="font-display text-[3.2941rem] leading-none font-bold text-primary tabular-nums">
               {formatCountdown(left)}
             </p>
           ) : (
@@ -115,7 +115,7 @@ export default function Mission() {
           )}
           {needs && <span className="self-start rounded-full bg-primary-soft px-3 py-1.5 text-[0.8824rem] font-semibold text-primary-dark">Il vous faut : {needs}</span>}
           {index === steps.length - 1 && exercise && (
-            <button type="button" onClick={() => setMore(true)} className="btn btn-quiet min-h-11 self-start px-1 text-[0.8824rem] text-primary underline">
+            <button type="button" onClick={() => setMore(true)} className="btn-text -ml-1 self-start">
               En savoir plus
             </button>
           )}
@@ -129,7 +129,7 @@ export default function Mission() {
 
       {more && exercise && (
         <Sheet label="En savoir plus" onClose={() => setMore(false)}>
-          <h2 className="mt-1 font-display text-[1.2941rem] font-extrabold">Bon à savoir</h2>
+          <h2 className="title-section mt-1">Bon à savoir</h2>
           {exercise.caution && <p className="text-[1rem] leading-snug font-semibold">{exercise.caution}</p>}
           <p className="text-[1rem] leading-snug">{place('S’il ne mange plus, il est trop stressé : arrêtez et revenez plus facile la prochaine fois.')}</p>
           <p className="text-[0.8824rem] text-muted">

@@ -40,12 +40,16 @@ export function filterWalks(items: WalkItem[], filter: WalkFilter, today: ISODat
   return items
 }
 
-/** « 12 balades · 18,4 km · 9 h 40 ensemble » */
-export function walksSummary(items: WalkItem[]): string {
+/** Le résumé en chiffres (composant Stats, V6 § 1) : 12 balades · 18,4 km · 9 h 40 ensemble (sans durée connue, pas de temps). */
+export function walksSummary(items: WalkItem[]): { value: string; label: string }[] {
   const km = items.reduce((s, w) => s + w.route.distanceM, 0) / 1000
   const min = items.reduce((s, w) => s + (w.route.durationMin ?? 0), 0)
-  const time = min ? ` · ${Math.floor(min / 60) ? `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, '0')}` : `${min} min`} ensemble` : ''
-  return `${items.length} balade${items.length > 1 ? 's' : ''} · ${km.toFixed(1).replace('.', ',')} km${time}`
+  const out = [
+    { value: String(items.length), label: items.length > 1 ? 'Balades' : 'Balade' },
+    { value: `${km.toFixed(1).replace('.', ',')}\u00a0km`, label: 'Distance' },
+  ]
+  if (min) out.push({ value: Math.floor(min / 60) ? `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, '0')}` : `${min}\u00a0min`, label: 'Ensemble' })
+  return out
 }
 
 /** Les communes visitées, de la plus fréquente à la moins fréquente. */
@@ -59,7 +63,8 @@ export function communesOf(items: WalkItem[]): string[] {
 export function walkTags(item: WalkItem): string[] {
   const tags = [item.source === 'watch' || item.route.source === 'watch' ? 'Apple Watch' : item.source === 'gps' || item.route.source === 'gps' ? 'iPhone' : item.source === 'strava' || item.route.source ? 'Strava' : 'Tracé à la main']
   const fears = item.route.moments.filter((m) => m.type === 'peur' || m.type === 'grogne').length
-  if (fears) tags.push(`${fears} peur${fears > 1 ? 's' : ''}`)
+  // Pas de chiffre hors du composant Stats sur les écrans de balade (V6 § 1).
+  if (fears) tags.push(fears > 1 ? 'Des peurs' : 'Une peur')
   if (item.route.moments.some((m) => m.type === 'rappel')) tags.push('Super rappel')
   return tags
 }
@@ -70,7 +75,8 @@ export function walkTags(item: WalkItem): string[] {
  * Une balade plus récente ne change pas la couleur des autres ; une balade plus ancienne, importée après coup, décale
  * celle des balades suivantes.
  */
-export const WALK_COLORS = ['#FF7A1A', '#22B8F0', '#FF4FA3', '#9BD400', '#FFC21A', '#8C6BFF', '#00C99A', '#FF5A4E']
+// V6 § 1 : la première couleur est le vert des tracés (#2F8F6B) ; l’orange reste réservé à l’action.
+export const WALK_COLORS = ['#2F8F6B', '#22B8F0', '#FF4FA3', '#9BD400', '#FFC21A', '#8C6BFF', '#00C99A', '#FF5A4E']
 
 export function walkColors(items: WalkItem[]): Map<string, string> {
   const oldestFirst = [...items].sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id))

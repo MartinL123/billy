@@ -131,12 +131,12 @@ interface ConfirmProps {
 export function ConfirmSheet({ title, message, confirmLabel, tone = 'danger', onConfirm, onCancel }: ConfirmProps) {
   return (
     <Sheet label={title} onClose={onCancel}>
-      <h2 className="mt-1 font-display text-2xl font-bold">{title}</h2>
+      <h2 className="title-section mt-1">{title}</h2>
       {message && <p className="text-[0.8824rem] leading-snug text-muted">{message}</p>}
       <button type="button" onClick={onConfirm} className={`mt-2 h-[54px] rounded-full border-0 text-[1rem] font-bold text-white ${tone === 'danger' ? 'bg-danger' : 'bg-primary'}`}>
         {confirmLabel}
       </button>
-      <button type="button" onClick={onCancel} className="btn btn-quiet">
+      <button type="button" onClick={onCancel} className="btn-text self-center px-4">
         Annuler
       </button>
     </Sheet>

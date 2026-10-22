@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
+import { Stats } from '../../components/Stats'
+import { BackLink } from '../../components/BackLink'
 import { outlineButton } from '../../components/Form'
-import { ChevronLeftIcon, PinIcon } from '../../components/Icons'
+import { PinIcon } from '../../components/Icons'
 import { formatDuration } from '../../lib/balade'
 import { formatLong } from '../../lib/dates'
 import { durationLabel, formatRouteDistance, type Route } from '../../lib/route'
@@ -12,7 +14,11 @@ import { useSheet } from './useSheet'
  */
 export function WalkPanel({ entryId, name, date, route, color, replaying, onReplay, onAddMark, onClose, readOnly = false }: { readOnly?: boolean; entryId: string; name: string; date: string; route: Route; color?: string; replaying: boolean; onReplay: () => void; /** R-059 : `visibleBottom` = le haut du panneau (la carte visible s’arrête là). */ onAddMark: (visibleBottom: number) => void; onClose: () => void }) {
   const sheet = useSheet()
-  const stats = [formatLong(date), formatRouteDistance(route.distanceM), route.durationMin ? (route.source ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', route.moments.length ? `${route.moments.length} repère${route.moments.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')
+  const stats = [
+    { value: formatRouteDistance(route.distanceM), label: 'Distance' },
+    { value: route.durationMin ? (route.source ? formatDuration(route.durationMin) : durationLabel(route.durationMin)) : '', label: 'Durée' },
+    { value: route.moments.length ? String(route.moments.length) : '', label: route.moments.length > 1 ? 'Repères' : 'Repère' },
+  ]
   return (
     <section
       ref={sheet.ref}
@@ -30,22 +36,21 @@ export function WalkPanel({ entryId, name, date, route, color, replaying, onRepl
           <span className="h-1.5 w-11 rounded-full bg-line-strong" />
         )}
       </button>
-      <div className="-ml-2 flex shrink-0 items-center justify-between">
-        <button type="button" onClick={onClose} className="flex min-h-11 items-center gap-1 border-0 bg-transparent px-2 text-[0.8824rem] font-bold text-primary">
-          <ChevronLeftIcon size={18} />
-          Toutes les balades
-        </button>
-        <Link to={`/souvenir/${entryId}`} className="flex min-h-11 items-center px-2 text-[0.8824rem] font-bold text-primary no-underline">
+      <div className="flex shrink-0 items-center justify-between">
+        <BackLink label="Toutes les balades" onClick={onClose} />
+        <Link to={`/souvenir/${entryId}`} className="btn-text -mr-1">
           Le souvenir
         </Link>
       </div>
-      <h1 className="flex shrink-0 items-center gap-2.5 font-display text-[1.2941rem] leading-tight font-extrabold">
+      <h1 className="flex shrink-0 items-center gap-2.5 title-section">
         {color && <span className="h-1.5 w-6 shrink-0 rounded-full" style={{ background: color }} aria-hidden="true" />}
         {name}
       </h1>
       {/* Réduit, le panneau ne garde que ce qui précède (le nom) : la suite glisse sous la barre. */}
       <div ref={sheet.bodyRef} onScroll={sheet.onBodyScroll} className={`-mx-5 flex min-h-0 flex-1 flex-col gap-2.5 overscroll-contain px-5 pb-9 [&>*]:shrink-0 ${sheet.snap === 'full' ? 'overflow-y-auto' : 'overflow-y-hidden'}`} aria-hidden={sheet.collapsed || undefined} inert={sheet.collapsed || undefined}>
-        <p className="text-[0.8824rem] text-muted">{stats}</p>
+        <p className="text-[0.8824rem] text-muted">{formatLong(date)}</p>
+        <Stats items={stats} />
+        {route.source === 'watch' && <p className="source-note">Enregistré par l’Apple Watch</p>}
         <p className="text-[0.8824rem] text-[#3F4946]">{readOnly ? 'Touchez une autre balade pour l’ouvrir.' : 'Touchez le tracé pour ajouter un repère, une autre balade pour l’ouvrir.'}</p>
         {route.points.length > 1 && (
           <button type="button" onClick={onReplay} className="btn btn-main min-h-[52px] gap-2">

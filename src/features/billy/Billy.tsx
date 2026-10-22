@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import { BackLink } from '../../components/BackLink'
 import { Link } from 'react-router-dom'
-import { ChevronLeftIcon, TargetIcon } from '../../components/Icons'
+import { TargetIcon } from '../../components/Icons'
 import { MAX_LEVEL } from '../../content/training'
 import { bossById } from '../../content/training'
 import { useData } from '../../firebase/store'
@@ -67,23 +68,19 @@ export default function Billy() {
   return (
     <div className="flex flex-col gap-4 px-5 pb-[88px]">
       <div className="flex items-center justify-between">
-        <button type="button" onClick={back} className="btn btn-quiet min-h-11 px-2">
-          <ChevronLeftIcon size={20} />
-          Accueil
-        </button>
+        <BackLink label="Accueil" onClick={back} />
         {/* Gelé (T-072) : la pastille d’os vers la boutique est retirée. */}
       </div>
       <div className="flex flex-col items-center gap-1.5 text-center">
-        <span className="overflow-hidden rounded-full border-4 border-solid border-milestone">
-          <DogPhoto size={76} />
-        </span>
-        <h1 className="font-display text-[1.7647rem] leading-tight font-extrabold">{dog.unnamed ? 'Votre chien' : dog.name}</h1>
+        {/* V6 § 1 : l’avatar sans bord orange. */}
+        <DogPhoto size={76} />
+        <h1 className="title-screen">{dog.unnamed ? 'Votre chien' : dog.name}</h1>
         {age && <p className="text-[0.9412rem] text-[#3F4946]">{age}</p>}
       </div>
 
       <section aria-labelledby="apprend" className="flex flex-col gap-2.5">
         <div className="flex items-center justify-between gap-2">
-          <h2 id="apprend" className="font-display text-xl font-extrabold">
+          <h2 id="apprend" className="title-section">
             {place('Ce qu’il apprend')}
           </h2>
           {/* T-067 : choisir ses compétences en cours (la mission du jour en dépend) ; seul accès à cet écran. */}
@@ -111,10 +108,10 @@ export default function Billy() {
               </button>
               {open && (
                 <div className="anim-in flex flex-col gap-0.5 border-0 border-t border-solid border-[#E6EAE7] pt-2.5">
-                  <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">{next ? 'Prochaine étape' : 'Tout est acquis'}</span>
+                  <span className="text-milestone-dark surtitre">{next ? 'Prochaine étape' : 'Tout est acquis'}</span>
                   {next && <span className="text-[0.9412rem] text-[#3F4946]">{next}</span>}
-                  <Link to={`/competence/${id}`} className="inline-flex min-h-11 items-center self-start text-[0.8824rem] font-bold text-primary no-underline">
-                    Voir tout son chemin ›
+                  <Link to={`/competence/${id}`} className="btn-text -ml-1 self-start">
+                    Voir tout son chemin
                   </Link>
                 </div>
               )}
@@ -126,7 +123,7 @@ export default function Billy() {
       <nav aria-label={`Tout sur ${dog.name}`} className="grid grid-cols-2 gap-3">
         {tiles.map((tile) => (
           <Link key={tile.title} to={tile.to} className="card tap flex min-h-[88px] flex-col gap-1 rounded-[20px] p-3.5 text-text no-underline">
-            <span className="text-[0.9412rem] font-bold">{tile.title}</span>
+            <span className="title-card">{tile.title}</span>
             <span className="text-[0.8235rem] leading-snug text-[#3F4946]">{tile.detail}</span>
           </Link>
         ))}

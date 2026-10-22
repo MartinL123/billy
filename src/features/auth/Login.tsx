@@ -58,7 +58,7 @@ export default function Login() {
     <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col px-6 pt-[calc(env(safe-area-inset-top)+72px)] pb-[calc(env(safe-area-inset-bottom)+32px)]">
       <div className="flex flex-col items-center gap-4 text-center">
         <Logo />
-        <h1 className="font-display text-[2rem] font-bold tracking-[-0.5px]">{APP_NAME}</h1>
+        <h1 className="font-display text-[2rem] font-semibold tracking-[-0.5px]">{APP_NAME}</h1>
         <p className="text-base text-muted">{APP_TAGLINE}</p>
       </div>
 

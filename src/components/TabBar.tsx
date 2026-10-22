@@ -22,7 +22,7 @@ function SideTab({ to, label, icon, badge = 0, className = '' }: { to: string; l
           <span className={`relative flex h-8 w-[60px] items-center justify-center rounded-full ${isActive ? 'bg-primary-soft' : ''}`}>
             {icon}
             {/* V5 : un soin en retard se voit depuis n’importe quel onglet. */}
-            {badge > 0 && <span aria-hidden="true" className="absolute top-[-4px] right-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-solid border-surface bg-danger px-1 text-[0.6471rem] font-extrabold text-white">{badge}</span>}
+            {badge > 0 && <span aria-hidden="true" className="absolute top-[-4px] right-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-solid border-surface bg-danger px-1 text-[0.6471rem] font-bold text-white">{badge}</span>}
           </span>
           <span className="max-w-full truncate px-1">{label}</span>
         </>

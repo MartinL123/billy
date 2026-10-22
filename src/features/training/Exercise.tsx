@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { BackLink } from '../../components/BackLink'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, TargetIcon } from '../../components/Icons'
+import { CheckIcon, ChevronRightIcon, TargetIcon } from '../../components/Icons'
 import { Sheet } from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
 import { inkOn, stepPhrase, territoryOf } from '../../content/phrases'
@@ -101,7 +102,7 @@ function useTimer(minutes: number) {
   return { running: endsAt !== null, left, finished, start, stop, dismiss: () => setFinished(false) }
 }
 
-const sectionTitle = 'text-[0.7647rem] font-extrabold tracking-[0.6px] text-muted uppercase'
+const sectionTitle = 'surtitre text-muted'
 
 /** Journée de repos : une page simple, sans minuteur. Elle compte comme une vraie action. */
 function RestDay() {
@@ -118,12 +119,9 @@ function RestDay() {
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
       <header className="flex flex-col gap-3 rounded-b-[28px] bg-primary px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white">
-        <button type="button" onClick={back} className="flex min-h-12 items-center gap-1.5 self-start rounded-full border-2 border-solid border-white/60 bg-transparent px-4 text-[1rem] font-semibold text-white">
-          <ChevronLeftIcon size={20} />
-          Accueil
-        </button>
-        <p className="text-[0.7647rem] font-extrabold tracking-[0.8px] uppercase">Mission du jour</p>
-        <h1 className="font-display text-[1.7647rem] leading-none font-extrabold">Aujourd’hui, repos</h1>
+        <BackLink label="Accueil" onClick={back} onDark />
+        <p className="surtitre">Mission du jour</p>
+        <h1 className="title-screen">Aujourd’hui, repos</h1>
         <p className="text-[0.8824rem] leading-snug text-white/90">{quest.afterHardDay ? 'Hier était difficile : aujourd’hui, on souffle.' : 'Un jour sans exercice l’aide à retenir ce qu’il apprend.'}</p>
       </header>
       <main className="flex flex-col gap-4 px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+120px)]">
@@ -199,12 +197,9 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
       <header className="flex flex-col gap-3 rounded-b-[28px] px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white" style={{ background: inkOn(territory) }}>
-        <button type="button" onClick={back} className="flex min-h-12 items-center gap-1.5 self-start rounded-full border-2 border-solid border-white/60 bg-transparent px-4 text-[1rem] font-semibold text-white">
-          <ChevronLeftIcon size={20} />
-          {fromQuest ? 'Accueil' : 'Retour'}
-        </button>
-        {fromQuest && <p className="text-[0.7647rem] font-extrabold tracking-[0.8px] uppercase">Mission du jour</p>}
-        <h1 className="font-display text-[1.7647rem] leading-none font-extrabold">{exercise.name}</h1>
+        <BackLink label={fromQuest ? 'Accueil' : 'Retour'} onClick={back} onDark />
+        {fromQuest && <p className="surtitre">Mission du jour</p>}
+        <h1 className="title-screen">{exercise.name}</h1>
         <SkillPill bossId={skill} onDark />
         <p className="text-[0.8824rem] leading-snug text-white/90">Étape « {stepPhrase(skill, step)} »</p>
         <div className="flex flex-wrap gap-2">
@@ -236,7 +231,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
             {exercise.steps.map((text, i) => (
               <li key={text} className="flex items-start gap-3">
                 {/* Rond de 28 px, centré sur la première ligne : le texte a un interligne de 28 px. */}
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-full text-[0.8824rem] leading-none font-extrabold text-white" style={{ background: inkOn(territory) }}>
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full text-[0.8824rem] leading-none font-bold text-white" style={{ background: inkOn(territory) }}>
                   {i + 1}
                 </span>
                 <span className="text-[1rem] leading-7">{place(text)}</span>
@@ -246,7 +241,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
         </section>
 
         <section className="flex flex-col gap-2 rounded-[20px] bg-[#FFF8E6] p-4">
-          <h2 className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-gold-dark uppercase">Bon à savoir</h2>
+          <h2 className="text-gold-dark surtitre">Bon à savoir</h2>
           {exercise.caution && <p className="text-[1rem] leading-snug font-semibold text-gold-dark">{exercise.caution}</p>}
           <p className="text-[1rem] leading-snug text-gold-dark">{place(GENERIC_TIP)}</p>
           {!exercise.verified && <p className="text-[0.8824rem] text-gold-dark">Exercice à vérifier avec votre éducateur.</p>}
@@ -288,7 +283,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
         <div className="mx-auto flex max-w-[430px] flex-col gap-2 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           {timer.running ? (
             <div role="timer" aria-live="off" className="flex min-h-[58px] items-center justify-between gap-3 rounded-full bg-primary pr-1.5 pl-6 text-white">
-              <span className="font-display text-[1.7647rem] leading-none font-extrabold tabular-nums">{formatCountdown(timer.left)}</span>
+              <span className="font-display text-[1.7647rem] leading-none font-bold tabular-nums">{formatCountdown(timer.left)}</span>
               <button type="button" onClick={timer.stop} className="min-h-12 rounded-full border-2 border-solid border-white/70 bg-transparent px-5 text-[1rem] font-bold text-white">
                 Arrêter
               </button>
@@ -312,7 +307,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
 
       {timer.finished && (
         <Sheet label="Temps écoulé" onClose={timer.dismiss}>
-          <h2 className="mt-1 font-display text-[1.5294rem] leading-tight font-extrabold">C’est fini, bravo !</h2>
+          <h2 className="title-section mt-1">C’est fini, bravo !</h2>
           <p className="text-[1rem] leading-snug">Les {minutes} minutes sont passées. On s’arrête sur une réussite.</p>
           <button type="button" onClick={() => navigate(fromQuest ? '/noter?depuis=quete' : `/noter?depuis=exercice&competences=${skill}`)} className="btn btn-main min-h-[58px] text-[1.0588rem]">
             C’est fait, je le note
@@ -325,7 +320,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
 
       {picking && (
         <Sheet label="Choisir un exercice" onClose={() => setPicking(false)}>
-          <h2 className="my-1 font-display text-2xl font-bold">Choisir un exercice</h2>
+          <h2 className="title-section my-1">Choisir un exercice</h2>
           <div className="flex flex-col gap-2">
             {EXERCISES.map((item) => (
               <button
@@ -339,7 +334,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
                 className={`flex min-h-16 items-center gap-3 rounded-[18px] border-2 border-solid px-4 py-2 text-left ${item.id === exercise.id ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}
               >
                 <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-[1rem] font-bold">{item.name}</span>
+                  <span className="title-card">{item.name}</span>
                   <span className={`text-[0.8824rem] ${item.id === exercise.id ? 'text-white/85' : 'text-muted'}`}>{item.bossIds.map((id) => bossById(id)?.short).join(' · ')}</span>
                 </span>
               </button>

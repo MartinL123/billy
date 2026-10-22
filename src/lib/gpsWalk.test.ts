@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chrono, doubtfulSegments, durationParts, endWalkPills, gpsActivity, minutesSince, overlapShare, territoryBits, tooShort, weakSignal, withoutGpsDuplicates, type GpsPoint, stoppedAtOf } from './gpsWalk'
+import { chrono, doubtfulSegments, durationParts, endWalkStats, gpsActivity, minutesSince, overlapShare, territoryBits, tooShort, weakSignal, withoutGpsDuplicates, type GpsPoint, stoppedAtOf } from './gpsWalk'
 import type { WatchWalk } from './watch'
 
 const start = '2026-10-18T17:00:00.000Z'
@@ -52,13 +52,13 @@ describe('balade en cours, V5 (T-051)', () => {
     expect(doubtfulSegments(pts)).toEqual([[1, 2]])
   })
 
-  it('les bouts de territoire et les pastilles de fin : +3 os seulement s’ils sont donnés', () => {
+  it('les bouts de territoire et les chiffres de fin : +3 os seulement s’ils sont donnés', () => {
     expect(territoryBits(39)).toBe(0)
     expect(territoryBits(85)).toBe(2)
-    const nb = (list: string[]) => list.map((t) => t.replace(/ /g, ' '))
-    expect(nb(endWalkPills({ noteBones: 3, bits: 2, slotName: 'Sortie du soir' }))).toEqual(['+3 os', '2 nouveaux bouts de territoire', 'Sortie du soir notée'])
-    // Limite de 3 notes par jour atteinte : pas de pastille d’os.
-    expect(nb(endWalkPills({ noteBones: 0, bits: 1 }))).toEqual(['Un nouveau bout de territoire'])
+    const nb = (list: { value: string; label: string }[]) => list.map((s) => `${s.label} ${s.value.replace(/\u00a0/g, ' ')}`)
+    expect(nb(endWalkStats({ ms: 32 * 60_000 + 5_000, distanceM: 2140, noteBones: 3, bits: 2 }))).toEqual(['Durée 32 min', 'Distance 2,1 km', 'Os gagnés +3', 'Nouveaux bouts de territoire 2'])
+    // Limite de 3 notes par jour atteinte : pas d’os.
+    expect(nb(endWalkStats({ ms: 40_000, distanceM: 80, noteBones: 0, bits: 1 }))).toEqual(['Durée 40 s', 'Distance 80 m', 'Nouveau bout de territoire 1'])
   })
 })
 

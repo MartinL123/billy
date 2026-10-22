@@ -28,11 +28,11 @@ export function PlaceCard({ selected, here, me, onClose, onRemove }: Props) {
           {selected.mine.length ? '💧' : '🐾'}
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="text-[0.7647rem] font-extrabold tracking-[0.6px] text-milestone-dark uppercase">
+          <span className="text-milestone-dark surtitre">
             {categoryInfo(selected.spot.category).label}
             {distance && ` · ${distance}`}
           </span>
-          <h2 className="font-display text-[1.2941rem] leading-tight font-extrabold">{at.name}</h2>
+          <h2 className="title-section">{at.name}</h2>
         </span>
         <button type="button" onClick={onClose} aria-label="Fermer" className="-mt-1 -mr-2 flex size-11 shrink-0 items-center justify-center rounded-full border-0 bg-transparent text-[1.2941rem] text-muted">
           ×

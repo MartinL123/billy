@@ -47,7 +47,7 @@ export function FamilySection() {
 
   return (
     <section className="flex flex-col gap-2.5">
-      <h2 className="text-xl font-bold">Famille</h2>
+      <h2 className="title-section">Famille</h2>
       <p className="text-[0.8824rem] leading-snug text-[#3F4946]">Un proche suit {dog.name} depuis son compte : balades, souvenirs, santé et progrès, sans rien pouvoir modifier. Les documents restent privés.</p>
       {viewers.length > 0 && (
         <ul className="card m-0 flex list-none flex-col px-4 py-1">
@@ -96,7 +96,7 @@ export function VisitorAccount() {
   const email = auth.currentUser?.email ?? ''
   return (
     <section className="flex flex-col gap-2.5">
-      <h2 className="text-xl font-bold">Vous regardez {dog.name}</h2>
+      <h2 className="title-section">Vous regardez {dog.name}</h2>
       <p className="text-[0.8824rem] leading-snug text-[#3F4946]">En lecture seule : vous voyez ses balades, ses souvenirs, sa santé et ses progrès, sans rien modifier.</p>
       <div className="card px-4 py-3.5">
         <span className="text-[0.7647rem] text-muted">Connecté avec</span>

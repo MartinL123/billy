@@ -104,7 +104,7 @@ function drawWalks(m: MapLibreMap, walks: MapWalk[], dimmed: boolean) {
   m.moveLayer('trajets-liseré')
   m.moveLayer('trajets')
   m.moveLayer('trajets-pointilles')
-  for (const id of ['balade-liseré', 'balade', 'parcouru']) if (m.getLayer(id)) m.moveLayer(id)
+  for (const id of ['balade-liseré', 'balade', 'parcouru', 'balade-sens']) if (m.getLayer(id)) m.moveLayer(id)
 }
 
 const rectangle = ([s, w, n, e]: [number, number, number, number]): [number, number][] => [

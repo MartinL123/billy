@@ -62,6 +62,56 @@ export function setLine(map: MapLibreMap, id: string, lines: LatLng[][], paint: 
   map.addLayer({ id, type: 'line', source: id, layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': paint.color, 'line-width': paint.width, 'line-opacity': paint.opacity ?? 1 } })
 }
 
+/**
+ * Le sens de la marche : des chevrons blancs régulièrement posés sur un tracé (couche `${id}-sens` sur la source `id`
+ * de `setLine`), orientés du départ vers l’arrivée. Ils suivent le zoom et la rotation de la carte.
+ */
+export function setDirectionArrows(map: MapLibreMap, id: string): void {
+  const image = 'fleche-sens'
+  if (!map.hasImage(image)) {
+    const ratio = 2
+    const size = 16 * ratio
+    const canvas = document.createElement('canvas')
+    canvas.width = size
+    canvas.height = size
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    // Un chevron « > » : la ligne avance vers la droite de l’image, la carte le tourne dans le sens du tracé.
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    ctx.beginPath()
+    ctx.moveTo(size * 0.34, size * 0.2)
+    ctx.lineTo(size * 0.68, size * 0.5)
+    ctx.lineTo(size * 0.34, size * 0.8)
+    ctx.strokeStyle = 'rgba(24,32,30,0.55)'
+    ctx.lineWidth = 5.5 * ratio
+    ctx.stroke()
+    ctx.strokeStyle = '#FFFFFF'
+    ctx.lineWidth = 3 * ratio
+    ctx.stroke()
+    map.addImage(image, ctx.getImageData(0, 0, size, size), { pixelRatio: ratio })
+  }
+  const layer = `${id}-sens`
+  if (!map.getLayer(layer)) {
+    map.addLayer({
+      id: layer,
+      type: 'symbol',
+      source: id,
+      layout: {
+        'symbol-placement': 'line',
+        'symbol-spacing': 64,
+        'icon-image': image,
+        'icon-rotation-alignment': 'map',
+        'icon-pitch-alignment': 'map',
+        'icon-keep-upright': false,
+        'icon-allow-overlap': true,
+        'icon-ignore-placement': true,
+      },
+    })
+  }
+  map.moveLayer(layer)
+}
+
 /** Un rond coloré à bord blanc (départ, arrivée, moment). */
 export function dot(color: string, size = 18, label?: string): HTMLElement {
   const el = document.createElement('span')

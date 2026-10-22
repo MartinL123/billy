@@ -1,4 +1,4 @@
-import { addMarker, dot, fitPoints, lngLat, setLine, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
+import { addMarker, dot, fitPoints, lngLat, setDirectionArrows, setLine, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
 import { loadFile } from '../../firebase/files'
 import { distanceMeters } from '../../lib/community'
 import { bearing, cumulative, easeInOut, pointAlong, REPLAY_MS, turnToward } from '../../lib/replay'
@@ -30,6 +30,8 @@ export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPh
     m.setPaintProperty('balade', 'line-color', color)
     m.moveLayer('balade-liseré')
     m.moveLayer('balade')
+    // Dans quel sens on a marché : des chevrons le long du tracé, du départ vers l’arrivée.
+    setDirectionArrows(m, 'balade')
     fitPoints(m, route.points, walkPadding(m), true)
     // Le tracé se dessine du départ à l’arrivée en 1 s (T-033) ; d’un coup si l’on réduit les animations.
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return draw(route.points)

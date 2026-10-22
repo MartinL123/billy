@@ -23,7 +23,7 @@ export function WatchOptIn({ compact = false }: { compact?: boolean }) {
   }
   return (
     <>
-      <button type="button" onClick={() => setAsking(true)} className="btn btn-outline min-h-12">
+      <button type="button" onClick={() => setAsking(true)} className="btn btn-tertiary min-h-12">
         Retrouver les balades de ma montre
       </button>
       {asking && (

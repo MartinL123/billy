@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { isNative } from '../../native'
 import { ChevronRightIcon, CloseIcon, PlusIcon } from '../../components/Icons'
 import { FileImage } from '../../components/FileImage'
+import { MapButton } from '../../components/Buttons'
 import type { Entry } from '../../firebase/types'
 import { ofDog } from '../../lib/dogName'
 import { pickLoops, type Loop } from '../../lib/loops'
@@ -42,9 +43,7 @@ const SNAPS: Snap[] = ['collapsed', 'half', 'full']
 /** T-098 : ce qu’on dit à la fiche d’une balade pour son bouton retour. */
 const FROM_MAP = { retour: 'La carte' }
 
-const pill = 'pointer-events-auto flex min-h-11 items-center gap-1.5 rounded-full border-0 bg-surface px-4 text-[0.8824rem] font-bold text-text shadow-[0_2px_8px_rgba(24,32,30,0.25)]'
-
-const toggle = (on: boolean) => `min-h-11 rounded-full border-0 px-3.5 text-[0.8824rem] font-bold ${on ? 'bg-text text-white' : 'bg-transparent text-text'}`
+const toggle = (on: boolean) => `min-h-11 rounded-full border-0 px-3.5 text-[0.8824rem] font-bold whitespace-nowrap ${on ? 'bg-text text-white' : 'bg-transparent text-text'}`
 
 /** La carte qui se découvre (maquettes V3-Explorer, V4-Balades) : le territoire de Billy. */
 export default function Explorer() {
@@ -242,14 +241,9 @@ export default function Explorer() {
       {/* Toujours au-dessus du panneau du bas (R-033), même ouvert sur un petit écran. */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 px-3 pt-[calc(env(safe-area-inset-top)+8px)]">
         <div className="flex flex-col items-start gap-2">
-          <button type="button" aria-expanded={display} onClick={() => setDisplay(!display)} className={`tap ${pill}`}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" aria-hidden="true">
-              <path d="M12 3 3 8l9 5 9-5-9-5ZM3 13l9 5 9-5" />
-            </svg>
-            Affichage
-          </button>
+          <MapButton kind="display" aria-expanded={display} onClick={() => setDisplay(!display)} />
           {display && (
-            <div className="anim-pop pointer-events-auto flex flex-col gap-2 rounded-[20px] bg-surface p-2 shadow-[0_4px_14px_rgba(24,32,30,0.25)]">
+            <div className="anim-pop pointer-events-auto flex flex-col gap-2 rounded-card bg-surface p-2 shadow-[0_4px_14px_rgba(24,32,30,0.25)]">
               <div role="group" aria-label="Fond de carte" className="flex rounded-full bg-bg p-1">
                 <button type="button" aria-pressed={!prefs.satellite} onClick={() => setPref({ satellite: false })} className={toggle(!prefs.satellite)}>
                   Plan
@@ -271,7 +265,7 @@ export default function Explorer() {
               {isNative() && !readOnly && <Switch label="Idées de balade" hint="Des balades déjà faites qui partent d’ici" on={prefs.ideas} onChange={(ideas) => setPref({ ideas })} />}
               {/* L’import reste ici (V6.1 § 4), plus en bas du panneau. */}
               {!readOnly && (
-                <Link to="/importer" className="flex min-h-11 items-center gap-2 rounded-[14px] px-2 text-[0.8824rem] font-bold text-primary no-underline">
+                <Link to="/importer" className="flex min-h-11 items-center gap-2 rounded-field px-2 text-[0.8824rem] font-bold text-primary no-underline">
                   <PlusIcon size={18} />
                   {isNative() ? 'Importer des balades' : 'Ajouter mes balades'}
                 </Link>
@@ -281,18 +275,10 @@ export default function Explorer() {
         </div>
         <div className="flex flex-col items-end gap-2">
           {/* Me situer (T-020) : la carte et la commune suivent l’endroit où l’on est. */}
-          <button type="button" onClick={locate} aria-label="Me situer : les balades du coin où je suis" className={`tap ${pill}`}>
-            {/* Actif : seule l’icône passe en bleu, le texte garde sa couleur (contraste, R-067). */}
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true" className={`${locating ? 'animate-pulse' : ''} ${myPos ? 'text-[#2F7BF6]' : ''}`}>
-              <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
-              <circle cx="12" cy="12" r="6" />
-              <circle cx="12" cy="12" r="2" fill="currentColor" />
-            </svg>
-            Me situer
-          </button>
+          <MapButton kind="locate" onClick={locate} aria-label="Me situer : les balades du coin où je suis" active={Boolean(myPos)} busy={locating} />
           {/* La boussole n’apparaît que si la carte est tournée ; un toucher la remet face au nord. */}
           {turned && (
-            <button type="button" onClick={() => setNorth((n) => n + 1)} aria-label={`Remettre la carte face au nord (tournée de ${Math.round(((bearing % 360) + 360) % 360)}°)`} className="anim-pop pointer-events-auto flex size-12 items-center justify-center rounded-full border-0 bg-surface shadow-[0_2px_6px_rgba(24,32,30,0.2)]">
+            <button type="button" onClick={() => setNorth((n) => n + 1)} aria-label={`Remettre la carte face au nord (tournée de ${Math.round(((bearing % 360) + 360) % 360)}°)`} className="anim-pop pointer-events-auto flex size-12 items-center justify-center rounded-full border-0 bg-surface shadow-float">
               <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true" style={{ transform: `rotate(${-bearing}deg)` }}>
                 <path d="M13 2 L17 13 L13 11.5 L9 13 Z" fill="#C4423A" />
                 <path d="M13 24 L9 13 L13 14.5 L17 13 Z" fill="#8C9692" />
@@ -309,7 +295,7 @@ export default function Explorer() {
         aria-label={`Les balades ${ofDog(dog)}`}
         {...sheet.handlers}
         style={sheet.style}
-        className={`absolute inset-x-0 top-[calc(env(safe-area-inset-top)+62px)] bottom-0 z-10 mx-auto flex max-w-[430px] ${selected || walk ? 'invisible' : ''} flex-col rounded-t-[24px] bg-surface px-4 shadow-[0_-6px_20px_rgba(0,0,0,0.10)]`}
+        className={`absolute inset-x-0 top-[calc(env(safe-area-inset-top)+62px)] bottom-0 z-10 mx-auto flex max-w-[430px] ${selected || walk ? 'invisible' : ''} flex-col rounded-t-panel bg-surface px-4 shadow-[0_-6px_20px_rgba(0,0,0,0.10)]`}
       >
         {/* La poignée : 36 × 5 px, 14 px d’air dessus et dessous (marge intérieure : pas de fusion de marges) ; sa zone
             tactile descend jusqu’à 44 px. Réduit → moitié → haut → moitié. */}
@@ -422,7 +408,7 @@ export default function Explorer() {
 /** T-098 : la ligne d’un tracé touché sur la carte, « Balade du matin · 22 oct. · 2,1 km › » : la toucher ouvre sa fiche. */
 function TrackLine({ walk, color, today }: { walk: WalkItem; color?: string; today: string }) {
   return (
-    <Link to={`/souvenir/${encodeURIComponent(walk.id)}`} state={FROM_MAP} aria-label={`${walk.name}, ${walkLineDetails(walk, today)}. Ouvrir sa fiche`} className="anim-pop tap -mx-2 flex min-h-12 items-center gap-2.5 rounded-[14px] bg-bg px-3 text-[0.9412rem] text-text no-underline">
+    <Link to={`/souvenir/${encodeURIComponent(walk.id)}`} state={FROM_MAP} aria-label={`${walk.name}, ${walkLineDetails(walk, today)}. Ouvrir sa fiche`} className="anim-pop tap -mx-2 flex min-h-12 items-center gap-2.5 rounded-field bg-bg px-3 text-[0.9412rem] text-text no-underline">
       <span className="h-1.5 w-6 shrink-0 rounded-full" style={{ background: color ?? ROUTE_COLOR }} aria-hidden="true" />
       <span className="flex min-w-0 gap-1">
         <span className="min-w-0 truncate font-bold">{walk.name}</span>
@@ -441,12 +427,12 @@ function WalksSummary({ items }: { items: WalkItem[] }) {
   const t = walksTotals(items)
   return (
     <p className="flex flex-wrap justify-between gap-x-3 text-[0.8824rem] text-[#3F4946] tabular-nums" aria-live="polite">
-      <span>
+      <span className="whitespace-nowrap">
         <b className="text-text">{t.count}</b> {t.countLabel}
       </span>
-      <b className="text-text">{t.distance}</b>
+      <b className="whitespace-nowrap text-text">{t.distance}</b>
       {t.time && (
-        <span>
+        <span className="whitespace-nowrap">
           <b className="text-text">{t.time}</b> de balade
         </span>
       )}
@@ -457,7 +443,7 @@ function WalksSummary({ items }: { items: WalkItem[] }) {
 /** Un interrupteur d’« Affichage » (V6.1 § 2) : toute la ligne se touche, 44 px au moins. */
 function Switch({ label, hint, on, onChange }: { label: string; hint: string; on: boolean; onChange: (on: boolean) => void }) {
   return (
-    <button type="button" role="switch" aria-checked={on} onClick={() => onChange(!on)} className="flex min-h-11 w-[15.5rem] max-w-full items-center gap-3 rounded-[14px] border-0 bg-transparent px-2 py-1.5 text-left text-text">
+    <button type="button" role="switch" aria-checked={on} onClick={() => onChange(!on)} className="flex min-h-11 w-[15.5rem] max-w-full items-center gap-3 rounded-field border-0 bg-transparent px-2 py-1.5 text-left text-text">
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="text-[0.8824rem] font-bold">{label}</span>
         <span className="text-[0.7647rem] leading-snug text-[#3F4946]">{hint}</span>
@@ -475,7 +461,7 @@ const IDEA_COLOR = '#1E5A50'
 /** T-097 : l’idée choisie, « Le tour du square · ≈ 15 min · 1,2 km », et ✕ pour la relâcher. */
 function IdeaLine({ idea, onClose }: { idea: Loop; onClose: () => void }) {
   return (
-    <div className="anim-pop -mx-1 flex min-h-12 items-center gap-2.5 rounded-[14px] bg-bg py-1 pl-3 text-[0.9412rem]">
+    <div className="anim-pop -mx-1 flex min-h-12 items-center gap-2.5 rounded-field bg-bg py-1 pl-3 text-[0.9412rem]">
       <span className="flex min-w-0 flex-1 gap-1">
         <span className="min-w-0 truncate font-bold">{idea.item.name}</span>
         <span className="shrink-0 text-[#3F4946]">
@@ -523,7 +509,7 @@ function Journal({ walks, entries, today }: { walks: WalkItem[]; entries: WithId
             row.kind === 'balade' ? (
               <JournalWalkCard key={row.walk.id} walk={row.walk} photos={photos.get(row.walk.id) ?? []} state={FROM_MAP} />
             ) : (
-              <Link key={row.memo.id} to={`/souvenir/${encodeURIComponent(row.memo.id)}`} state={FROM_MAP} className="tap grid min-h-14 grid-cols-[44px_minmax(0,1fr)] items-center gap-2.5 rounded-[14px] border border-solid border-[#E6EAE7] bg-surface p-2 text-text no-underline">
+              <Link key={row.memo.id} to={`/souvenir/${encodeURIComponent(row.memo.id)}`} state={FROM_MAP} className="tap grid min-h-14 grid-cols-[44px_minmax(0,1fr)] items-center gap-2.5 rounded-field border border-solid border-[#E6EAE7] bg-surface p-2 text-text no-underline">
                 {row.memo.thumb ? <FileImage fileId={row.memo.thumb} alt="" className="size-11 rounded-[10px]" /> : <span aria-hidden="true" className="size-11 rounded-[10px] bg-gold-soft" />}
                 <span className="flex min-w-0 flex-col">
                   <b className="truncate text-[0.9412rem]">{row.memo.text}</b>

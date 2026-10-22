@@ -164,6 +164,23 @@ export const TrashIcon = icon(
     <path d="M6 7l1 13h10l1-13" />
   </>,
 )
+/** « Affichage » d’une carte : deux calques (T-106). */
+export const LayersIcon = icon(
+  <>
+    <path d="M12 3 3 8l9 5 9-5-9-5Z" />
+    <path d="M3 13l9 5 9-5" />
+  </>,
+  { strokeWidth: 2.2 },
+)
+/** « Me situer » : une cible (T-106). */
+export const LocateIcon = icon(
+  <>
+    <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="2" fill="currentColor" />
+  </>,
+  { strokeWidth: 2.2 },
+)
 
 export function PawIcon({ size = 52, color = '#FFFFFF' }: { size?: number; color?: string }) {
   return (

@@ -38,7 +38,7 @@ export function WeekCard({ week, back }: { week: TrainingWeek; /** Libellé du r
   const navigate = useNavigate()
   const open = (day: WeekDay) => navigate(day.sessionIds.length === 1 ? `/souvenir/${day.sessionIds[0]}` : `/billy/jour/${day.date}`, { state: { retour: back } })
   return (
-    <section aria-labelledby="semaine" className="card rounded-[20px] p-4">
+    <section aria-labelledby="semaine" className="card p-4">
       <div className="flex items-baseline justify-between gap-2">
         <h2 id="semaine" className="title-card m-0 text-[1rem]">
           Sa semaine

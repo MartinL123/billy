@@ -55,10 +55,15 @@
   --font-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
   --font-sans: 'Figtree Variable', system-ui, sans-serif;
 
+  /* T-106 : les arrondis du design system. Champs et tuiles 14 px, cartes 20 px, panneaux (feuilles, panneau de carte) 26 px. */
   --radius-field: 14px;
   --radius-card: 20px;
+  --radius-panel: 26px;
 
   --shadow-card: 0 1px 2px rgba(24, 32, 30, 0.06);
+  /* Ce qui flotte sur la carte (boutons « Affichage », « Me situer », bandeaux) et le haut d’un panneau. */
+  --shadow-float: 0 2px 8px rgba(24, 32, 30, 0.16);
+  --shadow-panel: 0 -4px 18px rgba(24, 32, 30, 0.18);
   --shadow-fab: 0 6px 16px rgba(30, 90, 80, 0.35);
 
   --animate-sheet: sheet-up 0.4s cubic-bezier(0.3, 1.15, 0.5, 1);
@@ -147,8 +152,14 @@
 }
 
 /*
- * Boutons (spec V3 § 6) : tout ce qui est cliquable ressemble à un bouton,
- * 48 px de haut et 17 px de texte au minimum.
+ * Boutons (spec V3 § 6, T-106) : tout ce qui est cliquable ressemble à un bouton, 48 px de haut et 17 px de texte au
+ * minimum. Quatre sortes, une seule orange par écran :
+ *   btn-main (action)      orange plein, l’action de l’écran ;
+ *   btn-primary            vert plein ;
+ *   btn-secondary          fond vert clair ;
+ *   btn-tertiary           contour vert de 2 px ;
+ *   btn-danger             contour rouge (Supprimer…, Annuler la balade), toujours avec son icône (DangerButton).
+ * Un libellé de bouton tient sur une ligne ; avec un texte agrandi (réglage d’iOS), il peut passer à la ligne.
  */
 @utility btn {
   display: flex;
@@ -164,6 +175,7 @@
   line-height: 1.2;
   text-align: center;
   text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
   /* Retour au toucher (T-033) : le bouton s'enfonce légèrement puis revient. */
   transition: transform var(--dur-tap) var(--ease-out);
@@ -177,15 +189,26 @@
   border-color: var(--color-action);
   color: #ffffff;
 }
-/* Action secondaire : contour vert de 2 px. */
-@utility btn-outline {
+/* Primary : vert plein. */
+@utility btn-primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+/* Secondary : fond vert clair, texte vert (7,3:1). */
+@utility btn-secondary {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+/* Tertiary : contour vert de 2 px, fond blanc. */
+@utility btn-tertiary {
   background: var(--color-surface);
   border-color: var(--color-primary);
   color: var(--color-primary);
 }
 /*
  * Action secondaire en texte (V6 § 1) : vert, gras, 16 px, sans contour ni fond, 44 px de zone tactile.
- * Le contour (btn-outline) reste pour UN choix secondaire important par écran.
  */
 @utility btn-text {
   display: inline-flex;
@@ -202,29 +225,74 @@
   line-height: 1.2;
   text-align: center;
   text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
   transition: opacity var(--dur-tap) var(--ease-out);
   &:active {
     opacity: 0.55;
   }
 }
-/* Annuler, fermer : contour neutre. */
-@utility btn-quiet {
-  background: var(--color-surface);
-  border-color: var(--color-border);
-  color: var(--color-text);
-}
-/* Supprimer, se déconnecter pour de bon : contour rouge. */
+/* Supprimer, Annuler la balade : tertiary rouge (bordure et texte #B3261E sur blanc : 6,5:1). */
 @utility btn-danger {
   background: var(--color-surface);
   border-color: var(--color-danger);
   color: var(--color-danger);
 }
-/* Choix sélectionné : vert plein. */
+/* Choix sélectionné : vert plein (comme primary). */
 @utility btn-on {
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: #ffffff;
+}
+/*
+ * Pastille de filtre ou de choix (T-106) : 44 px, contour gris, toujours sur une ligne ; une rangée de pastilles défile
+ * à l’horizontale (scroll-row). Choisie : vert plein (chip-on).
+ */
+@utility chip {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.8824rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+@utility chip-on {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+/* Bouton posé sur une carte (« Affichage », « Me situer ») : pilule blanche, icône et texte (MapButton). */
+@utility map-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-float);
+  color: var(--color-text);
+  font-size: 0.8235rem;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: pointer;
+}
+/* Un panneau qui monte du bas (feuille, panneau de la carte, balade en cours) : haut arrondi 26 px, ombre vers le haut. */
+@utility panel {
+  background: var(--color-surface);
+  border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+  box-shadow: var(--shadow-panel);
 }
 /* Carte blanche cliquable : toujours avec un chevron. */
 @utility card-link {
@@ -261,6 +329,11 @@ body,
 html {
   -webkit-text-size-adjust: 100%;
   font-size: 17px;
+}
+
+/* Texte agrandi : un libellé de bouton peut passer à la ligne plutôt que d’être coupé (HIG, Dynamic Type). */
+.texte-grand :is(.btn, .btn-text) {
+  white-space: normal;
 }
 
 /* Tailles d'accessibilité : comme dans iOS, les titres grandissent moins que le texte (sinon trois mots par écran). */

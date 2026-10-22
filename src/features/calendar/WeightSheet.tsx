@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NativePickerInput } from '../../components/Form'
-import { Sheet } from '../../components/Sheet'
+import { ConfirmSheet, Sheet } from '../../components/Sheet'
+import { DangerButton } from '../../components/Buttons'
 import { useToast } from '../../components/Toast'
 import { deleteWeight, newId, saveWeight } from '../../firebase/db'
 import type { Weight, WithId } from '../../firebase/types'
@@ -26,6 +27,7 @@ export function WeightSheet({ today, weights, editing, onClose }: WeightSheetPro
   const [raw, setRaw] = useState(editing ? formatKg(editing.kg) : '')
   const [date, setDate] = useState(editing?.date ?? today)
   const [error, setError] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const toast = useToast()
 
   const previous = weights.find((w) => w.id !== editing?.id && w.date <= date)
@@ -72,7 +74,7 @@ export function WeightSheet({ today, weights, editing, onClose }: WeightSheetPro
                   setError('')
                 }}
                 aria-invalid={error ? true : undefined}
-                className="btn btn-quiet min-w-0 flex-1 font-display outline-none"
+                className="min-h-[52px] min-w-0 flex-1 border-0 bg-transparent px-5 text-center font-display text-[1rem] font-bold text-text outline-none"
               />
               <span className="text-[1rem] font-semibold text-muted">kg</span>
             </div>
@@ -102,22 +104,24 @@ export function WeightSheet({ today, weights, editing, onClose }: WeightSheetPro
         <button type="submit" className="btn btn-main">
           Enregistrer
         </button>
-        {editing && (
-          <button
-            type="button"
-            onClick={() => {
-              // R-063 : la suppression se rattrape : « Annuler » remet la pesée telle qu’elle était.
-              const removed = { date: editing.date, kg: editing.kg }
-              deleteWeight(editing.id)
-              toast('Pesée supprimée', { label: 'Annuler', run: () => saveWeight(editing.id, removed) })
-              onClose()
-            }}
-            className="btn btn-danger"
-          >
-            Supprimer cette pesée
-          </button>
-        )}
+        {editing && <DangerButton onClick={() => setConfirmDelete(true)}>Supprimer cette pesée</DangerButton>}
       </form>
+      {editing && confirmDelete && (
+        // T-106 : confirmé avant d’agir ; R-063 : la suppression se rattrape encore (« Annuler » remet la pesée).
+        <ConfirmSheet
+          title={'Supprimer cette pesée\u00a0?'}
+          message={`${formatKg(editing.kg)} kg le ${formatShort(editing.date)}.`}
+          confirmLabel="Supprimer"
+          onCancel={() => setConfirmDelete(false)}
+          onConfirm={() => {
+            const removed = { date: editing.date, kg: editing.kg }
+            deleteWeight(editing.id)
+            toast('Pesée supprimée', { label: 'Annuler', run: () => saveWeight(editing.id, removed) })
+            setConfirmDelete(false)
+            onClose()
+          }}
+        />
+      )}
     </Sheet>
   )
 }

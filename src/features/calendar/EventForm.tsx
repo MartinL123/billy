@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { DangerButton } from '../../components/Buttons'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { FormScreen, Optional, Segmented, TextField } from '../../components/Form'
 import { CalendarIcon, PaperclipIcon } from '../../components/Icons'
@@ -127,7 +128,7 @@ export default function EventForm() {
                   type="button"
                   aria-pressed={active}
                   onClick={() => chooseType(value)}
-                  className={`flex min-h-12 items-center gap-1.5 rounded-full border-2 px-3.5 text-[1rem] ${
+                  className={`flex min-h-12 items-center gap-1.5 rounded-full border-2 px-3.5 text-[1rem] whitespace-nowrap ${
                     active ? 'border-primary bg-primary font-bold text-white' : 'border-border bg-surface font-medium text-text'
                   }`}
                 >
@@ -223,20 +224,18 @@ export default function EventForm() {
                   setEventDone(existing, !existing.done)
                   back()
                 }}
-                className="btn btn-outline"
+                className="btn btn-tertiary"
               >
                 {existing.done ? 'Remettre à faire' : 'Marquer comme fait'}
               </button>
             )}
             {existing.date && !existing.done && (
-              <button type="button" onClick={exportToCalendar} className="btn btn-outline">
+              <button type="button" onClick={exportToCalendar} className="btn btn-tertiary">
                 <CalendarIcon size={20} />
                 Ajouter au calendrier de l’iPhone
               </button>
             )}
-            <button type="button" onClick={() => setConfirmDelete(true)} className="btn btn-danger">
-              Supprimer l’événement
-            </button>
+            <DangerButton onClick={() => setConfirmDelete(true)}>Supprimer l’événement</DangerButton>
           </div>
         )}
       </FormScreen>

@@ -34,12 +34,12 @@ export default function LoopScreen() {
       <div className="relative min-h-0 flex-1">
         <WalkMap route={path} dogName={dog.name} className="h-full" />
         <div className="absolute top-0 left-0 z-10 px-4 pt-[calc(env(safe-area-inset-top)+4px)]">
-          <span className="block rounded-full bg-surface/95 pr-1 shadow-[0_2px_8px_rgba(24,32,30,0.2)]">
+          <span className="block rounded-full bg-surface/95 pr-1 shadow-float">
             <BackLink label="La carte" onClick={back} className="pl-[7px]" />
           </span>
         </div>
       </div>
-      <section aria-label={`Boucle pour ${dogName(dog)}`} className="flex flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
+      <section aria-label={`Boucle pour ${dogName(dog)}`} className="panel flex flex-col gap-3 px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+20px)]">
         <div className="flex flex-col gap-0.5">
           <span className="text-primary surtitre">Boucle pour {dogName(dog)}</span>
           <h1 className="title-section">{item.name}</h1>

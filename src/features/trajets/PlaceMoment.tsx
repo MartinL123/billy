@@ -31,7 +31,7 @@ export function PlaceMoment({ at, onPlace, onCancel }: { at: { lat: number; lng:
         {PICKABLE_MOMENTS.map((m) => {
           const on = type === m.id
           return (
-            <button key={m.id} type="button" aria-pressed={on} onClick={() => setType(m.id)} className="flex min-h-14 items-center gap-2.5 rounded-[16px] border-[3px] border-solid px-2.5 text-left text-[0.9412rem] leading-tight font-bold" style={on ? { background: m.color, borderColor: m.color, color: '#FFFFFF' } : { background: '#FFFFFF', borderColor: m.color, color: m.color }}>
+            <button key={m.id} type="button" aria-pressed={on} onClick={() => setType(m.id)} className="flex min-h-14 items-center gap-2.5 rounded-field border-[3px] border-solid px-2.5 text-left text-[0.9412rem] leading-tight font-bold" style={on ? { background: m.color, borderColor: m.color, color: '#FFFFFF' } : { background: '#FFFFFF', borderColor: m.color, color: m.color }}>
               <MomentIcon type={m.id} size={30} />
               {m.label}
             </button>

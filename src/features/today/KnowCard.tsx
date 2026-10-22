@@ -16,7 +16,7 @@ export function KnowCard() {
   const done = PARTS.map((_, i) => partComplete(dog.questionnaire, i + 1))
   const count = done.filter(Boolean).length
   return (
-    <section aria-label="Faisons connaissance" className="card flex flex-col gap-2.5 rounded-[20px] p-[18px]">
+    <section aria-label="Faisons connaissance" className="card flex flex-col gap-2.5 p-[18px]">
       {/* T-072 : plus de « +15 os » par partie, ces os n’étaient donnés que par DressageAwards (retiré). */}
       <span className="text-primary surtitre">Faisons connaissance · 2{'\u00a0'}min</span>
       <h2 className="title-section">{starting ? 'Les questions du départ' : place(PARTS[(part?.part ?? 1) - 1]!)}</h2>
@@ -27,7 +27,7 @@ export function KnowCard() {
             <span key={i} className={`size-2.5 rounded-full ${ok ? 'bg-primary' : 'bg-[#DFE4E1]'}`} />
           ))}
         </span>
-        <Link to={to} className="tap ml-auto flex min-h-11 items-center rounded-full border-2 border-solid border-primary px-[18px] text-[0.9412rem] font-bold text-primary no-underline">
+        <Link to={to} className="btn btn-tertiary ml-auto min-h-11 px-[18px] text-[0.9412rem]">
           Répondre
         </Link>
       </div>

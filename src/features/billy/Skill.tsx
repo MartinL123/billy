@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { DangerButton } from '../../components/Buttons'
 import { BackLink } from '../../components/BackLink'
 import { Link, useParams } from 'react-router-dom'
 import { CheckIcon, TargetIcon } from '../../components/Icons'
@@ -130,7 +131,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px] bg-bg">
-      <header className="flex flex-col gap-3 rounded-b-[28px] px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white" style={{ background: inkOn(territory) }}>
+      <header className="flex flex-col gap-3 rounded-b-panel px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white" style={{ background: inkOn(territory) }}>
         <BackLink label={overlay ? 'Retour' : territory.name} onClick={back} onDark />
         <div className="flex items-center gap-3.5">
           <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-white" style={{ color: territory.color }}>
@@ -220,7 +221,7 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
           })}
         </ol>
 
-        {mastered && <p className="mx-5 rounded-[20px] bg-gold-soft px-4 py-3 text-[1rem] leading-snug font-semibold text-[#5C4410]">À entretenir : elle revient de temps en temps dans la mission du jour.</p>}
+        {mastered && <p className="mx-5 rounded-field bg-gold-soft px-4 py-3 text-[1rem] leading-snug font-semibold text-[#5C4410]">À entretenir : elle revient de temps en temps dans la mission du jour.</p>}
       </main>
 
       {!overlay && !readOnly && (
@@ -246,11 +247,11 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
             </p>
             <h2 className="title-section">{stepPhrase(skill.id, opened)}</h2>
             <p className="text-[1rem] leading-snug">{place('Il ne le fait plus vraiment, ou c’était une erreur ? Décochez l’étape : elle redevient l’étape en cours. Le niveau sera recalculé.')}</p>
-            {opened < progress.level && <p className="rounded-[14px] bg-[#FFF8E6] px-3.5 py-2.5 text-[0.8824rem] leading-snug text-gold-dark">Les étapes plus difficiles déjà cochées seront décochées aussi.</p>}
-            <button type="button" onClick={() => setChecked(opened, false)} className="btn mt-1 border-2 border-solid border-danger bg-surface text-danger">
+            {opened < progress.level && <p className="rounded-field bg-[#FFF8E6] px-3.5 py-2.5 text-[0.8824rem] leading-snug text-gold-dark">Les étapes plus difficiles déjà cochées seront décochées aussi.</p>}
+            <DangerButton icon="none" onClick={() => setChecked(opened, false)} className="mt-1">
               Décocher cette étape
-            </button>
-            <button type="button" onClick={() => setOpened(null)} className="btn btn-on">
+            </DangerButton>
+            <button type="button" onClick={() => setOpened(null)} className="btn btn-primary">
               Garder cochée
             </button>
           </Sheet>
@@ -263,10 +264,10 @@ export function SkillPath({ id, onBack, overlay = false }: { id: string; onBack:
             <p className="text-[1rem] leading-snug">
               {dog.name} sait déjà faire ça ? Cochez l’étape : elle sera notée « {place('Il savait déjà le faire')} ».{opened > current ? ' Les étapes plus faciles seront cochées aussi.' : ''}
             </p>
-            <button type="button" onClick={() => setChecked(opened, true)} className="btn btn-on mt-1">
+            <button type="button" onClick={() => setChecked(opened, true)} className="btn btn-primary mt-1">
               Cocher cette étape
             </button>
-            <button type="button" onClick={() => setOpened(null)} className="btn btn-outline">
+            <button type="button" onClick={() => setOpened(null)} className="btn btn-tertiary">
               Annuler
             </button>
           </Sheet>

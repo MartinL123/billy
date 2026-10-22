@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { outlineButton } from '../../components/Form'
 import { ChevronRightIcon, ImportIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
 import { useData } from '../../firebase/store'
@@ -51,7 +50,7 @@ export function DocumentsSection() {
       ) : (
         <p className="text-[0.8824rem] leading-snug text-muted">Carnet de santé, comptes rendus, ordonnances : gardez tous ses papiers ici, même hors ligne.</p>
       )}
-      <Link to="/document/nouveau" className={outlineButton}>
+      <Link to="/document/nouveau" className="btn btn-tertiary w-full">
         <ImportIcon size={20} />
         Importer un document
       </Link>

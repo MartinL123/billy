@@ -166,7 +166,7 @@ export default function Shop() {
           <button type="button" onClick={confirm} className="btn btn-main mt-2 min-h-[56px]">
             Acheter
           </button>
-          <button type="button" onClick={() => setBuying(null)} className="btn btn-outline">
+          <button type="button" onClick={() => setBuying(null)} className="btn btn-tertiary">
             Pas maintenant
           </button>
         </Sheet>

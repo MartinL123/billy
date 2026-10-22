@@ -69,7 +69,7 @@ export default function HealthEvents() {
                 type="button"
                 aria-pressed={on}
                 onClick={() => setFilter(item.id)}
-                className="flex min-h-12 shrink-0 items-center gap-[7px] rounded-full border-2 border-solid px-3.5 text-[0.8824rem] font-bold"
+                className="chip min-h-12"
                 style={on ? { background: item.color, borderColor: item.color, color: '#FFFFFF' } : { background: '#FFFFFF', borderColor: '#C9D1CD', color: '#18201E' }}
               >
                 {item.id !== 'tout' && <span className="size-2.5 rounded-full" style={{ background: on ? '#FFFFFF' : item.color }} />}
@@ -92,7 +92,7 @@ export default function HealthEvents() {
           <div className="card flex flex-col items-start gap-3 p-4">
             <p className="text-[1rem] font-semibold">{info.empty}</p>
             {!readOnly && (
-              <Link to={info.type ? `/evenement/nouveau?type=${info.type}` : '/evenement/nouveau'} className="btn btn-outline">
+              <Link to={info.type ? `/evenement/nouveau?type=${info.type}` : '/evenement/nouveau'} className="btn btn-tertiary">
                 {info.add}
               </Link>
             )}
@@ -111,7 +111,7 @@ export default function HealthEvents() {
               <button
                 type="button"
                 onClick={() => setShowAllDone(!showAllDone)}
-                className="btn btn-outline w-full border-t border-divider"
+                className="btn btn-tertiary w-full border-t border-divider"
               >
                 {showAllDone ? 'Réduire' : `Voir les ${done.length} événements faits`}
               </button>

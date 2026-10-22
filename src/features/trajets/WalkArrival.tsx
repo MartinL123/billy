@@ -23,7 +23,7 @@ export default function WalkArrival() {
         <div className="absolute inset-0">
           <WalkMap route={route} dogName={dog.name} className="size-full" />
         </div>
-        <button type="button" onClick={() => navigate('/', { replace: true })} aria-label="Fermer" className="tap absolute top-[calc(env(safe-area-inset-top)+12px)] right-4 z-10 flex size-11 items-center justify-center rounded-full border-0 bg-surface text-text shadow-[0_2px_8px_rgba(24,32,30,0.25)]">
+        <button type="button" onClick={() => navigate('/', { replace: true })} aria-label="Fermer" className="tap absolute top-[calc(env(safe-area-inset-top)+12px)] right-4 z-10 flex size-11 items-center justify-center rounded-full border-0 bg-surface text-text shadow-float">
           <CloseIcon size={20} />
         </button>
       </div>

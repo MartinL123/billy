@@ -43,7 +43,7 @@ export function StepSuccess({ dogName, bossId, level, inCarnet = true, onClose }
           {dogName} {stepPhraseLower(bossId, level)}
         </h1>
         {level < MAX_LEVEL && (
-          <div className="mt-6 flex w-full flex-col gap-1 rounded-[18px] bg-white/10 px-4 py-3.5 text-left">
+          <div className="mt-6 flex w-full flex-col gap-1 rounded-field bg-white/10 px-4 py-3.5 text-left">
             <span className="text-[#F7D58A] surtitre">Prochaine étape</span>
             <span className="text-[1rem] leading-snug">{stepPhraseLower(bossId, level + 1).replace(/^./, (c) => c.toLocaleUpperCase('fr'))}</span>
           </div>

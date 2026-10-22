@@ -19,7 +19,7 @@ export default function AllProgress() {
       <main className="flex flex-col gap-4 px-4 pt-2 pb-[calc(env(safe-area-inset-bottom)+40px)]">
         <h1 className="title-screen">Ses progrès</h1>
         {items.length ? (
-          <div className="card rounded-[20px] px-4 py-1">
+          <div className="card px-4 py-1">
             <ProgressList items={items} today={today} back="Ses progrès" />
           </div>
         ) : (

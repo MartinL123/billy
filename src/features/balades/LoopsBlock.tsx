@@ -30,7 +30,7 @@ export function LoopsBlock({ loops, picked, onPick, onHide, headRef }: { loops: 
               aria-pressed={picked === loop.item.id}
               onClick={() => onPick(loop)}
               aria-label={`${loop.item.name}, environ ${loop.duration} minutes, ${loopLevelShort(loop)}. La voir sur la carte`}
-              className={`tap flex h-full w-full flex-col overflow-hidden rounded-[14px] border-2 border-solid bg-bg p-0 text-left text-text ${picked === loop.item.id ? 'border-primary' : 'border-transparent'}`}
+              className={`tap flex h-full w-full flex-col overflow-hidden rounded-field border-2 border-solid bg-bg p-0 text-left text-text ${picked === loop.item.id ? 'border-primary' : 'border-transparent'}`}
             >
               <RouteMap route={{ points: loop.item.route.points, moments: [] }} height={58} pad={9} />
               <span className="flex min-w-0 flex-col px-2 pt-1.5 pb-2 text-[0.7647rem] leading-tight text-[#3F4946]">

@@ -32,7 +32,7 @@ export function JournalWalkCard({ walk, photos, state }: { walk: WalkItem; photo
   const pills = walkPills(route)
   const details = [route.durationMin ? formatDuration(route.durationMin) : '', formatRouteDistance(route.distanceM), stops ? `${stops} arrêt${stops > 1 ? 's' : ''}` : ''].filter(Boolean).join(', ')
   return (
-    <Link to={`/souvenir/${encodeURIComponent(walk.id)}`} state={state} aria-label={`${walk.name}. ${details}${untold ? `. ${untold} à raconter` : ''}. Ouvrir sa fiche`} className="tap flex flex-col overflow-hidden rounded-[16px] border border-solid border-[#E6EAE7] bg-surface text-text no-underline">
+    <Link to={`/souvenir/${encodeURIComponent(walk.id)}`} state={state} aria-label={`${walk.name}. ${details}${untold ? `. ${untold} à raconter` : ''}. Ouvrir sa fiche`} className="tap flex flex-col overflow-hidden rounded-card border border-solid border-divider bg-surface shadow-card text-text no-underline">
       <RouteMap route={route} photos={photos} untold={untold} />
       <span className="flex min-w-0 flex-col gap-1.5 px-3.5 pt-2.5 pb-3">
         <span className="title-card">{walk.name}</span>
@@ -136,7 +136,7 @@ export function RouteMap({ route, photos = [], untold = 0, height = MAP_H, pad =
             </span>
           )
         })}
-      {untold > 0 && <span className="absolute top-2 right-2 rounded-full bg-gold-soft px-2.5 py-1 text-[0.7647rem] font-bold text-[#8A6514]">{untold} à raconter</span>}
+      {untold > 0 && <span className="whitespace-nowrap absolute top-2 right-2 rounded-full bg-gold-soft px-2.5 py-1 text-[0.7647rem] font-bold text-[#8A6514]">{untold} à raconter</span>}
     </span>
   )
 }

@@ -74,8 +74,8 @@ export default function Calendar() {
 
       {/* Un soin en retard passe en tête : seul cas de rouge. */}
       {late && late.date && (
-        <section aria-label="Soin en retard" className="card flex flex-col gap-2.5 rounded-[24px] p-4">
-          <span className="self-start rounded-full border-2 border-solid border-danger px-2.5 py-0.5 text-[0.7647rem] font-bold text-danger">À faire</span>
+        <section aria-label="Soin en retard" className="card flex flex-col gap-2.5 p-4">
+          <span className="whitespace-nowrap self-start rounded-full border-2 border-solid border-danger px-2.5 py-0.5 text-[0.7647rem] font-bold text-danger">À faire</span>
           <Link to={`/evenement/${late.id}`} className="title-section text-text no-underline">
             {late.title}
           </Link>
@@ -101,7 +101,7 @@ export default function Calendar() {
               {ofDay.map((event) => (
                 <li key={event.id}>
                   <Link to={`/evenement/${event.id}`} className="flex min-h-11 items-center gap-2.5 text-text no-underline">
-                    <span className="rounded-full px-2.5 py-0.5 text-[0.7647rem] font-bold text-white" style={{ background: typeInfo(event.type).pill ?? typeInfo(event.type).color }}>
+                    <span className="whitespace-nowrap rounded-full px-2.5 py-0.5 text-[0.7647rem] font-bold text-white" style={{ background: typeInfo(event.type).pill ?? typeInfo(event.type).color }}>
                       {typeInfo(event.type).label}
                     </span>
                     <span className="text-[0.8824rem] font-semibold">{event.title}</span>
@@ -116,7 +116,7 @@ export default function Calendar() {
       </MonthGrid>
 
       {next && next.date && (
-        <section aria-label="Prochaine chose" className="card flex flex-col gap-2 rounded-[24px] p-4">
+        <section aria-label="Prochaine chose" className="card flex flex-col gap-2 p-4">
           <span className="text-milestone-dark surtitre">Prochaine chose</span>
           <Link to={`/evenement/${next.id}`} className="title-section text-text no-underline">
             {next.title}
@@ -124,7 +124,7 @@ export default function Calendar() {
           <p className="text-[0.9412rem] text-[#3F4946]">{whenLine(next.date, today)}</p>
           {/* « C’est fait » seulement le jour J (ou en retard, voir plus haut). */}
           {!readOnly && canCheck(next, today) && (
-            <button type="button" onClick={() => setEventDone(next, true)} className="btn btn-outline min-h-12">
+            <button type="button" onClick={() => setEventDone(next, true)} className="btn btn-tertiary min-h-12">
               C’est fait
             </button>
           )}
@@ -160,8 +160,8 @@ export default function Calendar() {
               {/* R-083 : le détail passe à la ligne, jamais coupé en « … » à côté de « Le prévoir ». */}
               <span className={`text-[0.8824rem] leading-snug [overflow-wrap:anywhere] ${line.late ? 'font-semibold text-danger' : 'text-[#3F4946]'}`}>{line.detail}</span>
             </span>
-            {line.ok && <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-1 text-[0.7647rem] font-bold text-primary-dark">À jour</span>}
-            {line.action && <span className="shrink-0 rounded-full border-2 border-solid border-primary px-2.5 py-0.5 text-[0.7647rem] font-bold text-primary">{line.action}</span>}
+            {line.ok && <span className="whitespace-nowrap shrink-0 rounded-full bg-primary-soft px-2.5 py-1 text-[0.7647rem] font-bold text-primary-dark">À jour</span>}
+            {line.action && <span className="whitespace-nowrap shrink-0 rounded-full border-2 border-solid border-primary px-2.5 py-0.5 text-[0.7647rem] font-bold text-primary">{line.action}</span>}
             <ChevronRightIcon size={20} className="shrink-0 text-[#8C9692]" />
           </Link>
         ))}
@@ -171,7 +171,7 @@ export default function Calendar() {
       {!readOnly && (
       <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+108px)] z-10 mx-auto max-w-[430px] bg-gradient-to-b from-transparent to-bg to-40% px-4 pt-6 pb-3">
         {/* R-071 : une seule action pleine par écran ; un soin en retard (« C’est fait » plein) passe devant. */}
-        <button type="button" onClick={() => setAdding(true)} className={`tap btn min-h-14 w-full gap-2 ${late ? 'btn-outline' : 'btn-main'}`}>
+        <button type="button" onClick={() => setAdding(true)} className={`tap btn min-h-14 w-full gap-2 ${late ? 'btn-tertiary' : 'btn-main'}`}>
           <PlusIcon size={22} />
           Ajouter un soin ou un RDV
         </button>

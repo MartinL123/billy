@@ -35,7 +35,7 @@ export function RouteThumb({ points, moments = [], size = 96, round = false }: {
   }, [key, image])
 
   if (points.length === 0) return null
-  const shape = round ? 'rounded-full' : 'rounded-[14px]'
+  const shape = round ? 'rounded-full' : 'rounded-field'
   return (
     <span ref={ref} aria-hidden="true" className={`relative block shrink-0 overflow-hidden bg-[#E8EFE9] ${shape}`} style={{ width: size, height: size }}>
       {image ? <img src={image} alt="" width={size} height={size} className="block size-full object-cover" /> : <TrackSvg points={points} moments={moments} size={size} />}

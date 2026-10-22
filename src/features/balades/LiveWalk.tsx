@@ -3,6 +3,7 @@ import { Stats } from '../../components/Stats'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { Sheet } from '../../components/Sheet'
 import { CheckIcon, CloseIcon } from '../../components/Icons'
+import { DangerButton, MapButton } from '../../components/Buttons'
 import { useToast } from '../../components/Toast'
 import { useData } from '../../firebase/store'
 import { waitForPendingWrites } from 'firebase/firestore'
@@ -90,6 +91,7 @@ export default function LiveWalk() {
   const [stoppedAt, setStoppedAt] = useState<string>()
   const [now, setNow] = useState(Date.now())
   const [confirmCancel, setConfirmCancel] = useState(false)
+  const [recenter, setRecenter] = useState(0)
   const [failure, setFailure] = useState<Failure>()
   const [ended, setEnded] = useState<Ended>()
   const [gone, setGone] = useState(false)
@@ -372,26 +374,32 @@ export default function LiveWalk() {
       </main>
     )
 
-  const pill = 'flex min-h-11 items-center gap-1.5 rounded-full border-0 bg-surface px-4 text-[0.8824rem] font-bold text-[#3F4946] shadow-[0_2px_8px_rgba(24,32,30,0.16)]'
+  const pill = 'flex min-h-11 items-center gap-1.5 rounded-full border-0 bg-surface px-4 text-[0.8824rem] font-bold whitespace-nowrap text-[#3F4946] shadow-float'
   return (
     <main className="fixed inset-0 flex flex-col bg-bg">
       <div className="relative min-h-0 flex-1">
         {/* La carte suit le chien : centrée sur le dernier point, au-dessus du panneau. */}
-        <ExplorerMap cells={cells} tracks={tracks} me={here} center={here} focus={here} places={[]} satellite={false} three={false} fog={fogShown} dogName={dog.name} />
+        <ExplorerMap cells={cells} tracks={tracks} me={here} center={here} focus={here} recenter={recenter} places={[]} satellite={false} three={false} fog={fogShown} dogName={dog.name} />
         <div className="pointer-events-none absolute inset-x-4 top-[calc(env(safe-area-inset-top)+12px)] flex flex-col items-start gap-2.5">
-          {/* « Ne pas garder » quitte le bas de l’écran (V5) : une pilule en haut à gauche. */}
-          {!ended && !gone && phase === 'walking' && (
-            <button type="button" onClick={() => setConfirmCancel(true)} className={`tap pointer-events-auto ${pill}`}>
-              <CloseIcon size={18} />
-              Ne pas garder
-            </button>
-          )}
+          <div className="flex w-full items-start justify-between gap-2">
+            {/* « Ne pas garder » quitte le bas de l’écran (V5) : une pilule en haut à gauche. */}
+            {!ended && !gone && phase === 'walking' ? (
+              <button type="button" onClick={() => setConfirmCancel(true)} className={`tap pointer-events-auto ${pill}`}>
+                <CloseIcon size={18} />
+                Ne pas garder
+              </button>
+            ) : (
+              <span />
+            )}
+            {/* T-106 : « Me situer » (cible), comme sur la carte des Balades : la carte revient sur le chien si on l’a déplacée. */}
+            {here && !ended && !gone && <MapButton kind="locate" onClick={() => setRecenter((n) => n + 1)} />}
+          </div>
           {park.offer && !ended && !gone && (
             // T-101 : le bandeau en haut ; « Commencer » ouvre la mission par-dessus, la balade continue.
-            <div role="status" className="anim-pop pointer-events-auto flex flex-col gap-2 self-stretch rounded-[16px] bg-surface px-4 pt-3 pb-1.5 shadow-[0_4px_12px_rgba(24,32,30,0.18)]">
+            <div role="status" className="anim-pop pointer-events-auto flex flex-col gap-2 self-stretch rounded-field bg-surface px-4 pt-3 pb-1.5 shadow-float">
               <p className="text-[0.9412rem] leading-snug font-semibold">{park.offer.text}</p>
               <div className="flex items-center gap-3">
-                <button type="button" onClick={() => navigate('/mission?balade=1')} className="btn btn-on min-h-11 px-5 text-[0.9412rem]">
+                <button type="button" onClick={() => navigate('/mission?balade=1')} className="btn btn-primary min-h-11 px-5 text-[0.9412rem]">
                   Commencer
                 </button>
                 <button type="button" onClick={park.later} className="btn-text px-2">
@@ -401,17 +409,17 @@ export default function LiveWalk() {
             </div>
           )}
           {storageFull && !ended && (
-            <p role="alert" className="pointer-events-auto self-stretch rounded-[16px] bg-surface px-4 py-3 text-[0.8824rem] leading-snug text-danger shadow-[0_4px_12px_rgba(24,32,30,0.18)]">
+            <p role="alert" className="pointer-events-auto self-stretch rounded-field bg-surface px-4 py-3 text-[0.8824rem] leading-snug text-danger shadow-float">
               <strong>L’iPhone est plein.</strong> Les nouveaux points ne s’enregistrent plus. Libérez de la place, puis touchez Terminer.
             </p>
           )}
           {reduced && !ended && (
-            <p role="status" className="pointer-events-auto self-stretch rounded-[16px] bg-surface px-4 py-3 text-[0.8824rem] leading-snug shadow-[0_4px_12px_rgba(24,32,30,0.18)]">
+            <p role="status" className="pointer-events-auto self-stretch rounded-field bg-surface px-4 py-3 text-[0.8824rem] leading-snug shadow-float">
               <strong>Position approximative.</strong> Pour un tracé, activez « Position exacte » dans Réglages › Flair › Position.
             </p>
           )}
           {weak && !ended && (
-            <p role="status" className="pointer-events-auto self-stretch rounded-[16px] bg-surface px-4 py-3 text-[0.8824rem] leading-snug shadow-[0_4px_12px_rgba(24,32,30,0.18)]">
+            <p role="status" className="pointer-events-auto self-stretch rounded-field bg-surface px-4 py-3 text-[0.8824rem] leading-snug shadow-float">
               <strong>Le GPS cherche le ciel.</strong> La balade continue, le tracé se recolle tout seul.
             </p>
           )}
@@ -422,7 +430,7 @@ export default function LiveWalk() {
         // « Belle balade ! » (V6 § 6.3) : les chiffres, les os, et « Raconter la balade » s’il y a des arrêts.
         <WalkRecap entryId={ended.entryId} bones={ended.bones} fallback={{ distanceM: ended.distanceM }} {...(ended.slotName ? { subtitle: `${ended.slotName} notée` } : {})} />
       ) : gone ? null : (
-        <section aria-label="Balade en cours" className="flex flex-col gap-3.5 rounded-t-[26px] bg-surface px-4 pt-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
+        <section aria-label="Balade en cours" className="panel flex flex-col gap-3.5 px-4 pt-5 pb-[calc(env(safe-area-inset-bottom)+20px)]">
           <span className="flex items-center gap-2 text-milestone-dark surtitre">
             {!stoppedAt && <span aria-hidden="true" className="live-dot size-2.5 rounded-full bg-[#BF5519]" />}
             {stoppedAt ? 'Arrêtée après 3 h' : `Balade en cours avec ${dogName(dog)}`}
@@ -485,18 +493,17 @@ export default function LiveWalk() {
           >
             Noter la sortie ({fewPoints.minutes} min)
           </button>
-          <button
-            type="button"
+          <DangerButton
+            icon="cross"
             onClick={async () => {
               await FlairNative.clearWalk().catch(() => undefined)
               logEvent({ type: 'walk_discarded', min: fewPoints.minutes })
               setFewPoints(undefined)
               setGone(true)
             }}
-            className="btn min-h-[50px] border-2 border-solid border-danger bg-surface text-danger"
           >
             Ne pas la garder
-          </button>
+          </DangerButton>
         </Sheet>
       )}
 
@@ -508,18 +515,17 @@ export default function LiveWalk() {
           <button type="button" onClick={() => setConfirmCancel(false)} className="btn btn-main min-h-14">
             Continuer la balade
           </button>
-          <button
-            type="button"
+          <DangerButton
+            icon="cross"
             onClick={async () => {
               await FlairNative.cancelWalk()
               logEvent({ type: 'walk_discarded', min: Math.round(elapsed / 60_000) })
               setConfirmCancel(false)
               setGone(true)
             }}
-            className="btn min-h-[50px] border-2 border-solid border-danger bg-surface text-danger"
           >
             Ne pas la garder
-          </button>
+          </DangerButton>
         </Sheet>
       )}
     </main>

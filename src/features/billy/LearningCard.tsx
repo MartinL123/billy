@@ -60,7 +60,7 @@ export function LearningCard({ bossId, level, open, onToggle }: { bossId: string
   const goal = placeSkill((boss?.goal ?? '').replace(/\.$/, ''))
   const next = level < MAX_LEVEL ? stepPhrase(bossId, level + 1) : ''
   return (
-    <div className={`card flex flex-col gap-3 rounded-[20px] p-4 ${open ? 'shadow-[inset_0_0_0_2px_var(--color-primary),var(--shadow-card)]' : ''}`}>
+    <div className={`card flex flex-col gap-3 p-4 ${open ? 'shadow-[inset_0_0_0_2px_var(--color-primary),var(--shadow-card)]' : ''}`}>
       <button type="button" onClick={onToggle} aria-expanded={open} className="tap flex flex-col items-stretch gap-3 border-0 bg-transparent p-0 text-left text-text">
         <span className="flex items-start justify-between gap-2">
           <span className="title-card">{goal}</span>
@@ -71,7 +71,7 @@ export function LearningCard({ bossId, level, open, onToggle }: { bossId: string
         <StepPath bossId={bossId} level={level} />
       </button>
       {open && (
-        <Link to={`/competence/${bossId}`} className="tap anim-in flex items-center gap-2 rounded-[12px] bg-bg px-3 py-2.5 text-text no-underline">
+        <Link to={`/competence/${bossId}`} className="tap anim-in flex items-center gap-2 rounded-field bg-bg px-3 py-2.5 text-text no-underline">
           <span className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="surtitre text-primary">{next ? 'Prochaine étape' : 'Tout est acquis'}</span>
             <span className="text-[0.8235rem] leading-snug">{next ? `${next}.` : 'Voir tout son chemin'}</span>

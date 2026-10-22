@@ -77,7 +77,7 @@ export default function EnCours() {
               )
               if (mastered) {
                 return (
-                  <div key={skill.id} className="flex min-h-16 items-center gap-3 rounded-[18px] border-2 border-solid border-border bg-surface px-3.5 py-2.5">
+                  <div key={skill.id} className="flex min-h-16 items-center gap-3 rounded-field border-2 border-solid border-border bg-surface px-3.5 py-2.5">
                     {body}
                     <span className="shrink-0 rounded-lg bg-gold-soft px-2 py-1 text-[0.7647rem] font-bold text-[#5C4410]">Maîtrisé</span>
                   </div>
@@ -90,7 +90,7 @@ export default function EnCours() {
                   role="checkbox"
                   aria-checked={on}
                   onClick={() => toggle(skill.id)}
-                  className="flex min-h-16 items-center gap-3 rounded-[18px] border-2 border-solid px-3.5 py-2.5 text-left text-text"
+                  className="flex min-h-16 items-center gap-3 rounded-field border-2 border-solid px-3.5 py-2.5 text-left text-text"
                   style={{ borderColor: on ? territory.color : '#D3D9D6', background: on ? territory.soft : '#FFFFFF' }}
                 >
                   {body}
@@ -107,7 +107,7 @@ export default function EnCours() {
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-divider bg-bg">
         <div className="mx-auto flex max-w-[430px] flex-col gap-2 px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
           {refused && (
-            <p role="alert" className="rounded-[14px] bg-info-soft px-3.5 py-2.5 text-[0.8824rem] leading-snug text-[#1D3F73]">
+            <p role="alert" className="rounded-field bg-info-soft px-3.5 py-2.5 text-[0.8824rem] leading-snug text-[#1D3F73]">
               Pour en choisir une autre, décochez-en d’abord une. {place('Ce qu’il a déjà appris reste acquis.')}
             </p>
           )}

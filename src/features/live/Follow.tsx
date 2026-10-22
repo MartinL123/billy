@@ -85,7 +85,7 @@ export default function Follow({ token }: { token: string }) {
   return (
     <main className="fixed inset-0 flex flex-col bg-bg">
       <div className="relative min-h-0 flex-1 bg-placeholder">{at && <FollowMap at={at} />}</div>
-      <section aria-label="La balade" className="flex flex-col gap-1.5 rounded-t-[26px] bg-surface px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+24px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
+      <section aria-label="La balade" className="panel flex flex-col gap-1.5 px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+24px)]">
         <span className="flex items-center gap-2 text-milestone-dark surtitre">
           {!ended && <span aria-hidden="true" className="live-dot size-2.5 rounded-full bg-[#BF5519]" />}
           {ended ? 'Partage terminé' : 'En direct'}

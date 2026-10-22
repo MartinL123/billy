@@ -55,7 +55,7 @@ export default function EntryView() {
         {entry.photos.length > 0 && (
           <div className={`grid gap-1.5 ${entry.photos.length > 1 ? 'grid-cols-2' : ''}`}>
             {entry.photos.map((photo, i) => (
-              <button key={photo.fileId} type="button" aria-label={`Voir la photo ${i + 1} en plein écran`} onClick={() => setViewer(i)} className="block overflow-hidden rounded-[18px] border-0 bg-transparent p-0">
+              <button key={photo.fileId} type="button" aria-label={`Voir la photo ${i + 1} en plein écran`} onClick={() => setViewer(i)} className="block overflow-hidden rounded-field border-0 bg-transparent p-0">
                 <FileImage fileId={photo.thumbFileId} alt="" className={entry.photos.length > 1 ? 'aspect-square w-full' : 'h-[260px] w-full'} hideMissing />
               </button>
             ))}
@@ -65,7 +65,7 @@ export default function EntryView() {
         {!readOnly && (
           <>
             {/* Gelé (T-072) : « Partager avec la meute » n’est plus proposé (SharedWithPack reste plus bas). */}
-            <Link to={`/souvenir/${entry.id}/modifier`} className="btn btn-outline mt-2">
+            <Link to={`/souvenir/${entry.id}/modifier`} className="btn btn-tertiary mt-2">
               Modifier
             </Link>
           </>
@@ -96,14 +96,14 @@ export function SharedWithPack({ entry, dogName }: { entry: { id: string; date: 
   }
   if (!shared)
     return (
-      <button type="button" disabled={busy} onClick={share} className="btn btn-quiet min-h-12 self-start px-2 text-[0.8824rem] text-primary underline">
+      <button type="button" disabled={busy} onClick={share} className="btn-text min-h-12 self-start px-2 text-[0.8824rem] underline">
         Partager avec la meute
       </button>
     )
   return (
-    <div className="flex items-center gap-3 rounded-[18px] bg-primary-soft px-4 py-2">
+    <div className="flex items-center gap-3 rounded-field bg-primary-soft px-4 py-2">
       <span className="flex-1 text-[0.8824rem] font-semibold text-primary-dark">Partagé avec la meute</span>
-      <button type="button" onClick={() => unshareMoment(entry.id)} className="btn btn-quiet min-h-11 px-3 text-[0.8824rem]">
+      <button type="button" onClick={() => unshareMoment(entry.id)} className="btn-text min-h-11 px-3 text-[0.8824rem]">
         Retirer
       </button>
     </div>

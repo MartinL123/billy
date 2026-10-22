@@ -80,7 +80,7 @@ export default function Opening() {
         </span>
       </button>
       <span className="op-name mt-[18px] font-display text-[2.7059rem] leading-none font-semibold tracking-[-0.5px]">{dog.name}</span>
-      <button type="button" onClick={enter} className="op-cta mt-3.5 flex min-h-[52px] items-center rounded-full border-0 bg-white/18 px-[26px] text-[1rem] font-bold text-white">
+      <button type="button" onClick={enter} className="whitespace-nowrap op-cta mt-3.5 flex min-h-[52px] items-center rounded-full border-0 bg-white/18 px-[26px] text-[1rem] font-bold text-white">
         Touchez sa photo pour entrer
       </button>
 

@@ -49,7 +49,7 @@ import { errorText } from '../../firebase/errors'
 const label = 'text-[1rem] font-bold'
 const input = 'field min-h-14 text-[1rem]'
 const option = (on: boolean) =>
-  `flex min-h-[64px] w-full items-center gap-3.5 rounded-[20px] border-2 border-solid px-4 py-3 text-left ${on ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`
+  `flex min-h-[64px] w-full items-center gap-3.5 rounded-field border-2 border-solid px-4 py-3 text-left ${on ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`
 const chipClass = (on: boolean) => `min-h-12 rounded-full border-2 border-solid px-4 text-left text-[0.8824rem] leading-tight font-semibold ${on ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`
 
 const MEAL_LABELS = ['Matin', 'Midi', 'Après-midi', 'Soir']
@@ -352,7 +352,7 @@ export default function Questionnaire() {
           />
         )}
 
-        {step.kind === 'longtext' && <textarea aria-label={title} rows={3} value={draft[step.id] ?? ''} onChange={(e) => set(step.id, e.target.value)} className="resize-none rounded-[18px] border-2 border-solid border-border bg-surface px-4 py-3.5 text-[1rem] leading-[1.45] text-text" />}
+        {step.kind === 'longtext' && <textarea aria-label={title} rows={3} value={draft[step.id] ?? ''} onChange={(e) => set(step.id, e.target.value)} className="resize-none rounded-field border-2 border-solid border-border bg-surface px-4 py-3.5 text-[1rem] leading-[1.45] text-text" />}
 
         {step.kind === 'date' && (
           <div className="flex flex-col gap-2.5">
@@ -411,7 +411,7 @@ export default function Questionnaire() {
             ) : (
               <span className="flex size-40 items-center justify-center rounded-full bg-primary-soft font-display text-6xl font-semibold text-primary-dark">{(draft.nom || '?').charAt(0).toUpperCase()}</span>
             )}
-            <FilePicker accept="image/*" multiple={false} onFiles={(files) => void choosePhoto(files)} className="btn btn-outline w-full">
+            <FilePicker accept="image/*" multiple={false} onFiles={(files) => void choosePhoto(files)} className="btn btn-tertiary w-full">
               {dog.photoThumbFileId ? 'Changer la photo' : 'Choisir une photo'}
             </FilePicker>
           </div>
@@ -453,14 +453,14 @@ export default function Questionnaire() {
               {meals.map((meal, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <NativePickerInput aria-label={`Heure du repas ${i + 1}`} type="time" value={meal.time} onChange={(e) => setMeals(meals.map((m, j) => (j === i ? { time: e.target.value, label: mealLabel(e.target.value) } : m)))} className={`${input} min-w-0 flex-1 px-3`} />
-                  <button type="button" aria-label={`Retirer le repas ${i + 1}`} onClick={() => setMeals(meals.filter((_, j) => j !== i))} className="btn btn-quiet min-h-14 shrink-0 px-4">
+                  <button type="button" aria-label={`Retirer le repas ${i + 1}`} onClick={() => setMeals(meals.filter((_, j) => j !== i))} className="btn btn-tertiary min-h-14 shrink-0 px-4">
                     <TrashIcon size={20} />
                     Retirer
                   </button>
                 </div>
               ))}
               {meals.length < 4 && (
-                <button type="button" onClick={() => setMeals([...meals, { time: '12:00', label: mealLabel('12:00') }])} className="btn btn-outline">
+                <button type="button" onClick={() => setMeals([...meals, { time: '12:00', label: mealLabel('12:00') }])} className="btn btn-tertiary">
                   Ajouter un repas
                 </button>
               )}
@@ -475,14 +475,14 @@ export default function Questionnaire() {
                 {reactions.map((reaction, i) => (
                   <li key={reaction.situation} className={`flex items-center gap-3 px-4 py-2.5 ${i ? 'border-t border-divider' : ''}`}>
                     <span className="flex-1 text-[1rem] leading-snug">{reactionSentence(reaction)}</span>
-                    <button type="button" aria-label={`Retirer : ${reaction.situation}`} onClick={() => setReactions(reactions.filter((r) => r !== reaction))} className="btn btn-quiet min-h-12 shrink-0 px-3">
+                    <button type="button" aria-label={`Retirer : ${reaction.situation}`} onClick={() => setReactions(reactions.filter((r) => r !== reaction))} className="btn btn-tertiary min-h-12 shrink-0 px-3">
                       Retirer
                     </button>
                   </li>
                 ))}
               </ul>
             )}
-            <fieldset className="m-0 flex flex-col gap-3 rounded-[20px] border-2 border-dashed border-line-strong p-4">
+            <fieldset className="m-0 flex flex-col gap-3 rounded-card border-2 border-dashed border-line-strong p-4">
               <legend className="px-1 text-[1rem] font-bold">Ajouter une phrase</legend>
               <label className="flex flex-col gap-2">
                 <span className={label}>Quand…</span>
@@ -499,7 +499,7 @@ export default function Questionnaire() {
                 <div className="flex flex-col gap-2">
                   <span className={label}>{g('…il est')}</span>
                   {REACTION_LEVELS.map(({ value, label: text }) => (
-                    <button key={value} type="button" onClick={() => addReaction(value)} className="btn btn-outline">
+                    <button key={value} type="button" onClick={() => addReaction(value)} className="btn btn-tertiary">
                       {g(text.split(' ').map((w) => agree(w, draft.sexe)).join(' '))}
                     </button>
                   ))}
@@ -541,10 +541,10 @@ export default function Questionnaire() {
                 <fieldset key={value} className="m-0 flex flex-col gap-2 border-0 p-0">
                   <legend className="mb-2 p-0 text-[1.1176rem] font-bold">{question}</legend>
                   <div className="grid grid-cols-2 gap-2">
-                    <button type="button" aria-pressed={yes} onClick={() => setSkillDraft({ ...skillDraft, [skill.id]: value })} className={`btn ${yes ? 'btn-on' : 'btn-outline'}`}>
+                    <button type="button" aria-pressed={yes} onClick={() => setSkillDraft({ ...skillDraft, [skill.id]: value })} className={`btn ${yes ? 'btn-on' : 'btn-tertiary'}`}>
                       Oui
                     </button>
-                    <button type="button" aria-pressed={!yes} onClick={() => setSkillDraft({ ...skillDraft, [skill.id]: below })} className={`btn ${yes ? 'btn-outline' : 'btn-on'}`}>
+                    <button type="button" aria-pressed={!yes} onClick={() => setSkillDraft({ ...skillDraft, [skill.id]: below })} className={`btn ${yes ? 'btn-tertiary' : 'btn-on'}`}>
                       Pas encore
                     </button>
                   </div>
@@ -566,7 +566,7 @@ export default function Questionnaire() {
       <footer className={`mt-6 grid gap-2.5 ${unknown ? 'grid-cols-[auto_minmax(0,1fr)]' : 'grid-cols-1'}`}>
         {unknown && (
           // « Je ne sais pas » prend la largeur de son texte, sur une ligne ; « Suivant » prend le reste.
-          <button type="button" onClick={dontKnow} className="btn btn-outline min-h-[60px] px-5 whitespace-nowrap">
+          <button type="button" onClick={dontKnow} className="btn btn-tertiary min-h-[60px] px-5 whitespace-nowrap">
             Je ne sais pas
           </button>
         )}

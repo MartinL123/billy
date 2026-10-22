@@ -19,7 +19,7 @@ export default function HealthMeals() {
         <div className="card flex flex-col items-start gap-3 p-4">
           <p className="text-[1rem] font-semibold">Ses repas ne sont pas encore renseignés.</p>
           {!readOnly && (
-            <Link to="/questionnaire?etape=repas" className="btn btn-outline">
+            <Link to="/questionnaire?etape=repas" className="btn btn-tertiary">
               Indiquer ses repas
             </Link>
           )}

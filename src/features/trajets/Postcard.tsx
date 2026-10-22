@@ -68,7 +68,7 @@ export function Postcard({ input, date, onClose }: { input: PostcardInput; date:
   return createPortal(
     <div role="dialog" aria-modal="true" aria-label="Carte postale de la balade" className="fixed inset-0 z-50 flex animate-fade flex-col bg-[#0F1412]">
       <div className="flex items-center px-3 pt-[calc(env(safe-area-inset-top)+8px)]">
-        <button ref={closeRef} type="button" onClick={onClose} className="flex min-h-12 items-center gap-2 rounded-full border-2 border-solid border-white/70 bg-black/40 px-4 text-[1rem] font-bold text-white">
+        <button ref={closeRef} type="button" onClick={onClose} className="whitespace-nowrap flex min-h-12 items-center gap-2 rounded-full border-2 border-solid border-white/70 bg-black/40 px-4 text-[1rem] font-bold text-white">
           <CloseIcon size={20} />
           Fermer
         </button>

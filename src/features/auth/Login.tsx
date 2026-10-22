@@ -90,7 +90,7 @@ export default function Login() {
         <button type="submit" disabled={busy} aria-busy={busy || undefined} className="btn btn-main mt-2">
           {busy ? 'Connexion…' : 'Se connecter'}
         </button>
-        <button type="button" onClick={forgot} className="btn btn-outline self-center p-3">
+        <button type="button" onClick={forgot} className="btn btn-tertiary self-center p-3">
           Mot de passe oublié ?
         </button>
         {info && (
@@ -103,7 +103,7 @@ export default function Login() {
       {/* Pas d’inscription : Martin crée les comptes. On explique seulement comment installer l’app. */}
       {/* Dans l’app iOS, elle est déjà installée. */}
       {!isNative() && (
-        <button type="button" onClick={() => setInstalling(true)} className="btn btn-outline mt-6">
+        <button type="button" onClick={() => setInstalling(true)} className="btn btn-tertiary mt-6">
           Comment installer l’app sur mon téléphone ?
         </button>
       )}

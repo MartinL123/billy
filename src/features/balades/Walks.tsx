@@ -108,7 +108,7 @@ export default function Walks() {
         </div>
         {/* « Noter un souvenir » vit ici depuis la V5 (il a quitté l’accueil). */}
         {!readOnly && (
-          <Link to="/noter" className="tap btn btn-outline min-h-12 gap-2">
+          <Link to="/noter" className="tap btn btn-tertiary min-h-12 gap-2">
             <PlusIcon size={20} />
             Noter un souvenir
           </Link>
@@ -131,7 +131,7 @@ export default function Walks() {
             <h2 className="title-section">Photos de balade</h2>
             <div className="grid grid-cols-3 gap-1.5">
               {(allPhotos ? photos : photos.slice(0, PHOTOS)).map((photo, i) => (
-                <button key={photo.fileId} type="button" aria-label={`Voir la photo ${i + 1} sur ${photos.length} en plein écran`} onClick={() => setViewer(i)} className="tap block overflow-hidden rounded-[14px] border-0 bg-transparent p-0">
+                <button key={photo.fileId} type="button" aria-label={`Voir la photo ${i + 1} sur ${photos.length} en plein écran`} onClick={() => setViewer(i)} className="tap block overflow-hidden rounded-field border-0 bg-transparent p-0">
                   <FileImage fileId={photo.thumbFileId} alt="" className="aspect-square w-full" />
                 </button>
               ))}
@@ -154,7 +154,7 @@ export default function Walks() {
             <h2 className="title-section">Pas encore de balade</h2>
             <p className="text-[1rem] leading-snug text-[#3F4946]">{isNative() ? 'Vos marches de l’Apple Watch arrivent ici toutes seules' : 'Importez vos balades Strava : elles arrivent ici'}, et s’affichent sur la carte {ofName(dog.name)}.</p>
             {!readOnly && (
-              <Link to="/importer" className={`btn ${isNative() ? 'btn-outline min-h-12' : 'btn-main min-h-[56px]'} self-stretch`}>
+              <Link to="/importer" className={`btn ${isNative() ? 'btn-tertiary min-h-12' : 'btn-main min-h-[56px]'} self-stretch`}>
                 {isNative() ? 'Importer un fichier GPX' : 'Importer mes balades'}
               </Link>
             )}
@@ -163,14 +163,14 @@ export default function Walks() {
           <>
             <div role="group" aria-label="Filtrer les balades" className="scroll-row -mx-5 flex gap-2 px-5">
               {filters.map((f) => (
-                <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className={`min-h-11 shrink-0 rounded-full border-2 border-solid px-4 text-[0.8824rem] font-bold ${filter === f.id ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}>
+                <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className={`chip px-4 ${filter === f.id ? 'chip-on' : ''}`}>
                   {f.label}
                 </button>
               ))}
             </div>
             {/* Un filtre : ses balades à lui, en chiffres. */}
             {filter !== 'toutes' && shown.length > 0 && <Stats items={walksSummary(shown)} />}
-            {groups.length === 0 && <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[1rem] text-[#1D3F73]">Aucune balade pour ce filtre.</p>}
+            {groups.length === 0 && <p className="rounded-field bg-info-soft px-4 py-3 text-[1rem] text-[#1D3F73]">Aucune balade pour ce filtre.</p>}
             {groups.map((group) => (
               <section key={group.key} className="flex flex-col gap-2">
                 <h2 className="text-muted surtitre">{formatMonthYear(`${group.key}-01`)}</h2>
@@ -180,7 +180,7 @@ export default function Walks() {
                       <li key={row.id} className={i ? 'border-t border-divider' : ''}>
                         <Link to={`/souvenir/${row.id}`} className="tap flex items-center gap-3 px-3 py-2.5 text-text no-underline">
                           {row.thumb ? (
-                            <FileImage fileId={row.thumb} alt="" className="size-14 shrink-0 rounded-[14px]" />
+                            <FileImage fileId={row.thumb} alt="" className="size-14 shrink-0 rounded-field" />
                           ) : (
                             // V6 § 1 : une icône calme, sans carré de couleur.
                             <span className="flex size-14 shrink-0 items-center justify-center text-primary">
@@ -206,7 +206,7 @@ export default function Walks() {
                             <Stats items={[{ value: formatRouteDistance(row.item.route.distanceM), label: 'Distance' }, { value: row.item.route.durationMin ? formatDuration(row.item.route.durationMin) : '', label: 'Durée' }]} />
                             <span className="flex flex-wrap gap-1.5">
                               {walkTags(row.item).map((t) => (
-                                <span key={t} className="rounded-full bg-bg px-2 py-0.5 text-[0.7647rem] font-semibold text-[#3F4946]">
+                                <span key={t} className="whitespace-nowrap rounded-full bg-bg px-2 py-0.5 text-[0.7647rem] font-semibold text-[#3F4946]">
                                   {t}
                                 </span>
                               ))}

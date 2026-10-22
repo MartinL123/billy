@@ -47,6 +47,8 @@ interface Props {
   center?: LatLng
   /** Le lieu ouvert dans la petite fenêtre : la carte s’y centre, au-dessus de la fenêtre. */
   focus?: LatLng
+  /** Change à chaque toucher sur « Me situer » (balade en cours) : la carte revient sur `focus`, même s’il n’a pas bougé. */
+  recenter?: number
   /** Un toucher sur la carte, hors des repères. */
   onMapTap?: () => void
   onPlace?: (id: string) => void
@@ -191,7 +193,7 @@ function innerBox(layout: FogLayout): [number, number, number, number] {
  * La carte qui se découvre : le brouillard (un seul polygone troué, bords adoucis ; en option depuis la V6.1), les
  * trajets, les spots. Plan ou satellite, 2D ou 3D.
  */
-export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places, satellite, three, fog = true, center, focus, onPlace, onMapTap, onBearing, north, zoom, walk, dogName }: Props) {
+export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places, satellite, three, fog = true, center, focus, recenter, onPlace, onMapTap, onBearing, north, zoom, walk, dogName }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const markers = useRef<Marker[]>([])
@@ -358,7 +360,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     const m = map.current
     if (!m || !focus) return
     whenReady(m, () => m.easeTo({ center: [focus[1], focus[0]], zoom: Math.max(m.getZoom(), 16), padding: { top: 60, bottom: 320, left: 0, right: 0 }, duration: cameraMs(700) }))
-  }, [focus?.[0], focus?.[1]]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [focus?.[0], focus?.[1], recenter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (map.current) setSatellite(map.current, sat)
@@ -463,7 +465,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
       {!ready && <span aria-hidden="true" className="skeleton pointer-events-none absolute inset-0 z-[5] rounded-none" />}
       {!ready && (
         <div role="status" className="pointer-events-none absolute inset-x-0 top-[40%] z-10 flex justify-center">
-          <span className="flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-[0.8824rem] font-semibold text-text shadow-[0_2px_8px_rgba(24,32,30,0.2)]">
+          <span className="flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-[0.8824rem] font-semibold text-text shadow-float">
             <span className="size-4 animate-spin rounded-full border-2 border-solid border-primary border-t-transparent" aria-hidden="true" />
             Chargement de la carte…
           </span>

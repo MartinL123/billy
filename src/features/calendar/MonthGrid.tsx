@@ -42,7 +42,7 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
   const navButton = 'flex size-12 items-center justify-center rounded-full border-0 bg-transparent p-0 text-text'
 
   return (
-    <section aria-label="Vue du mois" className="card flex flex-col gap-1.5 rounded-3xl px-3 pt-3 pb-2">
+    <section aria-label="Vue du mois" className="card flex flex-col gap-1.5 px-3 pt-3 pb-2">
       <div className="flex items-center justify-between gap-2">
         {!collapsed && (
           <button type="button" aria-label="Mois précédent" onClick={() => onMonthChange(addMonths(month, -1))} className={navButton}>
@@ -58,7 +58,7 @@ export function MonthGrid({ month, today, selected, events, onMonthChange, onSel
           </button>
         )}
         {onToggle && (
-          <button type="button" onClick={onToggle} aria-expanded={!collapsed} className="tap min-h-11 rounded-full border-0 bg-primary-soft px-3.5 text-[0.8824rem] font-bold text-primary-dark">
+          <button type="button" onClick={onToggle} aria-expanded={!collapsed} className="btn btn-secondary min-h-11 px-3.5 text-[0.8824rem]">
             {collapsed ? 'Voir le mois' : 'Voir la semaine'}
           </button>
         )}

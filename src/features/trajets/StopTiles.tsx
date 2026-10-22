@@ -32,7 +32,7 @@ export function StopTiles({ stop, onPick }: { stop: { lat: number; lng: number }
         {STOP_TILES.map((tile) => {
           const color = tile.type ? routeMomentInfo(tile.type).color : '#5C6662'
           return (
-            <button key={tile.label} type="button" onClick={() => (tile.type ? onPick(tile.type) : setOther(true))} className="tap flex min-h-11 items-center gap-2 rounded-[14px] border-2 border-solid bg-surface px-2 py-1.5 text-left text-[0.8235rem] leading-tight font-bold text-text" style={{ borderColor: `${color}66` }}>
+            <button key={tile.label} type="button" onClick={() => (tile.type ? onPick(tile.type) : setOther(true))} className="tap flex min-h-11 items-center gap-2 rounded-field border-2 border-solid bg-surface px-2 py-1.5 text-left text-[0.8235rem] leading-tight font-bold text-text" style={{ borderColor: `${color}66` }}>
               {tile.type ? <MomentIcon type={tile.type} size={24} /> : <span aria-hidden="true" className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#5C6662] text-[0.8235rem] text-white">…</span>}
               {tile.label}
             </button>

@@ -107,10 +107,6 @@ export function Segmented<T extends string>({ legend, options, value, onChange, 
   )
 }
 
-/** Bouton secondaire à contour, pleine largeur. */
-export const outlineButton =
-  'btn btn-outline w-full'
-
 interface NativePickerInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'value'> {
   type: 'date' | 'time'
   value: string

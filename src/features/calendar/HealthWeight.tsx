@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { outlineButton } from '../../components/Form'
 import { ChevronRightIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
 import { useData } from '../../firebase/store'
@@ -37,7 +36,7 @@ export default function HealthWeight() {
             <div className="text-[0.7647rem] text-muted">{lastWeight ? `Pesé le ${formatShort(lastWeight.date, year)}` : 'Aucune pesée pour l’instant'}</div>
           </div>
           {lastWeight && (
-            <div className="font-display text-[1.7647rem] font-bold tabular-nums">
+            <div className="font-display text-[1.7647rem] font-bold whitespace-nowrap tabular-nums">
               {formatKg(lastWeight.kg)} <span className="font-sans text-base font-semibold text-muted">kg</span>
             </div>
           )}
@@ -63,7 +62,7 @@ export default function HealthWeight() {
           </div>
         )}
         {!readOnly && (
-          <button type="button" onClick={() => setWeightSheet({})} className={outlineButton}>
+          <button type="button" onClick={() => setWeightSheet({})} className="btn btn-tertiary w-full">
             Ajouter une pesée
           </button>
         )}

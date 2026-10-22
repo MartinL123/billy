@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { DangerButton } from '../../components/Buttons'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { FileImage } from '../../components/FileImage'
 import { FilePicker } from '../../components/FilePicker'
@@ -144,7 +145,7 @@ export default function EntryForm() {
 
   const choices = allTags([...entries.flatMap((e) => e.tags), ...tags])
   const chipClass = (active: boolean) =>
-    `min-h-12 rounded-full border-2 px-3.5 text-[1rem] ${
+    `min-h-12 rounded-full border-2 px-3.5 text-[1rem] whitespace-nowrap ${
       active ? 'border-primary bg-primary font-bold text-white' : 'border-border bg-surface font-medium text-text'
     }`
 
@@ -222,7 +223,7 @@ export default function EntryForm() {
               <button
                 type="button"
                 onClick={() => setNewTag('')}
-                className="min-h-12 rounded-full border-2 border-dashed border-line-strong bg-transparent px-3.5 text-[1rem] font-semibold text-primary"
+                className="whitespace-nowrap min-h-12 rounded-full border-2 border-dashed border-line-strong bg-transparent px-3.5 text-[1rem] font-semibold text-primary"
               >
                 + Nouveau
               </button>
@@ -258,7 +259,7 @@ export default function EntryForm() {
             max={today}
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="btn btn-outline text-right"
+            className="btn btn-tertiary text-right"
           />
         </div>
 
@@ -269,9 +270,7 @@ export default function EntryForm() {
         )}
 
         {existing && (
-          <button type="button" onClick={() => setConfirmDelete(true)} className="btn btn-danger">
-            Supprimer ce souvenir
-          </button>
+          <DangerButton onClick={() => setConfirmDelete(true)}>Supprimer ce souvenir</DangerButton>
         )}
       </FormScreen>
 

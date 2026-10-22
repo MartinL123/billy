@@ -51,7 +51,7 @@ export function PasswordSheet({ onClose }: { onClose: () => void }) {
           {busy ? 'Enregistrement…' : 'Enregistrer'}
         </button>
       </form>
-      <button type="button" onClick={onClose} disabled={busy} className="btn btn-outline">
+      <button type="button" onClick={onClose} disabled={busy} className="btn btn-tertiary">
         Annuler
       </button>
     </Sheet>

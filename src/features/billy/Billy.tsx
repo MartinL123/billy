@@ -48,7 +48,7 @@ export default function Billy() {
     <div className="flex flex-col gap-3.5 px-4 pb-[88px]">
       <BackLink label="Accueil" onClick={back} />
 
-      <div className="card flex items-center justify-between gap-2.5 rounded-[20px] p-3">
+      <div className="card flex items-center justify-between gap-2.5 p-3">
         <div className="flex min-w-0 items-center gap-3">
           <DogPhoto size={60} />
           <div className="min-w-0">
@@ -56,7 +56,7 @@ export default function Billy() {
             {age && <p className="m-0 text-muted">{age}</p>}
           </div>
         </div>
-        <Link to="/profil" className="tap flex min-h-11 shrink-0 items-center rounded-full bg-primary-soft px-3.5 text-[0.8235rem] font-bold whitespace-nowrap text-primary no-underline">
+        <Link to="/profil" className="btn btn-secondary min-h-11 shrink-0 px-3.5 text-[0.8235rem]">
           Son profil ›
         </Link>
       </div>
@@ -73,7 +73,7 @@ export default function Billy() {
         ))}
         {/* T-067 : choisir ses compétences en cours ; le seul bouton à contour de la page. */}
         {!readOnly && (
-          <Link to="/en-cours" className="tap btn btn-outline min-h-12 whitespace-nowrap">
+          <Link to="/en-cours" className="tap btn btn-tertiary min-h-12 whitespace-nowrap">
             {place('Changer ce qu’il apprend')}
           </Link>
         )}
@@ -90,7 +90,7 @@ export default function Billy() {
         <h2 id="progres" className="title-section mt-1">
           Ses progrès
         </h2>
-        <div className="card rounded-[20px] px-4 py-1">
+        <div className="card px-4 py-1">
           {feed.length ? (
             <>
               <ProgressList items={feed.slice(0, FEED_SIZE)} today={today} back={name} />

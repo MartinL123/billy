@@ -44,7 +44,7 @@ export default function ImportStrava() {
             </li>
           ))}
         </ol>
-        <p className="rounded-[18px] bg-primary-soft px-4 py-3 text-[0.8824rem] leading-snug text-primary-dark">{APP_NAME} garde le trajet et la durée. Le rythme cardiaque n’est jamais enregistré. Votre carte reste privée.</p>
+        <p className="rounded-field bg-primary-soft px-4 py-3 text-[0.8824rem] leading-snug text-primary-dark">{APP_NAME} garde le trajet et la durée. Le rythme cardiaque n’est jamais enregistré. Votre carte reste privée.</p>
       </main>
       <ImportFooter label="Choisir les fichiers" />
     </div>

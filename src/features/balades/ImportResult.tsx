@@ -41,7 +41,7 @@ export default function ImportResult() {
                 { value: formatRouteDistance(result.distanceM), label: 'Parcourus' },
               ]}
             />
-            {notice && <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[1rem] leading-snug text-[#1D3F73]">{notice}</p>}
+            {notice && <p className="rounded-field bg-info-soft px-4 py-3 text-[1rem] leading-snug text-[#1D3F73]">{notice}</p>}
             <ul className="card m-0 flex list-none flex-col p-0">
               {result.walks.slice(0, 30).map((w, i) => (
                 <li key={w.entryId} className={i ? 'border-t border-divider' : ''}>

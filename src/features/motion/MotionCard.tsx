@@ -56,7 +56,7 @@ function MotionCardInner() {
       dismissMotionPeriod(suggestion.id, motionDismissed)
     }
     return (
-      <section aria-label="Une marche à noter" className="card flex flex-col gap-1.5 rounded-[20px] px-[18px] pt-[16px] pb-1.5">
+      <section aria-label="Une marche à noter" className="card flex flex-col gap-1.5 px-[18px] pt-[16px] pb-1.5">
         <p className="text-[1rem] leading-snug">
           {motionSentence(suggestion, today)} <span className="font-bold">C’était une sortie avec {dogName(dog)}{' '}?</span>
         </p>
@@ -75,7 +75,7 @@ function MotionCardInner() {
   // L’invitation : une seule fois, pour qui n’a pas choisi les balades de la Watch.
   if (status === 'prompt' && !declined && !watchOptedIn())
     return (
-      <section aria-label="Remarquer vos marches" className="card flex flex-col gap-1.5 rounded-[20px] px-[18px] pt-[16px] pb-1.5">
+      <section aria-label="Remarquer vos marches" className="card flex flex-col gap-1.5 px-[18px] pt-[16px] pb-1.5">
         <p className="text-[1rem] leading-snug">Sans montre, {APP_NAME} peut remarquer quand vous marchez et vous proposer de noter la sortie.</p>
         <p className="text-[0.8824rem] leading-snug text-[#3F4946]">{MOTION_PROMISE}</p>
         <div className="flex flex-wrap items-center gap-x-6">

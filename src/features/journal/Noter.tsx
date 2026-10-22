@@ -37,7 +37,7 @@ interface Photo {
 }
 
 const legend = 'mb-2.5 p-0 text-lg font-bold'
-const choice = (on: boolean) => `btn px-2 ${on ? 'btn-on' : 'btn-outline'}`
+const choice = (on: boolean) => `btn px-2 ${on ? 'btn-on' : 'btn-tertiary'}`
 
 /**
  * Noter ce qu’on a fait : l’action principale de l’app. Tout est choisi par l’utilisateur, rien n’est deviné.
@@ -202,7 +202,7 @@ export default function Noter() {
           {photos.length > 0 && (
             <div className={`grid gap-2 ${photos.length > 1 ? 'grid-cols-3' : ''}`}>
               {photos.map((photo, i) => (
-                <div key={photo.key} className={`relative overflow-hidden rounded-[20px] bg-placeholder ${photos.length > 1 ? 'aspect-square' : 'h-[220px]'}`}>
+                <div key={photo.key} className={`relative overflow-hidden rounded-field bg-placeholder ${photos.length > 1 ? 'aspect-square' : 'h-[220px]'}`}>
                   <img src={photo.previewUrl} alt={`Photo ${i + 1}`} className="size-full object-cover" />
                   <button
                     type="button"
@@ -220,7 +220,7 @@ export default function Noter() {
             </div>
           )}
           {photos.length < MAX_PHOTOS && (
-            <FilePicker accept="image/*" onFiles={(files) => void addPhotos(files)} className={photos.length ? 'btn btn-outline' : 'flex h-[200px] flex-col items-center justify-center gap-2 rounded-[22px] border-2 border-dashed border-line-strong bg-surface text-[1rem] font-bold text-primary'}>
+            <FilePicker accept="image/*" onFiles={(files) => void addPhotos(files)} className={photos.length ? 'btn btn-tertiary' : 'flex h-[200px] flex-col items-center justify-center gap-2 rounded-card border-2 border-dashed border-line-strong bg-surface text-[1rem] font-bold text-primary'}>
               <PhotoIcon size={photos.length ? 22 : 36} />
               Ajouter une photo
             </FilePicker>
@@ -243,7 +243,7 @@ export default function Noter() {
               setError('')
             }}
             placeholder={`Une balade, un jeu, un progrès ${ofName(dog.name)}…`}
-            className="resize-none rounded-[18px] border-2 border-solid border-border bg-surface px-4 py-3.5 text-[1rem] leading-[1.45] text-text focus:border-primary"
+            className="resize-none rounded-field border-2 border-solid border-border bg-surface px-4 py-3.5 text-[1rem] leading-[1.45] text-text focus:border-primary"
           />
         </label>
 
@@ -258,7 +258,7 @@ export default function Noter() {
                   type="button"
                   aria-pressed={on}
                   onClick={() => setFeeling(on ? undefined : value)}
-                  className={`flex h-[104px] flex-col items-center justify-center gap-1.5 rounded-[20px] border-solid text-[1rem] font-bold ${on ? 'border-[3px] border-primary bg-primary text-white' : 'border-2 border-border bg-surface text-text'}`}
+                  className={`flex h-[104px] flex-col items-center justify-center gap-1.5 rounded-field border-solid text-[1rem] font-bold ${on ? 'border-[3px] border-primary bg-primary text-white' : 'border-2 border-border bg-surface text-text'}`}
                 >
                   <Face feeling={value} />
                   {label}
@@ -271,7 +271,7 @@ export default function Noter() {
         {fear && (
           <fieldset className="m-0 flex flex-col gap-2.5 border-0 p-0">
             <legend className={legend}>C’était difficile : qu’avez-vous fait ?</legend>
-            <label className={`flex min-h-16 items-center gap-3.5 rounded-[18px] border-2 border-solid px-4 py-3 ${movedAway ? 'border-primary bg-primary-soft' : 'border-border bg-surface'}`}>
+            <label className={`flex min-h-16 items-center gap-3.5 rounded-field border-2 border-solid px-4 py-3 ${movedAway ? 'border-primary bg-primary-soft' : 'border-border bg-surface'}`}>
               <input type="checkbox" checked={movedAway} onChange={(e) => setMovedAway(e.target.checked)} className="size-7 shrink-0 accent-primary" />
               <span className="flex flex-col gap-0.5">
                 <span className="text-[1rem] leading-snug font-bold">{place('On s’est éloignés pour qu’il se sente mieux')}</span>
@@ -320,11 +320,11 @@ export default function Noter() {
             )
           })}
         {!askable && stepSkills.length > 0 && (
-          <p className="rounded-[18px] bg-info-soft px-4 py-3 text-[0.8824rem] leading-snug text-[#1D3F73]">Les jours difficiles comptent aussi. La prochaine étape attendra un meilleur jour.</p>
+          <p className="rounded-field bg-info-soft px-4 py-3 text-[0.8824rem] leading-snug text-[#1D3F73]">Les jours difficiles comptent aussi. La prochaine étape attendra un meilleur jour.</p>
         )}
 
         {error && (
-          <p role="alert" className="rounded-[18px] bg-danger-soft px-4 py-3 text-[0.8824rem] font-semibold text-danger">
+          <p role="alert" className="rounded-field bg-danger-soft px-4 py-3 text-[0.8824rem] font-semibold text-danger">
             {error}
           </p>
         )}

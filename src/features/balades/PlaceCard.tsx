@@ -24,7 +24,7 @@ export function PlaceCard({ selected, here, me, votes = [], dogs = 0, onClose, o
   const at = selected.spot
 
   return (
-    <section aria-label={at.name} className="absolute inset-x-0 bottom-0 z-20 mx-auto flex max-h-[85%] max-w-[430px] animate-sheet flex-col gap-2.5 overflow-y-auto rounded-t-[26px] bg-surface px-5 pt-2 pb-9 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
+    <section aria-label={at.name} className="panel absolute inset-x-0 bottom-0 z-20 mx-auto flex max-h-[85%] max-w-[430px] animate-sheet flex-col gap-2.5 overflow-y-auto px-5 pt-2 pb-9">
       <div className="flex justify-end">
         <button type="button" onClick={onClose} aria-label="Fermer" className="-mr-2 flex size-11 shrink-0 items-center justify-center rounded-full border-0 bg-transparent text-[1.2941rem] text-muted">
           ×
@@ -33,10 +33,10 @@ export function PlaceCard({ selected, here, me, votes = [], dogs = 0, onClose, o
       <SpotDetails spot={at} votes={votes} dogs={dogs} meters={here ? distanceMeters(here, at) : undefined}>
         {selected.mine.length > 0 &&
           (confirm ? (
-            <div className="flex flex-col gap-2 rounded-[18px] bg-bg p-3">
+            <div className="flex flex-col gap-2 rounded-field bg-bg p-3">
               <p className="text-[0.8824rem] leading-snug">{at.createdBy === me ? 'Le spot disparaît de la carte, pour toute la meute.' : 'Votre marque disparaît ; le spot reste pour la meute.'} Les os gagnés restent.</p>
               <div className="flex gap-2">
-                <button type="button" onClick={() => setConfirm(false)} className="btn btn-outline min-h-12 flex-1">
+                <button type="button" onClick={() => setConfirm(false)} className="btn btn-tertiary min-h-12 flex-1">
                   Annuler
                 </button>
                 <button type="button" onClick={() => onRemove(at, selected.mine)} className="btn min-h-12 flex-1 bg-[#C4423A] text-white">

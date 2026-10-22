@@ -334,7 +334,7 @@ export default function Today() {
 
       {/* Une nouvelle carte du moment (soin fait, mission faite…) monte à la place de l’ancienne (T-033). */}
       {!readOnly && (
-      <section key={cardKey(card)} aria-label="À faire maintenant" className={`card flex flex-col gap-3 rounded-[26px] p-4 ${cardKey(card) !== firstCard ? 'anim-in' : ''}`}>
+      <section key={cardKey(card)} aria-label="À faire maintenant" className={`card flex flex-col gap-3 p-4 ${cardKey(card) !== firstCard ? 'anim-in' : ''}`}>
         <span className="text-milestone-dark surtitre">{content.badge}</span>
         {/* Texte agrandi (V5, R-056) ou écran bas : l’illustration disparaît d’abord, puis la ligne d’aide ; le bouton reste visible.
             Le texte n’est jamais coupé (R-076) : il s’affiche en entier ou pas du tout. */}

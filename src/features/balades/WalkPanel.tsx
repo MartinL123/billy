@@ -1,6 +1,5 @@
 import { Stats } from '../../components/Stats'
 import { BackLink } from '../../components/BackLink'
-import { outlineButton } from '../../components/Form'
 import { PinIcon } from '../../components/Icons'
 import { formatDuration } from '../../lib/balade'
 import { formatLong } from '../../lib/dates'
@@ -30,7 +29,7 @@ export function WalkPanel({ source, name, date, route, color, replaying, onRepla
       aria-label={name}
       {...sheet.handlers}
       style={sheet.style}
-      className="absolute inset-x-0 top-[calc(env(safe-area-inset-top)+62px)] bottom-0 z-10 mx-auto flex max-w-[430px] flex-col gap-2.5 rounded-t-[26px] bg-surface px-5 pt-2 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]"
+      className="panel absolute inset-x-0 top-[calc(env(safe-area-inset-top)+62px)] bottom-0 z-10 mx-auto flex max-w-[430px] flex-col gap-2.5 px-5 pt-2"
     >
       <button type="button" onClick={sheet.cycle} aria-expanded={!sheet.collapsed} aria-label={sheet.handleLabel} className="mx-auto -mb-2 flex min-h-11 w-24 shrink-0 touch-none items-center justify-center border-0 bg-transparent">
         {sheet.snap === 'full' ? (
@@ -66,7 +65,7 @@ export function WalkPanel({ source, name, date, route, color, replaying, onRepla
         )}
         {/* R-059 : la même chose que toucher le tracé, sans viser (VoiceOver, Switch Control). */}
         {canMark && (
-          <button ref={actionsEnd} type="button" onClick={() => onAddMark(sheet.ref.current?.getBoundingClientRect().top ?? window.innerHeight)} className={`${outlineButton} gap-2`}>
+          <button ref={actionsEnd} type="button" onClick={() => onAddMark(sheet.ref.current?.getBoundingClientRect().top ?? window.innerHeight)} className="btn btn-tertiary w-full gap-2">
             <PinIcon size={20} />
             Ajouter un repère
           </button>

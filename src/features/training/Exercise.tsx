@@ -119,7 +119,7 @@ function RestDay() {
   }
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
-      <header className="flex flex-col gap-3 rounded-b-[28px] bg-primary px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white">
+      <header className="flex flex-col gap-3 rounded-b-panel bg-primary px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white">
         <BackLink label="Accueil" onClick={back} onDark />
         <p className="surtitre">Mission du jour</p>
         <h1 className="title-screen">Aujourd’hui, repos</h1>
@@ -197,7 +197,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
 
   return (
     <div className="mx-auto min-h-dvh max-w-[430px]">
-      <header className="flex flex-col gap-3 rounded-b-[28px] px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white" style={{ background: inkOn(territory) }}>
+      <header className="flex flex-col gap-3 rounded-b-panel px-4 pt-[calc(env(safe-area-inset-top)+14px)] pb-[22px] text-white" style={{ background: inkOn(territory) }}>
         <BackLink label={fromQuest ? 'Accueil' : 'Retour'} onClick={back} onDark />
         {fromQuest && <p className="surtitre">Mission du jour</p>}
         <h1 className="title-screen">{exercise.name}</h1>
@@ -241,7 +241,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
           </ol>
         </section>
 
-        <section className="flex flex-col gap-2 rounded-[20px] bg-[#FFF8E6] p-4">
+        <section className="flex flex-col gap-2 rounded-field bg-[#FFF8E6] p-4">
           <h2 className="text-gold-dark surtitre">Bon à savoir</h2>
           {exercise.caution && <p className="text-[1rem] leading-snug font-semibold text-gold-dark">{exercise.caution}</p>}
           <p className="text-[1rem] leading-snug text-gold-dark">{place(GENERIC_TIP)}</p>
@@ -285,7 +285,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
           {timer.running ? (
             <div role="timer" aria-live="off" className="flex min-h-[58px] items-center justify-between gap-3 rounded-full bg-primary pr-1.5 pl-6 text-white">
               <span className="font-display text-[1.7647rem] leading-none font-bold tabular-nums">{formatCountdown(timer.left)}</span>
-              <button type="button" onClick={timer.stop} className="min-h-12 rounded-full border-2 border-solid border-white/70 bg-transparent px-5 text-[1rem] font-bold text-white">
+              <button type="button" onClick={timer.stop} className="whitespace-nowrap min-h-12 rounded-full border-2 border-solid border-white/70 bg-transparent px-5 text-[1rem] font-bold text-white">
                 Arrêter
               </button>
             </div>
@@ -313,7 +313,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
           <button type="button" onClick={() => navigate(fromQuest ? '/noter?depuis=quete' : `/noter?depuis=exercice&competences=${skill}`)} className="btn btn-main min-h-[58px] text-[1.0588rem]">
             C’est fait, je le note
           </button>
-          <button type="button" onClick={timer.dismiss} className="btn btn-outline">
+          <button type="button" onClick={timer.dismiss} className="btn btn-tertiary">
             Rester sur l’exercice
           </button>
         </Sheet>
@@ -332,7 +332,7 @@ function ExerciseScreen({ fromQuest }: { fromQuest: boolean }) {
                   setExercise(item)
                   setPicking(false)
                 }}
-                className={`flex min-h-16 items-center gap-3 rounded-[18px] border-2 border-solid px-4 py-2 text-left ${item.id === exercise.id ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}
+                className={`flex min-h-16 items-center gap-3 rounded-field border-2 border-solid px-4 py-2 text-left ${item.id === exercise.id ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}
               >
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="title-card">{item.name}</span>

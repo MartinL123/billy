@@ -14,13 +14,13 @@ export function SkeletonScreen() {
           <Skeleton className="h-6 w-48" />
         </div>
       </div>
-      <Skeleton className="h-44 rounded-[26px]" />
+      <Skeleton className="h-44 rounded-card" />
       <Skeleton className="h-14" />
       <div className="grid grid-cols-2 gap-3">
-        <Skeleton className="h-[150px] rounded-[22px]" />
-        <Skeleton className="h-[150px] rounded-[22px]" />
-        <Skeleton className="h-[150px] rounded-[22px]" />
-        <Skeleton className="h-[150px] rounded-[22px]" />
+        <Skeleton className="h-[150px] rounded-card" />
+        <Skeleton className="h-[150px] rounded-card" />
+        <Skeleton className="h-[150px] rounded-card" />
+        <Skeleton className="h-[150px] rounded-card" />
       </div>
     </div>
   )

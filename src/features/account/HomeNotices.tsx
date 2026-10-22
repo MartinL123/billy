@@ -26,10 +26,10 @@ export function PasswordPrompt() {
   const [open, setOpen] = useState(false)
   if (dog.passwordPromptDone || !questionnaireStatus(dog.questionnaire).complete) return null
   return (
-    <section className="flex flex-col gap-3 rounded-[22px] bg-info-soft p-4">
+    <section className="flex flex-col gap-3 rounded-card bg-info-soft p-4">
       <p className="text-[1rem] leading-snug font-semibold text-[#1D3F73]">Votre mot de passe vous a été donné : choisissez-en un à vous.</p>
       <div className="grid grid-cols-[1fr_auto] gap-2">
-        <button type="button" onClick={() => setOpen(true)} className="btn btn-outline bg-surface whitespace-nowrap">
+        <button type="button" onClick={() => setOpen(true)} className="btn btn-tertiary bg-surface whitespace-nowrap">
           Le changer
         </button>
         <button type="button" onClick={() => updateDog({ passwordPromptDone: true })} className="btn-text px-3">
@@ -57,9 +57,9 @@ export function InstallBanner() {
     setVisible(false)
   }
   return (
-    <aside className="flex items-center gap-2 rounded-[18px] border border-solid border-divider bg-surface py-1.5 pr-1.5 pl-4">
+    <aside className="flex items-center gap-2 rounded-card border border-solid border-divider bg-surface shadow-card py-1.5 pr-1.5 pl-4">
       <span className="flex-1 text-[0.8824rem] leading-snug">Ajoutez {APP_NAME} à votre écran d’accueil</span>
-      <Link to="/installer" className="btn btn-outline min-h-11 shrink-0 px-3.5 text-[0.8824rem]">
+      <Link to="/installer" className="btn btn-tertiary min-h-11 shrink-0 px-3.5 text-[0.8824rem]">
         Comment ?
       </Link>
       <button type="button" aria-label="Fermer" onClick={close} className="flex size-11 shrink-0 items-center justify-center rounded-full border-0 bg-transparent text-muted">

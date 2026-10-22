@@ -167,7 +167,7 @@ export default function Meute() {
         >
           Autoriser ma position
         </button>
-        <button type="button" onClick={close} className="btn btn-outline">
+        <button type="button" onClick={close} className="btn btn-tertiary">
           Plus tard
         </button>
       </div>
@@ -192,7 +192,7 @@ export default function Meute() {
 
       {/* La carte des spots est celle de Balades (une seule carte dans l’app) : calque « Spots de la meute ». */}
       <div className="flex gap-2 px-5">
-        <Link to="/territoire?meute=1" className="btn btn-outline min-h-14 flex-1">
+        <Link to="/territoire?meute=1" className="btn btn-tertiary min-h-14 flex-1">
           Voir sur la carte
         </Link>
         <button type="button" onClick={() => setMarking(true)} className="btn btn-main min-h-14 flex-1 gap-2">
@@ -321,13 +321,13 @@ export default function Meute() {
           <h2 className="title-section mt-1">{place(`Où ${dog.name} marque-t-il ?`)}</h2>
           <p className="text-[0.8824rem] text-muted">{position ? 'Les spots de la meute à moins de 300 m.' : 'Sans votre position, choisissez le spot où vous êtes.'}</p>
           {position === null && (
-            <button type="button" onClick={() => locate()} className="btn btn-outline">
+            <button type="button" onClick={() => locate()} className="btn btn-tertiary">
               <PinIcon size={18} />
               Utiliser ma position
             </button>
           )}
           <div className="flex flex-col gap-2">
-            {nearby.length === 0 && <p className="rounded-[14px] bg-bg px-3.5 py-3 text-[0.8824rem]">Aucun spot de la meute ici. Créez-le !</p>}
+            {nearby.length === 0 && <p className="rounded-field bg-bg px-3.5 py-3 text-[0.8824rem]">Aucun spot de la meute ici. Créez-le !</p>}
             {nearby.map((s) => (
               <button key={s.id} type="button" onClick={() => mark(s)} className="flex min-h-14 items-center gap-3 rounded-[18px] border-2 border-solid border-border bg-surface px-4 text-left">
                 <span className="size-3 shrink-0 rounded-full" style={{ background: categoryInfo(s.category).color }} />
@@ -349,7 +349,7 @@ export default function Meute() {
               if (position) startNewSpot(position)
               else locate(startNewSpot)
             }}
-            className="btn btn-outline"
+            className="btn btn-tertiary"
           >
             Nouveau spot ici
           </button>
@@ -425,11 +425,11 @@ function SpotSheet({ spot, votes, dogs, meters, dogName, canMark, onVote, onTip,
       {/* La fiche façon « Highlight » (V6 § 8.1) ; « Y aller » est l’action orange, le reste vient après. */}
       <SpotDetails spot={spot} votes={votes} dogs={dogs} meters={meters}>
         {canMark ? (
-          <button type="button" onClick={onMark} className="btn btn-outline min-h-12">
+          <button type="button" onClick={onMark} className="btn btn-tertiary min-h-12">
             Marquer ce spot
           </button>
         ) : (
-          <p className="rounded-[14px] bg-bg px-3.5 py-3 text-center text-[0.8824rem] text-muted">Approchez-vous à moins de 300 m pour marquer ce spot.</p>
+          <p className="rounded-field bg-bg px-3.5 py-3 text-center text-[0.8824rem] text-muted">Approchez-vous à moins de 300 m pour marquer ce spot.</p>
         )}
         <fieldset className="m-0 border-0 p-0">
           <legend className="mb-2 p-0 text-[0.8824rem] font-bold">{slot === 'tot' || slot === 'matin' ? 'Ce matin' : slot === 'midi' ? 'Cet après-midi' : 'Ce soir'}, c’était…</legend>
@@ -443,7 +443,7 @@ function SpotSheet({ spot, votes, dogs, meters, dogName, canMark, onVote, onTip,
                   setVoted(l.id)
                   onVote(l.id)
                 }}
-                className={`btn px-2 ${voted === l.id ? 'btn-on' : 'btn-outline'}`}
+                className={`btn px-2 ${voted === l.id ? 'btn-on' : 'btn-tertiary'}`}
               >
                 {l.label}
               </button>
@@ -553,7 +553,7 @@ function NewSpotSheet({ onCancel, onCreate }: { onCancel: () => void; onCreate: 
         <legend className="mb-2 p-0 text-[0.8824rem] font-semibold">Catégorie</legend>
         <div className="grid grid-cols-2 gap-2">
           {SPOT_CATEGORIES.map((c) => (
-            <button key={c.id} type="button" aria-pressed={category === c.id} onClick={() => setCategory(c.id)} className={`flex min-h-12 items-center gap-2 rounded-[14px] border-2 border-solid px-3 text-left text-[0.8824rem] font-bold ${category === c.id ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}>
+            <button key={c.id} type="button" aria-pressed={category === c.id} onClick={() => setCategory(c.id)} className={`flex min-h-12 items-center gap-2 rounded-field border-2 border-solid px-3 text-left text-[0.8824rem] font-bold ${category === c.id ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text'}`}>
               <span className="size-3 shrink-0 rounded-full" style={{ background: category === c.id ? '#FFFFFF' : c.color }} />
               {c.label}
             </button>
@@ -564,7 +564,7 @@ function NewSpotSheet({ onCancel, onCreate }: { onCancel: () => void; onCreate: 
         <legend className="mb-2 p-0 text-[0.8824rem] font-semibold">En ce moment, c’est…</legend>
         <div className="grid grid-cols-3 gap-2">
           {CALM_LEVELS.map((l) => (
-            <button key={l.id} type="button" aria-pressed={calmNow === l.id} onClick={() => setCalmNow(calmNow === l.id ? null : l.id)} className={`btn px-2 ${calmNow === l.id ? 'btn-on' : 'btn-outline'}`}>
+            <button key={l.id} type="button" aria-pressed={calmNow === l.id} onClick={() => setCalmNow(calmNow === l.id ? null : l.id)} className={`btn px-2 ${calmNow === l.id ? 'btn-on' : 'btn-tertiary'}`}>
               {l.label}
             </button>
           ))}
@@ -588,7 +588,7 @@ function NewSpotSheet({ onCancel, onCreate }: { onCancel: () => void; onCreate: 
       <button type="button" onClick={create} className="btn btn-main mt-1">
         Créer et marquer ce spot
       </button>
-      <button type="button" onClick={onCancel} className="btn btn-outline">
+      <button type="button" onClick={onCancel} className="btn btn-tertiary">
         Annuler
       </button>
     </Sheet>

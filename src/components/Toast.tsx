@@ -49,7 +49,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             toast.action?.run()
             setToast(null)
           }}
-          className="min-h-12 shrink-0 rounded-full border-2 border-solid border-white/70 bg-transparent px-4 text-[1rem] font-bold text-white"
+          className="whitespace-nowrap min-h-12 shrink-0 rounded-full border-2 border-solid border-white/70 bg-transparent px-4 text-[1rem] font-bold text-white"
         >
           {toast.action.label}
         </button>

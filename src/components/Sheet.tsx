@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { DangerButton } from './Buttons'
 
 /** Hauteur masquée par le clavier iOS, pour garder la feuille au-dessus. */
 function useKeyboardInset(): number {
@@ -92,7 +93,7 @@ export function Sheet({ label, onClose, children }: SheetProps) {
         aria-label={label}
         tabIndex={-1}
         style={{ bottom: keyboard, transform: drag ? `translateY(${drag}px)` : undefined, transition: drag || start.current ? 'none' : undefined }}
-        className="absolute inset-x-0 flex max-h-[92dvh] animate-sheet flex-col gap-3 overflow-y-auto rounded-t-[28px] bg-surface px-5 pb-[calc(env(safe-area-inset-bottom)+24px)] outline-none transition-transform duration-200"
+        className="absolute inset-x-0 flex max-h-[92dvh] animate-sheet flex-col gap-3 overflow-y-auto rounded-t-panel bg-surface px-5 pb-[calc(env(safe-area-inset-bottom)+24px)] outline-none transition-transform duration-200"
       >
         {/* La poignée : on la tire vers le bas pour fermer, ou on la touche (VoiceOver : « Fermer »). */}
         <button
@@ -133,9 +134,16 @@ export function ConfirmSheet({ title, message, confirmLabel, tone = 'danger', on
     <Sheet label={title} onClose={onCancel}>
       <h2 className="title-section mt-1">{title}</h2>
       {message && <p className="text-[0.8824rem] leading-snug text-muted">{message}</p>}
-      <button type="button" onClick={onConfirm} className={`mt-2 h-[54px] rounded-full border-0 text-[1rem] font-bold text-white ${tone === 'danger' ? 'bg-danger' : 'bg-primary'}`}>
-        {confirmLabel}
-      </button>
+      {/* T-106 : une suppression reste un tertiary rouge (poubelle pour « Supprimer… ») ; une simple confirmation, vert plein. */}
+      {tone === 'danger' ? (
+        <DangerButton icon={/^Supprimer/.test(confirmLabel) ? 'trash' : 'none'} onClick={onConfirm} className="mt-2">
+          {confirmLabel}
+        </DangerButton>
+      ) : (
+        <button type="button" onClick={onConfirm} className="btn btn-primary mt-2">
+          {confirmLabel}
+        </button>
+      )}
       <button type="button" onClick={onCancel} className="btn-text self-center px-4">
         Annuler
       </button>

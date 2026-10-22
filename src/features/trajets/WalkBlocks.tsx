@@ -84,7 +84,7 @@ export function RouteBlock({ streets, places, again }: { streets: RouteStreet[];
               s.new ? (
                 <>
                   <span className="min-w-0 font-bold">{s.name}</span>
-                  <span className="shrink-0 rounded-full bg-primary-soft px-2 py-0.5 text-[0.7647rem] font-bold text-primary">nouvelle</span>
+                  <span className="whitespace-nowrap shrink-0 rounded-full bg-primary-soft px-2 py-0.5 text-[0.7647rem] font-bold text-primary">nouvelle</span>
                 </>
               ) : (
                 <span className="min-w-0">{s.name}</span>

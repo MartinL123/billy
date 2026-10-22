@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { DangerButton } from '../../components/Buttons'
 import { BackLink } from '../../components/BackLink'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ImportIcon, TrashIcon } from '../../components/Icons'
+import { ImportIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
 import { ConfirmSheet } from '../../components/Sheet'
 import { deleteDocument } from '../../firebase/db'
@@ -140,7 +141,7 @@ export default function DocumentView() {
             <button
               type="button"
               onClick={() => navigate(`/evenement/${linkedEvent.id}`)}
-              className="btn btn-outline self-start text-left"
+              className="btn btn-tertiary self-start text-left"
             >
               Lié à « {linkedEvent.title} »{linkedEvent.date ? ` du ${formatLong(linkedEvent.date)}` : ''}
             </button>
@@ -152,12 +153,9 @@ export default function DocumentView() {
             Ce document n’est pas encore sur cet appareil. Reconnectez-vous à Internet pour le télécharger une première fois.
           </p>
         )}
-        {!failed && !blobs && <Skeleton className="mx-auto my-4 h-[60vh] w-full rounded-[18px]" />}
+        {!failed && !blobs && <Skeleton className="mx-auto my-4 h-[60vh] w-full rounded-field" />}
         {blobs && (document_.kind === 'pdf' && blobs[0] ? <PdfPages blob={blobs[0]} /> : <ImagePages blobs={blobs} />)}
-        <button type="button" onClick={() => setConfirmDelete(true)} className="btn btn-danger">
-          <TrashIcon size={20} />
-          Supprimer ce document
-        </button>
+        <DangerButton onClick={() => setConfirmDelete(true)}>Supprimer ce document</DangerButton>
         {message && (
           <p role="status" className="text-sm text-muted">
             {message}

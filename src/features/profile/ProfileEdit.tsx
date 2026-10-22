@@ -149,7 +149,7 @@ export function ProfileEdit({ dog, onClose }: { dog: WithId<Dog>; onClose: () =>
               type="button"
               aria-label={`Retirer le repas ${i + 1}`}
               onClick={() => setMeals(meals.filter((_, j) => j !== i))}
-              className="btn btn-quiet col-span-2 min-h-12"
+              className="btn btn-tertiary col-span-2 min-h-12"
             >
               <TrashIcon size={20} />
               Retirer ce repas

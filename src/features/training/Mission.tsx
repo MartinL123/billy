@@ -96,7 +96,7 @@ export default function Mission() {
           <p className="text-[1rem] text-muted">Une seule réponse, la prochaine mission s’adapte.</p>
           <div className="grid grid-cols-3 gap-2.5">
             {FEELINGS.map(({ value, label }) => (
-              <button key={value} type="button" onClick={() => finish(value)} className="flex h-[120px] flex-col items-center justify-center gap-2 rounded-[22px] border-2 border-solid border-border bg-surface text-[1rem] font-bold text-text">
+              <button key={value} type="button" onClick={() => finish(value)} className="flex h-[120px] flex-col items-center justify-center gap-2 rounded-field border-2 border-solid border-border bg-surface text-[1rem] font-bold text-text">
                 <Face feeling={value} />
                 {label}
               </button>
@@ -149,7 +149,7 @@ export default function Mission() {
               exercise.source.name
             )}
           </p>
-          <button type="button" onClick={() => setMore(false)} className="btn btn-outline">
+          <button type="button" onClick={() => setMore(false)} className="btn btn-tertiary">
             Fermer
           </button>
         </Sheet>

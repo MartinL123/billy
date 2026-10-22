@@ -50,7 +50,7 @@ export function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void
     onClose()
   }
 
-  const choice = (on: boolean) => `tap min-h-[52px] rounded-[16px] border-2 border-solid text-[1rem] font-bold ${on ? 'border-primary bg-primary-soft text-primary' : 'border-line-strong bg-surface text-[#3F4946]'}`
+  const choice = (on: boolean) => `tap min-h-[52px] rounded-field border-2 border-solid text-[1rem] font-bold ${on ? 'border-primary bg-primary-soft text-primary' : 'border-line-strong bg-surface text-[#3F4946]'}`
   return (
     <Sheet label={`Noter ${walk.name.toLowerCase()}`} onClose={onClose}>
       <div>
@@ -76,7 +76,7 @@ export function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void
           <input type="number" inputMode="numeric" min={1} max={300} value={other} onChange={(e) => {
               setOther(e.target.value)
               setError(false)
-            }} autoFocus aria-invalid={error || undefined} aria-describedby={error ? 'duree-err' : undefined} className={`min-h-12 rounded-[14px] border-2 border-solid px-3.5 text-[1rem] font-normal ${error ? 'border-danger' : 'border-line-strong'}`} />
+            }} autoFocus aria-invalid={error || undefined} aria-describedby={error ? 'duree-err' : undefined} className={`min-h-12 rounded-field border-2 border-solid px-3.5 text-[1rem] font-normal ${error ? 'border-danger' : 'border-line-strong'}`} />
         </label>
       )}
       {pick === 'autre' && error && (
@@ -102,7 +102,7 @@ function DoneSlot({ name, minutes, pending, walkId, onEdit }: { name: string; mi
       {pending && <span className="text-[0.7059rem] text-[#3F4946]">en attente</span>}
     </>
   )
-  const style = 'anim-pop flex min-h-[84px] w-full flex-col items-center justify-center gap-0.5 rounded-[16px] border-0 bg-primary-soft p-0 text-center text-primary-dark no-underline'
+  const style = 'anim-pop flex min-h-[84px] w-full flex-col items-center justify-center gap-0.5 rounded-field border-0 bg-primary-soft p-0 text-center text-primary-dark no-underline'
   const spoken = `${name}, faite${minutes ? `, ${minutesText(minutes)}` : ''}`
   if (walkId)
     return (
@@ -150,13 +150,13 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
   })), [plan.slots, entries, today, times])
 
   return (
-    <section aria-label="Ses sorties du jour" className="card flex flex-col gap-3 rounded-[24px] p-4">
+    <section aria-label="Ses sorties du jour" className="card flex flex-col gap-3 p-4">
       <h2 className="title-section">Ses sorties du jour</h2>
       {!readOnly && yesterday && yesterday.slots.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[#3F4946] surtitre">Hier</span>
           {yesterday.slots.map((slot) => (
-            <button key={slot} type="button" onClick={() => onNote(yesterday.date, slot)} aria-label={`Noter la sortie ${label(slot).toLowerCase()} d’hier`} className="tap min-h-11 rounded-full border-2 border-dashed border-[#6E8C83] bg-surface px-3.5 text-[0.8824rem] font-bold text-primary">
+            <button key={slot} type="button" onClick={() => onNote(yesterday.date, slot)} aria-label={`Noter la sortie ${label(slot).toLowerCase()} d’hier`} className="tap min-h-11 whitespace-nowrap rounded-full border-2 border-dashed border-[#6E8C83] bg-surface px-3.5 text-[0.8824rem] font-bold text-primary">
               + {label(slot)}
             </button>
           ))}
@@ -169,12 +169,12 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
               // T-100 : une sortie faite avec sa balade ouvre la fiche de la balade ; notée sans trajet, « Combien de temps ? ».
               <DoneSlot name={label(slot.slot)} minutes={slot.minutes} pending={pending} walkId={walkIds.get(slot.slot)} onEdit={readOnly ? undefined : () => onNote(today, slot.slot, slot.minutes)} />
             ) : readOnly ? (
-              <span className="flex min-h-[84px] flex-col items-center justify-center gap-0.5 rounded-[16px] border-2 border-dashed border-[#6E8C83] text-text">
+              <span className="flex min-h-[84px] flex-col items-center justify-center gap-0.5 rounded-field border-2 border-dashed border-[#6E8C83] text-text">
                 <span className="text-[0.8235rem] font-semibold text-[#3F4946]">{formatHour(times[slot.slot])}</span>
                 <span className="text-[0.9412rem] font-bold">{label(slot.slot)}</span>
               </span>
             ) : (
-              <button type="button" onClick={() => onNote(today, slot.slot)} aria-label={`Noter la sortie ${label(slot.slot).toLowerCase()}, ${slot.hour}`} className="tap flex min-h-[84px] w-full flex-col items-center justify-center gap-0.5 rounded-[16px] border-2 border-dashed border-[#6E8C83] bg-surface p-0 text-text">
+              <button type="button" onClick={() => onNote(today, slot.slot)} aria-label={`Noter la sortie ${label(slot.slot).toLowerCase()}, ${slot.hour}`} className="tap flex min-h-[84px] w-full flex-col items-center justify-center gap-0.5 rounded-field border-2 border-dashed border-[#6E8C83] bg-surface p-0 text-text">
                 <span className="text-[0.8235rem] font-semibold text-[#3F4946]">{formatHour(times[slot.slot])}</span>
                 <span className="text-[0.9412rem] font-bold">{label(slot.slot)}</span>
                 <span className="text-[0.8235rem] font-bold text-primary">+ Noter</span>
@@ -186,7 +186,7 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
       <p className="text-[0.8824rem] leading-snug text-[#3F4946]">{sentence}</p>
       {/* App iOS (T-036) : partir d’ici, sauf si la carte du moment le propose déjà. */}
       {!readOnly && isNative() && showStart && plan.slots.some((s) => s.state !== 'faite') && (
-        <Link to="/balade-en-cours?depart=1" className="tap btn btn-outline min-h-[50px] gap-2">
+        <Link to="/balade-en-cours?depart=1" className="tap btn btn-tertiary min-h-[50px] gap-2">
           <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M8 5.5v13l10.5-6.5z" fill="currentColor" />
           </svg>

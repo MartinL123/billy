@@ -26,7 +26,7 @@ function Ring({ segments, level }: { segments: string[]; level: number }) {
 export function BadgeGrid({ levels, active }: { levels: Record<string, number>; active: string[] }) {
   const order = [...active, ...SKILLS.map((s) => s.id).filter((id) => !active.includes(id))]
   return (
-    <ul className="card m-0 grid list-none grid-cols-4 gap-x-1 min-[360px]:grid-cols-5 gap-y-3 rounded-[20px] p-4">
+    <ul className="card m-0 grid list-none grid-cols-4 gap-x-1 min-[360px]:grid-cols-5 gap-y-3 p-4">
       {order.map((id) => {
         const skill = SKILLS.find((s) => s.id === id)
         if (!skill) return null

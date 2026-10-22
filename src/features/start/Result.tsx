@@ -66,7 +66,7 @@ export function Result() {
       <h1 className="title-screen" aria-live="polite">
         {dog.name} commence avec {steps} étape{steps > 1 ? 's' : ''} déjà acquise{steps > 1 ? 's' : ''}
       </h1>
-      <p className="rounded-2xl bg-[#FFF8E6] px-3.5 py-3 text-[0.8824rem] leading-[1.45] text-gold-dark">
+      <p className="rounded-field bg-[#FFF8E6] px-3.5 py-3 text-[0.8824rem] leading-[1.45] text-gold-dark">
         <strong>Vérifiez avant de commencer.</strong> Touchez une étape pour la décocher si on s’est trompé, ou pour cocher la suivante. Décocher une étape décoche aussi les plus difficiles de la même compétence.
       </p>
 
@@ -79,7 +79,7 @@ export function Result() {
             const progress = bossProgress[skill.id] ?? EMPTY_PROGRESS
             const steps = Array.from({ length: Math.min(MAX_LEVEL, progress.level + 1) }, (_, i) => i + 1)
             return (
-              <div key={skill.id} role="group" aria-label={skill.name} className="flex flex-col rounded-[20px] border-0 border-l-[6px] border-solid bg-surface px-3.5 pt-3 pb-1" style={{ borderColor: territory.color }}>
+              <div key={skill.id} role="group" aria-label={skill.name} className="flex flex-col rounded-card border-0 border-l-[6px] border-solid bg-surface shadow-card px-3.5 pt-3 pb-1" style={{ borderColor: territory.color }}>
                 <div className="flex items-center gap-2.5 pb-2">
                   <Badge bossId={skill.id} acquired={progress.level} size={44} />
                   <h3 className="title-card">{skill.name}</h3>
@@ -117,7 +117,7 @@ export function Result() {
       ))}
 
       {souvenir ? (
-        <div className="mt-1.5 flex items-center gap-3 rounded-[18px] bg-primary-soft px-3.5 py-3">
+        <div className="mt-1.5 flex items-center gap-3 rounded-field bg-primary-soft px-3.5 py-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-white">
             <CheckIcon size={20} strokeWidth={3} />
           </span>
@@ -128,12 +128,12 @@ export function Result() {
               {souvenir.photos.length > 0 ? ` · ${souvenir.photos.length} photo${souvenir.photos.length > 1 ? 's' : ''}` : ''}
             </span>
           </span>
-          <button type="button" onClick={noteSouvenir} className="btn btn-outline min-h-12 shrink-0 bg-surface px-3.5 text-[0.8824rem]">
+          <button type="button" onClick={noteSouvenir} className="btn btn-tertiary min-h-12 shrink-0 bg-surface px-3.5 text-[0.8824rem]">
             Un autre
           </button>
         </div>
       ) : (
-        <button type="button" onClick={noteSouvenir} className="btn btn-outline mt-1.5">
+        <button type="button" onClick={noteSouvenir} className="btn btn-tertiary mt-1.5">
           Noter un souvenir de vos premières semaines
         </button>
       )}

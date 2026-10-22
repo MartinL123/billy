@@ -37,7 +37,7 @@ function DoneButton({ event, onToggle }: { event: Event; onToggle: (event: Event
       aria-label={event.done ? `Remettre « ${event.title} » à faire` : `Marquer « ${event.title} » comme fait`}
       aria-pressed={event.done}
       onClick={() => onToggle(event)}
-      className={`btn min-h-12 px-4 ${event.done ? 'btn-on' : 'btn-outline'}`}
+      className={`btn min-h-12 px-4 ${event.done ? 'btn-on' : 'btn-tertiary'}`}
     >
       <CheckIcon size={20} />
       {event.done ? 'Fait' : 'Marquer fait'}
@@ -50,7 +50,7 @@ function DocumentLink({ event }: { event: Event }) {
   const first = event.documentIds?.[0]
   if (!first) return null
   return (
-    <button type="button" aria-label={`Ouvrir le document joint à « ${event.title} »`} onClick={() => navigate(`/document/${first}`)} className="btn btn-outline min-h-12 px-4">
+    <button type="button" aria-label={`Ouvrir le document joint à « ${event.title} »`} onClick={() => navigate(`/document/${first}`)} className="btn btn-tertiary min-h-12 px-4">
       <PaperclipIcon size={20} />
       Document
     </button>

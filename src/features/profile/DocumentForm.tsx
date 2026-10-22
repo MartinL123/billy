@@ -151,7 +151,7 @@ export default function DocumentForm() {
           <FilePicker
             accept="application/pdf,image/*"
             onFiles={(files) => void choose(files)}
-            className="flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-[20px] border-[1.5px] border-dashed border-line-strong bg-surface p-4 text-center text-primary"
+            className="flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-card border-[1.5px] border-dashed border-line-strong bg-surface p-4 text-center text-primary"
           >
             <ImportIcon size={28} />
             <span className="text-[1rem] font-bold">Choisir un fichier</span>

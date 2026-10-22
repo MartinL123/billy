@@ -58,7 +58,7 @@ export function FamilySection() {
                 <span className="truncate text-base font-semibold">{viewer.email || 'Un proche'}</span>
                 {viewer.since && <span className="text-[0.7647rem] text-muted">Depuis le {formatLong(viewer.since.slice(0, 10))}</span>}
               </span>
-              <button type="button" onClick={() => setRemoving(viewer)} className="btn btn-quiet min-h-11 px-3 text-[0.8824rem] text-danger">
+              <button type="button" onClick={() => setRemoving(viewer)} className="btn-text min-h-11 px-3 text-[0.8824rem] text-danger">
                 Retirer
               </button>
             </li>
@@ -71,7 +71,7 @@ export function FamilySection() {
           <span className="text-[0.8824rem] break-all text-text">{link}</span>
         </button>
       )}
-      <button type="button" onClick={invite} disabled={busy} className="btn btn-outline min-h-12">
+      <button type="button" onClick={invite} disabled={busy} className="btn btn-secondary min-h-12">
         {busy ? 'Un instant…' : 'Inviter un proche'}
       </button>
       {removing && (
@@ -103,10 +103,10 @@ export function VisitorAccount() {
         <span className="text-[0.7647rem] text-muted">Connecté avec</span>
         <p className="truncate text-base font-semibold">{email}</p>
       </div>
-      <button type="button" onClick={() => setStopping(true)} className="btn btn-outline min-h-12">
+      <button type="button" onClick={() => setStopping(true)} className="btn btn-tertiary min-h-12">
         Ne plus regarder {dog.name}
       </button>
-      <button type="button" onClick={() => void logOut()} className="btn btn-quiet min-h-11">
+      <button type="button" onClick={() => void logOut()} className="btn btn-tertiary min-h-11">
         Se déconnecter
       </button>
       {stopping && (

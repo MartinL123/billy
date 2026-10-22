@@ -29,12 +29,12 @@ export default function Welcome() {
     <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col px-6 pt-[calc(env(safe-area-inset-top)+40px)] pb-[calc(env(safe-area-inset-bottom)+24px)]">
       <h1 className="title-screen">{dog.unnamed ? 'Bienvenue !' : `Bienvenue, ${dog.name} !`}</h1>
       <p className="mt-2 text-[1rem] leading-snug text-[#3F4946]">Voici ce que vous allez faire ensemble.</p>
-      <span className="mt-4 inline-flex items-center gap-2 self-start rounded-full bg-gold-soft px-3.5 py-2 text-[0.9412rem] font-bold text-gold-dark">
+      <span className="whitespace-nowrap mt-4 inline-flex items-center gap-2 self-start rounded-full bg-gold-soft px-3.5 py-2 text-[0.9412rem] font-bold text-gold-dark">
         <BoneIcon size={20} />+{gift.amount} os pour bien commencer
       </span>
       <ul className="m-0 mt-7 flex list-none flex-col gap-4 p-0">
         {points().map((p) => (
-          <li key={p.title} className="card flex items-start gap-3.5 rounded-[20px] p-4">
+          <li key={p.title} className="card flex items-start gap-3.5 p-4">
             <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary-soft text-[1.4118rem]" aria-hidden="true">
               {p.icon}
             </span>

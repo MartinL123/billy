@@ -5,6 +5,7 @@ import { FileImage } from '../../components/FileImage'
 import { FilePicker } from '../../components/FilePicker'
 import { PhotoIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
+import { DangerButton } from '../../components/Buttons'
 import { ConfirmSheet } from '../../components/Sheet'
 import { Stats } from '../../components/Stats'
 import { deleteEntry, updateEntryRoute } from '../../firebase/db'
@@ -125,7 +126,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
         <WalkMap route={route} dogName={dog.name} cursor={cursor} replaying={replaying} onReplayEnd={() => setReplaying(false)} className="h-[40dvh] min-h-[200px]" />
         <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex items-end justify-between gap-2 pr-9">
           {route.points.length > 1 ? (
-            <button type="button" onClick={() => setReplaying(!replaying)} className="tap pointer-events-auto flex min-h-11 items-center gap-1.5 rounded-full border-0 bg-surface px-4 text-[0.8824rem] font-bold text-text shadow-[0_2px_8px_rgba(24,32,30,0.25)]">
+            <button type="button" onClick={() => setReplaying(!replaying)} className="tap map-btn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 {replaying ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />}
               </svg>
@@ -134,7 +135,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
           ) : (
             <span />
           )}
-          <Link to={`/territoire?balade=${encodeURIComponent(entry.id)}`} aria-label="Voir la balade en plein écran sur la carte" className="tap pointer-events-auto flex size-11 items-center justify-center rounded-full bg-surface text-text shadow-[0_2px_8px_rgba(24,32,30,0.25)]">
+          <Link to={`/territoire?balade=${encodeURIComponent(entry.id)}`} aria-label="Voir la balade en plein écran sur la carte" className="tap pointer-events-auto flex size-11 items-center justify-center rounded-full bg-surface text-text shadow-float">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
             </svg>
@@ -180,7 +181,7 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
             {entry.photos.length > 0 && (
               <div className={`grid gap-1.5 ${entry.photos.length > 1 ? 'grid-cols-2' : ''}`}>
                 {entry.photos.map((photo, i) => (
-                  <button key={photo.fileId} type="button" aria-label={`Voir la photo ${i + 1} en plein écran`} onClick={() => setViewer(i)} className="block overflow-hidden rounded-[18px] border-0 bg-transparent p-0">
+                  <button key={photo.fileId} type="button" aria-label={`Voir la photo ${i + 1} en plein écran`} onClick={() => setViewer(i)} className="block overflow-hidden rounded-field border-0 bg-transparent p-0">
                     <FileImage fileId={photo.thumbFileId} alt="" className={entry.photos.length > 1 ? 'aspect-square w-full' : 'h-[220px] w-full'} hideMissing />
                   </button>
                 ))}
@@ -219,11 +220,10 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
             <Link to={`/souvenir/${entry.id}/modifier`} className="btn-text">
               Modifier
             </Link>
-            <button type="button" onClick={() => setConfirmDelete(true)} className="btn-text text-danger">
-              Supprimer
-            </button>
           </div>
         )}
+        {/* T-106 : « Supprimer » en tertiary rouge, pleine largeur, confirmé avant d’agir. */}
+        {!readOnly && <DangerButton onClick={() => setConfirmDelete(true)}>Supprimer</DangerButton>}
       </main>
 
       {/* L’action principale : raconter les arrêts qui attendent encore un repère. */}

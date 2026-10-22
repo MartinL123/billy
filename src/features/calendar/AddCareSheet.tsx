@@ -48,7 +48,7 @@ export function AddCareSheet({ onClose, onSaved }: { onClose: () => void; onSave
     onClose()
   }
 
-  const option = (on: boolean) => `tap min-h-[52px] rounded-[16px] border-2 border-solid text-[0.9412rem] font-bold ${on ? 'border-primary bg-primary-soft text-primary-dark' : 'border-line-strong bg-surface text-text'}`
+  const option = (on: boolean) => `tap min-h-[52px] rounded-field border-2 border-solid text-[0.9412rem] font-bold ${on ? 'border-primary bg-primary-soft text-primary-dark' : 'border-line-strong bg-surface text-text'}`
   return (
     <Sheet label={type ? 'Quand\u00a0?' : 'Qu’ajoutez-vous\u00a0?'} onClose={onClose}>
       {!type ? (
@@ -56,7 +56,7 @@ export function AddCareSheet({ onClose, onSaved }: { onClose: () => void; onSave
           <h2 className="title-section mt-1">Qu’ajoutez-vous ?</h2>
           <div className="grid grid-cols-2 gap-2.5">
             {TILES.map((tile) => (
-              <button key={tile.id} type="button" onClick={() => pick(tile.id)} className="tap flex min-h-[72px] items-center gap-2.5 rounded-[18px] border-2 border-solid border-[#E6EAE7] bg-surface px-3.5 text-left text-[0.9412rem] font-bold text-text">
+              <button key={tile.id} type="button" onClick={() => pick(tile.id)} className="tap flex min-h-[72px] items-center gap-2.5 rounded-field border-2 border-solid border-divider bg-surface px-3.5 text-left text-[0.9412rem] font-bold text-text">
                 <span aria-hidden="true" className="size-3 shrink-0 rounded-full" style={{ background: tile.color }} />
                 {tile.label}
               </button>

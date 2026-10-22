@@ -36,7 +36,7 @@ function Proches({ saved }: { saved: { proches?: Proche[]; ownerName?: string } 
                 <span className="truncate text-base font-semibold">{p.name}</span>
                 {p.contact && <span className="truncate text-[0.7647rem] text-muted">{p.contact}</span>}
               </span>
-              <button type="button" onClick={() => updateLivePrivate({ proches: proches.filter((x) => x.id !== p.id) })} aria-label={`Retirer ${p.name}`} className="btn btn-quiet min-h-11 px-3 text-[0.8824rem] text-danger">
+              <button type="button" onClick={() => updateLivePrivate({ proches: proches.filter((x) => x.id !== p.id) })} aria-label={`Retirer ${p.name}`} className="btn-text min-h-11 px-3 text-[0.8824rem] text-danger">
                 Retirer
               </button>
             </li>

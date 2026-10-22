@@ -13,7 +13,7 @@ export function MotionSetting() {
     <section className="flex flex-col gap-2.5">
       <h2 className="title-section">Sans montre</h2>
       {status === 'prompt' && (
-        <button type="button" onClick={() => void ask()} className="btn btn-outline min-h-12">
+        <button type="button" onClick={() => void ask()} className="btn btn-tertiary min-h-12">
           Remarquer mes marches
         </button>
       )}

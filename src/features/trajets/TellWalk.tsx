@@ -81,7 +81,7 @@ export default function TellWalk() {
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col">
       <header className="flex items-center justify-between bg-bg px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
         <BackLink label="La balade" onClick={back} />
-        <span className="text-[0.8235rem] font-semibold text-muted tabular-nums" aria-live="polite">
+        <span className="text-[0.8235rem] font-semibold whitespace-nowrap text-muted tabular-nums" aria-live="polite">
           {onlyStops ? 'Arrêt ' : ''}
           {step + 1} sur {queue.length}
         </span>

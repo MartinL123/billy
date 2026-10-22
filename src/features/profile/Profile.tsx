@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BackLink } from '../../components/BackLink'
+import { DangerButton } from '../../components/Buttons'
 import { Link } from 'react-router-dom'
 import { ChevronRightIcon, CloudCheckIcon, CloudPendingIcon, NoteIcon, PhoneIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
@@ -119,7 +120,7 @@ function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; onl
         <span className="text-[0.8824rem] font-semibold">Votre mot de passe, pour confirmer</span>
         <span className="flex gap-2">
           <input type={shown ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} aria-invalid={error ? true : undefined} className={`field min-w-0 flex-1 ${error ? 'border-danger' : ''}`} />
-          <button type="button" aria-pressed={shown} onClick={() => setShown(!shown)} className="btn btn-outline shrink-0 px-4">
+          <button type="button" aria-pressed={shown} onClick={() => setShown(!shown)} className="btn btn-tertiary shrink-0 px-4">
             {shown ? 'Masquer' : 'Afficher'}
           </button>
         </span>
@@ -129,10 +130,10 @@ function DeleteAccountSheet({ dogName, online, onClose }: { dogName: string; onl
           {error}
         </p>
       )}
-      <button type="button" onClick={() => void erase()} disabled={busy} aria-busy={busy} className="btn btn-danger mt-1">
+      <DangerButton onClick={() => void erase()} disabled={busy} aria-busy={busy} className="mt-1">
         {busy ? 'Suppression en cours…' : 'Tout supprimer définitivement'}
-      </button>
-      <button type="button" onClick={onClose} disabled={busy} className="btn btn-on">
+      </DangerButton>
+      <button type="button" onClick={onClose} disabled={busy} className="btn btn-primary">
         Garder mon compte
       </button>
     </Sheet>
@@ -208,7 +209,7 @@ export default function Profile() {
           <InfoRow label="Puce" value={dog.chip || 'Pas encore renseignée'} />
           {lastWeight && <InfoRow label="Poids" value={`${String(lastWeight.kg).replace('.', ',')} kg · ${formatShort(lastWeight.date)}`} />}
         </div>
-        <EditLink to="/profil/modifier" className="btn btn-outline">
+        <EditLink to="/profil/modifier" className="btn btn-tertiary">
           Modifier son identité
         </EditLink>
       </section>
@@ -325,23 +326,23 @@ export default function Profile() {
             {spaceLevel !== 'ok' && <p role="status" className="text-[0.8824rem] leading-snug text-milestone-dark">{spaceLevel === 'plein' ? FULL_MESSAGE : ALMOST_FULL_MESSAGE}</p>}
           </div>
         </div>
-        <button type="button" onClick={() => setChangingPassword(true)} className="btn-text self-start -ml-1">
+        {/* T-106 (maquette Profil) : mot de passe en primary, export en secondary, installer et déconnexion en tertiary,
+            la suppression du compte en tertiary rouge. */}
+        <button type="button" onClick={() => setChangingPassword(true)} className="btn btn-primary">
           Changer mon mot de passe
         </button>
         {/* T-065 : dates, durées, sources et compteurs, sans lieux ni textes ; le fichier reste sur l'appareil. */}
         <ExportButton />
         {/* Dans l’app iOS, elle est déjà sur le téléphone. */}
         {!isNative() && (
-          <Link to="/installer" className="btn-text self-start -ml-1">
+          <Link to="/installer" className="btn btn-tertiary">
             Mettre l’app sur mon téléphone
           </Link>
         )}
-        <button type="button" onClick={() => setConfirmLogout(true)} className="btn btn-quiet">
+        <button type="button" onClick={() => setConfirmLogout(true)} className="btn btn-tertiary">
           Se déconnecter
         </button>
-        <button type="button" onClick={() => setDeleting(true)} className="btn border-2 border-solid border-danger bg-surface text-danger">
-          Supprimer mon compte et mes données
-        </button>
+        <DangerButton onClick={() => setDeleting(true)}>Supprimer mon compte et mes données</DangerButton>
         <p className="text-[0.7647rem] leading-snug text-muted">Vos données restent privées. Martin, qui gère l’app, peut techniquement y accéder.</p>
       </section>
 

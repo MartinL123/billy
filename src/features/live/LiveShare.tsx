@@ -75,7 +75,7 @@ export function LiveShareBanner({ className = '' }: { className?: string }) {
   const share = isNative() ? activeShare(priv?.liveShares, Date.now()) : undefined
   if (!share) return null
   return (
-    <div role="status" className={`flex min-h-11 items-center gap-2.5 rounded-[16px] bg-primary-soft py-1 pr-1 pl-3.5 text-primary-dark ${className}`}>
+    <div role="status" className={`flex min-h-11 items-center gap-2.5 rounded-field bg-primary-soft py-1 pr-1 pl-3.5 text-primary-dark ${className}`}>
       <span aria-hidden="true" className="live-dot size-2.5 shrink-0 rounded-full bg-primary" />
       <span className="min-w-0 flex-1 text-[0.8824rem] font-semibold">Partagé en direct avec {withNames(share.with)}</span>
       <button
@@ -129,7 +129,7 @@ export function ProcheForm({ proches, onAdded }: { proches: Proche[] | undefined
     <div className="flex flex-col gap-3">
       <TextField label="Prénom" value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" maxLength={40} {...(error ? { error } : {})} />
       <TextField label={<>Numéro ou e-mail<Optional /></>} value={contact} onChange={(e) => setContact(e.target.value)} autoComplete="off" inputMode="email" maxLength={80} />
-      <button type="button" onClick={add} className="btn btn-outline min-h-12">
+      <button type="button" onClick={add} className="btn btn-tertiary min-h-12">
         Ajouter ce proche
       </button>
     </div>

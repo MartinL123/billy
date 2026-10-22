@@ -28,13 +28,13 @@ export function WalkRecap({ entryId, overline, subtitle, bones, fallback }: { en
   const go = (to: string) => navigate(to, { replace: true })
 
   return (
-    <section aria-label="Belle balade" className="animate-sheet flex flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-[0_-4px_18px_rgba(24,32,30,0.18)]">
+    <section aria-label="Belle balade" className="panel animate-sheet flex flex-col gap-3 px-5 pt-5 pb-[calc(env(safe-area-inset-bottom)+20px)]">
       <div className="flex flex-col items-center gap-1 text-center">
         {overline && <span className="surtitre text-milestone-dark">{overline}</span>}
         <h1 className="title-screen">Belle balade !</h1>
         <p className="text-[0.9412rem] text-[#3F4946]">{`Avec ${dogName(dog)}`}{subtitle ? ` · ${subtitle}` : ''}</p>
       </div>
-      <Stats items={recapStats({ distanceM: route?.distanceM ?? fallback.distanceM, ...(route?.durationMin ? { durationMin: route.durationMin } : {}), bones: gained })} className="rounded-[16px] bg-bg px-4 py-3" />
+      <Stats items={recapStats({ distanceM: route?.distanceM ?? fallback.distanceM, ...(route?.durationMin ? { durationMin: route.durationMin } : {}), bones: gained })} className="rounded-field bg-bg px-4 py-3" />
       {/* T-103 : les photos prises pendant la balade (app iOS, avec l’accord de la personne). */}
       {route && <RecapPhotos entryId={entryId} route={route} />}
       {untold > 0 && route ? (
@@ -42,7 +42,7 @@ export function WalkRecap({ entryId, overline, subtitle, bones, fallback }: { en
           <p className="text-[0.9412rem] font-bold">{stopsLine(stops, queue.filter((q) => q.kind === 'marker').length)}</p>
           <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
             {stopChips(route).map((chip) => (
-              <li key={chip.label} className={`rounded-full px-3 py-1.5 text-[0.8235rem] font-bold ${chip.todo ? 'bg-primary-soft text-primary-dark' : chip.hard ? 'bg-danger-soft text-danger' : 'bg-bg text-text'}`}>
+              <li key={chip.label} className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[0.8235rem] font-bold ${chip.todo ? 'bg-primary-soft text-primary-dark' : chip.hard ? 'bg-danger-soft text-danger' : 'bg-bg text-text'}`}>
                 {chip.label}
               </li>
             ))}

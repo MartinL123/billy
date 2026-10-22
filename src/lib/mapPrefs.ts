@@ -7,12 +7,14 @@ export interface MapPrefs {
   three: boolean
   /** Les zones jamais parcourues restent dans la brume (V6.1 § 2). */
   fog: boolean
+  /** « Idées de balade » dans le panneau (T-097) : « Masquer » les retire, « Affichage » les remet. */
+  ideas: boolean
 }
 
 /** Nouvelle clé en V5 pour que le plan revienne une fois ; les choix d’avant le brouillard en option restent valables. */
 export const MAP_PREFS_KEY = 'billy-carte-v5'
 
-export const DEFAULT_MAP_PREFS: MapPrefs = { satellite: false, three: false, fog: false }
+export const DEFAULT_MAP_PREFS: MapPrefs = { satellite: false, three: false, fog: false, ideas: true }
 
 type Store = Pick<Storage, 'getItem' | 'setItem'>
 
@@ -29,7 +31,7 @@ export function readMapPrefs(store: Store | undefined = local()): MapPrefs {
   try {
     const saved = JSON.parse(store?.getItem(MAP_PREFS_KEY) ?? '{}') as Partial<Record<keyof MapPrefs, unknown>>
     const pick = (key: keyof MapPrefs) => (typeof saved[key] === 'boolean' ? (saved[key] as boolean) : DEFAULT_MAP_PREFS[key])
-    return { satellite: pick('satellite'), three: pick('three'), fog: pick('fog') }
+    return { satellite: pick('satellite'), three: pick('three'), fog: pick('fog'), ideas: pick('ideas') }
   } catch {
     return { ...DEFAULT_MAP_PREFS }
   }

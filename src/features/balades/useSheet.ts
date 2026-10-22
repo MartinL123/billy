@@ -16,7 +16,7 @@ export type { Snap }
 
 const SNAP_EASE = 'transform 0.34s cubic-bezier(0.3, 1.15, 0.5, 1)'
 
-export function useSheet({ start = 'half', peekRef, halfRef, bottomInset = 0 }: { start?: Snap; /** Le bas de cet élément borne la partie visible réduit (sinon : le haut du contenu). */ peekRef?: RefObject<HTMLElement | null>; /** Le bas de cet élément est visible au cran du milieu (les premières actions, la première rangée). */ halfRef?: RefObject<HTMLElement | null>; /** Hauteur couverte en bas par une barre fixe (l’action principale) ou le rond Accueil. */ bottomInset?: number } = {}) {
+export function useSheet({ start = 'half', peekRef, halfRef, bottomInset = 0, peekInset, peekGap }: { start?: Snap; /** Le bas de cet élément borne la partie visible réduit (sinon : le haut du contenu). */ peekRef?: RefObject<HTMLElement | null>; /** Le bas de cet élément est visible au cran du milieu (les premières actions, la première rangée). */ halfRef?: RefObject<HTMLElement | null>; /** Hauteur couverte en bas par une barre fixe (l’action principale) ou le rond Accueil. */ bottomInset?: number; /** Réduit : ce qui couvre le bas (par défaut `bottomInset`) et l’air au-dessus (T-097). */ peekInset?: number; peekGap?: number } = {}) {
   const ref = useRef<HTMLElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   const [snap, setSnap] = useState<Snap>(start)
@@ -40,6 +40,8 @@ export function useSheet({ start = 'half', peekRef, halfRef, bottomInset = 0 }: 
         peekBottom: peekRef?.current ? below(peekRef.current) : body.offsetTop,
         halfBottom: halfRef?.current ? below(halfRef.current) : undefined,
         bottomInset,
+        ...(peekInset !== undefined ? { peekInset } : {}),
+        ...(peekGap !== undefined ? { peekGap } : {}),
       })
       setPositions((p) => (p.half === next.half && p.collapsed === next.collapsed ? p : next))
     }
@@ -62,7 +64,7 @@ export function useSheet({ start = 'half', peekRef, halfRef, bottomInset = 0 }: 
       observer.disconnect()
       added.disconnect()
     }
-  }, [peekRef, halfRef, bottomInset])
+  }, [peekRef, halfRef, bottomInset, peekInset, peekGap])
 
   // Hors du cran haut, la liste revient en haut ; tout en haut, tirer vers le bas reste au panneau (touch-action).
   const syncTouch = () => {

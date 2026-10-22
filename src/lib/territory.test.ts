@@ -1,12 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { territoryHint, walkLineDetails } from './territory'
-
-describe('panneau des Balades (T-054)', () => {
-  it('la phrase : une invitation, puis la balade touchée', () => {
-    expect(territoryHint(undefined, '2026-10-20')).toBe('Chaque balade lève le brouillard. Touchez-en une pour l’ouvrir.')
-    expect(territoryHint({ date: '2026-10-19', route: { distanceM: 2400, durationMin: 35 } }, '2026-10-20')).toBe('Hier · 2,4 km · 35 min. Touchez la carte ailleurs pour revoir toutes ses balades.')
-  })
-})
+import { walkLineDetails } from './territory'
 
 describe('tracé touché sur la carte (T-098)', () => {
   it('la ligne : la date courte et la distance ; l’année seulement si elle diffère', () => {

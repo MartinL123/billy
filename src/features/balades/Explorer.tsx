@@ -1,9 +1,13 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Stats } from '../../components/Stats'
-import { formatDuration } from '../../lib/balade'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { isNative } from '../../native'
-import { ChevronRightIcon, PlusIcon } from '../../components/Icons'
+import { ChevronRightIcon, CloseIcon, PlusIcon } from '../../components/Icons'
+import { FileImage } from '../../components/FileImage'
+import type { Entry } from '../../firebase/types'
+import { ofDog } from '../../lib/dogName'
+import { pickLoops, type Loop } from '../../lib/loops'
+import { journalDays, memoLine, type JournalMemo } from '../../lib/walkJournal'
+import { JournalWalkCard } from './JournalWalkCard'
 import { auth } from '../../firebase/app'
 import { removeSpot, type Mark, type Spot, type WithId } from '../../firebase/community'
 import { useData } from '../../firebase/store'
@@ -15,15 +19,13 @@ import type { MapPlace, MapWalk } from './ExplorerMap'
 import { PlaceCard, type Selected } from './PlaceCard'
 import { WalkPanel } from './WalkPanel'
 import { LoopsBlock } from './LoopsBlock'
-import { useSheet, type Snap } from './useSheet'
+import { HOME_CLEARANCE, useSheet, type Snap } from './useSheet'
 import { PlaceMoment } from '../trajets/PlaceMoment'
 import { updateEntryRoute } from '../../firebase/db'
 import { nearestOnRoute, readRoute, storeRoute, type Route } from '../../lib/route'
 import { useGrantedPosition } from '../../lib/useGrantedPosition'
-import { formatRelative } from '../../lib/dates'
 import { formatRouteDistance } from '../../lib/route'
-import { territoryHint, walkLineDetails } from '../../lib/territory'
-import { ofName } from '../../lib/gender'
+import { walkLineDetails } from '../../lib/territory'
 import { useReadOnly } from '../../firebase/viewer'
 import { WatchOptIn } from './WatchOptIn'
 import { ROUTE_COLOR } from '../../components/maplibre'
@@ -33,8 +35,6 @@ const ExplorerMap = lazy(() => import('./ExplorerMap').then((m) => ({ default: m
 /** Une pastille de filtre (maquette V6-Billy-et-journal) : 32 px dessinés dans une zone de 44 px. */
 const chip = (on: boolean) => `flex h-8 items-center rounded-full border border-solid px-3 text-[0.8235rem] font-bold whitespace-nowrap ${on ? 'border-primary bg-primary text-white' : 'border-[#D3D9D6] bg-surface text-text'}`
 
-/** Balades en cartes dans le panneau ; les autres sont dans « Ses balades ». */
-const LIST_MAX = 8
 
 /** T-098 : le cran du panneau gardé dans l’adresse (« ?cran= »), pour le retrouver au retour de la fiche d’une balade. */
 const SNAPS: Snap[] = ['collapsed', 'half', 'full']
@@ -69,22 +69,27 @@ export default function Explorer() {
   const colors = useMemo(() => (prefs.fog ? walkColors(walks) : new Map(walks.map((w) => [w.id, ROUTE_COLOR]))), [walks, prefs.fog])
   // Une balade touchée : son trait s’épaissit, les autres passent à 40 % ; un autre toucher la relâche.
   const [highlight, setHighlight] = useState<string>()
+  // T-097 : une idée de balade touchée : la boucle s’affiche sur la carte, le bouton devient « Partir sur cette boucle ».
+  const [idea, setIdea] = useState<Loop>()
   const tracks = useMemo<MapWalk[]>(() => {
-    const all = shown.map((w) => ({ id: w.id, color: colors.get(w.id) ?? ROUTE_COLOR, points: w.route.points, bold: w.id === highlight, faded: Boolean(highlight) && w.id !== highlight }))
-    // La balade mise en avant est dessinée en dernier, au-dessus des autres.
-    return [...all.filter((t) => !t.bold), ...all.filter((t) => t.bold)]
-  }, [shown, colors, highlight])
+    const all = shown.map((w) => ({ id: w.id, color: colors.get(w.id) ?? ROUTE_COLOR, points: w.route.points, bold: w.id === highlight, faded: Boolean(highlight || idea) && w.id !== highlight }))
+    // La balade mise en avant est dessinée en dernier, au-dessus des autres ; l’idée choisie, au-dessus de tout.
+    return [...all.filter((t) => !t.bold), ...all.filter((t) => t.bold), ...(idea ? [{ id: `idee:${idea.item.id}`, color: IDEA_COLOR, points: idea.item.route.points, bold: true }] : [])]
+  }, [shown, colors, highlight, idea])
   const last = walks[0]
   // Où l’on est (T-020) : la position demandée avec « Autour de moi », sinon celle déjà autorisée, sinon la dernière balade.
   const [myPos, setMyPos] = useState<{ lat: number; lng: number }>()
   const [locating, setLocating] = useState(false)
   const position = useGrantedPosition()
   const here = myPos ?? position
+  // T-097 : « Idées de balade » (app iOS, avec la position) : jusqu’à 3 balades passées qui partent d’ici.
+  const loops = useMemo(() => (isNative() && !readOnly && here && prefs.ideas ? pickLoops(walks, here, cells, { birthDate: dog.birthDate, today }) : []), [walks, here?.lat, here?.lng, cells, dog.birthDate, today, readOnly, prefs.ideas]) // eslint-disable-line react-hooks/exhaustive-deps
   const start = myPos ?? position ?? (last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined)
   // La carte se cadre sur les balades du coin (Saint-Ouen, la Bretagne…), pas sur toute la France.
   const local = useMemo(() => walksNear(shown, start), [shown, start?.lat, start?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
-  const frame = useMemo(() => local.flatMap((w) => w.route.points), [local])
-  const frameKey = local.map((w) => w.id).join(',')
+  // Une idée choisie : la carte se cadre sur sa boucle.
+  const frame = useMemo(() => (idea ? idea.item.route.points : local.flatMap((w) => w.route.points)), [local, idea])
+  const frameKey = idea ? `idee:${idea.item.id}` : local.map((w) => w.id).join(',')
   const locate = () => {
     if (!navigator.geolocation) return
     setLocating(true)
@@ -131,9 +136,11 @@ export default function Explorer() {
     observer.observe(footer)
     return () => observer.disconnect()
   }, [readOnly])
-  // R-082 : au cran du milieu, la première rangée de balades entière au-dessus de l’action fixée en bas.
-  const firstRow = useRef<HTMLUListElement>(null)
-  const sheet = useSheet({ peekRef, halfRef: firstRow, bottomInset: footerHeight, start: SNAPS.find((c) => c === params.get('cran')) ?? 'half' })
+  // T-097 : au cran du milieu, le titre, le résumé, les filtres et le début des « Idées de balade » au-dessus de l’action
+  // fixée en bas ; réduit, le panneau se colle à la barre d’onglets (sans action), le titre coupé à mi-hauteur.
+  const ideasHead = useRef<HTMLDivElement>(null)
+  const filtersRow = useRef<HTMLDivElement>(null)
+  const sheet = useSheet({ peekRef, halfRef: loops.length ? ideasHead : filtersRow, bottomInset: footerHeight || HOME_CLEARANCE, peekInset: 0, peekGap: 0, start: SNAPS.find((c) => c === params.get('cran')) ?? 'half' })
 
   // Une balade ouverte depuis son souvenir (?balade=…) : mise en avant, replay, repères à placer.
   const walkId = params.get('balade')
@@ -197,7 +204,7 @@ export default function Explorer() {
   // T-098 : un tracé touché sur la carte est mis en avant (sa ligne apparaît en bas du panneau) ; touché encore, sa
   // fiche s’ouvre. Une balade ouverte en plein écran (depuis sa fiche) : un autre tracé prend sa place.
   const openSheet = (id: string) => navigate(`/souvenir/${encodeURIComponent(id)}`, { state: FROM_MAP })
-  const onTrack = (id: string) => (walk ? openWalk(id) : id === highlight ? openSheet(id) : setHighlight(id))
+  const onTrack = (id: string) => (id.startsWith('idee:') ? undefined : walk ? openWalk(id) : id === highlight ? openSheet(id) : (setIdea(undefined), setHighlight(id)))
   // La boussole : l’aiguille suit la carte ; un toucher la remet face au nord.
   const [bearing, setBearing] = useState(0)
   const [north, setNorth] = useState(0)
@@ -208,8 +215,16 @@ export default function Explorer() {
   const onMapTap = () => {
     setSelectedId(null)
     setHighlight(undefined)
+    setIdea(undefined)
     setDisplay(false)
   }
+  const pickIdea = (loop: Loop) => {
+    setHighlight(undefined)
+    setIdea(loop)
+    sheet.setSnap('collapsed')
+  }
+  // Réduit, sans balade ni idée touchée : la carte en plein écran, pas de bouton (V6.1 § 4).
+  const footerShown = !sheet.collapsed || Boolean(highlighted || idea)
 
   const setPref = (next: Partial<typeof prefs>) => {
     const value = { ...prefs, ...next }
@@ -252,6 +267,15 @@ export default function Explorer() {
                 </button>
               </div>
               <Switch label="Brouillard" hint="Les zones où vous n’êtes jamais allés restent dans la brume" on={prefs.fog} onChange={(fog) => setPref({ fog })} />
+              {/* T-097 : les idées masquées depuis le panneau se remettent ici. */}
+              {isNative() && !readOnly && <Switch label="Idées de balade" hint="Des balades déjà faites qui partent d’ici" on={prefs.ideas} onChange={(ideas) => setPref({ ideas })} />}
+              {/* L’import reste ici (V6.1 § 4), plus en bas du panneau. */}
+              {!readOnly && (
+                <Link to="/importer" className="flex min-h-11 items-center gap-2 rounded-[14px] px-2 text-[0.8824rem] font-bold text-primary no-underline">
+                  <PlusIcon size={18} />
+                  {isNative() ? 'Importer des balades' : 'Ajouter mes balades'}
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -278,115 +302,89 @@ export default function Explorer() {
         </div>
       </div>
 
-      {/* Panneau du bas, dans la zone du pouce : il suit le doigt et se cale ouvert ou réduit (filtres toujours visibles). */}
+      {/* Panneau du bas, dans la zone du pouce (V6.1 § 4) : un seul panneau, trois hauteurs, le même contenu — tout en
+          bas (le haut du panneau collé à la barre), à mi-hauteur, en grand (sous « Affichage » et « Me situer »). */}
       <section
         ref={sheet.ref}
-        aria-label={dog.unnamed ? 'Son territoire' : `Le territoire ${ofName(dog.name)}`}
+        aria-label={`Les balades ${ofDog(dog)}`}
         {...sheet.handlers}
         style={sheet.style}
-        className={`absolute inset-x-0 top-[calc(env(safe-area-inset-top)+62px)] bottom-0 z-10 mx-auto flex max-w-[430px] ${selected || walk ? 'invisible' : ''} flex-col gap-3 rounded-t-[26px] bg-surface px-5 pt-2 shadow-[0_-4px_18px_rgba(24,32,30,0.18)]`}
+        className={`absolute inset-x-0 top-[calc(env(safe-area-inset-top)+62px)] bottom-0 z-10 mx-auto flex max-w-[430px] ${selected || walk ? 'invisible' : ''} flex-col rounded-t-[24px] bg-surface px-4 shadow-[0_-6px_20px_rgba(0,0,0,0.10)]`}
       >
-        {/* La poignée : réduit → moitié → haut → moitié ; au cran haut, une flèche ⌄ pour réduire. */}
-        <button type="button" onClick={sheet.cycle} aria-expanded={!sheet.collapsed} aria-label={sheet.handleLabel} className="mx-auto -mb-2 flex min-h-11 w-24 shrink-0 touch-none items-center justify-center border-0 bg-transparent">
-          {sheet.snap === 'full' ? (
-            <svg width="28" height="14" viewBox="0 0 28 14" aria-hidden="true">
-              <path d="M3 3l11 8 11-8" fill="none" stroke="#7D8783" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          ) : (
-            <span className="h-1.5 w-11 rounded-full bg-line-strong" />
-          )}
+        {/* La poignée : 36 × 5 px, 14 px d’air dessus et dessous (marge intérieure : pas de fusion de marges) ; sa zone
+            tactile descend jusqu’à 44 px. Réduit → moitié → haut → moitié. */}
+        <button type="button" onClick={sheet.cycle} aria-expanded={!sheet.collapsed} aria-label={sheet.handleLabel} className="relative mx-auto flex h-[33px] w-24 shrink-0 touch-none items-center justify-center border-0 bg-transparent p-0 before:absolute before:inset-x-0 before:top-0 before:-bottom-[11px] before:content-['']">
+          <span className="block h-[5px] w-9 rounded-full bg-[#D3D9D6]" />
         </button>
         <div
           ref={sheet.bodyRef}
           onScroll={sheet.onBodyScroll}
-          style={{ paddingBottom: footerHeight + 12 }}
-          className={`-mx-5 flex min-h-0 flex-1 flex-col gap-3 overscroll-contain px-5 [&>*]:shrink-0 ${sheet.snap === 'full' ? 'overflow-y-auto' : 'overflow-y-hidden [&_.scroll-row]:touch-pan-x'}`}
+          style={{ paddingBottom: (footerHeight || HOME_CLEARANCE) + 12 }}
+          className={`-mx-4 flex min-h-0 flex-1 flex-col gap-3 overscroll-contain px-4 [&>*]:shrink-0 ${sheet.snap === 'full' ? 'overflow-y-auto' : 'overflow-y-hidden [&_.scroll-row]:touch-pan-x'}`}
         >
-          {/* V5 : le quartier (visible même réduit). */}
-          <div ref={peekRef} className="flex min-w-0 flex-col">
+          {/* 1. Le quartier : surtitre et titre (réduit, on n’en voit que le haut, coupé à mi-hauteur du titre). */}
+          <div className="flex min-w-0 flex-col gap-1">
             <span className="text-milestone-dark surtitre">Le quartier</span>
-            {/* R-089 : sans nom, « Son territoire ». */}
-            <h1 className="title-section">{dog.unnamed ? 'Son territoire' : `Le territoire ${ofName(dog.name)}`}</h1>
+            <h1 className="title-section relative">
+              Les balades {ofDog(dog)}
+              <span ref={peekRef} aria-hidden="true" className="absolute top-1/2 left-0 h-0 w-0" />
+            </h1>
           </div>
-          {/* V6.1 § 1 : une ligne de résumé à la place du pourcentage découvert ; elle suit le filtre. */}
-          {walks.length > 0 && <WalksSummary items={shown} />}
-          {walks.length === 0 ? (
-            // App iOS (T-001) : les marches de la Watch arrivent seules ; le fichier GPX reste en secours.
+          {walks.length > 0 && (
             <>
-              <p className="text-[0.9412rem] leading-snug text-[#3F4946]">{isNative() ? 'Partez en balade : le tracé lève le brouillard.' : 'Importez vos balades Strava pour lever le brouillard.'}</p>
-              {/* R-079 : l’accès à Santé seulement si on le choisit. */}
-              {!readOnly && <WatchOptIn compact />}
-            </>
-          ) : (
-            <>
-              <p className="text-[0.8824rem] leading-snug text-[#3F4946]" aria-live="polite">
-                {territoryHint(highlighted, today)}
-              </p>
-              {/* V6.1 § 3 : un seul choix, sans nombre sur la pastille ; le résumé suit. (« Spots de la meute » irait dans
-                  « Affichage », mais la meute reste gelée, T-072.) */}
-              <div role="group" aria-label="Filtrer les balades" className="scroll-row -mx-5 -my-1.5 flex gap-1.5 px-5">
+              {/* V6.1 § 1 : une ligne de résumé ; elle suit le filtre. */}
+              <WalksSummary items={shown} />
+              {/* V6.1 § 3 : un seul choix, sans nombre sur la pastille. (« Spots de la meute » irait dans « Affichage »,
+                  mais la meute reste gelée, T-072.) */}
+              <div ref={filtersRow} role="group" aria-label="Filtrer les balades" className="scroll-row -mx-4 -my-1.5 flex gap-1.5 px-4">
                 {PANEL_FILTERS.map((f) => (
                   <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className="flex min-h-11 shrink-0 items-center border-0 bg-transparent p-0">
                     <span className={chip(filter === f.id)}>{f.label}</span>
                   </button>
                 ))}
               </div>
-              {/* Les balades en cartes, à l’horizontale : un toucher ouvre sa fiche (T-098). */}
-              {shown.length === 0 ? (
-                <p className="text-[0.8824rem] text-muted">{emptyFilterText(filter)}</p>
-              ) : (
-                <ul ref={firstRow} className="scroll-row m-0 -mx-5 flex list-none gap-2 px-5 py-0.5">
-                  {local.slice(0, LIST_MAX).map((w) => {
-                    const on = w.id === highlight
-                    return (
-                      <li key={w.id} className="shrink-0">
-                        <Link to={`/souvenir/${encodeURIComponent(w.id)}`} state={FROM_MAP} className={`tap flex h-full w-[164px] flex-col items-start gap-1 rounded-[16px] border-2 border-solid bg-surface px-3 py-2.5 text-left text-text no-underline ${on ? 'border-primary' : 'border-[#E6EAE7]'}`}>
-                          <span className="h-1.5 w-7 rounded-full" style={{ background: colors.get(w.id) }} aria-hidden="true" />
-                          <span className="title-card line-clamp-2">{w.name}</span>
-                          <span className="text-[0.7647rem] text-[#3F4946]">{formatRelative(w.date, today).replace(/^./, (c) => c.toLocaleUpperCase('fr'))}</span>
-                          <Stats items={[{ value: formatRouteDistance(w.route.distanceM), label: 'Distance' }, { value: w.route.durationMin ? formatDuration(w.route.durationMin) : '', label: 'Durée' }]} className="mt-auto self-stretch" />
-                        </Link>
-                      </li>
-                    )
-                  })}
-                  <li className="shrink-0">
-                    <Link to={`/balades${filter !== 'toutes' ? `?filtre=${encodeURIComponent(filter)}` : ''}`} className="tap flex h-full min-h-[88px] w-[96px] flex-col items-center justify-center gap-1 rounded-[16px] bg-bg text-[0.8235rem] font-bold text-primary no-underline">
-                      Toutes
-                      <ChevronRightIcon size={18} />
-                    </Link>
-                  </li>
-                </ul>
-              )}
-              {/* T-089 : « Boucles pour Billy » (app iOS : on part de là en balade), seulement avec la position. */}
-              {isNative() && !readOnly && here && <LoopsBlock walks={walks} here={here} known={cells} dogName={dog.name} birthDate={dog.birthDate} today={today} />}
             </>
+          )}
+          {/* 2. Idées de balade (app iOS, avec la position). */}
+          <LoopsBlock loops={loops} picked={idea?.item.id} onPick={pickIdea} onHide={() => setPref({ ideas: false })} headRef={ideasHead} />
+          {/* 3. Le journal, groupé par jour : un toucher sur une balade ouvre sa fiche (T-098). */}
+          {shown.length === 0 ? (
+            <div className="flex flex-col gap-3 pt-1">
+              <p className="text-[0.9412rem] leading-snug text-[#3F4946]">{emptyFilterText(filter)}</p>
+              {/* R-079 : l’accès à Santé seulement si on le choisit. */}
+              {walks.length === 0 && !readOnly && <WatchOptIn compact />}
+            </div>
+          ) : (
+            <Journal walks={shown} entries={entries} today={today} />
           )}
         </div>
       </section>
-      {/* L’action principale : partir (iOS) ; sur le web, ajouter ses balades (import). Fixée en bas, à tous les crans du
-          panneau (R-077), au-dessus du rond Accueil qui dépasse de 26 px de la barre (R-072). */}
-      {!readOnly && (
-          <div ref={footerRef} className={`absolute inset-x-0 bottom-0 z-[11] mx-auto flex max-w-[430px] flex-col gap-2 bg-surface px-5 pt-2 pb-9 ${selected || walk ? 'invisible' : ''}`}>
-            {highlighted && <TrackLine walk={highlighted} color={colors.get(highlighted.id)} today={today} />}
-            {isNative() ? (
-              <>
-                <Link to="/balade-en-cours?depart=1" className="tap btn btn-main min-h-[56px]">
-                  Partir en balade
-                </Link>
-                {walks.length === 0 && (
-                  <Link to="/importer" className="btn btn-outline min-h-12">
-                    Importer un fichier GPX
-                  </Link>
-                )}
-              </>
-            ) : (
+      {/* L’action principale, fixée en bas au-dessus des onglets (le contenu passe dessous en fondu) : « Partir en balade »
+          (iOS), « Partir sur cette boucle » pour une idée choisie ; sur le web, « Ajouter mes balades » quand il n’y en a
+          pas. Cachée tout en bas. Au-dessus du rond Accueil qui dépasse de 26 px de la barre (R-072). */}
+      {!readOnly && (isNative() || shown.length === 0 || highlighted) && (
+        <div
+          ref={footerRef}
+          aria-hidden={!footerShown || undefined}
+          inert={!footerShown || undefined}
+          className={`absolute inset-x-0 bottom-0 z-[11] mx-auto flex max-w-[430px] flex-col gap-2 bg-gradient-to-b from-transparent to-surface to-[22px] px-4 pt-6 pb-9 transition-opacity duration-150 motion-reduce:transition-none ${selected || walk ? 'invisible' : ''} ${footerShown ? '' : 'pointer-events-none opacity-0'}`}
+        >
+          {highlighted && <TrackLine walk={highlighted} color={colors.get(highlighted.id)} today={today} />}
+          {idea && <IdeaLine idea={idea} onClose={() => setIdea(undefined)} />}
+          {isNative() ? (
+            <Link to={`/balade-en-cours?depart=1${idea ? `&boucle=${encodeURIComponent(idea.item.id)}` : ''}`} className="tap btn btn-main min-h-[56px]">
+              {idea ? 'Partir sur cette boucle' : 'Partir en balade'}
+            </Link>
+          ) : (
+            shown.length === 0 && (
               <Link to="/importer" className="tap btn btn-main min-h-[56px] gap-2">
                 <PlusIcon size={22} />
                 Ajouter mes balades
               </Link>
-            )}
-          </div>
+            )
           )}
+        </div>
+      )}
       {/* Visiteur : pas d’action fixée en bas, la ligne du tracé touché y prend place seule. */}
       {readOnly && highlighted && !selected && !walk && (
         <div className="absolute inset-x-0 bottom-0 z-[11] mx-auto flex max-w-[430px] flex-col bg-surface px-5 pt-2 pb-9">
@@ -468,5 +466,75 @@ function Switch({ label, hint, on, onChange }: { label: string; hint: string; on
         <span className={`absolute top-[2px] left-[2px] size-[27px] rounded-full bg-white shadow-[0_2px_4px_rgba(0,0,0,0.2)] transition-transform duration-150 motion-reduce:transition-none ${on ? 'translate-x-5' : ''}`} />
       </span>
     </button>
+  )
+}
+
+/** La couleur de la boucle d’une idée choisie, sur la carte (le vert foncé des idées de la maquette). */
+const IDEA_COLOR = '#1E5A50'
+
+/** T-097 : l’idée choisie, « Le tour du square · ≈ 15 min · 1,2 km », et ✕ pour la relâcher. */
+function IdeaLine({ idea, onClose }: { idea: Loop; onClose: () => void }) {
+  return (
+    <div className="anim-pop -mx-1 flex min-h-12 items-center gap-2.5 rounded-[14px] bg-bg py-1 pl-3 text-[0.9412rem]">
+      <span className="flex min-w-0 flex-1 gap-1">
+        <span className="min-w-0 truncate font-bold">{idea.item.name}</span>
+        <span className="shrink-0 text-[#3F4946]">
+          · ≈{'\u00a0'}{idea.duration}{'\u00a0'}min · {formatRouteDistance(idea.item.route.distanceM)}
+        </span>
+      </span>
+      <button type="button" onClick={onClose} aria-label="Retirer cette idée de la carte" className="flex size-11 shrink-0 items-center justify-center border-0 bg-transparent text-[#3F4946]">
+        <CloseIcon size={18} />
+      </button>
+    </div>
+  )
+}
+
+/** Les balades montrées d’abord ; les suivantes arrivent quand on approche du bas du journal. */
+const JOURNAL_PAGE = 15
+
+/**
+ * Le journal (V6.1 § 4) : les balades du filtre, groupées par jour, et les souvenirs sans trajet de ces jours-là en
+ * petite ligne. Rien d’autre en bas.
+ */
+function Journal({ walks, entries, today }: { walks: WalkItem[]; entries: WithId<Entry>[]; today: string }) {
+  const [count, setCount] = useState(JOURNAL_PAGE)
+  const more = useRef<HTMLDivElement>(null)
+  const visible = useMemo(() => walks.slice(0, count), [walks, count])
+  const memos = useMemo<JournalMemo[]>(
+    () => entries.filter((e) => !e.route?.points?.length && !e.id.startsWith('repos-') && (e.text.trim() || e.photos.length)).map((e) => ({ id: e.id, date: e.date, text: e.text.split('\n')[0] || 'Un souvenir', ...(e.createdAt ? { createdAt: e.createdAt } : {}), ...(e.photos[0] ? { thumb: e.photos[0].thumbFileId } : {}) })),
+    [entries],
+  )
+  const days = useMemo(() => journalDays(visible, memos, today), [visible, memos, today])
+  // Les photos posées sur la carte de chaque balade : celles dont on connaît l’endroit.
+  const photos = useMemo(() => new Map(entries.map((e) => [e.id, e.photos.flatMap((p) => (p.lat !== undefined && p.lng !== undefined ? [{ thumbFileId: p.thumbFileId, lat: p.lat, lng: p.lng }] : []))])), [entries])
+  useEffect(() => {
+    const el = more.current
+    if (!el || count >= walks.length) return
+    const observer = new IntersectionObserver((seen) => seen.some((s) => s.isIntersecting) && setCount((c) => c + JOURNAL_PAGE), { rootMargin: '400px' })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [count, walks.length])
+  return (
+    <div className="flex flex-col gap-3">
+      {days.map((day) => (
+        <section key={day.date} aria-label={day.label} className="flex flex-col gap-2.5">
+          <h2 className="mt-1 font-display text-[1rem] font-semibold">{day.label}</h2>
+          {day.rows.map((row) =>
+            row.kind === 'balade' ? (
+              <JournalWalkCard key={row.walk.id} walk={row.walk} photos={photos.get(row.walk.id) ?? []} state={FROM_MAP} />
+            ) : (
+              <Link key={row.memo.id} to={`/souvenir/${encodeURIComponent(row.memo.id)}`} state={FROM_MAP} className="tap grid min-h-14 grid-cols-[44px_minmax(0,1fr)] items-center gap-2.5 rounded-[14px] border border-solid border-[#E6EAE7] bg-surface p-2 text-text no-underline">
+                {row.memo.thumb ? <FileImage fileId={row.memo.thumb} alt="" className="size-11 rounded-[10px]" /> : <span aria-hidden="true" className="size-11 rounded-[10px] bg-gold-soft" />}
+                <span className="flex min-w-0 flex-col">
+                  <b className="truncate text-[0.9412rem]">{row.memo.text}</b>
+                  <span className="text-[0.8235rem] text-[#3F4946]">{memoLine(row.memo)}</span>
+                </span>
+              </Link>
+            ),
+          )}
+        </section>
+      ))}
+      {count < walks.length && <div ref={more} aria-hidden="true" className="h-px" />}
+    </div>
   )
 }

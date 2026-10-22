@@ -8,25 +8,33 @@ const memory = () => {
 
 describe('« Affichage » de la carte (T-095, V6.1 § 2)', () => {
   it('au premier lancement : plan, 2D, brouillard éteint', () => {
-    expect(readMapPrefs(memory())).toEqual({ satellite: false, three: false, fog: false })
+    expect(readMapPrefs(memory())).toEqual({ satellite: false, three: false, fog: false, ideas: true })
     expect(readMapPrefs(undefined).fog).toBe(false)
   })
 
   it('le choix du brouillard survit à une relance', () => {
     const store = memory()
-    writeMapPrefs({ satellite: false, three: false, fog: true }, store)
+    writeMapPrefs({ satellite: false, three: false, fog: true, ideas: true }, store)
     expect(readMapPrefs(store).fog).toBe(true)
     writeMapPrefs({ ...readMapPrefs(store), fog: false }, store)
     expect(readMapPrefs(store).fog).toBe(false)
   })
 
+  it('« Masquer » les idées de balade dure, « Affichage » les remet (T-097)', () => {
+    const store = memory()
+    writeMapPrefs({ ...readMapPrefs(store), ideas: false }, store)
+    expect(readMapPrefs(store).ideas).toBe(false)
+    writeMapPrefs({ ...readMapPrefs(store), ideas: true }, store)
+    expect(readMapPrefs(store).ideas).toBe(true)
+  })
+
   it('les choix d’avant (sans brouillard) restent, le brouillard reste éteint ; un stockage abîmé ou qui refuse ne casse rien', () => {
     const store = memory()
     store.setItem(MAP_PREFS_KEY, JSON.stringify({ satellite: true, three: false }))
-    expect(readMapPrefs(store)).toEqual({ satellite: true, three: false, fog: false })
+    expect(readMapPrefs(store)).toEqual({ satellite: true, three: false, fog: false, ideas: true })
     store.setItem(MAP_PREFS_KEY, '{oups')
     expect(readMapPrefs(store).fog).toBe(false)
     const refusing = { getItem: () => null, setItem: () => { throw new Error('plein') } }
-    expect(() => writeMapPrefs({ satellite: false, three: false, fog: true }, refusing)).not.toThrow()
+    expect(() => writeMapPrefs({ satellite: false, three: false, fog: true, ideas: true }, refusing)).not.toThrow()
   })
 })

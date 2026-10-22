@@ -25,12 +25,14 @@ export const SNAP_GAP = 12
  * - moitié : au moins la moitié de l’écran, et assez pour montrer tout ce qui précède `halfBottom` (le bas des
  *   premières actions, ou de la première rangée de balades) au-dessus de ce qui couvre le bas (`bottomInset`) ;
  *   jamais plus haut que le cran haut (petit écran, grand texte : les deux crans se rejoignent) ;
- * - réduit : le titre (`peekBottom`) au-dessus de ce qui couvre le bas, jamais au-dessus de la moitié.
+ * - réduit : le titre (`peekBottom`) au-dessus de ce qui couvre le bas, jamais au-dessus de la moitié. T-097 : le
+ *   panneau des Balades réduit n’a plus d’action fixée en bas (`peekInset` 0) et se colle à la barre d’onglets
+ *   (`peekGap` 0), son titre coupé à mi-hauteur.
  * Les distances sont mesurées depuis le haut du panneau ; `height` est sa hauteur, `container` celle de la carte.
  */
-export function sheetPositions({ height, container, peekBottom, halfBottom, bottomInset = 0 }: { height: number; container: number; peekBottom: number; halfBottom?: number; bottomInset?: number }): Record<Snap, number> {
+export function sheetPositions({ height, container, peekBottom, halfBottom, bottomInset = 0, peekInset = bottomInset, peekGap = SNAP_GAP }: { height: number; container: number; peekBottom: number; halfBottom?: number; bottomInset?: number; peekInset?: number; peekGap?: number }): Record<Snap, number> {
   const needed = halfBottom === undefined ? 0 : halfBottom + bottomInset + SNAP_GAP
   const half = Math.max(0, height - Math.max(container / 2, needed))
-  const collapsed = Math.max(half, height - peekBottom - SNAP_GAP - bottomInset)
+  const collapsed = Math.max(half, height - peekBottom - peekGap - peekInset)
   return { full: 0, half, collapsed }
 }

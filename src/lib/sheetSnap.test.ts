@@ -45,4 +45,10 @@ describe('cran du milieu calculé sur le contenu (R-091, R-082)', () => {
     expect(p.half).toBe(0)
     expect(p.collapsed).toBeGreaterThanOrEqual(p.half)
   })
+
+  it('T-097 : réduit, le panneau des Balades se colle à la barre (sans action fixée ni air), le titre coupé', () => {
+    const p = sheetPositions({ height: 700, container: 760, peekBottom: 60, halfBottom: 300, bottomInset: 120, peekInset: 0, peekGap: 0 })
+    expect(700 - p.collapsed).toBe(60)
+    expect(700 - p.half).toBe(Math.max(380, 300 + 120 + SNAP_GAP))
+  })
 })

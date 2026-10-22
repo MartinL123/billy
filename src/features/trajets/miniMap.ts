@@ -1,4 +1,5 @@
 import { createMap, fitPoints, ROUTE_COLOR, setLine, whenReady, type LatLng, type MapLibreMap } from '../../components/maplibre'
+import type { MiniView } from '../../lib/miniMapView'
 import { routeMomentInfo, type RouteMoment, type RoutePoint } from '../../lib/route'
 
 /**
@@ -63,10 +64,10 @@ const idle = (map: MapLibreMap) =>
     map.triggerRepaint()
   })
 
-async function draw(points: RoutePoint[], moments: RouteMoment[], size: number, startDot: boolean): Promise<Blob | null> {
+async function draw(points: RoutePoint[], moments: RouteMoment[], size: number, startDot: boolean, card?: { width: number; height: number; view: MiniView }): Promise<Blob | null> {
   const { map, host } = getRenderer()
-  host.style.width = `${size}px`
-  host.style.height = `${size}px`
+  host.style.width = `${card?.width ?? size}px`
+  host.style.height = `${card?.height ?? size}px`
   map.resize()
   await new Promise<void>((resolve) => whenReady(map, resolve))
   const latLngs = points as LatLng[]
@@ -85,7 +86,9 @@ async function draw(points: RoutePoint[], moments: RouteMoment[], size: number, 
   map.setPaintProperty('mini-points', 'circle-radius', (size > 80 ? 5 : 3.5) * k)
   map.setPaintProperty('mini-points', 'circle-stroke-width', 1.5 * k)
   const pad = Math.round(size * 0.16)
-  fitPoints(map, latLngs, { top: pad, bottom: pad, left: pad, right: pad })
+  // Carte du journal (T-097) : le cadrage calculé à part, le même que pour les arrêts et les photos posés dessus.
+  if (card) map.jumpTo({ center: [card.view.center[1], card.view.center[0]], zoom: card.view.zoom })
+  else fitPoints(map, latLngs, { top: pad, bottom: pad, left: pad, right: pad })
   await idle(map)
   return new Promise((resolve) => map.getCanvas().toBlob((blob) => resolve(blob), 'image/jpeg', 0.82))
 }
@@ -109,7 +112,24 @@ async function toCache(key: string, blob: Blob) {
 
 /** L’image de la mini-carte d’un trajet (URL d’objet), ou null si la carte n’a pas pu se dessiner. */
 export function miniMapImage(points: RoutePoint[], moments: RouteMoment[], size: number, { startDot = true }: { /** Le point de départ (pas sur la carte postale : le tracé y est coupé). */ startDot?: boolean } = {}): Promise<string | null> {
-  const key = `${miniMapKey(points, moments, size)}${startDot ? '' : '-sans-depart'}`
+  return rendered(`${miniMapKey(points, moments, size)}${startDot ? '' : '-sans-depart'}`, () => draw(points, moments, size, startDot))
+}
+
+/** La clé de la carte d’une balade du journal (T-097), `width` × `height` px. */
+export const miniCardKey = (points: RoutePoint[], width: number, height: number) => `carte-${width}x${height}-${miniMapKey(points, [], 0)}`
+
+/**
+ * La carte d’une balade du journal (T-097) : large et basse, le tracé et son départ ; les arrêts et les photos sont
+ * posés par-dessus en HTML, avec le même cadrage (`view`).
+ */
+export function miniMapCard(points: RoutePoint[], width: number, height: number, view: MiniView): Promise<string | null> {
+  return rendered(miniCardKey(points, width, height), () => draw(points, [], 100, true, { width, height, view }))
+}
+
+/** L’image déjà connue (mémoire) d’une clé, pour l’afficher sans attendre. */
+export const knownImage = (key: string) => memory.get(key)
+
+function rendered(key: string, render: () => Promise<Blob | null>): Promise<string | null> {
   const known = memory.get(key)
   if (known) return Promise.resolve(known)
   const running = pending.get(key)
@@ -120,7 +140,7 @@ export function miniMapImage(points: RoutePoint[], moments: RouteMoment[], size:
     // Une vignette à la fois, sur la même carte cachée.
     const result = queue.then(async () => {
       try {
-        const blob = await draw(points, moments, size, startDot)
+        const blob = await render()
         if (!blob) return null
         void toCache(key, blob)
         return URL.createObjectURL(blob)

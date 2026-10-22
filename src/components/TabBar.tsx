@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useData } from '../firebase/store'
 import { lateCare } from '../lib/healthScreen'
 import { useToday } from '../lib/useToday'
@@ -39,8 +39,10 @@ function SideTab({ to, label, icon, badge = 0, className = '' }: { to: string; l
 function TabBar() {
   const { events } = useData()
   const late = lateCare(events, useToday()).length
+  // T-097 : sur la carte, le panneau des balades et la barre ne font qu’un bloc blanc, sans trait entre les deux.
+  const onMap = useLocation().pathname === '/territoire'
   return (
-    <nav aria-label="Navigation principale" className="fixed inset-x-0 bottom-0 z-20 border-t border-divider bg-surface pb-[env(safe-area-inset-bottom)]">
+    <nav aria-label="Navigation principale" className={`fixed inset-x-0 bottom-0 z-20 bg-surface pb-[env(safe-area-inset-bottom)] ${onMap ? '' : 'border-t border-divider'}`}>
       <div className="mx-auto grid max-w-[430px] grid-cols-3" style={{ height: BAR }}>
         <SideTab to="/territoire" label="Balades" icon={<MapIcon />} />
         <NavLink to="/" end aria-label="Accueil" className={({ isActive }) => `relative flex flex-col items-center justify-end gap-1 pb-[14px] text-[0.7647rem] no-underline ${isActive ? 'font-bold text-primary' : 'font-semibold text-[#3F4946]'}`}>

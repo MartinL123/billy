@@ -1,18 +1,7 @@
-import { formatRelative, formatShort, parseISO, type ISODate } from './dates'
+import { formatShort, parseISO, type ISODate } from './dates'
 import { formatRouteDistance } from './route'
 
-// Le panneau des Balades (V5, T-054) : la phrase qui décrit la balade touchée (V6.1 : plus de pourcentage découvert).
-
-/**
- * Sans balade touchée : l’invitation ; avec (T-098) : quand, combien, et quoi toucher ensuite (la ligne en bas du
- * panneau ouvre sa fiche).
- */
-export function territoryHint(walk: { date: ISODate; route: { distanceM: number; durationMin?: number } } | undefined, today: ISODate): string {
-  if (!walk) return 'Chaque balade lève le brouillard. Touchez-en une pour l’ouvrir.'
-  const when = formatRelative(walk.date, today).replace(/^./, (c) => c.toLocaleUpperCase('fr'))
-  const parts = [when, formatRouteDistance(walk.route.distanceM), walk.route.durationMin ? `${walk.route.durationMin}\u00a0min` : ''].filter(Boolean)
-  return `${parts.join(' · ')}. Touchez la carte ailleurs pour revoir toutes ses balades.`
-}
+// Le panneau des Balades : la ligne d’un tracé touché sur la carte (T-098).
 
 /** T-098 : la ligne d’un tracé touché sur la carte, « 22 oct. · 2,1 km » (le nom est affiché à part, coupé s’il est long). */
 export function walkLineDetails(walk: { date: ISODate; route: { distanceM: number } }, today: ISODate): string {

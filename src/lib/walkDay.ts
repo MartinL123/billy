@@ -1,5 +1,6 @@
 import { minutesLabel, walkBudget, type WalkBudget } from './walkBudget'
-import { formatHour, timeToMinutes, walkName, WALK_SLOTS, type WalkSlot, type WalkTimes } from './walks'
+import { parisMinutes } from './activity'
+import { formatHour, slotForStart, timeToMinutes, walkName, WALK_SLOTS, type WalkSlot, type WalkTimes } from './walks'
 
 // « Ses sorties du jour » (T-035) : les 3 sorties avec leur durée (faite ou conseillée), le temps de marche du jour et
 // un conseil. Les chiffres se lisent d'un coup : ce qui est fait, ce qui reste, pourquoi.
@@ -83,6 +84,20 @@ export function walksOfDay(entries: { date: string; route?: { durationMin?: numb
     if (minutes && !withWalk.has(id)) walks.push({ slot: id, minutes, noted: true })
   }
   return walks
+}
+
+/**
+ * T-100 : la balade rattachée à une sortie faite, pour l’ouvrir depuis l’accueil. D’abord le lien gardé à
+ * l’enregistrement (`walkSlot`) ; sinon (balade sans créneau), une balade du jour dont le départ tombe dans ce créneau
+ * (le créneau le plus proche, comme à l’enregistrement). Plusieurs : la dernière partie.
+ */
+export function slotWalkId(entries: { id: string; date: string; route?: { startTime?: string }; walkSlot?: { date: string; creneau: string } }[], date: string, slot: WalkSlot, times: WalkTimes): string | undefined {
+  const walks = entries.filter((e) => e.route && e.date === date)
+  const byStart = (a: (typeof walks)[number], b: (typeof walks)[number]) => (b.route!.startTime ?? '').localeCompare(a.route!.startTime ?? '')
+  const linked = walks.filter((e) => e.walkSlot?.date === date && e.walkSlot.creneau === slot).sort(byStart)[0]
+  if (linked) return linked.id
+  const starts = walks.filter((e) => !e.walkSlot && e.route!.startTime && !Number.isNaN(Date.parse(e.route!.startTime)) && slotForStart(times, parisMinutes(e.route!.startTime)) === slot)
+  return starts.sort(byStart)[0]?.id
 }
 
 /** Les durées proposées pour noter une sortie (R-044) ; « Autre » pour le reste. */

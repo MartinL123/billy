@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { walkBudget } from './walkBudget'
-import { bigWalkNotice, dayBudget, preselectedDuration, walksSentence, upcomingSlots, walkDayPlan, walksOfDay, yesterdayOpenSlots } from './walkDay'
+import { bigWalkNotice, dayBudget, preselectedDuration, walksSentence, upcomingSlots, walkDayPlan, walksOfDay, slotWalkId, yesterdayOpenSlots } from './walkDay'
 import { DEFAULT_WALK_TIMES } from './walks'
 
 const times = DEFAULT_WALK_TIMES // 8 h, 13 h, 19 h
@@ -103,5 +103,44 @@ describe('ses sorties du jour (T-035)', () => {
     expect(nb(walksSentence([slot('Sortie du matin', 'faite'), slot('Sortie de midi', 'faite'), slot('Sortie du soir', 'faite')], 15, 'Oslo'))).toBe('Toutes ses sorties sont faites. Belle journée pour Oslo !')
     expect(nb(walksSentence([slot('Sortie du soir', 'a-venir')], undefined, 'Oslo'))).toBe('Encore la sortie du soir.')
     expect(nb(walksSentence([slot('Sortie du soir', 'a-venir'), slot('Sortie de midi', 'a-venir')], 0, 'Oslo'))).toBe('Encore 2 sorties : juste ses besoins.')
+  })
+})
+
+describe('la balade d’une sortie faite (T-100)', () => {
+  const day = '2026-10-22'
+  // 8 h 10 à Paris (heure d’été : UTC+2).
+  const route = (startTime?: string) => ({ ...(startTime ? { startTime } : {}) })
+  it('le lien gardé à l’enregistrement d’abord', () => {
+    const entries = [
+      { id: 'a', date: day, route: route('2026-10-22T06:10:00Z'), walkSlot: { date: day, creneau: 'matin' } },
+      { id: 'b', date: day, route: route('2026-10-22T17:00:00Z'), walkSlot: { date: day, creneau: 'soir' } },
+    ]
+    expect(slotWalkId(entries, day, 'matin', times)).toBe('a')
+    expect(slotWalkId(entries, day, 'soir', times)).toBe('b')
+    expect(slotWalkId(entries, day, 'midi', times)).toBeUndefined()
+  })
+  it('sans lien : la balade du jour partie dans ce créneau', () => {
+    const entries = [{ id: 'c', date: day, route: route('2026-10-22T11:05:00Z') }]
+    expect(slotWalkId(entries, day, 'midi', times)).toBe('c')
+    expect(slotWalkId(entries, day, 'matin', times)).toBeUndefined()
+  })
+  it('ni une autre journée, ni un souvenir sans tracé, ni une heure de départ inconnue', () => {
+    const entries = [
+      { id: 'd', date: '2026-10-21', route: route('2026-10-21T06:10:00Z'), walkSlot: { date: '2026-10-21', creneau: 'matin' } },
+      { id: 'e', date: day },
+      { id: 'f', date: day, route: route() },
+    ]
+    expect(slotWalkId(entries, day, 'matin', times)).toBeUndefined()
+  })
+  it('une balade rattachée à un autre créneau n’est pas reprise par l’heure', () => {
+    const entries = [{ id: 'g', date: day, route: route('2026-10-22T06:10:00Z'), walkSlot: { date: day, creneau: 'midi' } }]
+    expect(slotWalkId(entries, day, 'matin', times)).toBeUndefined()
+  })
+  it('deux balades dans le même créneau : la dernière partie', () => {
+    const entries = [
+      { id: 'h', date: day, route: route('2026-10-22T06:00:00Z'), walkSlot: { date: day, creneau: 'matin' } },
+      { id: 'i', date: day, route: route('2026-10-22T07:00:00Z'), walkSlot: { date: day, creneau: 'matin' } },
+    ]
+    expect(slotWalkId(entries, day, 'matin', times)).toBe('i')
   })
 })

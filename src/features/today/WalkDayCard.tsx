@@ -8,7 +8,7 @@ import { noteWalk } from '../../firebase/imports'
 import { useData } from '../../firebase/store'
 import { useReadOnly } from '../../firebase/viewer'
 import type { ISODate } from '../../lib/dates'
-import { DURATION_CHOICES, preselectedDuration, type WalkDayPlan } from '../../lib/walkDay'
+import { DURATION_CHOICES, preselectedDuration, slotWalkId, type WalkDayPlan } from '../../lib/walkDay'
 import { walkItems } from '../../lib/walkList'
 import { formatHour, WALK_SLOTS, type WalkSlot, type WalkTimes } from '../../lib/walks'
 import { useToday } from '../../lib/useToday'
@@ -22,6 +22,8 @@ export interface ToNote {
   time: string
   name: string
   advised?: number
+  /** T-100 : une sortie déjà notée dont on modifie la durée. */
+  minutes?: number
 }
 
 const minutesText = (m: number) => (m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')}` : ''}` : `${m}\u00a0min`)
@@ -31,8 +33,9 @@ export function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void
   const { bones } = useData()
   const today = useToday()
   const toast = useToast()
-  const [pick, setPick] = useState<number | 'autre'>(preselectedDuration(walk.advised))
-  const [other, setOther] = useState('')
+  // Une sortie déjà notée (T-100) : sa durée présélectionnée, sinon la durée conseillée.
+  const [pick, setPick] = useState<number | 'autre'>(walk.minutes ? (DURATION_CHOICES.includes(walk.minutes) ? walk.minutes : 'autre') : preselectedDuration(walk.advised))
+  const [other, setOther] = useState(walk.minutes && !DURATION_CHOICES.includes(walk.minutes) ? String(walk.minutes) : '')
   const [error, setError] = useState(false)
   const minutes = pick === 'autre' ? Math.round(Number(other)) : pick
   const valid = Number.isFinite(minutes) && minutes >= 1 && minutes <= 300
@@ -89,6 +92,33 @@ export function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void
   )
 }
 
+/** Une sortie faite : coche, nom, durée. Avec sa balade : un lien vers sa fiche ; notée à la main : modifier la durée. */
+function DoneSlot({ name, minutes, pending, walkId, onEdit }: { name: string; minutes?: number; pending: boolean; walkId?: string; onEdit?: () => void }) {
+  const inner = (
+    <>
+      <CheckIcon size={22} />
+      <span className="text-[0.9412rem] font-bold">{name}</span>
+      <span className="text-[0.8235rem] font-semibold">{minutes ? minutesText(minutes) : 'Faite'}</span>
+      {pending && <span className="text-[0.7059rem] text-[#3F4946]">en attente</span>}
+    </>
+  )
+  const style = 'anim-pop flex min-h-[84px] w-full flex-col items-center justify-center gap-0.5 rounded-[16px] border-0 bg-primary-soft p-0 text-center text-primary-dark no-underline'
+  const spoken = `${name}, faite${minutes ? `, ${minutesText(minutes)}` : ''}`
+  if (walkId)
+    return (
+      <Link to={`/souvenir/${walkId}`} aria-label={`${spoken}. Voir la balade`} className={`tap ${style}`}>
+        {inner}
+      </Link>
+    )
+  if (onEdit)
+    return (
+      <button type="button" onClick={onEdit} aria-label={`${spoken}. Modifier la durée`} className={`tap ${style}`}>
+        {inner}
+      </button>
+    )
+  return <span className={style}>{inner}</span>
+}
+
 /**
  * « Ses sorties du jour » (V5, T-050) : 3 pastilles côte à côte. Faite : fond vert clair, coche, durée. À faire :
  * contour pointillé, « + Noter » ouvre « Combien de temps ? ». Dessous, une phrase : ce qui reste et la durée
@@ -100,7 +130,8 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
   /** Le matin : les sorties d’hier pas faites, encore notables (R-044). */
   yesterday?: { date: ISODate; slots: WalkSlot[] }
   sentence: string
-  onNote: (date: ISODate, slot: WalkSlot) => void
+  /** `minutes` : une sortie déjà notée, dont on modifie la durée (T-100). */
+  onNote: (date: ISODate, slot: WalkSlot, minutes?: number) => void
   /** Bouton contour « Partir en balade » (app iOS), seulement si la carte du moment n’est pas déjà une sortie. */
   showStart: boolean
   /** Hors ligne : les sorties notées attendent d’être envoyées. */
@@ -112,6 +143,11 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
   // Visiteur (T-048) : il voit les sorties, sans les noter.
   const readOnly = useReadOnly()
   const label = (slot: WalkSlot) => WALK_SLOTS.find((s) => s.id === slot)!.label
+  // T-100 : la balade rattachée à chaque sortie faite (lien gardé, sinon l’heure de départ).
+  const walkIds = useMemo(() => new Map(plan.slots.filter((s) => s.state === 'faite').flatMap((s) => {
+    const id = slotWalkId(entries, today, s.slot, times)
+    return id ? [[s.slot, id] as const] : []
+  })), [plan.slots, entries, today, times])
 
   return (
     <section aria-label="Ses sorties du jour" className="card flex flex-col gap-3 rounded-[24px] p-4">
@@ -130,12 +166,8 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
         {plan.slots.map((slot) => (
           <li key={slot.slot}>
             {slot.state === 'faite' ? (
-              <span className="anim-pop flex min-h-[84px] flex-col items-center justify-center gap-0.5 rounded-[16px] bg-primary-soft text-center text-primary-dark">
-                <CheckIcon size={22} />
-                <span className="text-[0.9412rem] font-bold">{label(slot.slot)}</span>
-                <span className="text-[0.8235rem] font-semibold">{slot.minutes ? minutesText(slot.minutes) : 'Faite'}</span>
-                {pending && <span className="text-[0.7059rem] text-[#3F4946]">en attente</span>}
-              </span>
+              // T-100 : une sortie faite avec sa balade ouvre la fiche de la balade ; notée sans trajet, « Combien de temps ? ».
+              <DoneSlot name={label(slot.slot)} minutes={slot.minutes} pending={pending} walkId={walkIds.get(slot.slot)} onEdit={readOnly ? undefined : () => onNote(today, slot.slot, slot.minutes)} />
             ) : readOnly ? (
               <span className="flex min-h-[84px] flex-col items-center justify-center gap-0.5 rounded-[16px] border-2 border-dashed border-[#6E8C83] text-text">
                 <span className="text-[0.8235rem] font-semibold text-[#3F4946]">{formatHour(times[slot.slot])}</span>

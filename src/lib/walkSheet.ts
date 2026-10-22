@@ -1,6 +1,6 @@
 import { parisMinutes } from './activity'
 import { formatDuration } from './balade'
-import type { Commune } from './commune'
+import { communeAt, type Commune } from './commune'
 import { distanceMeters } from './community'
 import { formatDayHeading, type ISODate } from './dates'
 import { discoveredShare, inPolygon, revealedCells } from './fog'
@@ -205,7 +205,7 @@ export function walkDiscovery(walkId: string, walks: WalkLike[], communes: Commu
     for (const cell of revealedCells(w.route.points)) before.add(cell)
   }
   const fresh = [...revealedCells(points)].filter((c) => !before.has(c))
-  const commune = communes.find((c) => inPolygon(points[0]!, c.ring))
+  const commune = communeAt(communes, points[0]!, inPolygon)
   return { newCells: fresh.length, ...(commune ? { share: discoveredShare(fresh, commune), commune: commune.name } : {}) }
 }
 

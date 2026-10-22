@@ -1,6 +1,6 @@
-import { setDoc } from 'firebase/firestore'
-import { communeFromNominatim, type Commune } from '../lib/commune'
-import { send, userDoc } from './paths'
+import { deleteDoc, setDoc } from 'firebase/firestore'
+import { communeFromNominatim, isCommuneSized, type Commune } from '../lib/commune'
+import { send, userDoc, viewedOwnerUid } from './paths'
 
 /**
  * Le contour de la commune qui contient ce point, demandé une seule fois à Nominatim (OpenStreetMap) puis gardé
@@ -21,4 +21,15 @@ export async function fetchCommune(lat: number, lng: number): Promise<(Commune &
   } catch {
     return undefined
   }
+}
+
+/**
+ * R-086 : avant le correctif, un point en mer pouvait garder le pays (« France métropolitaine ») comme commune.
+ * Une passe à l’ouverture retire ces seuls documents trop grands (données recalculables) ; jamais en visiteur.
+ */
+export function removeOversizedCommunes(communes: (Pick<Commune, 'areaM2' | 'bbox'> & { id: string })[]): number {
+  if (viewedOwnerUid()) return 0
+  const wrong = communes.filter((c) => !isCommuneSized(c))
+  for (const c of wrong) send(deleteDoc(userDoc('communes', c.id)))
+  return wrong.length
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { communeAt, communeFromNominatim } from './commune'
-import { inPolygon } from './fog'
+import { communeAt, communeFromNominatim, isCommuneSized } from './commune'
+import { discoveredShare, inPolygon, revealedCells } from './fog'
+import { bilanStats } from './walkBilan'
 
 // Réponse inventée au format de Nominatim (aucun vrai lieu de Martin).
 const RESPONSE = {
@@ -34,5 +35,44 @@ describe('commune', () => {
   it('rien sans surface', () => {
     expect(communeFromNominatim({ osm_id: 1, geojson: { type: 'Point', coordinates: [2, 47] } })).toBeUndefined()
     expect(communeFromNominatim(null)).toBeUndefined()
+  })
+
+  // R-086 : en mer, Nominatim répond le pays. Tout est inventé (pays et ville fictifs).
+  const square = (w: number, s: number, e: number, n: number) => [[[w, s], [e, s], [e, n], [w, n], [w, s]]]
+  const COUNTRY = { osm_type: 'relation', osm_id: 7, addresstype: 'country', name: 'Pays-de-Test', address: { country: 'Pays-de-Test' }, geojson: { type: 'Polygon', coordinates: square(-4, 42, 8, 51) } }
+  const CITY = { osm_type: 'relation', osm_id: 8, addresstype: 'town', name: 'Villetest', address: { town: 'Villetest' }, geojson: { type: 'Polygon', coordinates: square(2, 47, 2.05, 47.04) } }
+
+  it('un point en mer (le pays répond) ne crée aucune commune', () => {
+    expect(communeFromNominatim(COUNTRY)).toBeUndefined()
+    // Sans addresstype (anciennes réponses), la surface suffit à refuser.
+    expect(communeFromNominatim({ ...COUNTRY, addresstype: undefined, address: { village: 'Pays-de-Test' } })).toBeUndefined()
+    expect(communeFromNominatim({ ...CITY, addresstype: 'state' })).toBeUndefined()
+    expect(communeFromNominatim(CITY)?.name).toBe('Villetest')
+  })
+
+  it('la plus petite commune qui contient le point, jamais un pays gardé avant R-086', () => {
+    const city = communeFromNominatim(CITY)!
+    const country = { id: 'r7', name: 'Pays-de-Test', areaM2: 640_000e6, bbox: [42, -4, 51, 8] as [number, number, number, number], ring: square(-4, 42, 8, 51)[0]!.map(([lng, lat]) => ({ lat: lat!, lng: lng! })) }
+    expect(isCommuneSized(country)).toBe(false)
+    expect(isCommuneSized(city)).toBe(true)
+    const p = { lat: 47.02, lng: 2.02 }
+    expect(communeAt([country, city], p, inPolygon)?.name).toBe('Villetest')
+    // Seul le pays connu : rien plutôt que « < 1 % » de tout un pays.
+    expect(communeAt([country], p, inPolygon)).toBeUndefined()
+    // Deux vraies communes emboîtées (cadres qui se chevauchent) : la plus petite.
+    const big = { ...city, name: 'Grandeville', areaM2: city.areaM2 * 4 }
+    expect(communeAt([big, city], p, inPolygon)?.name).toBe('Villetest')
+  })
+
+  it('un point en ville donne « x % de <ville> »', () => {
+    const city = communeFromNominatim(CITY)!
+    const country = { id: 'r7', name: 'Pays-de-Test', areaM2: 640_000e6, bbox: [42, -4, 51, 8] as [number, number, number, number], ring: square(-4, 42, 8, 51)[0]!.map(([lng, lat]) => ({ lat: lat!, lng: lng! })) }
+    const points = Array.from({ length: 40 }, (_, i) => ({ lat: 47.005 + i * 0.0008, lng: 2.025 }))
+    const commune = communeAt([country, city], points[0]!, inPolygon)!
+    const share = discoveredShare([...revealedCells(points)], commune)
+    expect(share).toBeGreaterThanOrEqual(0.01)
+    const stat = bilanStats([], { share, commune: commune.name })[2]!
+    expect(stat.value).toMatch(/^\d+\u00a0%$/)
+    expect(stat.label).toBe('de Villetest découvert')
   })
 })

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { onSnapshot } from 'firebase/firestore'
 import { ensureProfile, watchAll, watchCollection, watchDog } from './db'
 import { setKnownUsage } from './files'
@@ -10,6 +10,7 @@ import { isExposure, isTrainingSession, type BillyDocument, type BillyEvent, typ
 import { setFemale, setNoGarden } from '../lib/garden'
 import { isFemale } from '../lib/gender'
 import type { Commune } from '../lib/commune'
+import { removeOversizedCommunes } from './communes'
 
 interface Data {
   dog: WithId<Dog>
@@ -136,6 +137,15 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   useEffect(() => {
     if (dog === null && online && !isClosingAccount() && !viewedOwnerUid()) ensureProfile().catch((error) => console.error('Création du profil impossible', error))
   }, [dog, online])
+
+  // R-086 : les « communes » trop grandes gardées avant le correctif sont retirées une fois (le cache peut être lu
+  // avant le serveur : chaque document n’est demandé qu’une fois par ouverture).
+  const removedCommunes = useRef(new Set<string>())
+  useEffect(() => {
+    const fresh = communes?.filter((c) => !removedCommunes.current.has(c.id)) ?? []
+    for (const c of fresh) removedCommunes.current.add(c.id)
+    if (fresh.length) removeOversizedCommunes(fresh)
+  }, [communes])
 
   const shownDog = dog === null && !isClosingAccount() ? lastDog : dog
   const data = useMemo<Data | null>(() => {

@@ -10,6 +10,8 @@ import type { ISODate } from './dates'
 export interface Stat {
   value: string
   label: string
+  /** Lu par VoiceOver à la place de la valeur. */
+  spoken?: string
 }
 
 type BilanWalk = { id: string; date: ISODate; route: Pick<Route, 'points' | 'distanceM' | 'durationMin' | 'moments' | 'stops' | 'startTime'> }
@@ -34,7 +36,8 @@ export function bilanStats(walks: BilanWalk[], discovered?: { share: number; com
   return [
     { value: String(walks.length), label: walks.length > 1 ? 'Balades' : 'Balade' },
     { value: km(walks.reduce((s, w) => s + w.route.distanceM, 0)), label: 'Distance' },
-    { value: discovered ? shareText(discovered.share) : '', label: discovered ? `${ofName(discovered.commune)} découvert` : 'Découvert' },
+    // R-090 : un libellé court (la commune est dite sur chaque balade) ; VoiceOver la lit avec le pourcentage.
+    discovered && shareText(discovered.share) ? { value: shareText(discovered.share), label: 'Découvert', spoken: `${shareText(discovered.share)} ${ofName(discovered.commune)}` } : { value: '', label: 'Découvert' },
     { value: min ? togetherText(min) : '', label: 'Ensemble' },
   ]
 }

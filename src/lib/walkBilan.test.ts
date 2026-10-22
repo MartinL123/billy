@@ -16,7 +16,7 @@ describe('bilanStats', () => {
     expect(bilanStats(walks, { share: 0.123, commune: 'Vertbois' })).toEqual([
       { value: '2', label: 'Balades' },
       { value: '5,1 km', label: 'Distance' },
-      { value: '12 %', label: 'de Vertbois découvert' },
+      { value: '12 %', label: 'Découvert', spoken: '12 % de Vertbois' },
       { value: '2 h 20', label: 'Ensemble' },
     ])
   })

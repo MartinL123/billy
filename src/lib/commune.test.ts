@@ -73,6 +73,7 @@ describe('commune', () => {
     expect(share).toBeGreaterThanOrEqual(0.01)
     const stat = bilanStats([], { share, commune: commune.name })[2]!
     expect(stat.value).toMatch(/^\d+\u00a0%$/)
-    expect(stat.label).toBe('de Villetest découvert')
+    expect(stat.label).toBe('Découvert')
+    expect(stat.spoken).toMatch(/^\d+\u00a0% de Villetest$/)
   })
 })

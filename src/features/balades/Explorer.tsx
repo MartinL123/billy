@@ -344,7 +344,8 @@ export default function Explorer() {
           <MapButton kind="display" aria-expanded={display} onClick={() => setDisplay(!display)} />
           {display && (
             <div className="anim-pop pointer-events-auto flex flex-col gap-2 rounded-card bg-surface p-2 shadow-[0_4px_14px_rgba(24,32,30,0.25)]">
-              <div role="group" aria-label="Fond de carte" className="flex rounded-full bg-bg p-1">
+              {/* Deux colonnes égales sur toute la largeur de la fenêtre. */}
+              <div role="group" aria-label="Fond de carte" className="grid grid-cols-2 rounded-full bg-bg p-1">
                 <button type="button" aria-pressed={!prefs.satellite} onClick={() => setPref({ satellite: false })} className={toggle(!prefs.satellite)}>
                   Plan
                 </button>
@@ -352,11 +353,11 @@ export default function Explorer() {
                   Satellite
                 </button>
               </div>
-              <div role="group" aria-label="Vue" className="flex rounded-full bg-bg p-1">
-                <button type="button" aria-pressed={!prefs.three} onClick={() => setPref({ three: false })} className={`flex-1 ${toggle(!prefs.three)}`}>
+              <div role="group" aria-label="Vue" className="grid grid-cols-2 rounded-full bg-bg p-1">
+                <button type="button" aria-pressed={!prefs.three} onClick={() => setPref({ three: false })} className={toggle(!prefs.three)}>
                   2D
                 </button>
-                <button type="button" aria-pressed={prefs.three} onClick={() => setPref({ three: true })} className={`flex-1 ${toggle(prefs.three)}`}>
+                <button type="button" aria-pressed={prefs.three} onClick={() => setPref({ three: true })} className={toggle(prefs.three)}>
                   3D
                 </button>
               </div>

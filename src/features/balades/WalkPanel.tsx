@@ -49,7 +49,7 @@ export function WalkPanel({ source, name, date, route, color, replaying, onRepla
         {name}
       </h1>
       {/* Réduit, le panneau ne garde que ce qui précède (le nom) : la suite glisse sous la barre. */}
-      <div ref={sheet.bodyRef} onScroll={sheet.onBodyScroll} className={`-mx-5 flex min-h-0 flex-1 flex-col gap-2.5 overscroll-contain px-5 pb-9 [&>*]:shrink-0 ${sheet.snap === 'full' ? 'overflow-y-auto' : 'overflow-y-hidden'}`} aria-hidden={sheet.collapsed || undefined} inert={sheet.collapsed || undefined}>
+      <div ref={sheet.bodyRef} className={`-mx-5 flex min-h-0 flex-1 touch-pan-y flex-col gap-2.5 overscroll-contain px-5 pb-9 [&>*]:shrink-0 ${sheet.snap === 'full' ? 'overflow-y-auto' : 'overflow-y-hidden'}`} aria-hidden={sheet.collapsed || undefined} inert={sheet.collapsed || undefined}>
         <p className="text-[0.8824rem] text-muted">{formatLong(date)}</p>
         <Stats items={stats} />
         {/* R-092 : la même étiquette que dans la liste et sur la fiche. */}

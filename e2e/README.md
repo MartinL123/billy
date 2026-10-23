@@ -32,6 +32,7 @@ l'arrêter après un changement du code de l'app pour que les tests voient la no
 | T-087 · Partage en direct | Pendant la balade : « Partager en direct », un proche ajouté, « Partager » (feuille de partage simulée) ; le lien ouvert dans un autre navigateur, sans compte | `live/{jeton}` au serveur (seulement les champs prévus), « … est en balade depuis … · 100 m », « Mis à jour … » ; Terminer → `terminée`, position effacée, « Balade terminée à … » ; lien coupé → message calme |
 | 13 · Deux balades le même jour | A (partie il y a 60 min), puis B (il y a 15 min) | Deux balades au serveur, clés d'import différentes, pas d'os en double |
 | T-074 · Compte neuf hors ligne | Connexion d'un compte neuf (vrai premier lancement), réseau coupé 1,5 s puis rétabli | L'app reste stable (pas de remontage en boucle) ; le profil et les marques des trois rattrapages arrivent au serveur (R-093 : le profil n'est plus récrit en boucle) |
+| R-099 · Panneau de la carte (`panneau.spec.ts`) | Touchers synthétiques sur le panneau des Balades : milieu → haut puis la liste, haut avec liste défilée, haut en haut de liste, réduit, un toucher ; glissé à la souris | Qui prend chaque mouvement (panneau déplacé, défilement empêché ou non), cran au lâcher. Le défilement natif d'iOS et son élan : sur l'iPhone |
 
 ## Ce qui reste manuel (sur l'iPhone de Martin)
 

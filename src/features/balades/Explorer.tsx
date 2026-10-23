@@ -308,9 +308,8 @@ export default function Explorer() {
         </button>
         <div
           ref={sheet.bodyRef}
-          onScroll={sheet.onBodyScroll}
           style={{ paddingBottom: (footerHeight || HOME_CLEARANCE) + 12 }}
-          className={`-mx-4 flex min-h-0 flex-1 flex-col gap-3 overscroll-contain px-4 [&>*]:shrink-0 ${sheet.snap === 'full' ? 'overflow-y-auto' : 'overflow-y-hidden [&_.scroll-row]:touch-pan-x'}`}
+          className={`-mx-4 flex min-h-0 flex-1 touch-pan-y flex-col gap-3 overscroll-contain px-4 [&>*]:shrink-0 ${sheet.snap === 'full' ? 'overflow-y-auto' : 'overflow-y-hidden'}`}
         >
           {/* 1. Le quartier : surtitre et titre (réduit, on n’en voit que le haut, coupé à mi-hauteur du titre). */}
           <div className="flex min-w-0 flex-col gap-1">

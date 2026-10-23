@@ -200,6 +200,9 @@ export function WalkSheet({ entry, route }: { entry: WalkEntry; route: Route }) 
   const bigOffset = Math.max(0, vh - peekH - (mapH - 26))
   const dragHandlers = {
     onPointerDown: (e: PointerEvent) => {
+      // R-099 : au doigt, iOS ne crée pas de « click » après un glissé : la marque du glissé précédent ne doit pas
+      // avaler le toucher suivant.
+      justDragged.current = false
       if (!big && window.scrollY > 4) return
       drag.current = { y: e.clientY, t: e.timeStamp, id: e.pointerId, moved: false }
     },

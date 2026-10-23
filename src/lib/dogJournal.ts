@@ -103,9 +103,22 @@ export function journalItems<W extends Pick<WalkItem, 'id' | 'date' | 'route'>>(
     const more = rest.join(' ').trim()
     items.push({ kind: 'memo', id: e.id, date: e.date, at, title: first.trim() || 'Un souvenir', line: [more ? quote(more) : '', feeling ?? ''].filter(Boolean).join(' · ') || 'Souvenir', ...(e.photos[0] ? { thumb: e.photos[0].thumbFileId } : {}) })
   }
-  for (const e of events) {
-    const date = e.doneAt || e.date
-    if (!e.done || !date || !CARE_TYPES.includes(e.type)) continue
+  // R-100 : « Prochain : … » seulement sous le dernier soin fait de chaque sorte (même type, même nom) ; un soin plus
+  // ancien ne dit que ce qui a été fait (« Vermifuge donné »).
+  const careDone = events.filter((e) => e.done && (e.doneAt || e.date) && CARE_TYPES.includes(e.type))
+  const careKey = (e: EventLike) => `${e.type}\n${e.title.trim()}`
+  const latest = new Map<string, ISODate>()
+  for (const e of careDone) {
+    const date = (e.doneAt || e.date) as ISODate
+    const key = careKey(e)
+    if (!latest.has(key) || date > latest.get(key)!) latest.set(key, date)
+  }
+  for (const e of careDone) {
+    const date = (e.doneAt || e.date) as ISODate
+    if (date < latest.get(careKey(e))!) {
+      items.push({ kind: 'care', id: e.id, date, at: noon(date), title: careTitle(e), line: '' })
+      continue
+    }
     // Le prochain : l’occurrence suivante créée en cochant, sinon le même soin à venir le plus proche.
     const next = (e.nextId ? events.find((n) => n.id === e.nextId && !n.done && n.date) : undefined) ?? events.filter((n) => !n.done && n.date && n.type === e.type && n.title === e.title && n.date > date).sort((a, b) => a.date.localeCompare(b.date))[0]
     items.push({ kind: 'care', id: e.id, date, at: noon(date), title: careTitle(e), line: next ? `Prochain : ${formatLong(next.date)}` : 'Fait' })

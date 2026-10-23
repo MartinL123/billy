@@ -669,7 +669,7 @@ function JournalRow({ item, filter }: { item: Exclude<JournalItem<WalkItem>, { k
       )}
       <span className="flex min-w-0 flex-col">
         <b className="text-[0.9412rem] leading-snug">{item.title}</b>
-        <span className="text-[0.8235rem] leading-snug text-[#3F4946]">{item.line}</span>
+        {item.line && <span className="text-[0.8235rem] leading-snug text-[#3F4946]">{item.line}</span>}
       </span>
     </Link>
   )

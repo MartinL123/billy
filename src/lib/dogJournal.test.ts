@@ -52,6 +52,25 @@ describe('R-098 · le journal du chien', () => {
     expect(text('w1')).toEqual(['Pesée · 7,8 kg', 'Première pesée'])
   })
 
+  it('R-100 : « Prochain » seulement sous le dernier soin fait de chaque sorte', () => {
+    const base = input()
+    const events = [
+      { id: 'v0', title: 'Vermifuge', type: 'vermifuge', date: '2026-07-21', done: true, doneAt: '2026-07-21', nextId: 'v1' },
+      ...base.events,
+      { id: 'vac0', title: 'Vaccin', type: 'vaccin', date: '2025-09-01', done: true },
+    ]
+    const byId = new Map(journalItems({ ...base, events }).map((i) => [i.id, i]))
+    const line = (id: string) => {
+      const item = byId.get(id)!
+      return 'title' in item ? [item.title, item.line] : []
+    }
+    // L’ancien vermifuge : juste ce qui a été fait, même s’il gardait le lien vers le suivant.
+    expect(line('v0')).toEqual(['Vermifuge donné', ''])
+    expect(line('v1')).toEqual(['Vermifuge donné', 'Prochain\u00a0: 21 janvier 2027'])
+    expect(line('vac0')).toEqual(['Vaccin fait', ''])
+    expect(line('vac')).toEqual(['Vaccin fait', 'Prochain\u00a0: 22 octobre 2026'])
+  })
+
   it('les pastilles filtrent ; les jours se nomment', () => {
     const items = journalItems(input())
     const groups = journalGroups(items, 'tout', TODAY)

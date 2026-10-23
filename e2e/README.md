@@ -33,6 +33,7 @@ l'arrêter après un changement du code de l'app pour que les tests voient la no
 | 13 · Deux balades le même jour | A (partie il y a 60 min), puis B (il y a 15 min) | Deux balades au serveur, clés d'import différentes, pas d'os en double |
 | T-074 · Compte neuf hors ligne | Connexion d'un compte neuf (vrai premier lancement), réseau coupé 1,5 s puis rétabli | L'app reste stable (pas de remontage en boucle) ; le profil et les marques des trois rattrapages arrivent au serveur (R-093 : le profil n'est plus récrit en boucle) |
 | R-099 · Panneau de la carte (`panneau.spec.ts`) | Touchers synthétiques sur le panneau des Balades : milieu → haut puis la liste, haut avec liste défilée, haut en haut de liste, réduit, un toucher ; glissé à la souris | Qui prend chaque mouvement (panneau déplacé, défilement empêché ou non), cran au lâcher. Le défilement natif d'iOS et son élan : sur l'iPhone |
+| R-102 · Le même panneau partout (`panneau.spec.ts`) | Fiche d'une balade puis sa relecture : glissé du milieu vers le bas, du bas jusqu'en haut, poignée | Fiche ouverte au milieu, relecture au cran réduit (vitesses entières) ; le cran réduit au moins 120 px sous le milieu ; haut ; poignée haut → milieu → haut |
 
 ## Ce qui reste manuel (sur l'iPhone de Martin)
 

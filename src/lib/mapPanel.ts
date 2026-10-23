@@ -20,8 +20,8 @@ export function panelMode(params: URLSearchParams): PanelMode {
 }
 
 /**
- * L’adresse de la carte ouverte sur une balade : sa fiche (au cran du milieu par défaut ; un tracé touché l’ouvre au
- * cran réduit, sur son résumé) ou sa relecture. Le filtre du journal est gardé pour le retour.
+ * L’adresse de la carte ouverte sur une balade : sa fiche (au cran du milieu par défaut, sur son résumé ; R-102) ou sa
+ * relecture. Le filtre du journal est gardé pour le retour.
  */
 export function walkOnMap(id: string, { snap, replay = false, filter }: { snap?: Snap; replay?: boolean; filter?: string } = {}): string {
   const q = new URLSearchParams({ balade: id })

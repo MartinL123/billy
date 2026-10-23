@@ -20,7 +20,7 @@ const SNAP_EASE = 'transform 0.34s cubic-bezier(0.3, 1.15, 0.5, 1)'
 export function useSheet({ start = 'half', peekRef, halfRef, bottomInset = 0, peekInset, peekGap }: { start?: Snap; /** Le bas de cet élément borne la partie visible réduit (sinon : le haut du contenu). */ peekRef?: RefObject<HTMLElement | null>; /** Le bas de cet élément est visible au cran du milieu (les premières actions, la première rangée). */ halfRef?: RefObject<HTMLElement | null>; /** Hauteur couverte en bas par une barre fixe (l’action principale) ou le rond Accueil. */ bottomInset?: number; /** Réduit : ce qui couvre le bas (par défaut `bottomInset`) et l’air au-dessus (T-097). */ peekInset?: number; peekGap?: number } = {}) {
   const ref = useRef<HTMLElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
-  const [snap, setSnap] = useState<Snap>(start)
+  const [asked, setSnap] = useState<Snap>(start)
   const [positions, setPositions] = useState<Record<Snap, number>>({ full: 0, half: 0, collapsed: 0 })
   const moved = useRef(false)
 
@@ -66,17 +66,16 @@ export function useSheet({ start = 'half', peekRef, halfRef, bottomInset = 0, pe
     }
   }, [peekRef, halfRef, bottomInset, peekInset, peekGap])
 
+  // Petit écran et grand texte : quand le cran du milieu rejoint le haut, le panneau y est « en haut » (la liste
+  // défile jusqu’aux actions, toujours au-dessus du rond Accueil ou de l’action fixée). R-102 : le cran demandé reste
+  // « milieu » : une mesure passagère (le contenu qui change, une balade qui arrive) ne le fait plus monter pour de bon.
+  const halfIsFull = positions.half === 0 && positions.collapsed > 0
+  const snap: Snap = halfIsFull && asked === 'half' ? 'full' : asked
+
   // Hors du cran haut, la liste revient en haut.
   useEffect(() => {
     if (snap !== 'full' && bodyRef.current) bodyRef.current.scrollTop = 0
   }, [snap])
-
-  // Petit écran et grand texte : quand le cran du milieu rejoint le haut, le panneau y est « en haut » (la liste
-  // défile jusqu’aux actions, toujours au-dessus du rond Accueil ou de l’action fixée).
-  const halfIsFull = positions.half === 0 && positions.collapsed > 0
-  useEffect(() => {
-    if (halfIsFull && snap === 'half') setSnap('full')
-  }, [halfIsFull, snap])
 
   const offset = positions[snap]
   const place = (y: number, animate: boolean) => {
@@ -100,7 +99,7 @@ export function useSheet({ start = 'half', peekRef, halfRef, bottomInset = 0, pe
   // quand le panneau s’arrête sur un autre cran.
   const release = (y: number, speed: number) => {
     const next = nearestSnap(positions, y, speed)
-    if (next !== snap) haptic('selection')
+    if (positions[next] !== positions[snap]) haptic('selection')
     settle(next)
   }
 

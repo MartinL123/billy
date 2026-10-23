@@ -1,17 +1,19 @@
 import { test, expect, type Page } from '@playwright/test'
-import { goHash, login, skipOpening } from './app'
-import { newUser, seedProfile } from './emulator'
+import { bravo, finishButton, goHash, login, skipOpening, startWalk } from './app'
+import { newUser, seedProfile, serverWalks } from './emulator'
+import { FakeIphone } from './fakeIphone'
 
 // R-099 : le panneau de la carte des Balades et sa liste se partagent le geste du doigt, dans le même geste.
 // Les touchers sont synthétiques (TouchEvent) : WebKit ne fait pas défiler la liste de lui-même avec eux, on vérifie
 // donc qui prend chaque mouvement (le panneau bouge-t-il, le défilement est-il empêché ?). Le vrai défilement d'iOS et
 // son élan restent à essayer sur l'iPhone.
 
-const panel = (page: Page) => page.locator('section[aria-label="Son journal"]')
+const JOURNAL = 'Son journal'
+const panel = (page: Page, label = JOURNAL) => page.locator(`section[aria-label="${label}"]`)
 
 /** La position du panneau (translateY) et le défilement de sa liste. */
-async function state(page: Page) {
-  return panel(page).evaluate((el) => {
+async function state(page: Page, label = JOURNAL) {
+  return panel(page, label).evaluate((el) => {
     const t = getComputedStyle(el).transform
     const body = el.querySelector<HTMLElement>('.overscroll-contain')!
     return { y: t && t !== 'none' ? new DOMMatrix(t).m42 : 0, scrollTop: body.scrollTop }
@@ -19,9 +21,9 @@ async function state(page: Page) {
 }
 
 /** Un glissé du doigt de `from` à `to` (y, en px dans l'écran), à x = 195 ; rend les mouvements empêchés et la position à mi-chemin. */
-async function swipe(page: Page, from: number, to: number, steps = 12) {
+async function swipe(page: Page, from: number, to: number, steps = 12, label = JOURNAL) {
   return page.evaluate(
-    async ({ from, to, steps }) => {
+    async ({ from, to, steps, label }) => {
       const target = document.elementFromPoint(195, from)!
       // WebKit sur ordinateur refuse `new Touch()` : un évènement ordinaire avec les mêmes listes de doigts.
       const fire = (type: string, y: number) => {
@@ -43,7 +45,7 @@ async function swipe(page: Page, from: number, to: number, steps = 12) {
         await wait()
         prevented.push(fire('touchmove', from + ((to - from) * i) / steps))
         if (i === Math.round(steps / 2)) {
-          const el = document.querySelector<HTMLElement>('section[aria-label="Son journal"]')!
+          const el = document.querySelector<HTMLElement>(`section[aria-label="${label}"]`)!
           middle = new DOMMatrix(getComputedStyle(el).transform).m42
         }
       }
@@ -51,7 +53,7 @@ async function swipe(page: Page, from: number, to: number, steps = 12) {
       const endPrevented = fire('touchend', to)
       return { prevented, middle, endPrevented }
     },
-    { from, to, steps },
+    { from, to, steps, label },
   )
 }
 
@@ -162,4 +164,75 @@ test('R-099 · à la souris (site sur ordinateur), glisser le panneau et sa poig
   expect((await state(page)).y).toBe(0)
   await expect(page.getByRole('button', { name: 'Réduire le panneau' })).toBeVisible()
   await context.close()
+})
+
+// R-102 : le même panneau, le même geste et les mêmes 3 crans dans tous ses modes : la fiche d'une balade (touchée sur
+// la carte ou dans le journal) et sa relecture se baissent, se montent et suivent leur poignée comme le journal.
+test('R-102 · fiche d’une balade et relecture : glisser au cran réduit, au cran haut, et la poignée', async ({ context }) => {
+  const fake = new FakeIphone()
+  await fake.install(context)
+  await skipOpening(context)
+  const user = await newUser()
+  await seedProfile(user.uid)
+  const page = await context.newPage()
+  await login(page, user)
+  await startWalk(page)
+  await fake.walkPoints(page, 24)
+  await finishButton(page).click()
+  await expect(bravo(page)).toBeVisible()
+  await expect.poll(async () => (await serverWalks(user.uid)).length, { timeout: 30_000 }).toBe(1)
+  const id = (await serverWalks(user.uid))[0]!.name.split('/').pop()
+
+  for (const label of ['La balade', 'Revoir la balade']) {
+    if (label === 'La balade') {
+      await goHash(page, `#/souvenir/${id}`)
+      await expect(panel(page, label).getByRole('button', { name: 'Revoir la balade' })).toBeVisible()
+    } else {
+      await panel(page, 'La balade').getByRole('button', { name: 'Revoir la balade' }).click()
+      await expect(panel(page, label).getByRole('button', { name: 'Pause' })).toBeVisible()
+    }
+    await settle(page)
+    const handle = panel(page, label).getByRole('button', { name: /panneau/ })
+    // La fiche s'ouvre au cran du milieu, la relecture au cran réduit (R-096) : la poignée donne l'autre.
+    let y = (await state(page, label)).y
+    if (label === 'La balade') {
+      await expect(handle).toHaveAccessibleName('Agrandir le panneau')
+    } else {
+      await expect(handle).toHaveAccessibleName('Afficher le panneau')
+      // Réduit : les vitesses entières au-dessus du rond Accueil.
+      const speeds = (await panel(page, label).getByRole('button', { name: '× 4' }).boundingBox())!
+      expect(speeds.y + speeds.height).toBeLessThan(844 - 88 - 26)
+      await handle.click()
+      await settle(page)
+      await expect(handle).toHaveAccessibleName('Agrandir le panneau')
+    }
+    const half = (await state(page, label)).y
+    // (Relecture : ouverte au cran réduit, au moins 120 px sous le milieu.)
+    if (label !== 'La balade') expect(y).toBeGreaterThanOrEqual(half + 120)
+
+    // Du milieu, le doigt descend : le cran réduit, bien plus bas (au moins 120 px de carte en plus).
+    let top = (await panel(page, label).boundingBox())!.y
+    let r = await swipe(page, top + 12, top + 160, 8, label)
+    expect(r.prevented.slice(1).every(Boolean)).toBe(true)
+    await settle(page)
+    const collapsed = (await state(page, label)).y
+    expect(collapsed).toBeGreaterThanOrEqual(half + 120)
+    await expect(handle).toHaveAccessibleName('Afficher le panneau')
+
+    // Du cran réduit, le doigt monte vite jusqu'en haut : le cran haut.
+    top = (await panel(page, label).boundingBox())!.y
+    r = await swipe(page, top + 12, top - collapsed + 12, 8, label)
+    await settle(page)
+    expect((await state(page, label)).y).toBe(0)
+    await expect(handle).toHaveAccessibleName('Réduire le panneau')
+
+    // La poignée : haut → milieu → haut.
+    await handle.click()
+    await settle(page)
+    y = (await state(page, label)).y
+    expect(y).toBeCloseTo(half, 0)
+    await handle.click()
+    await settle(page)
+    expect((await state(page, label)).y).toBe(0)
+  }
 })

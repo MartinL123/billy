@@ -192,15 +192,16 @@ export default function Explorer() {
   // fixée en bas ; réduit, le panneau se colle à la barre d’onglets (sans action), le titre coupé à mi-hauteur.
   const ideasHead = useRef<HTMLDivElement>(null)
   const filtersRow = useRef<HTMLDivElement>(null)
-  // La fiche : réduit, le résumé (jusqu’à « Revoir » et « Raconter ») ; la relecture (R-096) : réduit, toutes ses
-  // commandes (retour, lecture, barre, vitesses), la carte en grand au-dessus.
+  // La fiche (R-102) : réduit, son titre ; au milieu, le résumé (jusqu’à « Revoir » et « Raconter »). La relecture
+  // (R-096) : réduit, toutes ses commandes (retour, lecture, barre, vitesses), la carte en grand au-dessus.
   const sheetPeek = useRef<HTMLDivElement>(null)
+  const sheetHalf = useRef<HTMLDivElement>(null)
   const outingPeek = useRef<HTMLDivElement>(null)
   const replayPeek = useRef<HTMLDivElement>(null)
   const snapParam = SNAPS.find((c) => c === params.get('cran'))
   const sheet = useSheet({
     peekRef: kind === 'journal' ? peekRef : kind === 'sheet' ? sheetPeek : kind === 'outing' ? outingPeek : replayPeek,
-    halfRef: kind === 'journal' ? (loops.length ? ideasHead : filtersRow) : undefined,
+    halfRef: kind === 'journal' ? (loops.length ? ideasHead : filtersRow) : kind === 'sheet' ? sheetHalf : undefined,
     bottomInset: kind === 'journal' ? footerHeight || HOME_CLEARANCE : HOME_CLEARANCE,
     ...(kind === 'journal' ? { peekInset: 0, peekGap: 0 } : {}),
     start: mode.kind === 'replay' ? 'collapsed' : (snapParam ?? 'half'),
@@ -290,11 +291,12 @@ export default function Explorer() {
     if (next.toString() !== params.toString()) setParams(next, { replace: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter, pill, sheet.snap, walkId])
-  // R-094 : un tracé touché sur la carte : la balade s’ouvre dans le panneau, réduit sur son résumé.
+  // R-094 : un tracé touché sur la carte : la balade s’ouvre dans le panneau, sur son résumé (R-102 : au cran du
+  // milieu ; réduit, il ne garde que le titre).
   const onTrack = (id: string) => {
     if (id.startsWith('idee:')) return
     setIdea(undefined)
-    openWalk(id, 'collapsed')
+    openWalk(id)
   }
   // « Voir sur la carte » d’une photo : le panneau descend, la carte va à la photo.
   const showOnMap = (pin: PhotoPin) => {
@@ -421,6 +423,7 @@ export default function Explorer() {
               onShowOnMap={showOnMap}
               onAddMark={addMark}
               peekRef={sheetPeek}
+              halfRef={sheetHalf}
             />
           ) : kind === 'outing' && outing ? (
             <OutingSheet key={outing.id} outing={outing} backLabel={retour ?? 'Le journal'} onBack={retour ? back : toJournal} onDeleted={toJournal} peekRef={outingPeek} />

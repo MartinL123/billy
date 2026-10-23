@@ -41,7 +41,7 @@ type WalkEntry = WithId<Entry> & { pending?: boolean }
  * la balade » sur lui), le parcours, le relief, le corps, la météo, les photos, les sources, puis Partager, Modifier et
  * Supprimer. Chaque bloc n’apparaît que s’il a des données (une balade ancienne ne montre que ce qu’elle a).
  */
-export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onCursor, viewer, onViewer, onShowOnMap, onAddMark, peekRef }: {
+export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onCursor, viewer, onViewer, onShowOnMap, onAddMark, peekRef, halfRef }: {
   entry: WalkEntry
   route: Route
   /** Les photos placées sur la carte (là où elles ont été prises). */
@@ -60,8 +60,10 @@ export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onC
   onShowOnMap: (pin: PhotoPin) => void
   /** R-059 : poser un repère sans viser la carte (VoiceOver, Switch Control). */
   onAddMark?: () => void
-  /** Le bas du résumé : ce que montre le panneau réduit. */
+  /** R-102 : le bas du titre (le jour, les heures) : ce que montre le panneau réduit. */
   peekRef: Ref<HTMLDivElement>
+  /** Le bas du résumé (jusqu’à « Revoir » et « Raconter ») : ce que montre le panneau au cran du milieu. */
+  halfRef: Ref<HTMLDivElement>
 }) {
   const readOnly = useReadOnly()
   const { dog, entries } = useData()
@@ -151,10 +153,10 @@ export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onC
 
   return (
     <>
-      {/* Le résumé : ce que montre le panneau réduit (la carte prend le reste). */}
+      {/* Le résumé : ce que montre le panneau au cran du milieu ; réduit, le titre seulement (R-102). */}
       <div className="flex flex-col gap-3">
         <BackLink label={backLabel} onClick={onBack} className="-mt-1 -mb-2" />
-        <div className="flex flex-col gap-1">
+        <div ref={peekRef} className="flex flex-col gap-1">
           <span className="surtitre text-primary">{number ? `Balade n° ${number} avec ${dogName(dog)}` : `Balade avec ${dogName(dog)}`}</span>
           <h1 className="title-screen">{name || 'Balade'}</h1>
           <p className="text-[1rem] leading-snug text-muted">{[formatDayHeading(entry.date), walkHours({ startTime: route.startTime, endTime: route.endTime, trimmed: route.track ? route.trimmed : undefined })].filter(Boolean).join(' · ')}</p>
@@ -165,7 +167,7 @@ export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onC
         <Stats items={blocks.stats} />
         {/* R-094 : revoir (vert plein) et raconter (vert clair), côte à côte ; l’orange reste à « Partir en balade ». */}
         {(onReplay || !readOnly) && (
-          <div ref={peekRef} className="flex flex-wrap gap-2">
+          <div ref={halfRef} className="flex flex-wrap gap-2">
             {onReplay && (
               <button type="button" onClick={onReplay} className="btn btn-primary min-h-12 flex-[1_1_auto] px-4">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -181,7 +183,7 @@ export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onC
             )}
           </div>
         )}
-        {!onReplay && readOnly && <div ref={peekRef} aria-hidden="true" className="h-0" />}
+        {!onReplay && readOnly && <div ref={halfRef} aria-hidden="true" className="h-0" />}
       </div>
 
       <div className="flex flex-col gap-4 pt-1">

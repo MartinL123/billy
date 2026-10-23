@@ -85,6 +85,13 @@ export function useSheet({ start = 'half', peekRef, halfRef, bottomInset = 0, pe
     ref.current.style.transform = `translateY(${y}px)`
   }
 
+  // R-094 : le contenu change (journal, fiche, relecture) pendant qu’un cran est demandé : le panneau rejoint la
+  // position recalculée de son cran (le style de React ne le ferait pas si la valeur n’a pas changé entre deux rendus).
+  useLayoutEffect(() => {
+    place(positions[snap], true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [positions, snap])
+
   const settle = (next: Snap) => {
     setSnap(next)
     place(positions[next], true)
@@ -312,6 +319,8 @@ export function useSheet({ start = 'half', peekRef, halfRef, bottomInset = 0, pe
     ref,
     bodyRef,
     snap,
+    /** La position du panneau à son cran (translateY, px) : la carte se cadre au-dessus. */
+    offset,
     setSnap: settle,
     cycle,
     collapsed: snap === 'collapsed',

@@ -3,9 +3,9 @@ import type { GeoJSONSource } from 'maplibre-gl'
 import { addMarker, cameraMs, createMap, dot, fitPoints, lngLat, onMarker, set3D, setSatellite, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
 import { fogLayout, type FogLayout } from '../../lib/fogCanvas'
 import { distanceToRoute, NEAR_ROUTE, type Route } from '../../lib/route'
-import { replayWalk, showWalk, type WalkPhoto } from './walkLayer'
+import { showWalk, type WalkPhoto } from './walkLayer'
 import { ofName } from '../../lib/gender'
-import { fitPadding } from '../../lib/mapFrame'
+import { fitPadding, type Padding } from '../../lib/mapFrame'
 
 export interface MapPlace {
   id: string
@@ -62,22 +62,24 @@ interface Props {
   north?: number
   /** Le nom du chien du compte (libellés accessibles). */
   dogName: string
-  /** Une balade mise en avant (depuis un souvenir) : son tracé, ses repères, ses photos, le replay. */
+  /** R-094 : la balade ouverte (sa fiche ou sa relecture dans le panneau) : son tracé, ses arrêts, ses repères, ses photos. */
   walk?: {
     id: string
     route: Route
     photos: WalkPhoto[]
-    replaying: boolean
-    onReplayEnd: () => void
     /** Toucher le tracé (ou tout près) : y ajouter un repère. */
     onTapRoute: (at: { lat: number; lng: number }) => void
-    /** R-059 : rempli par la carte ; le centre de ce qu’on voit au-dessus de `visibleBottom` (« Ajouter un repère » sans viser). */
-    centerRef?: { current: ((visibleBottom: number) => { lat: number; lng: number }) | null }
-    /** Toucher ailleurs (ni le tracé, ni une autre balade) : revenir à toutes les balades. */
+    /** Toucher ailleurs (ni le tracé, ni une autre balade) : revenir au journal. */
     onLeave: () => void
     onPhoto: (index: number) => void
-    /** La couleur de la balade sur la carte. */
+    /** La couleur de la balade sur la carte (sans allure connue). */
     color?: string
+    /** La partie de la carte couverte (boutons en haut, panneau en bas) : la balade se cadre dans le reste. */
+    padding: Padding
+    /** Le doigt sur la courbe d’allure : un rond doré à cet endroit du tracé. */
+    cursor?: { lat: number; lng: number }
+    /** « Voir sur la carte » d’une photo : la carte y va (`n` change à chaque demande). */
+    center?: { lat: number; lng: number; n: number }
   }
 }
 
@@ -103,9 +105,10 @@ function drawWalks(m: MapLibreMap, walks: MapWalk[], dimmed: boolean) {
     m.addLayer({ id: 'trajets-pointilles', type: 'line', source: 'trajets', filter: ['==', ['get', 'dashed'], true], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 4, 'line-dasharray': [0.5, 2] } })
   }
   // Une balade mise en avant : les autres s’effacent.
-  m.setPaintProperty('trajets', 'line-opacity', dimmed ? 0.3 : ['case', ['get', 'faded'], 0.4, 1])
-  m.setPaintProperty('trajets-liseré', 'line-opacity', dimmed ? 0.15 : ['case', ['get', 'faded'], 0.25, 0.85])
-  m.setPaintProperty('trajets-pointilles', 'line-opacity', dimmed ? 0.3 : ['case', ['get', 'faded'], 0.4, 1])
+  // R-094 : une balade ouverte : les autres à 25 %.
+  m.setPaintProperty('trajets', 'line-opacity', dimmed ? 0.25 : ['case', ['get', 'faded'], 0.4, 1])
+  m.setPaintProperty('trajets-liseré', 'line-opacity', dimmed ? 0.12 : ['case', ['get', 'faded'], 0.25, 0.85])
+  m.setPaintProperty('trajets-pointilles', 'line-opacity', dimmed ? 0.25 : ['case', ['get', 'faded'], 0.4, 1])
   // Les trajets restent au-dessus du brouillard (et de la chaleur des passages, T-109), la balade mise en avant au-dessus de tout.
   if (m.getLayer('frequentes')) m.moveLayer('frequentes')
   m.moveLayer('trajets-liseré')
@@ -239,13 +242,6 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     m.on('mouseleave', 'trajets', () => {
       m.getCanvas().style.cursor = ''
     })
-    // Un toucher pendant « Revoir la balade » ne fait qu’arrêter le replay : noté au moment où le doigt se pose.
-    let stoppingReplay = false
-    const press = () => {
-      stoppingReplay = Boolean(handlers.current.walk?.replaying)
-    }
-    m.on('mousedown', press)
-    m.on('touchstart', press)
     // Le tracé d’une balade touché (ou tout près), hors celle déjà mise en avant.
     const walkAt = ({ x, y }: { x: number; y: number }, except?: string) =>
       m.getLayer('trajets')
@@ -255,7 +251,6 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
       if (onMarker(e.originalEvent)) return
       const w = handlers.current.walk
       handlers.current.onMapTap?.()
-      if (stoppingReplay) return
       const id = walkAt(e.point, w?.id)
       if (!w) {
         // Un tracé touché : cette balade passe au premier plan.
@@ -317,14 +312,19 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     if (map.current && north) map.current.easeTo({ bearing: 0, duration: cameraMs(500) })
   }, [north])
 
-  // La balade mise en avant, redessinée quand ses repères ou ses photos changent.
+  // La balade ouverte, redessinée quand ses repères ou ses photos changent ; cadrée dans ce que le panneau laisse voir.
   const walkRoute = walk?.route
   const walkPhotos = walk?.photos
   const walkColor = walk?.color
+  const walkPad = () => {
+    const m = map.current
+    const pad = handlers.current.walk?.padding ?? { top: 32, bottom: 32, left: 32, right: 32 }
+    return m ? fitPadding(pad, m.getContainer().clientWidth, m.getContainer().clientHeight, 0.2) : pad
+  }
   useEffect(() => {
     const m = map.current
     if (!m || !walkRoute) return
-    const hide = showWalk(m, walkRoute, walkPhotos ?? [], (i) => handlers.current.walk?.onPhoto(i), walkColor)
+    const hide = showWalk(m, walkRoute, walkPhotos ?? [], (i) => handlers.current.walk?.onPhoto(i), walkColor, walkPad())
     return () => {
       hide()
       // Retour à « Toutes les balades » : la carte reprend la vue d’ensemble (une autre balade se cadrera elle-même).
@@ -333,30 +333,35 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     }
   }, [walkRoute, walkPhotos, walkColor])
 
-  // R-059 : le centre de la carte visible (au-dessus du panneau), pour poser un repère sans viser.
-  const centerRef = walk?.centerRef
-  useEffect(() => {
-    if (!centerRef) return
-    centerRef.current = (visibleBottom) => {
-      const m = map.current
-      if (!m) return { lat: NaN, lng: NaN }
-      const canvas = m.getCanvas()
-      const top = canvas.getBoundingClientRect().top
-      const c = m.unproject([canvas.clientWidth / 2, Math.max(1, Math.min(canvas.clientHeight, visibleBottom - top)) / 2])
-      return { lat: c.lat, lng: c.lng }
-    }
-    return () => {
-      centerRef.current = null
-    }
-  }, [centerRef])
-
-  const replaying = Boolean(walk?.replaying)
+  // Le panneau monte ou descend (T-107) : la balade se recadre dans ce qui reste visible ; une photo demandée reste au
+  // centre.
+  const padKey = walk ? `${walk.padding.top},${walk.padding.bottom}` : ''
+  const lastPad = useRef(padKey)
   useEffect(() => {
     const m = map.current
-    if (!m || !replaying || !walkRoute) return
-    const stop = replayWalk(m, walkRoute, dogName, () => handlers.current.walk?.onReplayEnd())
-    return stop
-  }, [replaying]) // eslint-disable-line react-hooks/exhaustive-deps
+    const before = lastPad.current
+    lastPad.current = padKey
+    if (!m || !walkRoute || !before || before === padKey) return
+    const c = handlers.current.walk?.center
+    whenReady(m, () => (c ? m.easeTo({ center: lngLat([c.lat, c.lng]), padding: walkPad(), duration: cameraMs(400) }) : fitPoints(m, walkRoute.points, walkPad(), true)))
+  }, [padKey]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // « Voir sur la carte » d’une photo (T-108) : la carte y va.
+  const photoAt = walk?.center
+  useEffect(() => {
+    const m = map.current
+    if (!m || !photoAt) return
+    whenReady(m, () => m.easeTo({ center: lngLat([photoAt.lat, photoAt.lng]), zoom: 17, padding: walkPad(), duration: cameraMs(400) }))
+  }, [photoAt?.n]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Le doigt sur la courbe d’allure : un rond doré à cet endroit du tracé.
+  const cursor = walk?.cursor
+  useEffect(() => {
+    const m = map.current
+    if (!m || !cursor) return
+    const marker = addMarker(m, [cursor.lat, cursor.lng], dot('#F2B544', 20, 'Ici'))
+    return () => void marker.remove()
+  }, [cursor?.lat, cursor?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Centrer sur le lieu ouvert, dans la partie de carte au-dessus de la fenêtre.
   useEffect(() => {

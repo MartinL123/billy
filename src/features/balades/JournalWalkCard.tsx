@@ -25,14 +25,14 @@ export interface PinnedPhoto {
  * où elles ont été prises), « N à raconter » s’il reste des arrêts sans repère, le nom, durée · distance · arrêts, et
  * les repères sur une seule ligne (la dernière pastille coupée en fondu). Un toucher ouvre sa fiche (T-098).
  */
-export function JournalWalkCard({ walk, photos, state }: { walk: WalkItem; photos: PinnedPhoto[]; state?: unknown }) {
+export function JournalWalkCard({ walk, photos, to, replace = false }: { walk: WalkItem; photos: PinnedPhoto[]; /** Où mène le toucher (par défaut, sa fiche). */ to?: string; replace?: boolean }) {
   const route = walk.route
   const untold = tellQueue(route).length
   const stops = route.stops?.length ?? 0
   const pills = walkPills(route)
   const details = [route.durationMin ? formatDuration(route.durationMin) : '', formatRouteDistance(route.distanceM), stops ? `${stops} arrêt${stops > 1 ? 's' : ''}` : ''].filter(Boolean).join(', ')
   return (
-    <Link to={`/souvenir/${encodeURIComponent(walk.id)}`} state={state} aria-label={`${walk.name}. ${details}${untold ? `. ${untold} à raconter` : ''}. Ouvrir sa fiche`} className="tap flex flex-col overflow-hidden rounded-card border border-solid border-divider bg-surface shadow-card text-text no-underline">
+    <Link to={to ?? `/souvenir/${encodeURIComponent(walk.id)}`} replace={replace} aria-label={`${walk.name}. ${details}${untold ? `. ${untold} à raconter` : ''}. Ouvrir sa fiche`} className="tap flex flex-col overflow-hidden rounded-card border border-solid border-divider bg-surface shadow-card text-text no-underline">
       <RouteMap route={route} photos={photos} untold={untold} />
       <span className="flex min-w-0 flex-col gap-1.5 px-3.5 pt-2.5 pb-3">
         <span className="title-card">{walk.name}</span>

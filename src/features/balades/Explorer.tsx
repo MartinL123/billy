@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { isNative } from '../../native'
-import { ChevronRightIcon, CloseIcon, PlusIcon } from '../../components/Icons'
+import { CloseIcon, PlusIcon } from '../../components/Icons'
 import { FileImage } from '../../components/FileImage'
 import { MapButton } from '../../components/Buttons'
 import type { Entry } from '../../firebase/types'
@@ -19,15 +19,19 @@ import { useToday } from '../../lib/useToday'
 import { emptyFilterText, filterWalks, PANEL_FILTERS, walkColors, walkItems, walksNear, walksTotals, type WalkFilter, type WalkItem } from '../../lib/walkList'
 import type { MapPlace, MapWalk } from './ExplorerMap'
 import { PlaceCard, type Selected } from './PlaceCard'
-import { WalkPanel } from './WalkPanel'
 import { LoopsBlock } from './LoopsBlock'
 import { HOME_CLEARANCE, useSheet, type Snap } from './useSheet'
 import { PlaceMoment } from '../trajets/PlaceMoment'
+import { WalkSheet } from '../trajets/WalkSheet'
 import { updateEntryRoute } from '../../firebase/db'
-import { nearestOnRoute, readRoute, storeRoute, type Route } from '../../lib/route'
+import { readRoute, storeRoute, type Route } from '../../lib/route'
 import { useGrantedPosition } from '../../lib/useGrantedPosition'
 import { formatRouteDistance } from '../../lib/route'
-import { walkLineDetails } from '../../lib/territory'
+import { journalOnMap, panelMode, walkOnMap } from '../../lib/mapPanel'
+import { photoPins, type PhotoPin } from '../../lib/walkFiche'
+import type { Padding } from '../../lib/mapFrame'
+import { useBack } from '../../lib/useBack'
+import { modernCard } from '../../lib/carnet'
 import { useReadOnly } from '../../firebase/viewer'
 import { WatchOptIn } from './WatchOptIn'
 import { ROUTE_COLOR } from '../../components/maplibre'
@@ -38,15 +42,18 @@ const ExplorerMap = lazy(() => import('./ExplorerMap').then((m) => ({ default: m
 const chip = (on: boolean) => `flex h-8 items-center rounded-full border border-solid px-3 text-[0.8235rem] font-bold whitespace-nowrap ${on ? 'border-primary bg-primary text-white' : 'border-[#D3D9D6] bg-surface text-text'}`
 
 
-/** T-098 : le cran du panneau gardé dans l’adresse (« ?cran= »), pour le retrouver au retour de la fiche d’une balade. */
+/** T-098 : le cran du panneau gardé dans l’adresse (« ?cran= ») ; R-094 : aussi le cran où s’ouvre une balade. */
 const SNAPS: Snap[] = ['collapsed', 'half', 'full']
 
-/** T-098 : ce qu’on dit à la fiche d’une balade pour son bouton retour. */
+/** Ce qu’on dit au détail d’un souvenir (sans trajet) pour son bouton retour. */
 const FROM_MAP = { retour: 'La carte' }
 
 const toggle = (on: boolean) => `min-h-11 rounded-full border-0 px-3.5 text-[0.8824rem] font-bold whitespace-nowrap ${on ? 'bg-text text-white' : 'bg-transparent text-text'}`
 
-/** La carte qui se découvre (maquettes V3-Explorer, V4-Balades) : le territoire de Billy. */
+/**
+ * La carte qui se découvre (maquettes V3-Explorer, V4-Balades) : le territoire de Billy. R-094 « Une seule carte » :
+ * son panneau montre le journal ou la fiche d’une balade (`?balade=`), toujours sur cette même carte.
+ */
 export default function Explorer() {
   const { dog, entries, fog } = useData()
   const today = useToday()
@@ -55,6 +62,7 @@ export default function Explorer() {
   // « Voir ces balades sur la carte » garde le filtre choisi dans la liste.
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [filter, setFilter] = useState<WalkFilter>(() => (params.get('filtre') as WalkFilter | null) ?? 'toutes')
   // Gelé (T-072) : la carte ne lit plus la meute (ni spots, ni marques) et n’a plus le calque « Spots de la meute ».
   // Le code des spots reste en place, branché sur des listes vides.
@@ -69,15 +77,13 @@ export default function Explorer() {
   const heat = useMemo(() => (prefs.heat ? heatPoints(walks.map((w) => w.route.points)) : undefined), [walks, prefs.heat])
   // Une couleur par balade, la même sur la carte et dans la liste. Brouillard éteint (V6.1 § 2) : toutes en vert carte.
   const colors = useMemo(() => (prefs.fog ? walkColors(walks) : new Map(walks.map((w) => [w.id, ROUTE_COLOR]))), [walks, prefs.fog])
-  // Une balade touchée : son trait s’épaissit, les autres passent à 40 % ; un autre toucher la relâche.
-  const [highlight, setHighlight] = useState<string>()
   // T-097 : une idée de balade touchée : la boucle s’affiche sur la carte, le bouton devient « Partir sur cette boucle ».
   const [idea, setIdea] = useState<Loop>()
   const tracks = useMemo<MapWalk[]>(() => {
-    const all = shown.map((w) => ({ id: w.id, color: colors.get(w.id) ?? ROUTE_COLOR, points: w.route.points, bold: w.id === highlight, faded: Boolean(highlight || idea) && w.id !== highlight }))
-    // La balade mise en avant est dessinée en dernier, au-dessus des autres ; l’idée choisie, au-dessus de tout.
-    return [...all.filter((t) => !t.bold), ...all.filter((t) => t.bold), ...(idea ? [{ id: `idee:${idea.item.id}`, color: IDEA_COLOR, points: idea.item.route.points, bold: true }] : [])]
-  }, [shown, colors, highlight, idea])
+    const all = shown.map((w) => ({ id: w.id, color: colors.get(w.id) ?? ROUTE_COLOR, points: w.route.points, faded: Boolean(idea) }))
+    // L’idée choisie, au-dessus de tout.
+    return [...all, ...(idea ? [{ id: `idee:${idea.item.id}`, color: IDEA_COLOR, points: idea.item.route.points, bold: true }] : [])]
+  }, [shown, colors, idea])
   const last = walks[0]
   // Où l’on est (T-020) : la position demandée avec « Autour de moi », sinon celle déjà autorisée, sinon la dernière balade.
   const [myPos, setMyPos] = useState<{ lat: number; lng: number }>()
@@ -125,7 +131,19 @@ export default function Explorer() {
   const focusAt = selected?.spot
   const focus = useMemo<[number, number] | undefined>(() => (focusAt ? [focusAt.lat, focusAt.lng] : undefined), [focusAt?.lat, focusAt?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // R-077 : le panneau à trois crans ; réduit, il garde le titre et le pourcentage au-dessus de l’action fixée en bas.
+  // R-094 : ce que montre le panneau, lu dans l’adresse : le journal ou la fiche d’une balade.
+  const mode = panelMode(params)
+  const walkId = mode.kind === 'journal' ? null : mode.id
+  const found = walkId ? entries.find((e) => e.id === walkId) : undefined
+  const walkEntry = useMemo(() => (found ? modernCard(found) : undefined), [found])
+  const walkRoute = useMemo(() => readRoute(walkEntry?.route), [walkEntry?.route])
+  const kind: 'journal' | 'sheet' = !walkEntry || !walkRoute ? 'journal' : 'sheet'
+  // Ouverte depuis un autre écran (Accueil, Billy…) : le retour y ramène et le dit (« ‹ Accueil »).
+  const retour = (location.state as { retour?: string } | null)?.retour
+  const back = useBack(journalOnMap(filter))
+
+  // R-077 : le panneau à trois crans dans tous les modes ; réduit, il garde le titre du journal ou le résumé d’une
+  // balade.
   const peekRef = useRef<HTMLDivElement>(null)
   const footerRef = useRef<HTMLDivElement>(null)
   const [footerHeight, setFooterHeight] = useState(0)
@@ -137,62 +155,79 @@ export default function Explorer() {
     const observer = new ResizeObserver(measure)
     observer.observe(footer)
     return () => observer.disconnect()
-  }, [readOnly])
+  }, [readOnly, kind])
   // T-097 : au cran du milieu, le titre, le résumé, les filtres et le début des « Idées de balade » au-dessus de l’action
   // fixée en bas ; réduit, le panneau se colle à la barre d’onglets (sans action), le titre coupé à mi-hauteur.
   const ideasHead = useRef<HTMLDivElement>(null)
   const filtersRow = useRef<HTMLDivElement>(null)
-  const sheet = useSheet({ peekRef, halfRef: loops.length ? ideasHead : filtersRow, bottomInset: footerHeight || HOME_CLEARANCE, peekInset: 0, peekGap: 0, start: SNAPS.find((c) => c === params.get('cran')) ?? 'half' })
+  // La fiche : réduit, le résumé (jusqu’à « Revoir » et « Raconter »).
+  const sheetPeek = useRef<HTMLDivElement>(null)
+  const snapParam = SNAPS.find((c) => c === params.get('cran'))
+  const sheet = useSheet({
+    peekRef: kind === 'journal' ? peekRef : sheetPeek,
+    halfRef: kind === 'journal' ? (loops.length ? ideasHead : filtersRow) : undefined,
+    bottomInset: kind === 'journal' ? footerHeight || HOME_CLEARANCE : HOME_CLEARANCE,
+    ...(kind === 'journal' ? { peekInset: 0, peekGap: 0 } : {}),
+    start: snapParam ?? 'half',
+  })
 
-  // Une balade ouverte depuis son souvenir (?balade=…) : mise en avant, replay, repères à placer.
-  const walkId = params.get('balade')
-  const walkEntry = walkId ? entries.find((e) => e.id === walkId) : undefined
-  const walkRoute = useMemo(() => readRoute(walkEntry?.route), [walkEntry?.route])
-  const walkPhotos = useMemo(() => (walkEntry?.photos ?? []).flatMap((p, index) => (p.lat !== undefined && p.lng !== undefined ? [{ index, thumbFileId: p.thumbFileId, lat: p.lat, lng: p.lng }] : [])), [walkEntry?.photos])
-  const [replaying, setReplaying] = useState(false)
+  // La photo ouverte en grand, le doigt sur la courbe d’allure, une photo à montrer sur la carte : ceux de la balade ouverte.
+  const [viewer, setViewer] = useState<number | null>(null)
+  const [cursor, setCursor] = useState<{ lat: number; lng: number }>()
+  const [photoAt, setPhotoAt] = useState<{ lat: number; lng: number; n: number }>()
+  // Un autre mode ou une autre balade : le panneau prend le cran demandé (un tracé touché : réduit, sur le résumé).
+  const modeKey = `${kind}:${walkId ?? ''}`
+  const lastMode = useRef(modeKey)
+  useEffect(() => {
+    if (lastMode.current === modeKey) return
+    lastMode.current = modeKey
+    setViewer(null)
+    setCursor(undefined)
+    setPhotoAt(undefined)
+    sheet.setSnap(snapParam ?? 'half')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modeKey])
+
+  // La carte se cadre dans ce que le panneau laisse voir (sous les boutons du haut, au-dessus du panneau).
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [mapPad, setMapPad] = useState<Padding>({ top: 72, bottom: 300, left: 32, right: 32 })
+  useLayoutEffect(() => {
+    const root = rootRef.current
+    const panel = sheet.ref.current
+    if (!root || !panel) return
+    const top = panel.offsetTop
+    const bottom = Math.max(32, root.clientHeight - (top + sheet.offset) + 16)
+    setMapPad((p) => (p.top === top + 8 && p.bottom === bottom ? p : { top: top + 8, bottom, left: 32, right: 32 }))
+  }, [sheet.offset, kind]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const pins = useMemo(() => (walkEntry && walkRoute ? photoPins(walkEntry.photos, walkRoute) : []), [walkEntry, walkRoute])
   const [placing, setPlacing] = useState<{ lat: number; lng: number } | null>(null)
-  const centerRef = useRef<((visibleBottom: number) => { lat: number; lng: number }) | null>(null)
-  // R-059 : « Ajouter un repère » sans viser la carte : au point du tracé le plus proche du centre de ce qu’on voit.
-  const addMark = (visibleBottom: number) => {
-    if (!walkRoute?.points.length) return
-    const center = centerRef.current?.(visibleBottom)
-    // Carte pas encore prête : le milieu du tracé.
-    const middle = walkRoute.points[Math.floor(walkRoute.points.length / 2)]!
-    const at = center && Number.isFinite(center.lat) ? nearestOnRoute(center, walkRoute.points) : { lat: middle[0], lng: middle[1] }
-    if (at) setPlacing(at)
-  }
   const saveMoments = (moments: Route['moments']) => walkEntry && walkRoute && updateEntryRoute(walkEntry.id, storeRoute({ ...walkRoute, moments }))
+  // Dans l’onglet, passer du journal à une balade et revenir ne laisse pas d’entrée en double dans
+  // l’historique (T-024) ; l’écran d’où l’on vient (`retour`) reste connu.
+  const go = (to: string) => navigate(to, { replace: true, state: location.state })
+  const openWalk = (id: string, snap?: Snap) => go(walkOnMap(id, { snap, filter }))
+  const toJournal = () => navigate(journalOnMap(filter), { replace: true })
   const walk =
     walkEntry && walkRoute
       ? {
           id: walkEntry.id,
           route: walkRoute,
-          photos: walkPhotos,
-          replaying,
-          onReplayEnd: () => setReplaying(false),
+          photos: pins,
           // Visiteur (T-048) : pas de repère à placer.
-          onTapRoute: (at: { lat: number; lng: number }) => !readOnly && setPlacing(at),
-          centerRef,
+          onTapRoute: (at: { lat: number; lng: number }) => !readOnly && kind === 'sheet' && setPlacing(at),
           // Une petite fenêtre de lieu ouverte : le toucher la referme seulement.
-          onLeave: () => !selectedId && closeWalk(),
-          onPhoto: () => navigate(`/souvenir/${walkEntry.id}`),
-          // V6 § 1 : la balade ouverte, en vert carte.
+          onLeave: () => !selectedId && toJournal(),
+          onPhoto: (index: number) => setViewer(index),
+          // V6 § 1 : la balade ouverte, en vert carte (colorée par allure si on la connaît).
           color: ROUTE_COLOR,
+          padding: mapPad,
+          cursor,
+          center: photoAt,
         }
       : undefined
-  // Toucher un tracé (ou une balade de la liste) : elle passe au premier plan ; « Toutes les balades » revient à la vue d’ensemble.
-  // Depuis la carte, ouvrir puis refermer une balade ne laisse pas d’entrée en double dans l’historique (T-024).
-  const openWalk = (id: string) => navigate(`/territoire?balade=${encodeURIComponent(id)}${filter !== 'toutes' ? `&filtre=${encodeURIComponent(filter)}` : ''}`, { replace: true })
-  const closeWalk = () => navigate(`/territoire${filter !== 'toutes' ? `?filtre=${encodeURIComponent(filter)}` : ''}`, { replace: true })
-  // T-098 : la carte en plein écran s’ouvre depuis la fiche d’une balade ; son retour y ramène.
-  const backToSheet = () => {
-    const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0
-    if (idx > 0) navigate(-1)
-    else if (walkEntry) navigate(`/souvenir/${encodeURIComponent(walkEntry.id)}`, { replace: true })
-    else closeWalk()
-  }
-  // T-098 : le filtre et le cran du panneau dans l’adresse (sans nouvelle entrée d’historique) : le retour de la fiche
-  // d’une balade retrouve le panneau tel qu’on l’a laissé.
+  // T-098 : le filtre et le cran du panneau dans l’adresse (sans nouvelle entrée d’historique) : le retour d’une balade
+  // retrouve le journal tel qu’on l’a laissé.
   useEffect(() => {
     if (walkId) return
     const next = new URLSearchParams(params)
@@ -203,30 +238,34 @@ export default function Explorer() {
     if (next.toString() !== params.toString()) setParams(next, { replace: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter, sheet.snap, walkId])
-  // T-098 : un tracé touché sur la carte est mis en avant (sa ligne apparaît en bas du panneau) ; touché encore, sa
-  // fiche s’ouvre. Une balade ouverte en plein écran (depuis sa fiche) : un autre tracé prend sa place.
-  const openSheet = (id: string) => navigate(`/souvenir/${encodeURIComponent(id)}`, { state: FROM_MAP })
-  const onTrack = (id: string) => (id.startsWith('idee:') ? undefined : walk ? openWalk(id) : id === highlight ? openSheet(id) : (setIdea(undefined), setHighlight(id)))
+  // R-094 : un tracé touché sur la carte : la balade s’ouvre dans le panneau, réduit sur son résumé.
+  const onTrack = (id: string) => {
+    if (id.startsWith('idee:')) return
+    setIdea(undefined)
+    openWalk(id, 'collapsed')
+  }
+  // « Voir sur la carte » d’une photo : le panneau descend, la carte va à la photo.
+  const showOnMap = (pin: PhotoPin) => {
+    sheet.setSnap('collapsed')
+    setPhotoAt((p) => ({ lat: pin.lat, lng: pin.lng, n: (p?.n ?? 0) + 1 }))
+  }
   // La boussole : l’aiguille suit la carte ; un toucher la remet face au nord.
   const [bearing, setBearing] = useState(0)
   const [north, setNorth] = useState(0)
   // « Affichage » : un petit panneau Plan / Satellite, 2D / 3D, Brouillard (V6.1 § 2).
   const [display, setDisplay] = useState(false)
   const turned = Math.round(((bearing % 360) + 360) % 360) % 360 !== 0
-  const highlighted = shown.find((w) => w.id === highlight)
   const onMapTap = () => {
     setSelectedId(null)
-    setHighlight(undefined)
     setIdea(undefined)
     setDisplay(false)
   }
   const pickIdea = (loop: Loop) => {
-    setHighlight(undefined)
     setIdea(loop)
     sheet.setSnap('collapsed')
   }
-  // Réduit, sans balade ni idée touchée : la carte en plein écran, pas de bouton (V6.1 § 4).
-  const footerShown = !sheet.collapsed || Boolean(highlighted || idea)
+  // Réduit, sans idée touchée : la carte en plein écran, pas de bouton (V6.1 § 4).
+  const footerShown = !sheet.collapsed || Boolean(idea)
 
   const setPref = (next: Partial<typeof prefs>) => {
     const value = { ...prefs, ...next }
@@ -235,7 +274,7 @@ export default function Explorer() {
   }
 
   return (
-    <div className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
+    <div ref={rootRef} className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
         <ExplorerMap cells={cells} tracks={tracks} frame={frame} frameKey={frameKey} me={myPos ? [myPos.lat, myPos.lng] : undefined} onWalk={onTrack} places={places} satellite={prefs.satellite} three={prefs.three} fog={prefs.fog} heat={heat} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={onMapTap} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} />
       </Suspense>
@@ -296,10 +335,10 @@ export default function Explorer() {
           bas (le haut du panneau collé à la barre), à mi-hauteur, en grand (sous « Affichage » et « Me situer »). */}
       <section
         ref={sheet.ref}
-        aria-label={`Les balades ${ofDog(dog)}`}
+        aria-label={kind === 'journal' ? `Les balades ${ofDog(dog)}` : 'La balade'}
         {...sheet.handlers}
         style={sheet.style}
-        className={`absolute inset-x-0 top-[calc(env(safe-area-inset-top)+62px)] bottom-0 z-10 mx-auto flex max-w-[430px] ${selected || walk ? 'invisible' : ''} flex-col rounded-t-panel bg-surface px-4 shadow-[0_-6px_20px_rgba(0,0,0,0.10)]`}
+        className={`absolute inset-x-0 top-[calc(env(safe-area-inset-top)+62px)] bottom-0 z-10 mx-auto flex max-w-[430px] ${selected ? 'invisible' : ''} flex-col rounded-t-panel bg-surface px-4 shadow-[0_-6px_20px_rgba(0,0,0,0.10)]`}
       >
         {/* La poignée : 36 × 5 px, 14 px d’air dessus et dessous (marge intérieure : pas de fusion de marges) ; sa zone
             tactile descend jusqu’à 44 px. Réduit → moitié → haut → moitié. */}
@@ -308,9 +347,26 @@ export default function Explorer() {
         </button>
         <div
           ref={sheet.bodyRef}
-          style={{ paddingBottom: (footerHeight || HOME_CLEARANCE) + 12 }}
+          style={{ paddingBottom: (kind === 'journal' ? footerHeight || HOME_CLEARANCE : HOME_CLEARANCE) + 12 }}
           className={`-mx-4 flex min-h-0 flex-1 touch-pan-y flex-col gap-3 overscroll-contain px-4 [&>*]:shrink-0 ${sheet.snap === 'full' ? 'overflow-y-auto' : 'overflow-y-hidden'}`}
         >
+          {kind === 'sheet' && walkEntry && walkRoute ? (
+            <WalkSheet
+              key={walkEntry.id}
+              entry={walkEntry}
+              route={walkRoute}
+              pins={pins}
+              backLabel={retour ?? 'Le journal'}
+              onBack={retour ? back : toJournal}
+              {...(walkRoute.points.length > 1 ? { onReplay: () => navigate(`/souvenir/${walkEntry.id}/revoir`) } : {})}
+              onCursor={setCursor}
+              viewer={viewer}
+              onViewer={setViewer}
+              onShowOnMap={showOnMap}
+              peekRef={sheetPeek}
+            />
+          ) : (
+          <>
           {/* 1. Le quartier : surtitre et titre (réduit, on n’en voit que le haut, coupé à mi-hauteur du titre). */}
           <div className="flex min-w-0 flex-col gap-1">
             <span className="text-milestone-dark surtitre">Le quartier</span>
@@ -344,21 +400,22 @@ export default function Explorer() {
               {walks.length === 0 && !readOnly && <WatchOptIn compact />}
             </div>
           ) : (
-            <Journal walks={shown} entries={entries} today={today} />
+            <Journal walks={shown} entries={entries} today={today} filter={filter} />
+          )}
+          </>
           )}
         </div>
       </section>
       {/* L’action principale, fixée en bas au-dessus des onglets (le contenu passe dessous en fondu) : « Partir en balade »
           (iOS), « Partir sur cette boucle » pour une idée choisie ; sur le web, « Ajouter mes balades » quand il n’y en a
           pas. Cachée tout en bas. Au-dessus du rond Accueil qui dépasse de 26 px de la barre (R-072). */}
-      {!readOnly && (isNative() || shown.length === 0 || highlighted) && (
+      {!readOnly && kind === 'journal' && (isNative() || shown.length === 0) && (
         <div
           ref={footerRef}
           aria-hidden={!footerShown || undefined}
           inert={!footerShown || undefined}
-          className={`absolute inset-x-0 bottom-0 z-[11] mx-auto flex max-w-[430px] flex-col gap-2 bg-gradient-to-b from-transparent to-surface to-[22px] px-4 pt-6 pb-9 transition-opacity duration-150 motion-reduce:transition-none ${selected || walk ? 'invisible' : ''} ${footerShown ? '' : 'pointer-events-none opacity-0'}`}
+          className={`absolute inset-x-0 bottom-0 z-[11] mx-auto flex max-w-[430px] flex-col gap-2 bg-gradient-to-b from-transparent to-surface to-[22px] px-4 pt-6 pb-9 transition-opacity duration-150 motion-reduce:transition-none ${selected ? 'invisible' : ''} ${footerShown ? '' : 'pointer-events-none opacity-0'}`}
         >
-          {highlighted && <TrackLine walk={highlighted} color={colors.get(highlighted.id)} today={today} />}
           {idea && <IdeaLine idea={idea} onClose={() => setIdea(undefined)} />}
           {isNative() ? (
             <Link to={`/balade-en-cours?depart=1${idea ? `&boucle=${encodeURIComponent(idea.item.id)}` : ''}`} className="tap btn btn-main min-h-[56px]">
@@ -374,13 +431,6 @@ export default function Explorer() {
           )}
         </div>
       )}
-      {/* Visiteur : pas d’action fixée en bas, la ligne du tracé touché y prend place seule. */}
-      {readOnly && highlighted && !selected && !walk && (
-        <div className="absolute inset-x-0 bottom-0 z-[11] mx-auto flex max-w-[430px] flex-col bg-surface px-5 pt-2 pb-9">
-          <TrackLine walk={highlighted} color={colors.get(highlighted.id)} today={today} />
-        </div>
-      )}
-      {walk && walkEntry && !selected && <WalkPanel readOnly={readOnly} source={walkEntry.source} name={walks.find((w) => w.id === walkEntry.id)?.name ?? 'La balade'} date={walkEntry.date} route={walk.route} color={walk.color} replaying={replaying} onReplay={() => setReplaying(!replaying)} onAddMark={addMark} onClose={backToSheet} />}
       {placing && walkRoute && (
         <PlaceMoment
           at={placing}
@@ -405,20 +455,6 @@ export default function Explorer() {
         />
       )}
     </div>
-  )
-}
-
-/** T-098 : la ligne d’un tracé touché sur la carte, « Balade du matin · 22 oct. · 2,1 km › » : la toucher ouvre sa fiche. */
-function TrackLine({ walk, color, today }: { walk: WalkItem; color?: string; today: string }) {
-  return (
-    <Link to={`/souvenir/${encodeURIComponent(walk.id)}`} state={FROM_MAP} aria-label={`${walk.name}, ${walkLineDetails(walk, today)}. Ouvrir sa fiche`} className="anim-pop tap -mx-2 flex min-h-12 items-center gap-2.5 rounded-field bg-bg px-3 text-[0.9412rem] text-text no-underline">
-      <span className="h-1.5 w-6 shrink-0 rounded-full" style={{ background: color ?? ROUTE_COLOR }} aria-hidden="true" />
-      <span className="flex min-w-0 gap-1">
-        <span className="min-w-0 truncate font-bold">{walk.name}</span>
-        <span className="shrink-0 text-[#3F4946]">· {walkLineDetails(walk, today)}</span>
-      </span>
-      <ChevronRightIcon size={18} className="ml-auto shrink-0 text-primary" />
-    </Link>
   )
 }
 
@@ -485,7 +521,7 @@ const JOURNAL_PAGE = 15
  * Le journal (V6.1 § 4) : les balades du filtre, groupées par jour, et les souvenirs sans trajet de ces jours-là en
  * petite ligne. Rien d’autre en bas.
  */
-function Journal({ walks, entries, today }: { walks: WalkItem[]; entries: WithId<Entry>[]; today: string }) {
+function Journal({ walks, entries, today, filter }: { walks: WalkItem[]; entries: WithId<Entry>[]; today: string; filter: WalkFilter }) {
   const [count, setCount] = useState(JOURNAL_PAGE)
   const more = useRef<HTMLDivElement>(null)
   const visible = useMemo(() => walks.slice(0, count), [walks, count])
@@ -510,7 +546,8 @@ function Journal({ walks, entries, today }: { walks: WalkItem[]; entries: WithId
           <h2 className="mt-1 font-display text-[1rem] font-semibold">{day.label}</h2>
           {day.rows.map((row) =>
             row.kind === 'balade' ? (
-              <JournalWalkCard key={row.walk.id} walk={row.walk} photos={photos.get(row.walk.id) ?? []} state={FROM_MAP} />
+              // R-094 : la balade s’ouvre dans le panneau, sur la même carte (au cran du milieu).
+              <JournalWalkCard key={row.walk.id} walk={row.walk} photos={photos.get(row.walk.id) ?? []} to={walkOnMap(row.walk.id, { filter })} replace />
             ) : (
               <Link key={row.memo.id} to={`/souvenir/${encodeURIComponent(row.memo.id)}`} state={FROM_MAP} className="tap grid min-h-14 grid-cols-[44px_minmax(0,1fr)] items-center gap-2.5 rounded-field border border-solid border-[#E6EAE7] bg-surface p-2 text-text no-underline">
                 {row.memo.thumb ? <FileImage fileId={row.memo.thumb} alt="" className="size-11 rounded-[10px]" /> : <span aria-hidden="true" className="size-11 rounded-[10px] bg-gold-soft" />}

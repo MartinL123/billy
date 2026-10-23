@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { journalOnMap, outingOnMap, panelMode, tellHref, walkOnMap } from './mapPanel'
+import { journalOnMap, lowAsJournal, outingOnMap, panelMode, tellHref, walkOnMap } from './mapPanel'
 
 describe('Une seule carte (R-094)', () => {
   it('le mode du panneau se lit dans l’adresse', () => {
@@ -29,5 +29,14 @@ describe('Une seule carte (R-094)', () => {
     expect(tellHref('x', { stops: [stop], moments: [] })).toBe('/souvenir/x/raconter')
     expect(tellHref('x', { stops: [{ ...stop, momentIndex: 0 }], moments: [{ lat: 48.85, lng: 2.35, type: 'jeu' }] })).toBe('/souvenir/x/raconter?arret=1')
     expect(tellHref('x', { moments: [] })).toBe('/souvenir/x/modifier')
+  })
+})
+
+describe('R-103 : le cran réduit du panneau', () => {
+  it('aussi bas que le journal dans tous les modes, sauf la relecture (ses commandes entières)', () => {
+    expect(lowAsJournal('journal')).toBe(true)
+    expect(lowAsJournal('sheet')).toBe(true)
+    expect(lowAsJournal('outing')).toBe(true)
+    expect(lowAsJournal('replay')).toBe(false)
   })
 })

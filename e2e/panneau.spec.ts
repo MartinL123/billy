@@ -168,7 +168,8 @@ test('R-099 · à la souris (site sur ordinateur), glisser le panneau et sa poig
 
 // R-102 : le même panneau, le même geste et les mêmes 3 crans dans tous ses modes : la fiche d'une balade (touchée sur
 // la carte ou dans le journal) et sa relecture se baissent, se montent et suivent leur poignée comme le journal.
-test('R-102 · fiche d’une balade et relecture : glisser au cran réduit, au cran haut, et la poignée', async ({ context }) => {
+// R-103 : réduite, la fiche descend aussi bas que le journal.
+test('R-102 / R-103 · fiche d’une balade et relecture : glisser au cran réduit, au cran haut, et la poignée', async ({ context }) => {
   const fake = new FakeIphone()
   await fake.install(context)
   await skipOpening(context)
@@ -182,6 +183,16 @@ test('R-102 · fiche d’une balade et relecture : glisser au cran réduit, au c
   await expect(bravo(page)).toBeVisible()
   await expect.poll(async () => (await serverWalks(user.uid)).length, { timeout: 30_000 }).toBe(1)
   const id = (await serverWalks(user.uid))[0]!.name.split('/').pop()
+
+  // R-103 : le cran réduit du journal, la référence pour la fiche d'une balade.
+  await goHash(page, '#/territoire')
+  await expect(panel(page)).toBeVisible()
+  await settle(page)
+  const journalTop = (await panel(page).boundingBox())!.y
+  await swipe(page, journalTop + 12, journalTop + 400, 8)
+  await settle(page)
+  await expect(page.getByRole('button', { name: 'Afficher le panneau' })).toBeVisible()
+  const journalLow = (await state(page)).y
 
   for (const label of ['La balade', 'Revoir la balade']) {
     if (label === 'La balade') {
@@ -218,6 +229,9 @@ test('R-102 · fiche d’une balade et relecture : glisser au cran réduit, au c
     const collapsed = (await state(page, label)).y
     expect(collapsed).toBeGreaterThanOrEqual(half + 120)
     await expect(handle).toHaveAccessibleName('Afficher le panneau')
+    // R-103 : la fiche descend aussi bas que le journal (la relecture garde ses commandes entières, R-096).
+    if (label === 'La balade') expect(collapsed).toBeCloseTo(journalLow, 0)
+    else expect(collapsed).toBeLessThan(journalLow - 40)
 
     // Du cran réduit, le doigt monte vite jusqu'en haut : le cran haut.
     top = (await panel(page, label).boundingBox())!.y

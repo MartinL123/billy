@@ -41,7 +41,7 @@ type WalkEntry = WithId<Entry> & { pending?: boolean }
  * la balade » sur lui), le parcours, le relief, le corps, la météo, les photos, les sources, puis Partager, Modifier et
  * Supprimer. Chaque bloc n’apparaît que s’il a des données (une balade ancienne ne montre que ce qu’elle a).
  */
-export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onCursor, viewer, onViewer, onShowOnMap, onAddMark, peekRef, halfRef }: {
+export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onCursor, viewer, onViewer, onShowOnMap, onAddMark, halfRef }: {
   entry: WalkEntry
   route: Route
   /** Les photos placées sur la carte (là où elles ont été prises). */
@@ -60,8 +60,6 @@ export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onC
   onShowOnMap: (pin: PhotoPin) => void
   /** R-059 : poser un repère sans viser la carte (VoiceOver, Switch Control). */
   onAddMark?: () => void
-  /** R-102 : le bas du titre (le jour, les heures) : ce que montre le panneau réduit. */
-  peekRef: Ref<HTMLDivElement>
   /** Le bas du résumé (jusqu’à « Revoir » et « Raconter ») : ce que montre le panneau au cran du milieu. */
   halfRef: Ref<HTMLDivElement>
 }) {
@@ -153,10 +151,10 @@ export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onC
 
   return (
     <>
-      {/* Le résumé : ce que montre le panneau au cran du milieu ; réduit, le titre seulement (R-102). */}
+      {/* Le résumé : ce que montre le panneau au cran du milieu ; réduit, le haut seulement, comme le journal (R-103). */}
       <div className="flex flex-col gap-3">
         <BackLink label={backLabel} onClick={onBack} className="-mt-1 -mb-2" />
-        <div ref={peekRef} className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1">
           <span className="surtitre text-primary">{number ? `Balade n° ${number} avec ${dogName(dog)}` : `Balade avec ${dogName(dog)}`}</span>
           <h1 className="title-screen">{name || 'Balade'}</h1>
           <p className="text-[1rem] leading-snug text-muted">{[formatDayHeading(entry.date), walkHours({ startTime: route.startTime, endTime: route.endTime, trimmed: route.track ? route.trimmed : undefined })].filter(Boolean).join(' · ')}</p>

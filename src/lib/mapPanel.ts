@@ -7,6 +7,16 @@ import { tellQueue } from './walkTell'
 
 export type PanelMode = { kind: 'journal' } | { kind: 'sheet'; id: string } | { kind: 'replay'; id: string } | { kind: 'outing'; id: string }
 
+/** Ce que montre vraiment le panneau (une balade introuvable ou sans tracé : le journal). */
+export type PanelKind = 'journal' | 'sheet' | 'replay' | 'outing'
+
+/**
+ * R-103 : réduit, le panneau descend aussi bas dans tous ses modes que dans le journal : seul son haut reste collé à la
+ * barre d’onglets (la poignée, le début du contenu, coupé à mi-hauteur du titre du journal), la carte prend l’écran.
+ * Sauf la relecture, qui garde réduite toutes ses commandes (R-096).
+ */
+export const lowAsJournal = (kind: PanelKind) => kind !== 'replay'
+
 /**
  * Le mode du panneau lu dans l’adresse : `?balade=<id>` la fiche, `&revoir=1` sa relecture, `?sortie=<date:créneau>`
  * une sortie notée sans trajet (R-095) ; sinon le journal.

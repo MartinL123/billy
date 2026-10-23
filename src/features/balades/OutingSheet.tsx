@@ -1,4 +1,4 @@
-import { useState, type Ref } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BackLink } from '../../components/BackLink'
 import { ConfirmSheet } from '../../components/Sheet'
@@ -17,7 +17,7 @@ import { NoteSheet } from '../today/WalkDayCard'
  * « Sortie du matin », « 35 min avec Billy », le jour et l’heure du créneau, l’encadré qui dit pourquoi il n’y a pas de
  * carte, « Un mot ? », puis « Modifier la durée » · « Supprimer ». Aucun bloc vide.
  */
-export function OutingSheet({ outing, backLabel, onBack, onDeleted, peekRef }: { outing: NotedOuting; backLabel: string; onBack: () => void; onDeleted: () => void; peekRef: Ref<HTMLDivElement> }) {
+export function OutingSheet({ outing, backLabel, onBack, onDeleted }: { outing: NotedOuting; backLabel: string; onBack: () => void; onDeleted: () => void }) {
   const { dog } = useData()
   const readOnly = useReadOnly()
   const [editing, setEditing] = useState(false)
@@ -29,7 +29,7 @@ export function OutingSheet({ outing, backLabel, onBack, onDeleted, peekRef }: {
     <>
       <div className="flex flex-col gap-3">
         <BackLink label={backLabel} onClick={onBack} className="-mt-1 -mb-2" />
-        <div ref={peekRef} className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1">
           <span className="surtitre text-primary">{name}</span>
           <h1 className="title-screen">
             {formatDuration(outing.minutes)} avec {dogName(dog)}

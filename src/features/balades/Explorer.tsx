@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { isNative } from '../../native'
 import { CloseIcon, PlusIcon } from '../../components/Icons'
@@ -30,7 +30,7 @@ import { updateEntryRoute } from '../../firebase/db'
 import { nearestOnRoute, readRoute, storeRoute, type Route } from '../../lib/route'
 import { useGrantedPosition } from '../../lib/useGrantedPosition'
 import { formatRouteDistance } from '../../lib/route'
-import { journalOnMap, outingOnMap, panelMode, walkOnMap } from '../../lib/mapPanel'
+import { journalOnMap, lowAsJournal, outingOnMap, panelMode, walkOnMap, type PanelKind } from '../../lib/mapPanel'
 import { notedOutings } from '../../lib/notedOutings'
 import { OutingSheet } from './OutingSheet'
 import { photoPins, type PhotoPin } from '../../lib/walkFiche'
@@ -170,7 +170,7 @@ export default function Explorer() {
   const outing = mode.kind === 'outing' ? outings.find((o) => o.id === mode.id) : undefined
   // R-098 : tout ce que montre le journal (les balades suivent le filtre venu de « Ses balades »).
   const items = useMemo(() => journalItems({ walks: shown, outings, entries, events, weights }), [shown, outings, entries, events, weights])
-  const kind: 'journal' | 'sheet' | 'replay' | 'outing' = outing ? 'outing' : !walkEntry || !walkRoute ? 'journal' : mode.kind === 'replay' && canReplay ? 'replay' : 'sheet'
+  const kind: PanelKind = outing ? 'outing' : !walkEntry || !walkRoute ? 'journal' : mode.kind === 'replay' && canReplay ? 'replay' : 'sheet'
   // Ouverte depuis un autre écran (Accueil, Billy…) : le retour y ramène et le dit (« ‹ Accueil »).
   const retour = (location.state as { retour?: string } | null)?.retour
   const back = useBack(journalOnMap(filter))
@@ -193,18 +193,18 @@ export default function Explorer() {
   // fixée en bas ; réduit, le panneau se colle à la barre d’onglets (sans action), le titre coupé à mi-hauteur.
   const ideasHead = useRef<HTMLDivElement>(null)
   const filtersRow = useRef<HTMLDivElement>(null)
-  // La fiche (R-102) : réduit, son titre ; au milieu, le résumé (jusqu’à « Revoir » et « Raconter »). La relecture
-  // (R-096) : réduit, toutes ses commandes (retour, lecture, barre, vitesses), la carte en grand au-dessus.
-  const sheetPeek = useRef<HTMLDivElement>(null)
+  // La fiche (R-102) : au milieu, le résumé (jusqu’à « Revoir » et « Raconter »). R-103 : réduit, la fiche et la sortie
+  // notée descendent aussi bas que le journal (même repère : le milieu du titre du journal, mesuré sur une copie
+  // invisible de son en-tête). La relecture (R-096) : réduit, toutes ses commandes (retour, lecture, barre, vitesses).
   const sheetHalf = useRef<HTMLDivElement>(null)
-  const outingPeek = useRef<HTMLDivElement>(null)
   const replayPeek = useRef<HTMLDivElement>(null)
+  const low = lowAsJournal(kind)
   const snapParam = SNAPS.find((c) => c === params.get('cran'))
   const sheet = useSheet({
-    peekRef: kind === 'journal' ? peekRef : kind === 'sheet' ? sheetPeek : kind === 'outing' ? outingPeek : replayPeek,
+    peekRef: low ? peekRef : replayPeek,
     halfRef: kind === 'journal' ? (loops.length ? ideasHead : filtersRow) : kind === 'sheet' ? sheetHalf : undefined,
     bottomInset: kind === 'journal' ? footerHeight || HOME_CLEARANCE : HOME_CLEARANCE,
-    ...(kind === 'journal' ? { peekInset: 0, peekGap: 0 } : {}),
+    ...(low ? { peekInset: 0, peekGap: 0 } : {}),
     start: mode.kind === 'replay' ? 'collapsed' : (snapParam ?? 'half'),
   })
 
@@ -405,6 +405,13 @@ export default function Explorer() {
         <button type="button" onClick={sheet.cycle} aria-expanded={!sheet.collapsed} aria-label={sheet.handleLabel} className="relative mx-auto flex h-[33px] w-24 shrink-0 touch-none items-center justify-center border-0 bg-transparent p-0 before:absolute before:inset-x-0 before:top-0 before:-bottom-[11px] before:content-['']">
           <span className="block h-[5px] w-9 rounded-full bg-[#D3D9D6]" />
         </button>
+        {/* R-103 : la fiche et la sortie notée, réduites, s’arrêtent au même endroit que le journal : une copie invisible
+            de l’en-tête du journal, posée en haut du contenu, donne ce repère. */}
+        {low && kind !== 'journal' && (
+          <div aria-hidden="true" className="pointer-events-none invisible absolute inset-x-4 top-[33px]">
+            <JournalHead peekRef={peekRef} />
+          </div>
+        )}
         <div
           ref={sheet.bodyRef}
           style={{ paddingBottom: (kind === 'journal' ? footerHeight || HOME_CLEARANCE : HOME_CLEARANCE) + 12 }}
@@ -424,23 +431,16 @@ export default function Explorer() {
               onViewer={setViewer}
               onShowOnMap={showOnMap}
               onAddMark={addMark}
-              peekRef={sheetPeek}
               halfRef={sheetHalf}
             />
           ) : kind === 'outing' && outing ? (
-            <OutingSheet key={outing.id} outing={outing} backLabel={retour ?? 'Le journal'} onBack={retour ? back : toJournal} onDeleted={toJournal} peekRef={outingPeek} />
+            <OutingSheet key={outing.id} outing={outing} backLabel={retour ?? 'Le journal'} onBack={retour ? back : toJournal} onDeleted={toJournal} />
           ) : kind === 'replay' && walkEntry && walkRoute ? (
             <ReplayPanel key={walkEntry.id} route={walkRoute} channel={replayChannel} onBack={() => openWalk(walkEntry.id)} peekRef={replayPeek} pillSlot={pillSlot} />
           ) : (
           <>
           {/* 1. Son journal (R-098) : surtitre et titre (réduit, on n’en voit que le haut, coupé à mi-hauteur du titre). */}
-          <div className="flex min-w-0 flex-col gap-1">
-            {!dog.unnamed && <span className="text-milestone-dark surtitre">Son journal</span>}
-            <h1 className="title-section relative">
-              {dog.unnamed ? 'Son journal' : `Le journal ${ofDog(dog)}`}
-              <span ref={peekRef} aria-hidden="true" className="absolute top-1/2 left-0 h-0 w-0" />
-            </h1>
-          </div>
+          <JournalHead peekRef={peekRef} />
           {/* Le résumé de la semaine, puis les pastilles (un seul choix). */}
           <WeekLine items={items} today={today} />
           <div ref={filtersRow} role="group" aria-label="Choisir ce que montre le journal" className="scroll-row -mx-4 -my-1.5 flex gap-1.5 px-4">
@@ -470,7 +470,8 @@ export default function Explorer() {
       {/* R-102 : la fiche d’une balade, une sortie notée, la relecture : en bas du panneau, la bande du rond Accueil (et
           son air) reste unie. À chaque cran, ce qu’il montre (le titre, le résumé, les commandes) finit juste au-dessus ;
           ce qui suit passe dessous en fondu, jamais à moitié coupé par le rond. */}
-      {kind !== 'journal' && (
+      {/* R-103 : réduites, la fiche et la sortie notée se collent à la barre comme le journal : pas de bande. */}
+      {kind !== 'journal' && !(low && sheet.collapsed) && (
         <div
           aria-hidden="true"
           style={{ height: HOME_CLEARANCE + SNAP_GAP }}
@@ -525,6 +526,20 @@ export default function Explorer() {
           }}
         />
       )}
+    </div>
+  )
+}
+
+/** L’en-tête du journal (R-098) ; `peekRef` marque le milieu de son titre : le bas du panneau réduit (R-103). */
+function JournalHead({ peekRef }: { peekRef: RefObject<HTMLDivElement | null> }) {
+  const { dog } = useData()
+  return (
+    <div className="flex min-w-0 flex-col gap-1">
+      {!dog.unnamed && <span className="text-milestone-dark surtitre">Son journal</span>}
+      <h1 className="title-section relative">
+        {dog.unnamed ? 'Son journal' : `Le journal ${ofDog(dog)}`}
+        <span ref={peekRef} aria-hidden="true" className="absolute top-1/2 left-0 h-0 w-0" />
+      </h1>
     </div>
   )
 }

@@ -26,7 +26,7 @@ import { WalkSheet } from '../trajets/WalkSheet'
 import { ReplayPanel } from './ReplayPanel'
 import type { ReplayChannel } from './walkLayer'
 import { updateEntryRoute } from '../../firebase/db'
-import { readRoute, storeRoute, type Route } from '../../lib/route'
+import { nearestOnRoute, readRoute, storeRoute, type Route } from '../../lib/route'
 import { useGrantedPosition } from '../../lib/useGrantedPosition'
 import { formatRouteDistance } from '../../lib/route'
 import { journalOnMap, panelMode, walkOnMap } from '../../lib/mapPanel'
@@ -39,7 +39,24 @@ import { useReadOnly } from '../../firebase/viewer'
 import { WatchOptIn } from './WatchOptIn'
 import { ROUTE_COLOR } from '../../components/maplibre'
 
-const ExplorerMap = lazy(() => import('./ExplorerMap').then((m) => ({ default: m.ExplorerMap })))
+// R-094 : la fiche d’une balade vit sur cette carte ; si le code de la carte ne se charge pas (hors ligne sans copie
+// en cache, version de l’app remplacée), l’écran ne doit pas tomber : la fiche reste lisible, sur un fond uni.
+const ExplorerMap = lazy(() =>
+  import('./ExplorerMap')
+    .then((m) => ({ default: m.ExplorerMap }))
+    .catch(() => ({ default: MapUnavailable })),
+)
+
+/** La carte n’a pas pu se charger : un message calme à la place. */
+function MapUnavailable() {
+  return (
+    <div className="absolute inset-x-0 top-[calc(env(safe-area-inset-top)+72px)] flex justify-center px-4">
+      <p role="status" className="rounded-full bg-surface px-4 py-2 text-[0.8824rem] font-semibold text-text shadow-float">
+        La carte s’affichera avec le réseau.
+      </p>
+    </div>
+  )
+}
 
 /** Une pastille de filtre (maquette V6-Billy-et-journal) : 32 px dessinés dans une zone de 44 px. */
 const chip = (on: boolean) => `flex h-8 items-center rounded-full border border-solid px-3 text-[0.8235rem] font-bold whitespace-nowrap ${on ? 'border-primary bg-primary text-white' : 'border-[#D3D9D6] bg-surface text-text'}`
@@ -210,6 +227,16 @@ export default function Explorer() {
 
   const pins = useMemo(() => (walkEntry && walkRoute ? photoPins(walkEntry.photos, walkRoute) : []), [walkEntry, walkRoute])
   const [placing, setPlacing] = useState<{ lat: number; lng: number } | null>(null)
+  // R-059 : « Ajouter un repère » sans viser la carte : au point du tracé le plus proche du centre de ce qu’on voit
+  // au-dessus du panneau ; carte pas encore prête : le milieu du tracé. Puis la même fenêtre que toucher le tracé.
+  const centerRef = useRef<((visibleBottom: number) => { lat: number; lng: number }) | null>(null)
+  const addMark = () => {
+    if (!walkRoute?.points.length) return
+    const center = centerRef.current?.(sheet.ref.current?.getBoundingClientRect().top ?? window.innerHeight)
+    const middle = walkRoute.points[Math.floor(walkRoute.points.length / 2)]!
+    const at = center && Number.isFinite(center.lat) ? nearestOnRoute(center, walkRoute.points) : { lat: middle[0], lng: middle[1] }
+    if (at) setPlacing(at)
+  }
   const saveMoments = (moments: Route['moments']) => walkEntry && walkRoute && updateEntryRoute(walkEntry.id, storeRoute({ ...walkRoute, moments }))
   // R-096 : le lien entre l’horloge de la relecture (dans le panneau) et la caméra de la carte.
   const replayChannel = useRef<ReplayChannel>({})
@@ -234,6 +261,7 @@ export default function Explorer() {
           padding: mapPad,
           cursor,
           center: photoAt,
+          centerRef,
           ...(kind === 'replay' ? { replay: replayChannel } : {}),
         }
       : undefined
@@ -378,6 +406,7 @@ export default function Explorer() {
               viewer={viewer}
               onViewer={setViewer}
               onShowOnMap={showOnMap}
+              onAddMark={addMark}
               peekRef={sheetPeek}
             />
           ) : kind === 'replay' && walkEntry && walkRoute ? (

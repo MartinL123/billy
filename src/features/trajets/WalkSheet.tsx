@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type Ref } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BackLink } from '../../components/BackLink'
 import { FileImage } from '../../components/FileImage'
-import { PencilIcon, ShareIcon } from '../../components/Icons'
+import { PencilIcon, PinIcon, ShareIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
 import { DangerButton } from '../../components/Buttons'
 import { ConfirmSheet } from '../../components/Sheet'
@@ -41,7 +41,7 @@ type WalkEntry = WithId<Entry> & { pending?: boolean }
  * la balade » sur lui), le parcours, le relief, le corps, la météo, les photos, les sources, puis Partager, Modifier et
  * Supprimer. Chaque bloc n’apparaît que s’il a des données (une balade ancienne ne montre que ce qu’elle a).
  */
-export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onCursor, viewer, onViewer, onShowOnMap, peekRef }: {
+export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onCursor, viewer, onViewer, onShowOnMap, onAddMark, peekRef }: {
   entry: WalkEntry
   route: Route
   /** Les photos placées sur la carte (là où elles ont été prises). */
@@ -58,6 +58,8 @@ export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onC
   onViewer: (index: number | null) => void
   /** « Voir sur la carte » d’une photo : le panneau descend, la carte y va. */
   onShowOnMap: (pin: PhotoPin) => void
+  /** R-059 : poser un repère sans viser la carte (VoiceOver, Switch Control). */
+  onAddMark?: () => void
   /** Le bas du résumé : ce que montre le panneau réduit. */
   peekRef: Ref<HTMLDivElement>
 }) {
@@ -193,6 +195,14 @@ export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onC
             <h2 className="title-section">Ce qui s’est passé</h2>
             <WalkTimeline events={events} startTime={route.startTime} preview renderExtra={momentActions} {...(readOnly ? {} : { onOpenStop: tellStop })} />
           </section>
+        )}
+
+        {/* R-059 : la même chose que toucher le tracé, sans viser la carte (VoiceOver, Switch Control). */}
+        {!readOnly && onAddMark && route.points.length > 0 && (
+          <button type="button" onClick={onAddMark} className="btn-text -mt-2 -ml-1 self-start">
+            <PinIcon size={20} />
+            Ajouter un repère
+          </button>
         )}
 
         {/* Le parcours, le relief, le corps, la météo. */}

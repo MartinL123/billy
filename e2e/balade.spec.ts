@@ -363,6 +363,12 @@ test('R-094 / R-096 · la fiche et la relecture dans le panneau de la carte des 
   await expect(sheet.getByRole('link', { name: 'Raconter' })).toBeVisible()
   // Pas d'action orange sur la fiche : « Partir en balade » reste au journal.
   await expect(app.locator('.btn-main')).toHaveCount(0)
+  // R-059 : un repère se pose sans viser la carte (VoiceOver, Switch Control).
+  await sheet.getByRole('button', { name: 'Agrandir le panneau' }).click()
+  await sheet.getByRole('button', { name: 'Ajouter un repère' }).click()
+  await expect(app.getByRole('heading', { name: 'Qu’est-ce qui s’est passé ici ?' })).toBeVisible()
+  await app.keyboard.press('Escape')
+  await expect(app.getByRole('heading', { name: 'Qu’est-ce qui s’est passé ici ?' })).toHaveCount(0)
 
   await sheet.getByRole('button', { name: 'Revoir la balade' }).click()
   await expect(app).toHaveURL(/&revoir=1$/)

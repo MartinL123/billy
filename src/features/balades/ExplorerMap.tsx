@@ -80,6 +80,8 @@ interface Props {
     cursor?: { lat: number; lng: number }
     /** « Voir sur la carte » d’une photo : la carte y va (`n` change à chaque demande). */
     center?: { lat: number; lng: number; n: number }
+    /** R-059 : rempli par la carte ; le centre de ce qu’on voit au-dessus de `visibleBottom` (« Ajouter un repère » sans viser). */
+    centerRef?: { current: ((visibleBottom: number) => { lat: number; lng: number }) | null }
     /** R-096 : la relecture en 3ᵉ personne, menée par le panneau. */
     replay?: { current: ReplayChannel }
   }
@@ -355,6 +357,23 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     const c = w?.center
     whenReady(m, () => (c ? m.easeTo({ center: lngLat([c.lat, c.lng]), padding: walkPad(), duration: cameraMs(400) }) : fitPoints(m, walkRoute.points, walkPad(), true)))
   }, [padKey]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // R-059 : le centre de la carte visible (au-dessus du panneau), pour poser un repère sans viser.
+  const centerRef = walk?.centerRef
+  useEffect(() => {
+    if (!centerRef) return
+    centerRef.current = (visibleBottom) => {
+      const m = map.current
+      if (!m) return { lat: NaN, lng: NaN }
+      const canvas = m.getCanvas()
+      const top = canvas.getBoundingClientRect().top
+      const c = m.unproject([canvas.clientWidth / 2, Math.max(1, Math.min(canvas.clientHeight, visibleBottom - top)) / 2])
+      return { lat: c.lat, lng: c.lng }
+    }
+    return () => {
+      centerRef.current = null
+    }
+  }, [centerRef])
 
   // « Voir sur la carte » d’une photo (T-108) : la carte y va.
   const photoAt = walk?.center

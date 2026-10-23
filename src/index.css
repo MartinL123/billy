@@ -51,6 +51,8 @@
   --color-route: #2f8f6b;
   --color-route-fast: #e0a12e;
   --color-route-stop: #9aa5a0;
+  /* T-118 : une idée de balade (pas encore faite), sur la carte : indigo, bien distinct du vert des balades faites. */
+  --color-route-idea: #4f46e5;
 
   --font-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
   --font-sans: 'Figtree Variable', system-ui, sans-serif;

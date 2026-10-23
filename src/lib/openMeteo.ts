@@ -113,3 +113,43 @@ export async function fetchWalkWeather(lat: number, lng: number, startTime: stri
     return undefined
   }
 }
+
+// ——— T-118 : la météo de l’heure qui vient, pour les idées de balade de l’Accueil ———
+// Une requête par heure au plus (gardée en mémoire et sur l’appareil), pour une position arrondie à 2 décimales.
+
+/** La météo de l’heure qui vient : température (°C), pluie attendue (mm) et sa probabilité (%), si connue. */
+export interface NextHourWeather {
+  tempC: number
+  rainMm: number
+  rainProb?: number
+}
+
+/** L’heure UTC pleine d’un instant (« 2026-10-23T17:00 ») : la clé du cache, une requête par heure. */
+export const hourKey = (now: Date) => utcHour(now.getTime())
+
+/** L’adresse des prévisions des 3 prochaines heures, à une position arrondie (environ 1 km). */
+export function forecastUrl(lat: number, lng: number): string | undefined {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return undefined
+  return `https://api.open-meteo.com/v1/forecast?latitude=${coarse(lat)}&longitude=${coarse(lng)}&hourly=temperature_2m,precipitation,precipitation_probability&forecast_hours=3&timezone=UTC`
+}
+
+/**
+ * La météo de l’heure qui vient : la valeur libellée à l’heure suivante (Open-Meteo y met la pluie de l’heure qui la
+ * précède), sinon la première heure donnée. Rien sans température.
+ */
+export function nextHourFromResponse(json: { hourly?: { time?: unknown; temperature_2m?: unknown; precipitation?: unknown; precipitation_probability?: unknown } } | null | undefined, now: Date): NextHourWeather | undefined {
+  const h = json?.hourly
+  if (!h || !Array.isArray(h.time) || !h.time.length) return undefined
+  const at = h.time.indexOf(utcHour(now.getTime() + 3_600_000))
+  const i = at >= 0 ? at : 0
+  const temp = num(h.temperature_2m, i)
+  if (temp === undefined) return undefined
+  const prob = num(h.precipitation_probability, i)
+  return { tempC: Math.round(temp), rainMm: Math.round((num(h.precipitation, i) ?? 0) * 10) / 10, ...(prob !== undefined ? { rainProb: Math.round(prob) } : {}) }
+}
+
+/** « 14 °C · pas de pluie prévue », « 9 °C · pluie prévue » (espaces insécables). */
+export function nextHourLine(w: NextHourWeather): string {
+  const rain = w.rainMm >= 0.2 || (w.rainProb ?? 0) >= 60 ? 'pluie prévue' : (w.rainProb ?? 0) >= 30 ? 'risque de pluie' : 'pas de pluie prévue'
+  return `${w.tempC} °C · ${rain}`
+}

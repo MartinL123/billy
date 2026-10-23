@@ -5,10 +5,10 @@ import { tellQueue } from './walkTell'
 // R-094 « Une seule carte » : l’onglet Balades n’a qu’une carte ; son panneau montre le journal, la fiche d’une balade
 // ou sa relecture (R-096). Ce que dit l’adresse, en fonctions pures (testées).
 
-export type PanelMode = { kind: 'journal' } | { kind: 'sheet'; id: string } | { kind: 'replay'; id: string } | { kind: 'outing'; id: string }
+export type PanelMode = { kind: 'journal' } | { kind: 'sheet'; id: string } | { kind: 'replay'; id: string } | { kind: 'outing'; id: string } | { kind: 'idea'; id: string }
 
 /** Ce que montre vraiment le panneau (une balade introuvable ou sans tracé : le journal). */
-export type PanelKind = 'journal' | 'sheet' | 'replay' | 'outing'
+export type PanelKind = 'journal' | 'sheet' | 'replay' | 'outing' | 'idea'
 
 /**
  * R-103 : réduit, le panneau descend aussi bas dans tous ses modes que dans le journal : seul son haut reste collé à la
@@ -19,11 +19,13 @@ export const lowAsJournal = (kind: PanelKind) => kind !== 'replay'
 
 /**
  * Le mode du panneau lu dans l’adresse : `?balade=<id>` la fiche, `&revoir=1` sa relecture, `?sortie=<date:créneau>`
- * une sortie notée sans trajet (R-095) ; sinon le journal.
+ * une sortie notée sans trajet (R-095), `?idee=<id>` une balade passée proposée comme idée (T-118) ; sinon le journal.
  */
 export function panelMode(params: URLSearchParams): PanelMode {
   const outing = params.get('sortie')
   if (outing) return { kind: 'outing', id: outing }
+  const idea = params.get('idee')
+  if (idea) return { kind: 'idea', id: idea }
   const id = params.get('balade')
   if (!id) return { kind: 'journal' }
   return params.get('revoir') === '1' ? { kind: 'replay', id } : { kind: 'sheet', id }
@@ -47,6 +49,9 @@ export function outingOnMap(id: string, { filter }: { filter?: string } = {}): s
   if (filter && filter !== 'toutes') q.set('filtre', filter)
   return `/territoire?${q.toString()}`
 }
+
+/** T-118 : une idée de balade de l’Accueil (une balade passée) sur la carte, dans sa couleur d’idée. */
+export const ideaOnMap = (id: string) => `/territoire?${new URLSearchParams({ idee: id }).toString()}`
 
 /** Le journal de la carte, avec son filtre. */
 export function journalOnMap(filter?: string): string {

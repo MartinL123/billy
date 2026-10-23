@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { setEventDone } from '../../firebase/db'
 import { useData } from '../../firebase/store'
@@ -7,7 +7,7 @@ import { completeQuest, skipQuest } from '../../firebase/training'
 import { QUEST_XP } from '../../lib/quest'
 import { formatDayHeading, formatLong } from '../../lib/dates'
 import { portion, sortMeals } from '../../lib/feeding'
-import { nowCard, type NowCard, type NowInput, needsVet } from '../../lib/nowCard'
+import { nowCard, type NowCard, type NowInput, needsVet, walkNow } from '../../lib/nowCard'
 import { questionnaireStatus } from '../../lib/questionnaire'
 import { formatRouteDistance } from '../../lib/route'
 import { useToday } from '../../lib/useToday'
@@ -25,6 +25,10 @@ import { addDays } from '../../lib/dates'
 import { KnowCard } from './KnowCard'
 import { MotionCard } from '../motion/MotionCard'
 import { NoteSheet, WalkDayCard, type ToNote } from './WalkDayCard'
+import { WalkRecos } from './WalkRecos'
+import { pickRecos, recoTarget } from '../../lib/walkRecos'
+import { useNextHourWeather } from '../../lib/useNextHourWeather'
+import { useGrantedPosition } from '../../lib/useGrantedPosition'
 import { LifeTiles } from './LifeTiles'
 import { useCurrentWalk } from '../balades/useCurrentWalk'
 import { elapsedMs, minutesSince } from '../../lib/gpsWalk'
@@ -315,6 +319,18 @@ export default function Today() {
   }, [today])
   const questionnaire = questionnaireStatus(dog.questionnaire)
 
+  // T-118 : l’heure de sortir (une sortie du moment pas faite, pas de balade en cours) : 3 idées parmi ses balades passées,
+  // pour le temps de marche qui reste et la météo de l’heure qui vient (position autorisée, sinon le départ de la
+  // dernière balade). Visiteur, ou aucune balade avec un tracé : rien.
+  const pastWalks = useMemo(() => walkItems(entries), [entries])
+  const outingDue = !readOnly && !currentWalk && pastWalks.length > 0 && Boolean(walkNow(input))
+  const position = useGrantedPosition()
+  const lastStart = pastWalks[0]?.route.points[0]
+  const weatherAt = outingDue ? (position ?? (lastStart ? { lat: lastStart[0], lng: lastStart[1] } : undefined)) : undefined
+  const weather = useNextHourWeather(weatherAt)
+  const target = recoTarget(input.budget)
+  const recos = useMemo(() => (outingDue ? pickRecos(pastWalks, { target, weather, today }) : []), [outingDue, pastWalks, target, weather, today])
+
   return (
     // Depuis l’écran d’ouverture (T-032) : l’accueil monte à sa place.
     <div className={`flex flex-col gap-4 px-5 ${fromOpening ? 'op-arrive' : ''} ${arrival ? 'anim-stagger' : ''}`}>
@@ -356,7 +372,9 @@ export default function Today() {
         onNote={note}
         showStart={card.kind !== 'sortie'}
         pending={!online}
-      />
+      >
+        <WalkRecos recos={recos} />
+      </WalkDayCard>
 
       {/* T-085 (app iOS) : une marche vue par l’iPhone, « C’était une sortie avec Billy ? ». */}
       {!readOnly && <MotionCard />}

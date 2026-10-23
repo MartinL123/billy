@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { BonesGained } from '../../components/BoneIcon'
 import { CheckIcon } from '../../components/Icons'
@@ -124,7 +124,7 @@ function DoneSlot({ name, minutes, pending, walkId, onEdit }: { name: string; mi
  * contour pointillé, « + Noter » ouvre « Combien de temps ? ». Dessous, une phrase : ce qui reste et la durée
  * conseillée. Plus de barre ni de total.
  */
-export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStart, pending }: {
+export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStart, pending, children }: {
   plan: WalkDayPlan
   times: WalkTimes
   /** Le matin : les sorties d’hier pas faites, encore notables (R-044). */
@@ -136,6 +136,8 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
   showStart: boolean
   /** Hors ligne : les sorties notées attendent d’être envoyées. */
   pending: boolean
+  /** T-118 : en bas du bloc, les idées de balade quand c’est l’heure de sortir. */
+  children?: ReactNode
 }) {
   const { entries } = useData()
   const today = useToday()
@@ -199,6 +201,7 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
           {isNative() ? 'Importer un fichier GPX' : 'Importer mes balades'}
         </Link>
       )}
+      {children}
     </section>
   )
 }

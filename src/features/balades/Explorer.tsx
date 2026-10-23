@@ -40,7 +40,8 @@ import { useBack } from '../../lib/useBack'
 import { modernCard } from '../../lib/carnet'
 import { useReadOnly } from '../../firebase/viewer'
 import { WatchOptIn } from './WatchOptIn'
-import { ROUTE_COLOR } from '../../components/maplibre'
+import { ROUTE_COLOR, ROUTE_IDEA_COLOR } from '../../components/maplibre'
+import { IdeaSheet } from './IdeaSheet'
 
 // R-094 : la fiche d’une balade vit sur cette carte ; si le code de la carte ne se charge pas (hors ligne sans copie
 // en cache, version de l’app remplacée), l’écran ne doit pas tomber : la fiche reste lisible, sur un fond uni.
@@ -105,11 +106,15 @@ export default function Explorer() {
   const colors = useMemo(() => (prefs.fog ? walkColors(walks) : new Map(walks.map((w) => [w.id, ROUTE_COLOR]))), [walks, prefs.fog])
   // T-097 : une idée de balade touchée : la boucle s’affiche sur la carte, le bouton devient « Partir sur cette boucle ».
   const [idea, setIdea] = useState<Loop>()
+  // T-118 : une idée de l’Accueil (« ?idee= ») : la même idée sur la carte, et sa petite fiche dans le panneau.
+  const ideaId = params.get('sortie') ? null : params.get('idee')
+  const ideaItem = useMemo(() => (ideaId ? walks.find((w) => w.id === ideaId) : undefined), [walks, ideaId])
+  const ideaShown = ideaItem ?? idea?.item
   const tracks = useMemo<MapWalk[]>(() => {
-    const all = shown.map((w) => ({ id: w.id, color: colors.get(w.id) ?? ROUTE_COLOR, points: w.route.points, faded: Boolean(idea) }))
-    // L’idée choisie, au-dessus de tout.
-    return [...all, ...(idea ? [{ id: `idee:${idea.item.id}`, color: IDEA_COLOR, points: idea.item.route.points, bold: true }] : [])]
-  }, [shown, colors, idea])
+    const all = shown.map((w) => ({ id: w.id, color: colors.get(w.id) ?? ROUTE_COLOR, points: w.route.points, faded: Boolean(ideaShown) }))
+    // L’idée choisie, au-dessus de tout, dans sa couleur d’idée (indigo, T-118).
+    return [...all, ...(ideaShown ? [{ id: `idee:${ideaShown.id}`, color: ROUTE_IDEA_COLOR, points: ideaShown.route.points, bold: true }] : [])]
+  }, [shown, colors, ideaShown])
   const last = walks[0]
   // Où l’on est (T-020) : la position demandée avec « Autour de moi », sinon celle déjà autorisée, sinon la dernière balade.
   const [myPos, setMyPos] = useState<{ lat: number; lng: number }>()
@@ -123,8 +128,8 @@ export default function Explorer() {
   // La carte se cadre sur les balades du coin (Saint-Ouen, la Bretagne…), pas sur toute la France.
   const local = useMemo(() => walksNear(shown, start), [shown, start?.lat, start?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
   // Une idée choisie : la carte se cadre sur sa boucle.
-  const frame = useMemo(() => (idea ? idea.item.route.points : local.flatMap((w) => w.route.points)), [local, idea])
-  const frameKey = idea ? `idee:${idea.item.id}` : local.map((w) => w.id).join(',')
+  const frame = useMemo(() => (ideaShown ? ideaShown.route.points : local.flatMap((w) => w.route.points)), [local, ideaShown])
+  const frameKey = ideaShown ? `idee:${ideaShown.id}` : local.map((w) => w.id).join(',')
   const locate = () => {
     if (!navigator.geolocation) return
     setLocating(true)
@@ -160,7 +165,7 @@ export default function Explorer() {
 
   // R-094 : ce que montre le panneau, lu dans l’adresse : le journal, la fiche d’une balade ou sa relecture.
   const mode = panelMode(params)
-  const walkId = mode.kind === 'journal' || mode.kind === 'outing' ? null : mode.id
+  const walkId = mode.kind === 'journal' || mode.kind === 'outing' || mode.kind === 'idea' ? null : mode.id
   const found = walkId ? entries.find((e) => e.id === walkId) : undefined
   const walkEntry = useMemo(() => (found ? modernCard(found) : undefined), [found])
   const walkRoute = useMemo(() => readRoute(walkEntry?.route), [walkEntry?.route])
@@ -170,7 +175,7 @@ export default function Explorer() {
   const outing = mode.kind === 'outing' ? outings.find((o) => o.id === mode.id) : undefined
   // R-098 : tout ce que montre le journal (les balades suivent le filtre venu de « Ses balades »).
   const items = useMemo(() => journalItems({ walks: shown, outings, entries, events, weights }), [shown, outings, entries, events, weights])
-  const kind: PanelKind = outing ? 'outing' : !walkEntry || !walkRoute ? 'journal' : mode.kind === 'replay' && canReplay ? 'replay' : 'sheet'
+  const kind: PanelKind = outing ? 'outing' : ideaItem ? 'idea' : !walkEntry || !walkRoute ? 'journal' : mode.kind === 'replay' && canReplay ? 'replay' : 'sheet'
   // Ouverte depuis un autre écran (Accueil, Billy…) : le retour y ramène et le dit (« ‹ Accueil »).
   const retour = (location.state as { retour?: string } | null)?.retour
   const back = useBack(journalOnMap(filter))
@@ -197,12 +202,13 @@ export default function Explorer() {
   // notée descendent aussi bas que le journal (même repère : le milieu du titre du journal, mesuré sur une copie
   // invisible de son en-tête). La relecture (R-096) : réduit, toutes ses commandes (retour, lecture, barre, vitesses).
   const sheetHalf = useRef<HTMLDivElement>(null)
+  const ideaHalf = useRef<HTMLDivElement>(null)
   const replayPeek = useRef<HTMLDivElement>(null)
   const low = lowAsJournal(kind)
   const snapParam = SNAPS.find((c) => c === params.get('cran'))
   const sheet = useSheet({
     peekRef: low ? peekRef : replayPeek,
-    halfRef: kind === 'journal' ? (loops.length ? ideasHead : filtersRow) : kind === 'sheet' ? sheetHalf : undefined,
+    halfRef: kind === 'journal' ? (loops.length ? ideasHead : filtersRow) : kind === 'sheet' ? sheetHalf : kind === 'idea' ? ideaHalf : undefined,
     bottomInset: kind === 'journal' ? footerHeight || HOME_CLEARANCE : HOME_CLEARANCE,
     ...(low ? { peekInset: 0, peekGap: 0 } : {}),
     start: mode.kind === 'replay' ? 'collapsed' : (snapParam ?? 'half'),
@@ -213,7 +219,7 @@ export default function Explorer() {
   const [cursor, setCursor] = useState<{ lat: number; lng: number }>()
   const [photoAt, setPhotoAt] = useState<{ lat: number; lng: number; n: number }>()
   // Un autre mode ou une autre balade : le panneau prend le cran demandé (un tracé touché : réduit, sur le résumé).
-  const modeKey = `${kind}:${walkId ?? outing?.id ?? ''}`
+  const modeKey = `${kind}:${walkId ?? outing?.id ?? ideaItem?.id ?? ''}`
   const lastMode = useRef(modeKey)
   useEffect(() => {
     if (lastMode.current === modeKey) return
@@ -281,7 +287,7 @@ export default function Explorer() {
   // T-098 : le filtre et le cran du panneau dans l’adresse (sans nouvelle entrée d’historique) : le retour d’une balade
   // retrouve le journal tel qu’on l’a laissé.
   useEffect(() => {
-    if (walkId || kind === 'outing') return
+    if (walkId || kind === 'outing' || kind === 'idea') return
     const next = new URLSearchParams(params)
     if (filter === 'toutes') next.delete('filtre')
     else next.set('filtre', filter)
@@ -395,7 +401,7 @@ export default function Explorer() {
           bas (le haut du panneau collé à la barre), à mi-hauteur, en grand (sous « Affichage » et « Me situer »). */}
       <section
         ref={sheet.ref}
-        aria-label={kind === 'journal' ? 'Son journal' : kind === 'sheet' ? 'La balade' : kind === 'outing' ? 'La sortie' : 'Revoir la balade'}
+        aria-label={kind === 'journal' ? 'Son journal' : kind === 'sheet' ? 'La balade' : kind === 'outing' ? 'La sortie' : kind === 'idea' ? 'Idée de balade' : 'Revoir la balade'}
         {...sheet.handlers}
         style={sheet.style}
         className={`absolute inset-x-0 top-[calc(env(safe-area-inset-top)+62px)] bottom-0 z-10 mx-auto flex max-w-[430px] ${selected ? 'invisible' : ''} flex-col rounded-t-panel bg-surface px-4 shadow-[0_-6px_20px_rgba(0,0,0,0.10)]`}
@@ -433,6 +439,8 @@ export default function Explorer() {
               onAddMark={addMark}
               halfRef={sheetHalf}
             />
+          ) : kind === 'idea' && ideaItem ? (
+            <IdeaSheet key={ideaItem.id} item={ideaItem} backLabel={retour ?? 'Le journal'} onBack={retour ? back : toJournal} weatherAt={here ?? (last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined)} halfRef={ideaHalf} />
           ) : kind === 'outing' && outing ? (
             <OutingSheet key={outing.id} outing={outing} backLabel={retour ?? 'Le journal'} onBack={retour ? back : toJournal} onDeleted={toJournal} />
           ) : kind === 'replay' && walkEntry && walkRoute ? (
@@ -581,9 +589,6 @@ function Switch({ label, hint, on, onChange }: { label: string; hint: string; on
     </button>
   )
 }
-
-/** La couleur de la boucle d’une idée choisie, sur la carte (le vert foncé des idées de la maquette). */
-const IDEA_COLOR = '#1E5A50'
 
 /** T-097 : l’idée choisie, « Le tour du square · ≈ 15 min · 1,2 km », et ✕ pour la relâcher. */
 function IdeaLine({ idea, onClose }: { idea: Loop; onClose: () => void }) {

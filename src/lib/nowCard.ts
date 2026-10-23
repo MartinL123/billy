@@ -60,8 +60,8 @@ export const WALK_AFTER_MIN = 60
 /** À partir de 21 h, la carte propose de raconter la journée. */
 export const EVENING_MIN = 21 * 60
 
-/** La sortie du moment : pas encore notée, entre 30 min avant et 1 h après son heure. */
-function walkNow(input: NowInput): { slot: WalkSlot; time: string } | undefined {
+/** La sortie du moment : pas encore notée, entre 30 min avant et 1 h après son heure (T-118 : aussi les idées de l’Accueil). */
+export function walkNow(input: NowInput): { slot: WalkSlot; time: string } | undefined {
   return WALK_SLOTS.map((s) => ({ slot: s.id, time: input.walks.times[s.id], delta: input.now - timeToMinutes(input.walks.times[s.id]) }))
     .filter((w) => !input.walks.done[w.slot] && w.delta >= -WALK_BEFORE_MIN && w.delta <= WALK_AFTER_MIN)
     .sort((a, b) => Math.abs(a.delta) - Math.abs(b.delta))[0]

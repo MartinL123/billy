@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { missingWeatherDetails, needsWeather, needsWeatherDetails, weatherFromResponse, weatherUrl } from './openMeteo'
+import { forecastUrl, hourKey, missingWeatherDetails, needsWeather, needsWeatherDetails, nextHourFromResponse, nextHourLine, weatherFromResponse, weatherUrl } from './openMeteo'
 
 const NOW = new Date('2026-10-22T10:00:00Z')
 
@@ -75,5 +75,34 @@ describe('météo Open-Meteo (V6 § 2.2)', () => {
     expect(needsWeatherDetails({ startTime: '2026-10-20T07:31:00Z', points: [{ lat: 45, lng: 1 }], weather: { daylight: 'jour' } })).toBe(false)
     expect(needsWeatherDetails({ startTime: '2026-10-20T07:31:00Z', points: [{ lat: 45, lng: 1 }] })).toBe(false)
     expect(missingWeatherDetails({ tempC: 12, source: 'watch', windKmh: 5 }, { tempC: 11, source: 'open-meteo', windKmh: 9, feelsC: 10, daylight: 'nuit' })).toEqual({ feelsC: 10, daylight: 'nuit' })
+  })
+})
+
+describe('T-118 : la météo de l’heure qui vient', () => {
+  it('une position arrondie à 2 décimales, 3 heures de prévisions', () => {
+    const url = forecastUrl(48.856613, 2.352222)!
+    expect(url).toContain('latitude=48.86&longitude=2.35')
+    expect(url).toContain('forecast_hours=3')
+    expect(url).not.toMatch(/48\.856|2\.352/)
+    expect(forecastUrl(Number.NaN, 2)).toBeUndefined()
+  })
+
+  it('lit l’heure qui vient (la pluie libellée à l’heure suivante)', () => {
+    const json = { hourly: { time: ['2026-10-23T16:00', '2026-10-23T17:00', '2026-10-23T18:00'], temperature_2m: [12.4, 11.6, 10], precipitation: [0, 0.64, 1], precipitation_probability: [10, 70, 80] } }
+    expect(nextHourFromResponse(json, new Date('2026-10-23T16:20:00Z'))).toEqual({ tempC: 12, rainMm: 0.6, rainProb: 70 })
+    expect(hourKey(new Date('2026-10-23T16:20:00Z'))).toBe('2026-10-23T16:00')
+  })
+
+  it('sans l’heure suivante : la première ; sans température : rien', () => {
+    const json = { hourly: { time: ['2026-10-23T20:00'], temperature_2m: [5], precipitation: [null] } }
+    expect(nextHourFromResponse(json, new Date('2026-10-23T16:20:00Z'))).toEqual({ tempC: 5, rainMm: 0 })
+    expect(nextHourFromResponse({ hourly: { time: ['2026-10-23T17:00'], temperature_2m: [null] } }, new Date('2026-10-23T16:20:00Z'))).toBeUndefined()
+    expect(nextHourFromResponse(null, new Date())).toBeUndefined()
+  })
+
+  it('une ligne courte, espaces insécables', () => {
+    expect(nextHourLine({ tempC: 14, rainMm: 0, rainProb: 5 })).toBe('14 °C · pas de pluie prévue')
+    expect(nextHourLine({ tempC: 9, rainMm: 0.8 })).toBe('9 °C · pluie prévue')
+    expect(nextHourLine({ tempC: 9, rainMm: 0, rainProb: 40 })).toBe('9 °C · risque de pluie')
   })
 })

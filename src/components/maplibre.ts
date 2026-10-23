@@ -24,6 +24,8 @@ export const PARIS: LatLng = [48.8566, 2.3522]
 export const ROUTE_COLOR = '#2F8F6B'
 export const ROUTE_FAST_COLOR = '#E0A12E'
 export const ROUTE_STOP_COLOR = '#9AA5A0'
+/** T-118 : une idée de balade (token --color-route-idea), distincte du vert des balades faites. */
+export const ROUTE_IDEA_COLOR = '#4F46E5'
 
 export function createMap(
   container: HTMLElement,

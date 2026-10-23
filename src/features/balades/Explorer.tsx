@@ -21,6 +21,7 @@ import type { MapPlace, MapWalk } from './ExplorerMap'
 import { PlaceCard, type Selected } from './PlaceCard'
 import { LoopsBlock } from './LoopsBlock'
 import { HOME_CLEARANCE, useSheet, type Snap } from './useSheet'
+import { SNAP_GAP } from '../../lib/sheetSnap'
 import { PlaceMoment } from '../trajets/PlaceMoment'
 import { WalkSheet } from '../trajets/WalkSheet'
 import { ReplayPanel } from './ReplayPanel'
@@ -332,7 +333,7 @@ export default function Explorer() {
   return (
     <div ref={rootRef} className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
-        <ExplorerMap cells={cells} tracks={tracks} frame={frame} frameKey={frameKey} me={myPos ? [myPos.lat, myPos.lng] : undefined} onWalk={onTrack} places={places} satellite={prefs.satellite} three={prefs.three} fog={prefs.fog} heat={heat} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={onMapTap} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} />
+        <ExplorerMap cells={cells} tracks={tracks} frame={frame} frameKey={frameKey} me={myPos ? [myPos.lat, myPos.lng] : undefined} onWalk={onTrack} places={places} satellite={prefs.satellite} three={prefs.three} fog={prefs.fog} heat={heat} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={onMapTap} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} covered={display} />
       </Suspense>
 
       {/* En haut, 2 pilules seulement (V5) : « Affichage » à gauche, « Me situer » à droite. Pincer pour zoomer. */}
@@ -466,6 +467,16 @@ export default function Explorer() {
           )}
         </div>
       </section>
+      {/* R-102 : la fiche d’une balade, une sortie notée, la relecture : en bas du panneau, la bande du rond Accueil (et
+          son air) reste unie. À chaque cran, ce qu’il montre (le titre, le résumé, les commandes) finit juste au-dessus ;
+          ce qui suit passe dessous en fondu, jamais à moitié coupé par le rond. */}
+      {kind !== 'journal' && (
+        <div
+          aria-hidden="true"
+          style={{ height: HOME_CLEARANCE + SNAP_GAP }}
+          className={`pointer-events-none absolute inset-x-0 bottom-0 z-[11] mx-auto max-w-[430px] bg-gradient-to-b from-transparent to-surface to-[12px] ${selected ? 'invisible' : ''}`}
+        />
+      )}
       {/* L’action principale, fixée en bas au-dessus des onglets (le contenu passe dessous en fondu) : « Partir en balade »
           (iOS), « Partir sur cette boucle » pour une idée choisie ; sur le web, « Ajouter mes balades » quand il n’y en a
           pas. Cachée tout en bas. Au-dessus du rond Accueil qui dépasse de 26 px de la barre (R-072). */}

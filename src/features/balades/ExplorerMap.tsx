@@ -62,6 +62,8 @@ interface Props {
   north?: number
   /** Le nom du chien du compte (libellés accessibles). */
   dogName: string
+  /** R-102 : une fenêtre (« Affichage ») couvre la carte : « Chargement de la carte… » ne dépasse pas de derrière. */
+  covered?: boolean
   /** R-094 : la balade ouverte (sa fiche ou sa relecture dans le panneau) : son tracé, ses arrêts, ses repères, ses photos. */
   walk?: {
     id: string
@@ -203,7 +205,7 @@ function innerBox(layout: FogLayout): [number, number, number, number] {
  * La carte qui se découvre : le brouillard (un seul polygone troué, bords adoucis ; en option depuis la V6.1), les
  * trajets, les spots. Plan ou satellite, 2D ou 3D.
  */
-export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places, satellite, three, fog = true, heat, center, focus, recenter, onPlace, onMapTap, onBearing, north, zoom, walk, dogName }: Props) {
+export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places, satellite, three, fog = true, heat, center, focus, recenter, onPlace, onMapTap, onBearing, north, zoom, walk, dogName, covered = false }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const markers = useRef<Marker[]>([])
@@ -547,7 +549,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     <div className="absolute inset-0 isolate">
       {/* Tant que la carte charge : un fond qui scintille doucement (squelette, T-033) et l’indicateur (R-015). */}
       {!ready && <span aria-hidden="true" className="skeleton pointer-events-none absolute inset-0 z-[5] rounded-none" />}
-      {!ready && (
+      {!ready && !covered && (
         <div role="status" className="pointer-events-none absolute inset-x-0 top-[40%] z-10 flex justify-center">
           <span className="flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-[0.8824rem] font-semibold text-text shadow-float">
             <span className="size-4 animate-spin rounded-full border-2 border-solid border-primary border-t-transparent" aria-hidden="true" />

@@ -14,7 +14,7 @@ import { useReadOnly } from '../../firebase/viewer'
 const STROKE = { fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
 
 /** Les icônes des tuiles (traits, comme le reste de l’app). */
-const ICONS = {
+export const ICONS = {
   progres: (
     <svg width="24" height="24" viewBox="0 0 24 24" stroke="#1E5A50" {...STROKE} aria-hidden="true">
       <path d="M12 22V12" />

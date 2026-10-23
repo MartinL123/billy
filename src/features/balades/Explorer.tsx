@@ -4,10 +4,10 @@ import { isNative } from '../../native'
 import { CloseIcon, PlusIcon } from '../../components/Icons'
 import { FileImage } from '../../components/FileImage'
 import { MapButton } from '../../components/Buttons'
-import type { Entry } from '../../firebase/types'
 import { ofDog } from '../../lib/dogName'
+import { emptyPillText, isJournalPill, JOURNAL_PILLS, journalGroups, journalItems, weekSummary, type JournalItem, type JournalPill } from '../../lib/dogJournal'
+import { ICONS } from '../today/LifeTiles'
 import { pickLoops, type Loop } from '../../lib/loops'
-import { journalDays, memoLine, type JournalMemo } from '../../lib/walkJournal'
 import { JournalWalkCard } from './JournalWalkCard'
 import { auth } from '../../firebase/app'
 import { removeSpot, type Mark, type Spot, type WithId } from '../../firebase/community'
@@ -16,7 +16,7 @@ import { knownFog } from '../../lib/fog'
 import { readMapPrefs, writeMapPrefs } from '../../lib/mapPrefs'
 import { heatPoints } from '../../lib/heatmap'
 import { useToday } from '../../lib/useToday'
-import { emptyFilterText, filterWalks, PANEL_FILTERS, walkColors, walkItems, walksNear, walksTotals, type WalkFilter, type WalkItem } from '../../lib/walkList'
+import { FILTERS, filterWalks, walkColors, walkItems, walksNear, type WalkFilter, type WalkItem } from '../../lib/walkList'
 import type { MapPlace, MapWalk } from './ExplorerMap'
 import { PlaceCard, type Selected } from './PlaceCard'
 import { LoopsBlock } from './LoopsBlock'
@@ -29,7 +29,7 @@ import { updateEntryRoute } from '../../firebase/db'
 import { nearestOnRoute, readRoute, storeRoute, type Route } from '../../lib/route'
 import { useGrantedPosition } from '../../lib/useGrantedPosition'
 import { formatRouteDistance } from '../../lib/route'
-import { journalOnMap, panelMode, walkOnMap } from '../../lib/mapPanel'
+import { journalOnMap, outingOnMap, panelMode, walkOnMap } from '../../lib/mapPanel'
 import { notedOutings } from '../../lib/notedOutings'
 import { OutingSheet } from './OutingSheet'
 import { photoPins, type PhotoPin } from '../../lib/walkFiche'
@@ -78,7 +78,7 @@ const toggle = (on: boolean) => `min-h-11 rounded-full border-0 px-3.5 text-[0.8
  * R-096), toujours sur cette même carte.
  */
 export default function Explorer() {
-  const { dog, entries, fog, walks: walkDays } = useData()
+  const { dog, entries, fog, walks: walkDays, events, weights } = useData()
   const today = useToday()
   const readOnly = useReadOnly()
   const [prefs, setPrefs] = useState(() => readMapPrefs())
@@ -87,6 +87,8 @@ export default function Explorer() {
   const navigate = useNavigate()
   const location = useLocation()
   const [filter, setFilter] = useState<WalkFilter>(() => (params.get('filtre') as WalkFilter | null) ?? 'toutes')
+  // R-098 : la pastille du journal (Tout · Balades · Souvenirs · Séances · Santé), gardée dans l’adresse (« ?voir= »).
+  const [pill, setPill] = useState<JournalPill>(() => (isJournalPill(params.get('voir')) ? (params.get('voir') as JournalPill) : 'tout'))
   // Gelé (T-072) : la carte ne lit plus la meute (ni spots, ni marques) et n’a plus le calque « Spots de la meute ».
   // Le code des spots reste en place, branché sur des listes vides.
   const packLayer = false
@@ -113,8 +115,9 @@ export default function Explorer() {
   const [locating, setLocating] = useState(false)
   const position = useGrantedPosition()
   const here = myPos ?? position
-  // T-097 : « Idées de balade » (app iOS, avec la position) : jusqu’à 3 balades passées qui partent d’ici.
-  const loops = useMemo(() => (isNative() && !readOnly && here && prefs.ideas ? pickLoops(walks, here, cells, { birthDate: dog.birthDate, today }) : []), [walks, here?.lat, here?.lng, cells, dog.birthDate, today, readOnly, prefs.ideas]) // eslint-disable-line react-hooks/exhaustive-deps
+  // T-097 : « Idées de balade » (app iOS, avec la position) : jusqu’à 3 balades passées qui partent d’ici. R-098 : sous
+  // la pastille « Balades » seulement (le haut du journal reste à son titre, son résumé et ses pastilles).
+  const loops = useMemo(() => (isNative() && !readOnly && here && prefs.ideas && pill === 'balades' ? pickLoops(walks, here, cells, { birthDate: dog.birthDate, today }) : []), [walks, here?.lat, here?.lng, cells, dog.birthDate, today, readOnly, prefs.ideas, pill]) // eslint-disable-line react-hooks/exhaustive-deps
   const start = myPos ?? position ?? (last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined)
   // La carte se cadre sur les balades du coin (Saint-Ouen, la Bretagne…), pas sur toute la France.
   const local = useMemo(() => walksNear(shown, start), [shown, start?.lat, start?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -164,6 +167,8 @@ export default function Explorer() {
   // R-095 : une sortie notée sans trajet ouvre sa petite fiche dans le panneau (la carte reste sur toutes les balades).
   const outings = useMemo(() => notedOutings(walkDays, entries), [walkDays, entries])
   const outing = mode.kind === 'outing' ? outings.find((o) => o.id === mode.id) : undefined
+  // R-098 : tout ce que montre le journal (les balades suivent le filtre venu de « Ses balades »).
+  const items = useMemo(() => journalItems({ walks: shown, outings, entries, events, weights }), [shown, outings, entries, events, weights])
   const kind: 'journal' | 'sheet' | 'replay' | 'outing' = outing ? 'outing' : !walkEntry || !walkRoute ? 'journal' : mode.kind === 'replay' && canReplay ? 'replay' : 'sheet'
   // Ouverte depuis un autre écran (Accueil, Billy…) : le retour y ramène et le dit (« ‹ Accueil »).
   const retour = (location.state as { retour?: string } | null)?.retour
@@ -280,9 +285,11 @@ export default function Explorer() {
     else next.set('filtre', filter)
     if (sheet.snap === 'half') next.delete('cran')
     else next.set('cran', sheet.snap)
+    if (pill === 'tout') next.delete('voir')
+    else next.set('voir', pill)
     if (next.toString() !== params.toString()) setParams(next, { replace: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter, sheet.snap, walkId])
+  }, [filter, pill, sheet.snap, walkId])
   // R-094 : un tracé touché sur la carte : la balade s’ouvre dans le panneau, réduit sur son résumé.
   const onTrack = (id: string) => {
     if (id.startsWith('idee:')) return
@@ -384,7 +391,7 @@ export default function Explorer() {
           bas (le haut du panneau collé à la barre), à mi-hauteur, en grand (sous « Affichage » et « Me situer »). */}
       <section
         ref={sheet.ref}
-        aria-label={kind === 'journal' ? `Les balades ${ofDog(dog)}` : kind === 'sheet' ? 'La balade' : kind === 'outing' ? 'La sortie' : 'Revoir la balade'}
+        aria-label={kind === 'journal' ? 'Son journal' : kind === 'sheet' ? 'La balade' : kind === 'outing' ? 'La sortie' : 'Revoir la balade'}
         {...sheet.handlers}
         style={sheet.style}
         className={`absolute inset-x-0 top-[calc(env(safe-area-inset-top)+62px)] bottom-0 z-10 mx-auto flex max-w-[430px] ${selected ? 'invisible' : ''} flex-col rounded-t-panel bg-surface px-4 shadow-[0_-6px_20px_rgba(0,0,0,0.10)]`}
@@ -421,41 +428,36 @@ export default function Explorer() {
             <ReplayPanel key={walkEntry.id} route={walkRoute} channel={replayChannel} onBack={() => openWalk(walkEntry.id)} peekRef={replayPeek} halfRef={replayHalf} pillSlot={pillSlot} />
           ) : (
           <>
-          {/* 1. Le quartier : surtitre et titre (réduit, on n’en voit que le haut, coupé à mi-hauteur du titre). */}
+          {/* 1. Son journal (R-098) : surtitre et titre (réduit, on n’en voit que le haut, coupé à mi-hauteur du titre). */}
           <div className="flex min-w-0 flex-col gap-1">
-            <span className="text-milestone-dark surtitre">Le quartier</span>
+            {!dog.unnamed && <span className="text-milestone-dark surtitre">Son journal</span>}
             <h1 className="title-section relative">
-              Les balades {ofDog(dog)}
+              {dog.unnamed ? 'Son journal' : `Le journal ${ofDog(dog)}`}
               <span ref={peekRef} aria-hidden="true" className="absolute top-1/2 left-0 h-0 w-0" />
             </h1>
           </div>
-          {walks.length > 0 && (
-            <>
-              {/* V6.1 § 1 : une ligne de résumé ; elle suit le filtre. */}
-              <WalksSummary items={shown} />
-              {/* V6.1 § 3 : un seul choix, sans nombre sur la pastille. (« Spots de la meute » irait dans « Affichage »,
-                  mais la meute reste gelée, T-072.) */}
-              <div ref={filtersRow} role="group" aria-label="Filtrer les balades" className="scroll-row -mx-4 -my-1.5 flex gap-1.5 px-4">
-                {PANEL_FILTERS.map((f) => (
-                  <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)} className="flex min-h-11 shrink-0 items-center border-0 bg-transparent p-0">
-                    <span className={chip(filter === f.id)}>{f.label}</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-          {/* 2. Idées de balade (app iOS, avec la position). */}
+          {/* Le résumé de la semaine, puis les pastilles (un seul choix). */}
+          <WeekLine items={items} today={today} />
+          <div ref={filtersRow} role="group" aria-label="Choisir ce que montre le journal" className="scroll-row -mx-4 -my-1.5 flex gap-1.5 px-4">
+            {/* Venu de « Ses balades » avec un filtre : il reste visible, et se retire d’un toucher. */}
+            {filter !== 'toutes' && (
+              <button type="button" onClick={() => setFilter('toutes')} aria-label={`Retirer le filtre des balades\u00a0: ${filterLabel(filter)}`} className="flex min-h-11 shrink-0 items-center border-0 bg-transparent p-0">
+                <span className={`${chip(true)} gap-1.5`}>
+                  {filterLabel(filter)}
+                  <CloseIcon size={14} />
+                </span>
+              </button>
+            )}
+            {JOURNAL_PILLS.map((p) => (
+              <button key={p.id} type="button" aria-pressed={pill === p.id} onClick={() => setPill(p.id)} className="flex min-h-11 shrink-0 items-center border-0 bg-transparent p-0">
+                <span className={chip(pill === p.id)}>{p.label}</span>
+              </button>
+            ))}
+          </div>
+          {/* 2. Idées de balade (app iOS, avec la position), sous « Balades ». */}
           <LoopsBlock loops={loops} picked={idea?.item.id} onPick={pickIdea} onHide={() => setPref({ ideas: false })} headRef={ideasHead} />
-          {/* 3. Le journal, groupé par jour : un toucher sur une balade ouvre sa fiche (T-098). */}
-          {shown.length === 0 ? (
-            <div className="flex flex-col gap-3 pt-1">
-              <p className="text-[0.9412rem] leading-snug text-[#3F4946]">{emptyFilterText(filter)}</p>
-              {/* R-079 : l’accès à Santé seulement si on le choisit. */}
-              {walks.length === 0 && !readOnly && <WatchOptIn compact />}
-            </div>
-          ) : (
-            <Journal walks={shown} entries={entries} today={today} filter={filter} />
-          )}
+          {/* 3. Le journal, groupé par jour : un toucher sur une balade ouvre sa fiche dans le panneau (R-094). */}
+          <Journal items={items} pill={pill} today={today} filter={filter} empty={walks.length === 0} />
           </>
           )}
         </div>
@@ -512,26 +514,28 @@ export default function Explorer() {
   )
 }
 
-/**
- * V6.1 § 1 : « 12 balades · 18,4 km · 9 h 40 de balade », chiffres en gras, les trois valeurs réparties sur toute la
- * largeur. Elles suivent le filtre choisi.
- */
-function WalksSummary({ items }: { items: WalkItem[] }) {
-  const t = walksTotals(items)
+/** R-098 : « 3 balades · 7,1 km · 1 souvenir · 1 séance cette semaine », les nombres en gras ; rien : une phrase. */
+function WeekLine({ items, today }: { items: JournalItem<WalkItem>[]; today: string }) {
+  const parts = weekSummary(items, today)
   return (
-    <p className="flex flex-wrap justify-between gap-x-3 text-[0.8824rem] text-[#3F4946] tabular-nums" aria-live="polite">
-      <span className="whitespace-nowrap">
-        <b className="text-text">{t.count}</b> {t.countLabel}
-      </span>
-      <b className="whitespace-nowrap text-text">{t.distance}</b>
-      {t.time && (
-        <span className="whitespace-nowrap">
-          <b className="text-text">{t.time}</b> de balade
-        </span>
-      )}
+    <p className="text-[0.8824rem] leading-snug text-[#3F4946] tabular-nums" aria-live="polite">
+      {parts.length === 0
+        ? 'Rien de noté cette semaine.'
+        : parts.map((part, i) => (
+            <span key={part.label} className="whitespace-nowrap">
+              {i > 0 && ' · '}
+              <b className="text-text">{part.n}</b>
+              {'\u00a0'}
+              {part.label}
+            </span>
+          ))}
+      {parts.length > 0 && ' cette semaine'}
     </p>
   )
 }
+
+/** Le nom d’un filtre de balades venu de « Ses balades » (« Ce mois », « Plus de 3 km », une commune). */
+const filterLabel = (filter: WalkFilter) => (filter.startsWith('commune:') ? filter.slice(8) : (FILTERS.find((f) => f.id === filter)?.label ?? 'Filtre'))
 
 /** Un interrupteur d’« Affichage » (V6.1 § 2) : toute la ligne se touche, 44 px au moins. */
 function Switch({ label, hint, on, onChange }: { label: string; hint: string; on: boolean; onChange: (on: boolean) => void }) {
@@ -568,53 +572,102 @@ function IdeaLine({ idea, onClose }: { idea: Loop; onClose: () => void }) {
   )
 }
 
-/** Les balades montrées d’abord ; les suivantes arrivent quand on approche du bas du journal. */
-const JOURNAL_PAGE = 15
+/** Les éléments montrés d’abord ; les suivants arrivent quand on approche du bas du journal. */
+const JOURNAL_PAGE = 20
+
+/** L’état vide d’une pastille, avec de quoi le remplir. */
+const EMPTY_ACTIONS: Partial<Record<JournalPill, { to: string; label: string }>> = {
+  souvenirs: { to: '/noter', label: 'Noter un souvenir' },
+  seances: { to: '/billy', label: 'Voir ses compétences' },
+  sante: { to: '/sante', label: 'Ouvrir Santé' },
+}
 
 /**
- * Le journal (V6.1 § 4) : les balades du filtre, groupées par jour, et les souvenirs sans trajet de ces jours-là en
- * petite ligne. Rien d’autre en bas.
+ * Le journal (R-098) : jour par jour, les balades (carte miniature), les sorties notées sans trajet, les souvenirs,
+ * les séances et ce qui a été fait pour sa santé, selon la pastille choisie.
  */
-function Journal({ walks, entries, today, filter }: { walks: WalkItem[]; entries: WithId<Entry>[]; today: string; filter: WalkFilter }) {
+function Journal({ items, pill, today, filter, empty }: { items: JournalItem<WalkItem>[]; pill: JournalPill; today: string; filter: WalkFilter; /** Aucune balade du tout. */ empty: boolean }) {
+  const readOnly = useReadOnly()
+  const { entries } = useData()
   const [count, setCount] = useState(JOURNAL_PAGE)
   const more = useRef<HTMLDivElement>(null)
-  const visible = useMemo(() => walks.slice(0, count), [walks, count])
-  const memos = useMemo<JournalMemo[]>(
-    () => entries.filter((e) => !e.route?.points?.length && !e.id.startsWith('repos-') && (e.text.trim() || e.photos.length)).map((e) => ({ id: e.id, date: e.date, text: e.text.split('\n')[0] || 'Un souvenir', ...(e.createdAt ? { createdAt: e.createdAt } : {}), ...(e.photos[0] ? { thumb: e.photos[0].thumbFileId } : {}) })),
-    [entries],
-  )
-  const days = useMemo(() => journalDays(visible, memos, today), [visible, memos, today])
+  const all = useMemo(() => journalGroups(items, pill, today), [items, pill, today])
+  const total = useMemo(() => all.reduce((n, g) => n + g.items.length, 0), [all])
+  // Les premiers éléments seulement, jour par jour.
+  const days = useMemo(() => {
+    let left = count
+    return all.flatMap((g) => {
+      if (left <= 0) return []
+      const shownItems = g.items.slice(0, left)
+      left -= shownItems.length
+      return [{ ...g, items: shownItems }]
+    })
+  }, [all, count])
   // Les photos posées sur la carte de chaque balade : celles dont on connaît l’endroit.
   const photos = useMemo(() => new Map(entries.map((e) => [e.id, e.photos.flatMap((p) => (p.lat !== undefined && p.lng !== undefined ? [{ thumbFileId: p.thumbFileId, lat: p.lat, lng: p.lng }] : []))])), [entries])
+  useEffect(() => setCount(JOURNAL_PAGE), [pill])
   useEffect(() => {
     const el = more.current
-    if (!el || count >= walks.length) return
+    if (!el || count >= total) return
     const observer = new IntersectionObserver((seen) => seen.some((s) => s.isIntersecting) && setCount((c) => c + JOURNAL_PAGE), { rootMargin: '400px' })
     observer.observe(el)
     return () => observer.disconnect()
-  }, [count, walks.length])
+  }, [count, total])
+  if (days.length === 0) {
+    const action = readOnly ? undefined : EMPTY_ACTIONS[pill]
+    return (
+      <div className="flex flex-col gap-3 pt-1">
+        <p className="text-[0.9412rem] leading-snug text-[#3F4946]">{filter !== 'toutes' && pill === 'balades' ? 'Aucune balade pour ce filtre.' : emptyPillText(pill)}</p>
+        {action && (
+          <Link to={action.to} className="btn-text -ml-1 self-start">
+            {action.label}
+          </Link>
+        )}
+        {/* R-079 : l’accès à Santé seulement si on le choisit. */}
+        {empty && !readOnly && (pill === 'tout' || pill === 'balades') && <WatchOptIn compact />}
+      </div>
+    )
+  }
   return (
     <div className="flex flex-col gap-3">
       {days.map((day) => (
         <section key={day.date} aria-label={day.label} className="flex flex-col gap-2.5">
           <h2 className="mt-1 font-display text-[1rem] font-semibold">{day.label}</h2>
-          {day.rows.map((row) =>
-            row.kind === 'balade' ? (
+          {day.items.map((item) =>
+            item.kind === 'walk' ? (
               // R-094 : la balade s’ouvre dans le panneau, sur la même carte (au cran du milieu).
-              <JournalWalkCard key={row.walk.id} walk={row.walk} photos={photos.get(row.walk.id) ?? []} to={walkOnMap(row.walk.id, { filter })} replace />
+              <JournalWalkCard key={item.id} walk={item.walk} photos={photos.get(item.id) ?? []} to={walkOnMap(item.id, { filter })} replace />
             ) : (
-              <Link key={row.memo.id} to={`/souvenir/${encodeURIComponent(row.memo.id)}`} state={FROM_MAP} className="tap grid min-h-14 grid-cols-[44px_minmax(0,1fr)] items-center gap-2.5 rounded-field border border-solid border-[#E6EAE7] bg-surface p-2 text-text no-underline">
-                {row.memo.thumb ? <FileImage fileId={row.memo.thumb} alt="" className="size-11 rounded-[10px]" /> : <span aria-hidden="true" className="size-11 rounded-[10px] bg-gold-soft" />}
-                <span className="flex min-w-0 flex-col">
-                  <b className="truncate text-[0.9412rem]">{row.memo.text}</b>
-                  <span className="text-[0.8235rem] text-[#3F4946]">{memoLine(row.memo)}</span>
-                </span>
-              </Link>
+              <JournalRow key={`${item.kind}:${item.id}`} item={item} filter={filter} />
             ),
           )}
         </section>
       ))}
-      {count < walks.length && <div ref={more} aria-hidden="true" className="h-px" />}
+      {count < total && <div ref={more} aria-hidden="true" className="h-px" />}
     </div>
+  )
+}
+
+const ROW_ICONS = { outing: [ICONS.balades, '#E3EAF8'], memo: [ICONS.souvenirs, '#FCEFD3'], session: [ICONS.progres, '#DCEBE6'], care: [ICONS.sante, '#FBE6D4'], weight: [ICONS.sante, '#FBE6D4'] } as const
+
+/** Une ligne du journal : sortie notée, souvenir, séance, soin, pesée ; elle ouvre ce qu’elle montre. */
+function JournalRow({ item, filter }: { item: Exclude<JournalItem<WalkItem>, { kind: 'walk' }>; filter: WalkFilter }) {
+  // La sortie notée s’ouvre dans le panneau (R-095) ; le reste sur son écran, avec « ‹ La carte » pour revenir.
+  const to = item.kind === 'outing' ? outingOnMap(item.id, { filter }) : item.kind === 'care' ? `/evenement/${encodeURIComponent(item.id)}` : item.kind === 'weight' ? '/sante/poids' : `/souvenir/${encodeURIComponent(item.id)}`
+  const [icon, tint] = ROW_ICONS[item.kind]
+  return (
+    <Link to={to} replace={item.kind === 'outing'} state={item.kind === 'outing' ? undefined : FROM_MAP} className="tap grid min-h-14 grid-cols-[44px_minmax(0,1fr)] items-center gap-3 rounded-field border border-solid border-[#E6EAE7] bg-surface p-2.5 text-text no-underline">
+      {item.kind === 'memo' && item.thumb ? (
+        <FileImage fileId={item.thumb} alt="" className="size-11 rounded-[10px]" />
+      ) : (
+        <span aria-hidden="true" className="flex size-11 items-center justify-center rounded-[12px]" style={{ background: tint }}>
+          {icon}
+        </span>
+      )}
+      <span className="flex min-w-0 flex-col">
+        <b className="text-[0.9412rem] leading-snug">{item.title}</b>
+        <span className="text-[0.8235rem] leading-snug text-[#3F4946]">{item.line}</span>
+      </span>
+    </Link>
   )
 }

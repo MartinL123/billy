@@ -380,7 +380,7 @@ test('R-094 / R-096 · la fiche et la relecture dans le panneau de la carte des 
   await replay.getByRole('button', { name: 'La balade', exact: true }).click()
   await expect(app).toHaveURL(new RegExp(`#/territoire\\?balade=${entryId}$`))
   await sheet.getByRole('button', { name: 'Le journal' }).click()
-  await expect(app.locator('section[aria-label^="Les balades"]')).toBeVisible()
+  await expect(app.locator('section[aria-label="Son journal"]')).toBeVisible()
 
   // L'ancienne adresse de « Revoir la balade » mène à la relecture sur la carte.
   await goHash(app, `#/souvenir/${entryId}/revoir`)

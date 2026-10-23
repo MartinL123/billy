@@ -7,7 +7,7 @@ import { newUser, seedProfile } from './emulator'
 // donc qui prend chaque mouvement (le panneau bouge-t-il, le défilement est-il empêché ?). Le vrai défilement d'iOS et
 // son élan restent à essayer sur l'iPhone.
 
-const panel = (page: Page) => page.locator('section[aria-label^="Les balades"]')
+const panel = (page: Page) => page.locator('section[aria-label="Son journal"]')
 
 /** La position du panneau (translateY) et le défilement de sa liste. */
 async function state(page: Page) {
@@ -43,7 +43,7 @@ async function swipe(page: Page, from: number, to: number, steps = 12) {
         await wait()
         prevented.push(fire('touchmove', from + ((to - from) * i) / steps))
         if (i === Math.round(steps / 2)) {
-          const el = document.querySelector<HTMLElement>('section[aria-label^="Les balades"]')!
+          const el = document.querySelector<HTMLElement>('section[aria-label="Son journal"]')!
           middle = new DOMMatrix(getComputedStyle(el).transform).m42
         }
       }

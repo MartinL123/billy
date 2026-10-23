@@ -373,8 +373,14 @@ test('R-094 / R-096 · la fiche et la relecture dans le panneau de la carte des 
   await sheet.getByRole('button', { name: 'Revoir la balade' }).click()
   await expect(app).toHaveURL(/&revoir=1$/)
   const replay = app.locator('section[aria-label="Revoir la balade"]')
-  await expect(replay.getByRole('button', { name: 'Pause' })).toBeVisible()
   await expect(replay.getByRole('button', { name: '× 4', pressed: true })).toBeVisible()
+  // R-101 : à × 4, la balade de test (24 points, 6 min) se relit en 1,4 s : elle peut être finie avant d'être
+  // vérifiée. À × 0,5 (12 s), « Lecture » la relance depuis le début si elle était déjà au bout.
+  await replay.getByRole('button', { name: '× 0,5' }).click()
+  await expect(replay.getByRole('button', { name: '× 0,5', pressed: true })).toBeVisible()
+  const lecture = replay.getByRole('button', { name: 'Lecture' })
+  if (await lecture.isVisible()) await lecture.click()
+  await expect(replay.getByRole('button', { name: 'Pause' })).toBeVisible()
   await replay.getByRole('button', { name: 'Pause' }).click()
   await expect(replay.getByRole('button', { name: 'Lecture' })).toBeVisible()
   await replay.getByRole('button', { name: 'La balade', exact: true }).click()

@@ -32,7 +32,7 @@ export default function LoopScreen() {
   return (
     <main className="fixed inset-0 mx-auto flex max-w-[430px] flex-col bg-bg">
       <div className="relative min-h-0 flex-1">
-        <WalkMap route={path} dogName={dog.name} className="h-full" />
+        <WalkMap route={path} className="h-full" />
         <div className="absolute top-0 left-0 z-10 px-4 pt-[calc(env(safe-area-inset-top)+4px)]">
           <span className="block rounded-full bg-surface/95 pr-1 shadow-float">
             <BackLink label="La carte" onClick={back} className="pl-[7px]" />

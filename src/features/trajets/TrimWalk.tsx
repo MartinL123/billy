@@ -20,7 +20,7 @@ import { WalkMap } from './WalkMap'
  */
 export default function TrimWalk() {
   const { id } = useParams()
-  const { entries, dog } = useData()
+  const { entries } = useData()
   const readOnly = useReadOnly()
   const navigate = useNavigate()
   const toast = useToast()
@@ -61,7 +61,7 @@ export default function TrimWalk() {
       <header className="flex items-center px-4 pt-[calc(env(safe-area-inset-top)+4px)] pb-1">
         <BackLink label={fromForm ? 'Modifier' : 'La balade'} onClick={back} />
       </header>
-      <WalkMap route={preview} dogName={dog.name} className="h-[30dvh] min-h-[150px]" />
+      <WalkMap route={preview} className="h-[30dvh] min-h-[150px]" />
       <div className="flex flex-1 flex-col gap-4 px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+112px)]">
         <div className="flex flex-col gap-1">
           <h1 className="title-section">Ajuster le début et la fin</h1>

@@ -22,7 +22,7 @@ import { ToProfile } from './ToProfile'
  */
 export default function TellWalk() {
   const { id } = useParams()
-  const { entries, dog, bones } = useData()
+  const { entries, bones } = useData()
   const readOnly = useReadOnly()
   const today = useToday()
   const toast = useToast()
@@ -99,7 +99,7 @@ export default function TellWalk() {
           {step + 1} sur {queue.length}
         </span>
       </header>
-      <WalkMap route={route} dogName={dog.name} focus={{ lat: place.lat, lng: place.lng, ...(item.kind === 'stop' ? { number: item.stopIndex + 1 } : {}) }} className="h-[38dvh] min-h-[180px]" />
+      <WalkMap route={route} focus={{ lat: place.lat, lng: place.lng, ...(item.kind === 'stop' ? { number: item.stopIndex + 1 } : {}) }} className="h-[38dvh] min-h-[180px]" />
       <main key={step} className="anim-in flex flex-1 flex-col gap-3 px-5 pt-4 pb-[calc(env(safe-area-inset-bottom)+20px)]">
         <span className="surtitre text-primary">{item.kind === 'stop' ? `Arrêt ${item.stopIndex + 1}` : 'Repère posé pendant la balade'}</span>
         <h1 className="title-section -mt-2">Que s’est-il passé ici ?</h1>

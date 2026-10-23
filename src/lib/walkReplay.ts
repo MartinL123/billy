@@ -1,6 +1,7 @@
 import { parisMinutes } from './activity'
 import { formatDayHeading, type ISODate } from './dates'
-import { cumulative, pointAlong } from './replay'
+import { distanceMeters } from './community'
+import { bearing, cumulative, pointAlong } from './replay'
 import type { Route } from './route'
 import { effectiveTrack } from './trim'
 import { clockAt, clockLabel, streetAt } from './walkSheet'
@@ -62,4 +63,25 @@ export function replayAt(route: Pick<Route, 'points' | 'track' | 'trimmed' | 'du
 export function photoWhen(date: ISODate, time?: string): string {
   const clock = time && !Number.isNaN(Date.parse(time)) ? clockLabel(parisMinutes(time)) : undefined
   return [formatDayHeading(date), clock].filter(Boolean).join(' · ')
+}
+
+/** R-096 : la caméra regarde ce qui vient dans les 45 s de balade suivantes (≈ 50 m à pied). */
+export const REPLAY_LOOK_S = 45
+
+/**
+ * R-096 : le cap de la caméra en 3ᵉ personne à la seconde `s` : de la position du chien vers celle qu’il aura un peu plus
+ * loin (en fin de balade : depuis celle qu’il avait un peu avant). Rien s’il ne bouge pas (un arrêt) : la caméra garde
+ * son cap.
+ */
+export function replayHeading(route: Parameters<typeof replayAt>[0], s: number): number | undefined {
+  const span = replaySpan(route)
+  if (!span) return undefined
+  const here = replayAt(route, s)
+  const ahead = replayAt(route, Math.min(span[1], s + REPLAY_LOOK_S))
+  const behind = replayAt(route, Math.max(span[0], s - REPLAY_LOOK_S))
+  if (!here) return undefined
+  const far = (a?: { lat: number; lng: number }, b?: { lat: number; lng: number }) => Boolean(a && b && distanceMeters(a, b) >= 5)
+  if (far(here, ahead)) return bearing([here.lat, here.lng], [ahead!.lat, ahead!.lng])
+  if (far(behind, here)) return bearing([behind!.lat, behind!.lng], [here.lat, here.lng])
+  return undefined
 }

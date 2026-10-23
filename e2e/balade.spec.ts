@@ -346,3 +346,37 @@ test('T-101 · exercice au parc : après 30 s dans un parc, le bandeau une seule
   await expect(banner).toHaveCount(0)
   expect(fake.recording).toBe(true)
 })
+
+// R-094 / R-096 : une seule carte. La fiche d'une balade s'ouvre dans le panneau de l'onglet Balades ; « Revoir la
+// balade » passe le panneau en lecture sur la même carte ; les retours ramènent à la fiche puis au journal.
+test('R-094 / R-096 · la fiche et la relecture dans le panneau de la carte des Balades', async ({ fake, user, app }) => {
+  await startWalk(app)
+  await fake.walkPoints(app, 24)
+  await finishButton(app).click()
+  await expect(bravo(app)).toBeVisible()
+  await expectServerWalks(user, 1)
+  const entryId = (await serverWalks(user.uid))[0]!.name.split('/').pop()
+  await goHash(app, `#/souvenir/${entryId}`)
+  await expect(app).toHaveURL(new RegExp(`#/territoire\\?balade=${entryId}$`))
+  const sheet = app.locator('section[aria-label="La balade"]')
+  await expect(sheet.getByRole('button', { name: 'Revoir la balade' })).toBeVisible()
+  await expect(sheet.getByRole('link', { name: 'Raconter' })).toBeVisible()
+  // Pas d'action orange sur la fiche : « Partir en balade » reste au journal.
+  await expect(app.locator('.btn-main')).toHaveCount(0)
+
+  await sheet.getByRole('button', { name: 'Revoir la balade' }).click()
+  await expect(app).toHaveURL(/&revoir=1$/)
+  const replay = app.locator('section[aria-label="Revoir la balade"]')
+  await expect(replay.getByRole('button', { name: 'Pause' })).toBeVisible()
+  await expect(replay.getByRole('button', { name: '× 4', pressed: true })).toBeVisible()
+  await replay.getByRole('button', { name: 'Pause' }).click()
+  await expect(replay.getByRole('button', { name: 'Lecture' })).toBeVisible()
+  await replay.getByRole('button', { name: 'La balade', exact: true }).click()
+  await expect(app).toHaveURL(new RegExp(`#/territoire\\?balade=${entryId}$`))
+  await sheet.getByRole('button', { name: 'Le journal' }).click()
+  await expect(app.locator('section[aria-label^="Les balades"]')).toBeVisible()
+
+  // L'ancienne adresse de « Revoir la balade » mène à la relecture sur la carte.
+  await goHash(app, `#/souvenir/${entryId}/revoir`)
+  await expect(app).toHaveURL(/&revoir=1$/)
+})

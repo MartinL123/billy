@@ -12,7 +12,7 @@ import { WalkRecap } from './WalkRecap'
  */
 export default function WalkArrival() {
   const { id } = useParams()
-  const { entries, dog } = useData()
+  const { entries } = useData()
   const navigate = useNavigate()
   const entry = entries.find((e) => e.id === id)
   const route = useMemo(() => readRoute(entry?.route), [entry?.route])
@@ -21,7 +21,7 @@ export default function WalkArrival() {
     <main className="fixed inset-0 mx-auto flex max-w-[430px] flex-col bg-bg">
       <div className="relative min-h-0 flex-1">
         <div className="absolute inset-0">
-          <WalkMap route={route} dogName={dog.name} className="size-full" />
+          <WalkMap route={route} className="size-full" />
         </div>
         <button type="button" onClick={() => navigate('/', { replace: true })} aria-label="Fermer" className="tap absolute top-[calc(env(safe-area-inset-top)+12px)] right-4 z-10 flex size-11 items-center justify-center rounded-full border-0 bg-surface text-text shadow-float">
           <CloseIcon size={20} />

@@ -1,7 +1,8 @@
 import type { GeoJSONSource } from 'maplibre-gl'
-import { addMarker, dot, fitPoints, lngLat, ROUTE_COLOR, ROUTE_FAST_COLOR, ROUTE_STOP_COLOR, setDirectionArrows, setLine, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
+import { addMarker, cameraMs, dot, fitPoints, lngLat, ROUTE_COLOR, ROUTE_FAST_COLOR, ROUTE_STOP_COLOR, setDirectionArrows, setLine, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
 import { loadFile } from '../../firebase/files'
 import { distanceMeters } from '../../lib/community'
+import { turnToward } from '../../lib/replay'
 import type { Route } from '../../lib/route'
 import { effectiveTrack } from '../../lib/trim'
 import { paceSegments } from '../../lib/walkSheet'
@@ -137,5 +138,60 @@ export function showWalk(m: MapLibreMap, route: Route, photos: WalkPhoto[], onPh
       setLine(m, 'balade-liseré', [], { color: '#FFFFFF', width: 9 })
       setWalkLine(m, [])
     })
+  }
+}
+
+/** Une image de la relecture : où est le chien, vers où il marche, et si la caméra le suit. */
+export interface ReplayFrame {
+  at: { lat: number; lng: number }
+  heading?: number
+  follow: boolean
+}
+
+/**
+ * R-096 : le lien entre la relecture (son horloge, dans le panneau) et la carte. Le panneau y écrit l’image du moment
+ * et appelle `draw` ; la carte y met `draw` et prévient par `onTouch` quand on la touche (la lecture se met en pause).
+ */
+export interface ReplayChannel {
+  frame?: ReplayFrame
+  draw?: () => void
+  onTouch?: () => void
+}
+
+/**
+ * R-096 : « Revoir la balade » en 3ᵉ personne, menée par l’horloge de lecture (T-108) : le chien (un rond orange) sur
+ * le tracé et, s’il est suivi, la caméra inclinée derrière lui, tournée vers où il marche (en douceur). Les marges
+ * (`padding()`) gardent le chien au-dessus du panneau. À l’arrêt, la carte revient à plat sur toute la balade.
+ */
+export function replayLayer(m: MapLibreMap, route: Route, dogName: string, padding: () => Padding) {
+  const runner = addMarker(m, route.points[0] ?? [0, 0], dot('#BF5519', 24, dogName))
+  let heading: number | undefined
+  // La caméra glisse vers le chien la première fois, puis le suit image par image.
+  let easingUntil = 0
+  let followed = false
+  return {
+    move({ at, heading: target, follow }: ReplayFrame) {
+      runner.setLngLat(lngLat([at.lat, at.lng]))
+      if (!follow) {
+        followed = false
+        return
+      }
+      if (target !== undefined) heading = heading === undefined || !followed ? target : turnToward(heading, target, 0.08)
+      const pad = padding()
+      const camera = { center: lngLat([at.lat, at.lng]), pitch: 60, zoom: 16.5, padding: { top: pad.top, bottom: pad.bottom, left: 0, right: 0 }, ...(heading !== undefined ? { bearing: heading } : {}) }
+      const now = performance.now()
+      if (!followed) {
+        followed = true
+        const ms = cameraMs(600)
+        easingUntil = now + ms
+        if (ms) return void m.easeTo({ ...camera, duration: ms })
+      }
+      if (now < easingUntil) return
+      m.jumpTo(camera)
+    },
+    stop() {
+      runner.remove()
+      fitPoints(m, route.points, padding(), true, { pitch: 0, bearing: 0 })
+    },
   }
 }

@@ -3,7 +3,7 @@ import type { GeoJSONSource } from 'maplibre-gl'
 import { addMarker, cameraMs, createMap, dot, fitPoints, lngLat, onMarker, set3D, setSatellite, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
 import { fogLayout, type FogLayout } from '../../lib/fogCanvas'
 import { distanceToRoute, NEAR_ROUTE, type Route } from '../../lib/route'
-import { showWalk, type WalkPhoto } from './walkLayer'
+import { replayLayer, showWalk, type ReplayChannel, type WalkPhoto } from './walkLayer'
 import { ofName } from '../../lib/gender'
 import { fitPadding, type Padding } from '../../lib/mapFrame'
 
@@ -80,6 +80,8 @@ interface Props {
     cursor?: { lat: number; lng: number }
     /** « Voir sur la carte » d’une photo : la carte y va (`n` change à chaque demande). */
     center?: { lat: number; lng: number; n: number }
+    /** R-096 : la relecture en 3ᵉ personne, menée par le panneau. */
+    replay?: { current: ReplayChannel }
   }
 }
 
@@ -242,6 +244,11 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     m.on('mouseleave', 'trajets', () => {
       m.getCanvas().style.cursor = ''
     })
+    // R-096 : toucher la carte pendant la relecture la met en pause (on regarde autour sans que la caméra reparte).
+    const press = () => handlers.current.walk?.replay?.current.onTouch?.()
+    m.on('mousedown', press)
+    m.on('touchstart', press)
+    m.on('wheel', press)
     // Le tracé d’une balade touché (ou tout près), hors celle déjà mise en avant.
     const walkAt = ({ x, y }: { x: number; y: number }, except?: string) =>
       m.getLayer('trajets')
@@ -251,6 +258,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
       if (onMarker(e.originalEvent)) return
       const w = handlers.current.walk
       handlers.current.onMapTap?.()
+      if (w?.replay) return
       const id = walkAt(e.point, w?.id)
       if (!w) {
         // Un tracé touché : cette balade passe au premier plan.
@@ -334,7 +342,7 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
   }, [walkRoute, walkPhotos, walkColor])
 
   // Le panneau monte ou descend (T-107) : la balade se recadre dans ce qui reste visible ; une photo demandée reste au
-  // centre.
+  // centre ; pendant la relecture, la caméra garde le chien au-dessus du panneau.
   const padKey = walk ? `${walk.padding.top},${walk.padding.bottom}` : ''
   const lastPad = useRef(padKey)
   useEffect(() => {
@@ -342,7 +350,9 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     const before = lastPad.current
     lastPad.current = padKey
     if (!m || !walkRoute || !before || before === padKey) return
-    const c = handlers.current.walk?.center
+    const w = handlers.current.walk
+    if (w?.replay) return w.replay.current.draw?.()
+    const c = w?.center
     whenReady(m, () => (c ? m.easeTo({ center: lngLat([c.lat, c.lng]), padding: walkPad(), duration: cameraMs(400) }) : fitPoints(m, walkRoute.points, walkPad(), true)))
   }, [padKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -362,6 +372,21 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     const marker = addMarker(m, [cursor.lat, cursor.lng], dot('#F2B544', 20, 'Ici'))
     return () => void marker.remove()
   }, [cursor?.lat, cursor?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // R-096 : « Revoir la balade » en 3ᵉ personne : la carte suit l’horloge de lecture du panneau.
+  const replay = walk?.replay
+  useEffect(() => {
+    const m = map.current
+    if (!m || !replay || !walkRoute) return
+    const channel = replay.current
+    const layer = replayLayer(m, walkRoute, dogName, walkPad)
+    channel.draw = () => channel.frame && layer.move(channel.frame)
+    channel.draw()
+    return () => {
+      channel.draw = undefined
+      layer.stop()
+    }
+  }, [replay, walkRoute]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Centrer sur le lieu ouvert, dans la partie de carte au-dessus de la fenêtre.
   useEffect(() => {

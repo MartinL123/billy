@@ -112,3 +112,8 @@ export function SharedWithPack({ entry, dogName }: { entry: { id: string; date: 
   )
 }
 
+/** R-096 : l’ancienne adresse de « Revoir la balade » (`/souvenir/<id>/revoir`) ouvre la relecture sur la carte des Balades. */
+export function ReplayRedirect() {
+  const { id } = useParams()
+  return <Navigate to={id ? walkOnMap(id, { replay: true }) : '/territoire'} replace />
+}

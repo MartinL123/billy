@@ -2,8 +2,8 @@ import type { Route } from './route'
 import type { Snap } from './sheetSnap'
 import { tellQueue } from './walkTell'
 
-// R-094 « Une seule carte » : l’onglet Balades n’a qu’une carte ; son panneau montre le journal ou la fiche d’une
-// balade. Ce que dit l’adresse, en fonctions pures (testées).
+// R-094 « Une seule carte » : l’onglet Balades n’a qu’une carte ; son panneau montre le journal, la fiche d’une balade
+// ou sa relecture (R-096). Ce que dit l’adresse, en fonctions pures (testées).
 
 export type PanelMode = { kind: 'journal' } | { kind: 'sheet'; id: string } | { kind: 'replay'; id: string }
 

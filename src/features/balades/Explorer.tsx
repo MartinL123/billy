@@ -23,12 +23,15 @@ import { LoopsBlock } from './LoopsBlock'
 import { HOME_CLEARANCE, useSheet, type Snap } from './useSheet'
 import { PlaceMoment } from '../trajets/PlaceMoment'
 import { WalkSheet } from '../trajets/WalkSheet'
+import { ReplayPanel } from './ReplayPanel'
+import type { ReplayChannel } from './walkLayer'
 import { updateEntryRoute } from '../../firebase/db'
 import { readRoute, storeRoute, type Route } from '../../lib/route'
 import { useGrantedPosition } from '../../lib/useGrantedPosition'
 import { formatRouteDistance } from '../../lib/route'
 import { journalOnMap, panelMode, walkOnMap } from '../../lib/mapPanel'
 import { photoPins, type PhotoPin } from '../../lib/walkFiche'
+import { replaySpan } from '../../lib/walkReplay'
 import type { Padding } from '../../lib/mapFrame'
 import { useBack } from '../../lib/useBack'
 import { modernCard } from '../../lib/carnet'
@@ -52,7 +55,8 @@ const toggle = (on: boolean) => `min-h-11 rounded-full border-0 px-3.5 text-[0.8
 
 /**
  * La carte qui se découvre (maquettes V3-Explorer, V4-Balades) : le territoire de Billy. R-094 « Une seule carte » :
- * son panneau montre le journal ou la fiche d’une balade (`?balade=`), toujours sur cette même carte.
+ * son panneau montre le journal, la fiche d’une balade (`?balade=`) ou sa relecture en 3ᵉ personne (`&revoir=1`,
+ * R-096), toujours sur cette même carte.
  */
 export default function Explorer() {
   const { dog, entries, fog } = useData()
@@ -131,19 +135,20 @@ export default function Explorer() {
   const focusAt = selected?.spot
   const focus = useMemo<[number, number] | undefined>(() => (focusAt ? [focusAt.lat, focusAt.lng] : undefined), [focusAt?.lat, focusAt?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // R-094 : ce que montre le panneau, lu dans l’adresse : le journal ou la fiche d’une balade.
+  // R-094 : ce que montre le panneau, lu dans l’adresse : le journal, la fiche d’une balade ou sa relecture.
   const mode = panelMode(params)
   const walkId = mode.kind === 'journal' ? null : mode.id
   const found = walkId ? entries.find((e) => e.id === walkId) : undefined
   const walkEntry = useMemo(() => (found ? modernCard(found) : undefined), [found])
   const walkRoute = useMemo(() => readRoute(walkEntry?.route), [walkEntry?.route])
-  const kind: 'journal' | 'sheet' = !walkEntry || !walkRoute ? 'journal' : 'sheet'
+  const canReplay = Boolean(walkRoute && replaySpan(walkRoute))
+  const kind: 'journal' | 'sheet' | 'replay' = !walkEntry || !walkRoute ? 'journal' : mode.kind === 'replay' && canReplay ? 'replay' : 'sheet'
   // Ouverte depuis un autre écran (Accueil, Billy…) : le retour y ramène et le dit (« ‹ Accueil »).
   const retour = (location.state as { retour?: string } | null)?.retour
   const back = useBack(journalOnMap(filter))
 
-  // R-077 : le panneau à trois crans dans tous les modes ; réduit, il garde le titre du journal ou le résumé d’une
-  // balade.
+  // R-077 : le panneau à trois crans dans tous les modes ; réduit, il garde le titre du journal, le résumé d’une
+  // balade, ou la lecture et sa barre.
   const peekRef = useRef<HTMLDivElement>(null)
   const footerRef = useRef<HTMLDivElement>(null)
   const [footerHeight, setFooterHeight] = useState(0)
@@ -160,12 +165,15 @@ export default function Explorer() {
   // fixée en bas ; réduit, le panneau se colle à la barre d’onglets (sans action), le titre coupé à mi-hauteur.
   const ideasHead = useRef<HTMLDivElement>(null)
   const filtersRow = useRef<HTMLDivElement>(null)
-  // La fiche : réduit, le résumé (jusqu’à « Revoir » et « Raconter »).
+  // La fiche : réduit, le résumé (jusqu’à « Revoir » et « Raconter ») ; la relecture : réduit, lecture et barre, au
+  // milieu, les vitesses aussi.
   const sheetPeek = useRef<HTMLDivElement>(null)
+  const replayPeek = useRef<HTMLDivElement>(null)
+  const replayHalf = useRef<HTMLDivElement>(null)
   const snapParam = SNAPS.find((c) => c === params.get('cran'))
   const sheet = useSheet({
-    peekRef: kind === 'journal' ? peekRef : sheetPeek,
-    halfRef: kind === 'journal' ? (loops.length ? ideasHead : filtersRow) : undefined,
+    peekRef: kind === 'journal' ? peekRef : kind === 'sheet' ? sheetPeek : replayPeek,
+    halfRef: kind === 'journal' ? (loops.length ? ideasHead : filtersRow) : kind === 'replay' ? replayHalf : undefined,
     bottomInset: kind === 'journal' ? footerHeight || HOME_CLEARANCE : HOME_CLEARANCE,
     ...(kind === 'journal' ? { peekInset: 0, peekGap: 0 } : {}),
     start: snapParam ?? 'half',
@@ -184,7 +192,7 @@ export default function Explorer() {
     setViewer(null)
     setCursor(undefined)
     setPhotoAt(undefined)
-    sheet.setSnap(snapParam ?? 'half')
+    sheet.setSnap(kind === 'replay' ? 'half' : (snapParam ?? 'half'))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modeKey])
 
@@ -203,7 +211,9 @@ export default function Explorer() {
   const pins = useMemo(() => (walkEntry && walkRoute ? photoPins(walkEntry.photos, walkRoute) : []), [walkEntry, walkRoute])
   const [placing, setPlacing] = useState<{ lat: number; lng: number } | null>(null)
   const saveMoments = (moments: Route['moments']) => walkEntry && walkRoute && updateEntryRoute(walkEntry.id, storeRoute({ ...walkRoute, moments }))
-  // Dans l’onglet, passer du journal à une balade et revenir ne laisse pas d’entrée en double dans
+  // R-096 : le lien entre l’horloge de la relecture (dans le panneau) et la caméra de la carte.
+  const replayChannel = useRef<ReplayChannel>({})
+  // Dans l’onglet, passer du journal à une balade, à sa relecture, et revenir ne laisse pas d’entrée en double dans
   // l’historique (T-024) ; l’écran d’où l’on vient (`retour`) reste connu.
   const go = (to: string) => navigate(to, { replace: true, state: location.state })
   const openWalk = (id: string, snap?: Snap) => go(walkOnMap(id, { snap, filter }))
@@ -218,12 +228,13 @@ export default function Explorer() {
           onTapRoute: (at: { lat: number; lng: number }) => !readOnly && kind === 'sheet' && setPlacing(at),
           // Une petite fenêtre de lieu ouverte : le toucher la referme seulement.
           onLeave: () => !selectedId && toJournal(),
-          onPhoto: (index: number) => setViewer(index),
+          onPhoto: (index: number) => kind === 'sheet' && setViewer(index),
           // V6 § 1 : la balade ouverte, en vert carte (colorée par allure si on la connaît).
           color: ROUTE_COLOR,
           padding: mapPad,
           cursor,
           center: photoAt,
+          ...(kind === 'replay' ? { replay: replayChannel } : {}),
         }
       : undefined
   // T-098 : le filtre et le cran du panneau dans l’adresse (sans nouvelle entrée d’historique) : le retour d’une balade
@@ -249,6 +260,8 @@ export default function Explorer() {
     sheet.setSnap('collapsed')
     setPhotoAt((p) => ({ lat: pin.lat, lng: pin.lng, n: (p?.n ?? 0) + 1 }))
   }
+  // L’heure et la rue de la relecture, posées en haut à droite de la carte.
+  const [pillSlot, setPillSlot] = useState<HTMLDivElement | null>(null)
   // La boussole : l’aiguille suit la carte ; un toucher la remet face au nord.
   const [bearing, setBearing] = useState(0)
   const [north, setNorth] = useState(0)
@@ -281,7 +294,9 @@ export default function Explorer() {
 
       {/* En haut, 2 pilules seulement (V5) : « Affichage » à gauche, « Me situer » à droite. Pincer pour zoomer. */}
       {/* Toujours au-dessus du panneau du bas (R-033), même ouvert sur un petit écran. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 px-3 pt-[calc(env(safe-area-inset-top)+8px)]">
+      {/* R-096 : pendant la relecture, l’heure et la rue à leur place (la carte suit le chien). */}
+      {kind === 'replay' && <div ref={setPillSlot} className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-end px-3 pt-[calc(env(safe-area-inset-top)+8px)] pl-16" />}
+      <div className={`pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 px-3 pt-[calc(env(safe-area-inset-top)+8px)] ${kind === 'replay' ? 'hidden' : ''}`}>
         <div className="flex flex-col items-start gap-2">
           <MapButton kind="display" aria-expanded={display} onClick={() => setDisplay(!display)} />
           {display && (
@@ -335,7 +350,7 @@ export default function Explorer() {
           bas (le haut du panneau collé à la barre), à mi-hauteur, en grand (sous « Affichage » et « Me situer »). */}
       <section
         ref={sheet.ref}
-        aria-label={kind === 'journal' ? `Les balades ${ofDog(dog)}` : 'La balade'}
+        aria-label={kind === 'journal' ? `Les balades ${ofDog(dog)}` : kind === 'sheet' ? 'La balade' : 'Revoir la balade'}
         {...sheet.handlers}
         style={sheet.style}
         className={`absolute inset-x-0 top-[calc(env(safe-area-inset-top)+62px)] bottom-0 z-10 mx-auto flex max-w-[430px] ${selected ? 'invisible' : ''} flex-col rounded-t-panel bg-surface px-4 shadow-[0_-6px_20px_rgba(0,0,0,0.10)]`}
@@ -358,13 +373,15 @@ export default function Explorer() {
               pins={pins}
               backLabel={retour ?? 'Le journal'}
               onBack={retour ? back : toJournal}
-              {...(walkRoute.points.length > 1 ? { onReplay: () => navigate(`/souvenir/${walkEntry.id}/revoir`) } : {})}
+              {...(canReplay ? { onReplay: () => go(walkOnMap(walkEntry.id, { replay: true, filter })) } : {})}
               onCursor={setCursor}
               viewer={viewer}
               onViewer={setViewer}
               onShowOnMap={showOnMap}
               peekRef={sheetPeek}
             />
+          ) : kind === 'replay' && walkEntry && walkRoute ? (
+            <ReplayPanel key={walkEntry.id} route={walkRoute} channel={replayChannel} onBack={() => openWalk(walkEntry.id)} peekRef={replayPeek} halfRef={replayHalf} pillSlot={pillSlot} />
           ) : (
           <>
           {/* 1. Le quartier : surtitre et titre (réduit, on n’en voit que le haut, coupé à mi-hauteur du titre). */}

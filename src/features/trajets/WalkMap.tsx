@@ -1,30 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GeoJSONSource } from 'maplibre-gl'
-import { addMarker, cameraMs, createMap, dot, fitPoints, lngLat, ROUTE_COLOR, ROUTE_FAST_COLOR, ROUTE_STOP_COLOR, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
+import { addMarker, cameraMs, createMap, dot, fitPoints, lngLat, whenReady, type LatLng, type MapLibreMap, type Marker } from '../../components/maplibre'
 import { routeMomentInfo, type Route } from '../../lib/route'
-import { paceSegments } from '../../lib/walkSheet'
 import { directionArrows } from '../../lib/walkFacts'
-import { effectiveTrack } from '../../lib/trim'
-import type { PaceCategory } from '../../lib/walkStory'
-import { photoMarker } from '../balades/walkLayer'
-import { fitPadding, type Padding } from '../../lib/mapFrame'
-import type { PhotoPin } from '../../lib/walkFiche'
+import { stopMarker, walkSegments } from '../balades/walkLayer'
+import { fitPadding } from '../../lib/mapFrame'
 import { momentMarker } from './momentIcons'
 
-const PACE_COLORS: Record<PaceCategory, string> = { tranquille: ROUTE_COLOR, rapide: ROUTE_FAST_COLOR, arret: ROUTE_STOP_COLOR }
-/** Un arrêt numéroté : gris foncé (le chiffre blanc reste lisible), rouge avec un moment de stress. */
-const STOP_GREY = '#5C6662'
-const STOP_RED = '#C4423A'
 const PAD = { top: 28, bottom: 28, left: 28, right: 28 }
-
-/** Le rond numéroté d’un arrêt (22 px), en élément DOM pour MapLibre. */
-function stopMarker(n: number, red: boolean, size = 22): HTMLElement {
-  const el = document.createElement('span')
-  el.textContent = String(n)
-  el.title = `Arrêt ${n}`
-  el.style.cssText = `display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:50%;background:${red ? STOP_RED : STOP_GREY};color:#fff;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);box-sizing:border-box;font:700 12px Figtree,sans-serif`
-  return el
-}
 
 /** T-102 : une flèche du sens de marche (chevron blanc cerné), tournée selon le cap du tracé (la carte ne tourne pas). */
 function arrowMarker(deg: number): HTMLElement {
@@ -36,22 +19,21 @@ function arrowMarker(deg: number): HTMLElement {
 }
 
 /**
- * La carte de la fiche de balade (V6 § 6.1) : le tracé coloré par allure (sinon en vert carte), le départ en vert, les
- * arrêts numérotés, les repères qui ne sont pas sur un arrêt, et le sens de marche (flèches, T-102). Sans geste (la page défile par-dessus) : le plein écran
- * ouvre la carte du territoire. `cursor` : le repère posé par le doigt sur la courbe d’allure ; `focus` : un arrêt à
- * regarder de près (mode « Raconter la balade »).
+ * La petite carte d’une balade (récap, « Raconter la balade », recadrage, boucle) : le tracé coloré par allure (sinon en
+ * vert carte), le départ en vert, les arrêts numérotés, les repères qui ne sont pas sur un arrêt, et le sens de marche
+ * (flèches, T-102). Sans geste. `focus` : un arrêt à regarder de près (mode « Raconter la balade »). La fiche d’une
+ * balade, elle, est sur la carte de l’onglet Balades (R-094).
  */
-export function WalkMap({ route, dogName, cursor, focus, runner, className = '', padding = PAD, photos = [], onPhoto, interactive = false, center }: { route: Route; dogName: string; cursor?: { lat: number; lng: number }; focus?: { lat: number; lng: number; number?: number }; /** T-108 : « Revoir la balade » : le point qui avance sur le trajet. */ runner?: { lat: number; lng: number }; className?: string; /** T-107 : la partie de la carte couverte (boutons en haut, panneau en bas) ; le tracé se cadre dans le reste. */ padding?: Padding; /** T-107 : les photos, en miniatures là où elles ont été prises. */ photos?: PhotoPin[]; onPhoto?: (index: number) => void; /** T-107 : la carte en grand se déplace et se zoome au doigt. */ interactive?: boolean; /** T-108 : « Voir sur la carte » d’une photo : la carte s’y déplace. */ center?: { lat: number; lng: number } }) {
+export function WalkMap({ route, focus, className = '' }: { route: Route; focus?: { lat: number; lng: number; number?: number }; className?: string }) {
   const host = useRef<HTMLDivElement>(null)
-  const pad = () => (host.current ? fitPadding(padding, host.current.clientWidth, host.current.clientHeight, 0.2) : padding)
+  const pad = () => (host.current ? fitPadding(PAD, host.current.clientWidth, host.current.clientHeight, 0.2) : PAD)
   const map = useRef<MapLibreMap | null>(null)
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     if (!host.current) return
     const points = route.points as LatLng[]
-    // Toujours interactive pour MapLibre, ses gestes coupés tant que la carte n’est pas « en grand » (plus bas).
-    const m = createMap(host.current, { interactive: true, ...(focus ? { center: [focus.lat, focus.lng], zoom: 17 } : points.length > 1 ? { bounds: { points, padding: pad() } } : points[0] ? { center: points[0], zoom: 16 } : {}) })
+    const m = createMap(host.current, { interactive: false, ...(focus ? { center: [focus.lat, focus.lng], zoom: 17 } : points.length > 1 ? { bounds: { points, padding: pad() } } : points[0] ? { center: points[0], zoom: 16 } : {}) })
     map.current = m
     whenReady(m, () => setReady(true))
     return () => {
@@ -68,7 +50,7 @@ export function WalkMap({ route, dogName, cursor, focus, runner, className = '',
     if (!m) return
     const markers: Marker[] = []
     whenReady(m, () => {
-      const segments = route.track && route.pace?.length ? paceSegments(effectiveTrack(route)!, route.pace).map((s) => ({ color: PACE_COLORS[s.category], points: s.points })) : [{ color: ROUTE_COLOR, points: route.points }]
+      const segments = walkSegments(route)
       const data = { type: 'FeatureCollection' as const, features: segments.filter((s) => s.points.length > 1).map((s) => ({ type: 'Feature' as const, properties: { color: s.color }, geometry: { type: 'LineString' as const, coordinates: s.points.map((p) => lngLat(p as LatLng)) } })) }
       const source = m.getSource('fiche') as GeoJSONSource | undefined
       if (source) source.setData(data)
@@ -101,24 +83,6 @@ export function WalkMap({ route, dogName, cursor, focus, runner, className = '',
     whenReady(m, () => m.easeTo({ center: lngLat([focus.lat, focus.lng]), zoom: 17, duration: cameraMs(400) }))
   }, [focus?.lat, focus?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Le doigt sur la courbe d’allure : un rond doré à cet endroit du tracé.
-  useEffect(() => {
-    const m = map.current
-    if (!m || !cursor) return
-    const marker = addMarker(m, [cursor.lat, cursor.lng], dot('#F2B544', 20, 'Ici'))
-    return () => void marker.remove()
-  }, [cursor?.lat, cursor?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // « Revoir la balade » (T-108) : un point orange qui avance sur le trajet (la carte ne bouge pas).
-  const runnerMarker = useRef<Marker | null>(null)
-  useEffect(() => {
-    const m = map.current
-    if (!m || !runner) return
-    if (runnerMarker.current) runnerMarker.current.setLngLat(lngLat([runner.lat, runner.lng]))
-    else runnerMarker.current = addMarker(m, [runner.lat, runner.lng], dot('#BF5519', 22, dogName))
-  }, [runner?.lat, runner?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => () => void runnerMarker.current?.remove(), [])
-
   // Le cadre suit la taille de la carte (rotation, texte agrandi).
   useEffect(() => {
     const m = map.current
@@ -131,53 +95,6 @@ export function WalkMap({ route, dogName, cursor, focus, runner, className = '',
     observer.observe(el)
     return () => observer.disconnect()
   }, [route.points, Boolean(focus)]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // T-107 : le panneau monte ou descend : le tracé se recadre dans ce qui reste visible.
-  const firstPad = useRef(true)
-  useEffect(() => {
-    const m = map.current
-    if (!m || focus) return
-    if (firstPad.current) {
-      firstPad.current = false
-      return
-    }
-    whenReady(m, () => fitPoints(m, route.points as LatLng[], pad(), true))
-  }, [padding.top, padding.bottom, padding.left, padding.right]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Les gestes de la carte : seulement quand elle est en grand (sinon la page défile par-dessus).
-  useEffect(() => {
-    const m = map.current
-    if (!m) return
-    for (const h of [m.dragPan, m.scrollZoom, m.boxZoom, m.keyboard, m.doubleClickZoom, m.touchZoomRotate]) {
-      if (interactive) h.enable()
-      else h.disable()
-    }
-    if (interactive) m.touchZoomRotate.disableRotation()
-    // Fixe, la carte n’est pas un arrêt du clavier ni de VoiceOver (le tracé est décrit par `role="img"`).
-    m.getCanvas().tabIndex = interactive ? 0 : -1
-  }, [interactive])
-
-  // Les photos de la balade, là où elles ont été prises (T-107).
-  const photoKey = photos.map((p) => `${p.thumbFileId}@${p.lat},${p.lng}`).join('|')
-  const onPhotoRef = useRef(onPhoto)
-  onPhotoRef.current = onPhoto
-  useEffect(() => {
-    const m = map.current
-    if (!m || !photos.length) return
-    const urls: string[] = []
-    const markers = photos.map((p) => addMarker(m, [p.lat, p.lng], photoMarker(p.thumbFileId, () => onPhotoRef.current?.(p.index), urls, `Voir la photo ${p.index + 1} en grand`), { anchor: 'bottom' }))
-    return () => {
-      markers.forEach((marker) => marker.remove())
-      urls.forEach((url) => URL.revokeObjectURL(url))
-    }
-  }, [photoKey]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // « Voir sur la carte » (T-108) : la carte va à la photo.
-  useEffect(() => {
-    const m = map.current
-    if (!m || !center) return
-    whenReady(m, () => m.easeTo({ center: lngLat([center.lat, center.lng]), zoom: 17, padding: pad(), duration: cameraMs(400) }))
-  }, [center?.lat, center?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className={`relative isolate overflow-hidden bg-[#E8EFE9] ${className}`}>

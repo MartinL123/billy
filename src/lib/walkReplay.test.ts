@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Route } from './route'
 import type { Track } from './track'
-import { photoWhen, REPLAY_DEFAULT_SPEED, REPLAY_SPEEDS, replayAdvance, replayAt, replaySpan, speedLabel } from './walkReplay'
+import { photoWhen, REPLAY_DEFAULT_SPEED, REPLAY_SPEEDS, replayAdvance, replayAt, replayHeading, replaySpan, speedLabel } from './walkReplay'
 
 const track: Track = { t: [0, 600, 1200], lat: [48.85, 48.86, 48.87], lng: [2.35, 2.35, 2.35] }
 const route = (extra: Partial<Route> = {}): Route => ({ points: [[48.85, 2.35], [48.87, 2.35]], distanceM: 2200, moments: [], ...extra })
@@ -48,5 +48,20 @@ describe('Revoir la balade (T-108)', () => {
   it('la légende d’une photo en grand', () => {
     expect(photoWhen('2026-10-22', '2026-10-22T06:17:00Z')).toBe('Jeudi 22 octobre · 8 h 17')
     expect(photoWhen('2026-10-22')).toBe('Jeudi 22 octobre')
+  })
+})
+
+describe('Revoir la balade en 3ᵉ personne (R-096)', () => {
+  it('la caméra regarde dans le sens de la marche ; à l’arrêt, pas de cap', () => {
+    // Vers le nord, puis vers l’est.
+    const turn: Track = { t: [0, 600, 1200], lat: [48.85, 48.86, 48.86], lng: [2.35, 2.35, 2.365] }
+    const r = route({ track: turn, points: [[48.85, 2.35], [48.86, 2.35], [48.86, 2.365]] })
+    expect(replayHeading(r, 100)).toBeCloseTo(0, 0)
+    expect(replayHeading(r, 900)! - 90).toBeLessThan(1)
+    // À la toute fin : le cap d’où il vient.
+    expect(replayHeading(r, 1200)! - 90).toBeLessThan(1)
+    const still: Track = { t: [0, 600], lat: [48.85, 48.85], lng: [2.35, 2.35] }
+    expect(replayHeading(route({ track: still, points: [[48.85, 2.35], [48.85, 2.35]] }), 300)).toBeUndefined()
+    expect(replayHeading({ points: [[48.85, 2.35]], distanceM: 0, moments: [] }, 0)).toBeUndefined()
   })
 })

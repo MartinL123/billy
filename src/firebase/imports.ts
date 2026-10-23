@@ -1,4 +1,4 @@
-import { getDocFromCache, writeBatch } from 'firebase/firestore'
+import { deleteField, getDocFromCache, updateDoc, writeBatch } from 'firebase/firestore'
 import type { ImportedActivity } from '../lib/activity'
 import { momentBones, noteBone, walkBone, type Bone, type BoneWithId } from '../lib/bones'
 import type { ISODate } from '../lib/dates'
@@ -95,6 +95,14 @@ export function noteWalk(walk: { date: ISODate; slot: WalkSlot; minutes: number;
   send(batch.commit())
   logEvent({ type: 'walk_saved', source: 'sortie', min: walk.minutes })
   return gains
+}
+
+/**
+ * R-095 : « Supprimer » une sortie notée sans trajet : le créneau redevient à faire. Les os déjà gagnés restent
+ * (comme le brouillard d’une balade supprimée).
+ */
+export function removeNotedWalk(date: ISODate, slot: WalkSlot): void {
+  send(updateDoc(userDoc('walks', date), { [`done.${slot}`]: deleteField(), [`noted.${slot}`]: deleteField() }))
 }
 
 /**

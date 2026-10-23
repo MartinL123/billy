@@ -50,7 +50,9 @@ export function WalkTimeline({ events, startTime, preview = false, renderExtra, 
   const hasClock = Boolean(startTime) && events.some((e) => e.atS !== undefined)
   return (
     <div className="card flex flex-col px-4 py-1.5">
-      <ol className="m-0 flex list-none flex-col p-0">
+      {/* R-095 : la colonne des heures prend la largeur de la plus longue (« 10 h 49 » sur une ligne, chiffres à largeur
+          fixe) ; chaque ligne reprend les colonnes de la liste (subgrid). */}
+      <ol className={`m-0 grid list-none gap-x-2.5 p-0 ${hasClock ? 'grid-cols-[max-content_26px_minmax(0,1fr)]' : 'grid-cols-[26px_minmax(0,1fr)]'}`}>
         {shown.map((event, i) => {
           const { title, detail, clock } = timelineText(event, startTime)
           // Un repère « À raconter » sur un arrêt : pas de pastille, les tuiles le remplacent (T-086).
@@ -58,7 +60,7 @@ export function WalkTimeline({ events, startTime, preview = false, renderExtra, 
           const open = event.kind === 'stop' && onOpenStop ? () => onOpenStop(event.stopIndex) : undefined
           const head = (
             <>
-              {hasClock && <span className="w-[3.2rem] shrink-0 pt-0.5 text-[0.7647rem] font-bold whitespace-nowrap text-muted tabular-nums">{clock}</span>}
+              {hasClock && <span className="pt-1 text-[0.7647rem] font-bold whitespace-nowrap text-muted tabular-nums">{clock}</span>}
               <EventDot event={event} />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="text-[0.9412rem] leading-snug font-semibold">{title}</span>
@@ -75,15 +77,15 @@ export function WalkTimeline({ events, startTime, preview = false, renderExtra, 
           )
           const extra = renderExtra?.(event)
           return (
-            <li key={`${event.kind}-${event.atS ?? i}-${i}`} className={`flex flex-col py-2.5 ${i ? 'border-t border-divider' : ''}`}>
+            <li key={`${event.kind}-${event.atS ?? i}-${i}`} className={`col-span-full grid grid-cols-subgrid py-2.5 ${i ? 'border-t border-divider' : ''}`}>
               {open ? (
-                <button type="button" onClick={open} aria-label={`${clock ? `${clock}, ` : ''}${title}${detail ? `, ${detail}` : ''}${moment ? `, ${routeMomentInfo(moment.type).label}` : ''}. ${moment ? 'Changer' : 'Raconter'} cet arrêt`} className="tap -mx-1 flex min-h-11 w-[calc(100%+0.5rem)] gap-2.5 rounded-field border-0 bg-transparent px-1 text-left text-text">
+                <button type="button" onClick={open} aria-label={`${clock ? `${clock}, ` : ''}${title}${detail ? `, ${detail}` : ''}${moment ? `, ${routeMomentInfo(moment.type).label}` : ''}. ${moment ? 'Changer' : 'Raconter'} cet arrêt`} className="tap col-span-full grid min-h-11 grid-cols-subgrid items-start rounded-field border-0 bg-transparent p-0 text-left text-text">
                   {head}
                 </button>
               ) : (
-                <div className="flex gap-2.5">{head}</div>
+                <div className="col-span-full grid grid-cols-subgrid items-start">{head}</div>
               )}
-              {extra && <div className={`mt-1.5 flex flex-col ${hasClock ? 'pl-[calc(3.2rem+26px+1.25rem)]' : 'pl-[calc(26px+0.625rem)]'}`}>{extra}</div>}
+              {extra && <div className="col-[-2/-1] mt-1.5 flex flex-col">{extra}</div>}
             </li>
           )
         })}

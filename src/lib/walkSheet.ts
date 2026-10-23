@@ -54,17 +54,28 @@ export const durationText = (seconds: number) => (seconds < 60 ? `${Math.round(s
 /** « 4,2 km/h » */
 export const kmhText = (kmh: number) => `${kmh.toFixed(1).replace('.', ',')} km/h`
 
-/** Les chiffres de la fiche (composant Stats) : durée · distance · en marche · arrêts, seulement ce qu’on sait. */
+/**
+ * Les chiffres de la fiche (composant Stats), R-095 « Fiche sans trous » : la durée et la distance ; « En marche » s’il
+ * diffère de la durée, « Arrêts » s’il y en a au moins un ; sans l’un ni l’autre, l’allure moyenne en 3ᵉ case. 3 ou 4
+ * cases (2 pour une balade ancienne sans allure), jamais une case vide ni à 0.
+ */
 export function sheetStats(route: Route): { value: string; label: string; spoken?: string }[] {
   const seconds = walkSeconds(route)
   const track = effectiveTrack(route)
   const moving = track && route.stops ? movingSeconds(track, route.stops) : undefined
-  return [
-    { value: seconds ? durationText(seconds) : '', label: 'Durée' },
-    { value: formatRouteDistance(route.distanceM), label: 'Distance' },
-    { value: moving !== undefined ? durationText(moving) : '', label: 'En marche' },
-    { value: route.stops ? String(route.stops.length) : '', label: route.stops?.length === 1 ? 'Arrêt' : 'Arrêts' },
-  ]
+  const duration = seconds ? durationText(seconds) : ''
+  const stops = route.stops?.length ?? 0
+  const out = [
+    { value: duration, label: 'Durée' },
+    { value: route.distanceM > 0 ? formatRouteDistance(route.distanceM) : '', label: 'Distance' },
+    { value: moving && durationText(moving) !== duration ? durationText(moving) : '', label: 'En marche' },
+    { value: stops ? String(stops) : '', label: stops === 1 ? 'Arrêt' : 'Arrêts' },
+  ].filter((s) => s.value)
+  if (out.length === 2 && duration) {
+    const avg = averageKmh(route)
+    if (avg) out.push({ value: kmhText(avg), label: 'Allure' })
+  }
+  return out
 }
 
 /** L’allure moyenne en marche (km/h, 1 décimale), arrêts retirés quand on les connaît. */

@@ -30,6 +30,8 @@ import { nearestOnRoute, readRoute, storeRoute, type Route } from '../../lib/rou
 import { useGrantedPosition } from '../../lib/useGrantedPosition'
 import { formatRouteDistance } from '../../lib/route'
 import { journalOnMap, panelMode, walkOnMap } from '../../lib/mapPanel'
+import { notedOutings } from '../../lib/notedOutings'
+import { OutingSheet } from './OutingSheet'
 import { photoPins, type PhotoPin } from '../../lib/walkFiche'
 import { replaySpan } from '../../lib/walkReplay'
 import type { Padding } from '../../lib/mapFrame'
@@ -76,7 +78,7 @@ const toggle = (on: boolean) => `min-h-11 rounded-full border-0 px-3.5 text-[0.8
  * R-096), toujours sur cette même carte.
  */
 export default function Explorer() {
-  const { dog, entries, fog } = useData()
+  const { dog, entries, fog, walks: walkDays } = useData()
   const today = useToday()
   const readOnly = useReadOnly()
   const [prefs, setPrefs] = useState(() => readMapPrefs())
@@ -154,12 +156,15 @@ export default function Explorer() {
 
   // R-094 : ce que montre le panneau, lu dans l’adresse : le journal, la fiche d’une balade ou sa relecture.
   const mode = panelMode(params)
-  const walkId = mode.kind === 'journal' ? null : mode.id
+  const walkId = mode.kind === 'journal' || mode.kind === 'outing' ? null : mode.id
   const found = walkId ? entries.find((e) => e.id === walkId) : undefined
   const walkEntry = useMemo(() => (found ? modernCard(found) : undefined), [found])
   const walkRoute = useMemo(() => readRoute(walkEntry?.route), [walkEntry?.route])
   const canReplay = Boolean(walkRoute && replaySpan(walkRoute))
-  const kind: 'journal' | 'sheet' | 'replay' = !walkEntry || !walkRoute ? 'journal' : mode.kind === 'replay' && canReplay ? 'replay' : 'sheet'
+  // R-095 : une sortie notée sans trajet ouvre sa petite fiche dans le panneau (la carte reste sur toutes les balades).
+  const outings = useMemo(() => notedOutings(walkDays, entries), [walkDays, entries])
+  const outing = mode.kind === 'outing' ? outings.find((o) => o.id === mode.id) : undefined
+  const kind: 'journal' | 'sheet' | 'replay' | 'outing' = outing ? 'outing' : !walkEntry || !walkRoute ? 'journal' : mode.kind === 'replay' && canReplay ? 'replay' : 'sheet'
   // Ouverte depuis un autre écran (Accueil, Billy…) : le retour y ramène et le dit (« ‹ Accueil »).
   const retour = (location.state as { retour?: string } | null)?.retour
   const back = useBack(journalOnMap(filter))
@@ -185,11 +190,12 @@ export default function Explorer() {
   // La fiche : réduit, le résumé (jusqu’à « Revoir » et « Raconter ») ; la relecture : réduit, lecture et barre, au
   // milieu, les vitesses aussi.
   const sheetPeek = useRef<HTMLDivElement>(null)
+  const outingPeek = useRef<HTMLDivElement>(null)
   const replayPeek = useRef<HTMLDivElement>(null)
   const replayHalf = useRef<HTMLDivElement>(null)
   const snapParam = SNAPS.find((c) => c === params.get('cran'))
   const sheet = useSheet({
-    peekRef: kind === 'journal' ? peekRef : kind === 'sheet' ? sheetPeek : replayPeek,
+    peekRef: kind === 'journal' ? peekRef : kind === 'sheet' ? sheetPeek : kind === 'outing' ? outingPeek : replayPeek,
     halfRef: kind === 'journal' ? (loops.length ? ideasHead : filtersRow) : kind === 'replay' ? replayHalf : undefined,
     bottomInset: kind === 'journal' ? footerHeight || HOME_CLEARANCE : HOME_CLEARANCE,
     ...(kind === 'journal' ? { peekInset: 0, peekGap: 0 } : {}),
@@ -201,7 +207,7 @@ export default function Explorer() {
   const [cursor, setCursor] = useState<{ lat: number; lng: number }>()
   const [photoAt, setPhotoAt] = useState<{ lat: number; lng: number; n: number }>()
   // Un autre mode ou une autre balade : le panneau prend le cran demandé (un tracé touché : réduit, sur le résumé).
-  const modeKey = `${kind}:${walkId ?? ''}`
+  const modeKey = `${kind}:${walkId ?? outing?.id ?? ''}`
   const lastMode = useRef(modeKey)
   useEffect(() => {
     if (lastMode.current === modeKey) return
@@ -268,7 +274,7 @@ export default function Explorer() {
   // T-098 : le filtre et le cran du panneau dans l’adresse (sans nouvelle entrée d’historique) : le retour d’une balade
   // retrouve le journal tel qu’on l’a laissé.
   useEffect(() => {
-    if (walkId) return
+    if (walkId || kind === 'outing') return
     const next = new URLSearchParams(params)
     if (filter === 'toutes') next.delete('filtre')
     else next.set('filtre', filter)
@@ -378,7 +384,7 @@ export default function Explorer() {
           bas (le haut du panneau collé à la barre), à mi-hauteur, en grand (sous « Affichage » et « Me situer »). */}
       <section
         ref={sheet.ref}
-        aria-label={kind === 'journal' ? `Les balades ${ofDog(dog)}` : kind === 'sheet' ? 'La balade' : 'Revoir la balade'}
+        aria-label={kind === 'journal' ? `Les balades ${ofDog(dog)}` : kind === 'sheet' ? 'La balade' : kind === 'outing' ? 'La sortie' : 'Revoir la balade'}
         {...sheet.handlers}
         style={sheet.style}
         className={`absolute inset-x-0 top-[calc(env(safe-area-inset-top)+62px)] bottom-0 z-10 mx-auto flex max-w-[430px] ${selected ? 'invisible' : ''} flex-col rounded-t-panel bg-surface px-4 shadow-[0_-6px_20px_rgba(0,0,0,0.10)]`}
@@ -409,6 +415,8 @@ export default function Explorer() {
               onAddMark={addMark}
               peekRef={sheetPeek}
             />
+          ) : kind === 'outing' && outing ? (
+            <OutingSheet key={outing.id} outing={outing} backLabel={retour ?? 'Le journal'} onBack={retour ? back : toJournal} onDeleted={toJournal} peekRef={outingPeek} />
           ) : kind === 'replay' && walkEntry && walkRoute ? (
             <ReplayPanel key={walkEntry.id} route={walkRoute} channel={replayChannel} onBack={() => openWalk(walkEntry.id)} peekRef={replayPeek} halfRef={replayHalf} pillSlot={pillSlot} />
           ) : (

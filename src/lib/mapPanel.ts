@@ -5,10 +5,15 @@ import { tellQueue } from './walkTell'
 // R-094 « Une seule carte » : l’onglet Balades n’a qu’une carte ; son panneau montre le journal, la fiche d’une balade
 // ou sa relecture (R-096). Ce que dit l’adresse, en fonctions pures (testées).
 
-export type PanelMode = { kind: 'journal' } | { kind: 'sheet'; id: string } | { kind: 'replay'; id: string }
+export type PanelMode = { kind: 'journal' } | { kind: 'sheet'; id: string } | { kind: 'replay'; id: string } | { kind: 'outing'; id: string }
 
-/** Le mode du panneau lu dans l’adresse : `?balade=<id>` la fiche, `&revoir=1` sa relecture ; sinon le journal. */
+/**
+ * Le mode du panneau lu dans l’adresse : `?balade=<id>` la fiche, `&revoir=1` sa relecture, `?sortie=<date:créneau>`
+ * une sortie notée sans trajet (R-095) ; sinon le journal.
+ */
 export function panelMode(params: URLSearchParams): PanelMode {
+  const outing = params.get('sortie')
+  if (outing) return { kind: 'outing', id: outing }
   const id = params.get('balade')
   if (!id) return { kind: 'journal' }
   return params.get('revoir') === '1' ? { kind: 'replay', id } : { kind: 'sheet', id }
@@ -22,6 +27,13 @@ export function walkOnMap(id: string, { snap, replay = false, filter }: { snap?:
   const q = new URLSearchParams({ balade: id })
   if (replay) q.set('revoir', '1')
   else if (snap && snap !== 'half') q.set('cran', snap)
+  if (filter && filter !== 'toutes') q.set('filtre', filter)
+  return `/territoire?${q.toString()}`
+}
+
+/** R-095 : la petite fiche d’une sortie notée sans trajet, dans le panneau de la carte. */
+export function outingOnMap(id: string, { filter }: { filter?: string } = {}): string {
+  const q = new URLSearchParams({ sortie: id })
   if (filter && filter !== 'toutes') q.set('filtre', filter)
   return `/territoire?${q.toString()}`
 }

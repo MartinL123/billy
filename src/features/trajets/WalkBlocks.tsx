@@ -1,9 +1,9 @@
 import { useId, useState, type ReactNode } from 'react'
 import { Stats } from '../../components/Stats'
 import type { Route } from '../../lib/route'
-import { altitudeProfile, DAYLIGHT_LABELS, rainText, sheetFigures, type RoutePlace, type RouteStreet } from '../../lib/walkFacts'
-import { longestWalkWithoutStop, parcoursRows } from '../../lib/walkFiche'
-import { averageKmh, durationText, hrSummary, kmhText } from '../../lib/walkSheet'
+import { altitudeProfile, sheetFigures, type RoutePlace, type RouteStreet } from '../../lib/walkFacts'
+import { parcoursRows } from '../../lib/walkFiche'
+import { hrSummary } from '../../lib/walkSheet'
 import { PaceChart } from './PaceChart'
 
 // T-102 (V6.1 § 7) : les blocs de la fiche, tous visibles (plus de « Tous les chiffres » replié). Chaque bloc ne
@@ -45,26 +45,14 @@ function ShortList<T>({ items, render, label }: { items: T[]; render: (item: T, 
 }
 
 /**
- * 4. L’allure (maquette Fiche, T-107) : la courbe minute par minute (glissable), puis « Allure moyenne · Au plus vite ·
- * Sans pause » (la plus longue marche sans arrêt). Plus de km par km.
+ * 4. L’allure (maquette Fiche, T-107 ; R-095) : la courbe minute par minute (glissable), puis une ligne : « 32 min
+ * tranquille · 2 min rapide · 2 min à l’arrêt » ou « Marche tranquille, sans pause. ». Seulement sur un trajet daté.
  */
-export function PaceBlock({ route, onScrub }: { route: Route; onScrub: (at: { lat: number; lng: number } | undefined) => void }) {
-  const avg = averageKmh(route)
-  const { maxSpeed } = sheetFigures(route)
-  const longest = longestWalkWithoutStop(route)
-  const showCurve = Boolean(route.track && route.pace && route.pace.length > 1)
-  if (!showCurve && !avg && !maxSpeed && !longest) return null
+export function PaceBlock({ route, line, onScrub }: { route: Route; line?: string; onScrub: (at: { lat: number; lng: number } | undefined) => void }) {
   return (
     <Block title="Allure">
-      {showCurve && <PaceChart route={route} onScrub={onScrub} />}
-      <Stats
-        className={showCurve ? 'border-t border-divider pt-2.5' : ''}
-        items={[
-          { value: avg ? kmhText(avg) : '', label: 'Allure moyenne' },
-          { value: maxSpeed ? kmhText(maxSpeed) : '', label: 'Au plus vite' },
-          { value: longest ? durationText(longest) : '', label: 'Sans pause', ...(longest ? { spoken: `${durationText(longest)} de marche sans pause` } : {}) },
-        ]}
-      />
+      <PaceChart route={route} onScrub={onScrub} />
+      {line && <p className="m-0 -mt-1 text-[0.8235rem] leading-snug text-muted">{line}</p>}
     </Block>
   )
 }
@@ -148,15 +136,11 @@ export function BodyBlock({ route, healthSource }: { route: Route; healthSource?
   )
 }
 
-/** 9. La météo : température, ressenti, vent, humidité, pluie, et le moment de la journée. */
-export function WeatherBlock({ weather }: { weather: Route['weather'] }) {
-  if (!weather) return null
-  const deg = (c: number) => `${Math.round(c)} °C`
+/** 9. La météo (R-095) : une seule ligne, « 11 °C, ressenti 8 °C · vent 18 km/h · sec ». */
+export function WeatherBlock({ line }: { line: string }) {
   return (
     <Block title="La météo">
-      {weather.daylight && <p className="m-0 text-[1rem] leading-snug font-semibold">{DAYLIGHT_LABELS[weather.daylight]}</p>}
-      <Stats items={[{ value: deg(weather.tempC), label: 'Température' }, { value: weather.feelsC !== undefined ? deg(weather.feelsC) : '', label: 'Ressenti' }, { value: weather.windKmh !== undefined ? `${weather.windKmh} km/h` : '', label: 'Vent' }]} />
-      <Stats items={[{ value: weather.humidity !== undefined ? `${weather.humidity} %` : '', label: 'Humidité' }, { value: weather.rainMm !== undefined ? rainText(weather.rainMm) : '', label: 'Pluie' }]} />
+      <p className="m-0 text-[1rem] leading-snug">{line}</p>
     </Block>
   )
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { journalOnMap, panelMode, tellHref, walkOnMap } from './mapPanel'
+import { journalOnMap, outingOnMap, panelMode, tellHref, walkOnMap } from './mapPanel'
 
 describe('Une seule carte (R-094)', () => {
   it('le mode du panneau se lit dans l’adresse', () => {
@@ -7,6 +7,9 @@ describe('Une seule carte (R-094)', () => {
     expect(panelMode(new URLSearchParams('filtre=mois&cran=full'))).toEqual({ kind: 'journal' })
     expect(panelMode(new URLSearchParams('balade=abc'))).toEqual({ kind: 'sheet', id: 'abc' })
     expect(panelMode(new URLSearchParams('balade=abc&revoir=1'))).toEqual({ kind: 'replay', id: 'abc' })
+    // R-095 : une sortie notée sans trajet.
+    expect(panelMode(new URLSearchParams(outingOnMap('2026-10-23:matin').split('?')[1]))).toEqual({ kind: 'outing', id: '2026-10-23:matin' })
+    expect(outingOnMap('2026-10-23:matin', { filter: 'mois' })).toBe('/territoire?sortie=2026-10-23%3Amatin&filtre=mois')
   })
 
   it('l’adresse d’une balade sur la carte : résumé (cran réduit), fiche, relecture ; le filtre est gardé', () => {

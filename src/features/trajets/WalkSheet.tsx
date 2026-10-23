@@ -2,9 +2,8 @@ import { useEffect, useMemo, useState, type Ref } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BackLink } from '../../components/BackLink'
 import { FileImage } from '../../components/FileImage'
-import { PencilIcon, PinIcon, ShareIcon } from '../../components/Icons'
+import { PinIcon } from '../../components/Icons'
 import { Pending } from '../../components/Pending'
-import { DangerButton } from '../../components/Buttons'
 import { ConfirmSheet } from '../../components/Sheet'
 import { Stats } from '../../components/Stats'
 import { deleteEntry, updateEntryRoute } from '../../firebase/db'
@@ -14,7 +13,8 @@ import { useReadOnly } from '../../firebase/viewer'
 import { formatDayHeading } from '../../lib/dates'
 import { fromStored, isToTell, momentReaction, routeMomentInfo, storeRoute, type Route } from '../../lib/route'
 import { stopStreet } from '../../lib/street'
-import { sheetStats, sourceLabels, sourceLine, streetAt, walkHours } from '../../lib/walkSheet'
+import { sourceLabels, sourceLine, streetAt, walkHours } from '../../lib/walkSheet'
+import { sheetBlocks } from '../../lib/walkBlocks'
 import { photoWhen } from '../../lib/walkReplay'
 import { dogAgeLine, markNewStreets, streetsBefore } from '../../lib/walkFacts'
 import { walkNumber, type PhotoPin } from '../../lib/walkFiche'
@@ -84,6 +84,8 @@ export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onC
   }, [Boolean(route.track), first?.[0], first?.[1]]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const events = useMemo(() => walkTimeline(route, { startStreet }), [route, startStreet])
+  // R-095 : chaque bloc seulement s’il dit quelque chose.
+  const blocks = useMemo(() => sheetBlocks(route, { photos: entry.photos.length, events }), [route, entry.photos.length, events])
   const sources = sourceLabels(route, entry.source)
   const age = dogAgeLine(dog, entry.date)
   // Le parcours : « nouvelle » est recalculé ici sur toutes les balades d’avant (une balade plus ancienne importée après
@@ -159,8 +161,8 @@ export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onC
           {(age || entry.commune) && <p className="text-[0.8824rem] leading-snug text-muted">{[age, entry.commune].filter(Boolean).join(' · ')}</p>}
           <Pending show={Boolean(entry.pending)} />
         </div>
-        {/* Durée · distance · en marche · arrêts. */}
-        <Stats items={sheetStats(route)} />
+        {/* Durée · distance · en marche · arrêts (ou l’allure moyenne) : 3 ou 4 cases, jamais à 0 (R-095). */}
+        <Stats items={blocks.stats} />
         {/* R-094 : revoir (vert plein) et raconter (vert clair), côte à côte ; l’orange reste à « Partir en balade ». */}
         {(onReplay || !readOnly) && (
           <div ref={peekRef} className="flex flex-wrap gap-2">
@@ -186,11 +188,12 @@ export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onC
         {notes && <p className="text-[1rem] leading-[1.45] whitespace-pre-wrap">{notes}</p>}
         <MomentChips entry={entry} />
 
-        {/* L’allure : courbe (le doigt dessus pose un rond doré sur la carte), allure moyenne, au plus vite, sans pause. */}
-        <PaceBlock route={route} onScrub={onCursor} />
+        {/* L’allure : courbe (le doigt dessus pose un rond doré sur la carte) et sa ligne de résumé. */}
+        {blocks.pace && <PaceBlock route={route} line={blocks.paceLine} onScrub={onCursor} />}
 
-        {/* Ce qui s’est passé : chaque arrêt ouvre « Raconter la balade » sur lui. */}
-        {events.length > 0 && (
+        {/* Ce qui s’est passé : chaque arrêt ouvre « Raconter la balade » sur lui. Sans arrêt, repère, passage rapide ni
+            photo, pas de frise « Départ → Retour » (R-095) : « sans pause » est dit sous l’allure. */}
+        {blocks.timeline && (
           <section className="flex flex-col gap-2">
             <h2 className="title-section">Ce qui s’est passé</h2>
             <WalkTimeline events={events} startTime={route.startTime} preview renderExtra={momentActions} {...(readOnly ? {} : { onOpenStop: tellStop })} />
@@ -207,12 +210,12 @@ export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onC
 
         {/* Le parcours, le relief, le corps, la météo. */}
         <RouteBlock streets={streets} places={route.places ?? []} />
-        <ReliefBlock route={route} />
-        <BodyBlock route={route} healthSource={sources.health} />
-        <WeatherBlock weather={route.weather} />
+        {blocks.relief && <ReliefBlock route={route} />}
+        {blocks.body && <BodyBlock route={route} healthSource={sources.health} />}
+        {blocks.weatherLine && <WeatherBlock line={blocks.weatherLine} />}
 
         {/* Les photos de la balade, aussi sur la carte là où elles ont été prises. */}
-        {entry.photos.length > 0 && (
+        {blocks.photos ? (
           <section className="flex flex-col gap-2">
             <div className="flex items-baseline justify-between gap-3">
               <h2 className="title-section">Photos</h2>
@@ -226,24 +229,29 @@ export function WalkSheet({ entry, route, pins, backLabel, onBack, onReplay, onC
               ))}
             </div>
           </section>
+        ) : (
+          !readOnly && (
+            <Link to={`/souvenir/${entry.id}/modifier`} className="btn-text -my-1 -ml-1 self-start">
+              Ajouter un mot ou une photo
+            </Link>
+          )
         )}
 
-        {/* Les sources, puis Partager, Modifier, Supprimer. */}
+        {/* Les sources, puis Partager, Modifier, Supprimer en liens texte (R-095 : Supprimer en rouge, confirmé). */}
         <p className="source-note">{sourceLine(route, entry.source)}</p>
         {!readOnly && (
-          <div className="flex flex-col gap-2">
+          <div className="-ml-1 flex flex-wrap gap-x-5">
             {/* § 8.4 : la carte postale. */}
-            <button type="button" aria-label="Partager une carte postale de la balade" onClick={() => setPostcard(true)} className="btn btn-tertiary w-full">
-              <ShareIcon size={20} />
+            <button type="button" aria-label="Partager une carte postale de la balade" onClick={() => setPostcard(true)} className="btn-text">
               Partager
             </button>
             {/* Un seul « Modifier » : photos, texte, tags, date, début et fin du trajet. */}
-            <Link to={`/souvenir/${entry.id}/modifier`} className="btn btn-secondary w-full">
-              <PencilIcon size={20} />
+            <Link to={`/souvenir/${entry.id}/modifier`} className="btn-text">
               Modifier
             </Link>
-            {/* T-106 : « Supprimer » en tertiary rouge, pleine largeur, confirmé avant d’agir. */}
-            <DangerButton onClick={() => setConfirmDelete(true)}>Supprimer</DangerButton>
+            <button type="button" onClick={() => setConfirmDelete(true)} className="btn-text text-danger">
+              Supprimer
+            </button>
           </div>
         )}
       </div>

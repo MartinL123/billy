@@ -53,7 +53,7 @@ describe('les chiffres', () => {
     expect(walkSeconds({})).toBeUndefined()
   })
 
-  it('Stats : durée · distance · en marche · arrêts ; une balade ancienne n’a que durée et distance', () => {
+  it('Stats : durée · distance · en marche · arrêts ; sinon l’allure en 3ᵉ case', () => {
     const track = trackOf([[300, 1.3], [120, 0], [300, 1.3]])
     const stats = sheetStats(route({ track, stops: [{ at: 300, durS: 120, lat: 0, lng: 0 }] }))
     expect(stats.map((s) => [s.label, s.value])).toEqual([
@@ -62,7 +62,15 @@ describe('les chiffres', () => {
       ['En marche', '10 min'],
       ['Arrêt', '1'],
     ])
-    expect(sheetStats(route({ durationMin: 25 })).filter((s) => s.value).map((s) => s.label)).toEqual(['Durée', 'Distance'])
+    // R-095 : sans arrêt ni temps en marche différent, l’allure moyenne en 3ᵉ case ; jamais de case vide ni à 0.
+    expect(sheetStats(route({ durationMin: 25 })).map((s) => [s.label, s.value])).toEqual([
+      ['Durée', '25\u00a0min'],
+      ['Distance', '2,1 km'],
+      ['Allure', '5,0\u00a0km/h'],
+    ])
+    const noStop = trackOf([[600, 1.3]])
+    expect(sheetStats(route({ track: noStop, stops: [] })).map((s) => s.label)).toEqual(['Durée', 'Distance', 'Allure'])
+    expect(sheetStats(route({ distanceM: 0 })).map((s) => s.label)).toEqual([])
   })
 
   it('allure moyenne en marche', () => {

@@ -9,6 +9,7 @@ import { paceSegments } from '../../lib/walkSheet'
 import type { PaceCategory } from '../../lib/walkStory'
 import { momentMarker } from '../trajets/momentIcons'
 import type { Padding } from '../../lib/mapFrame'
+import { replayPadding } from '../../lib/walkReplay'
 
 export type WalkPhoto = { index: number; thumbFileId: string; lat: number; lng: number }
 
@@ -161,7 +162,8 @@ export interface ReplayChannel {
 /**
  * R-096 : « Revoir la balade » en 3ᵉ personne, menée par l’horloge de lecture (T-108) : le chien (un rond orange) sur
  * le tracé et, s’il est suivi, la caméra inclinée derrière lui, tournée vers où il marche (en douceur). Les marges
- * (`padding()`) gardent le chien au-dessus du panneau. À l’arrêt, la carte revient à plat sur toute la balade.
+ * (`padding()`) gardent le chien dans la carte visible, au-dessus du panneau, et suivent ses crans. À l’arrêt, la carte
+ * revient à plat sur toute la balade.
  */
 export function replayLayer(m: MapLibreMap, route: Route, dogName: string, padding: () => Padding) {
   const runner = addMarker(m, route.points[0] ?? [0, 0], dot('#BF5519', 24, dogName))
@@ -169,6 +171,7 @@ export function replayLayer(m: MapLibreMap, route: Route, dogName: string, paddi
   // La caméra glisse vers le chien la première fois, puis le suit image par image.
   let easingUntil = 0
   let followed = false
+  let lastPad: Padding | undefined
   return {
     move({ at, heading: target, follow }: ReplayFrame) {
       runner.setLngLat(lngLat([at.lat, at.lng]))
@@ -177,12 +180,15 @@ export function replayLayer(m: MapLibreMap, route: Route, dogName: string, paddi
         return
       }
       if (target !== undefined) heading = heading === undefined || !followed ? target : turnToward(heading, target, 0.08)
-      const pad = padding()
-      const camera = { center: lngLat([at.lat, at.lng]), pitch: 60, zoom: 16.5, padding: { top: pad.top, bottom: pad.bottom, left: 0, right: 0 }, ...(heading !== undefined ? { bearing: heading } : {}) }
+      const pad = replayPadding(padding(), m.getContainer().clientHeight)
+      const camera = { center: lngLat([at.lat, at.lng]), pitch: 60, zoom: 16.5, padding: pad, ...(heading !== undefined ? { bearing: heading } : {}) }
       const now = performance.now()
-      if (!followed) {
+      // R-096 : le panneau change de cran : la caméra glisse avec lui (le chien reste dans ce qu’on voit).
+      const moved = Boolean(lastPad && (lastPad.top !== pad.top || lastPad.bottom !== pad.bottom))
+      lastPad = pad
+      if (!followed || moved) {
         followed = true
-        const ms = cameraMs(600)
+        const ms = cameraMs(moved ? 340 : 600)
         easingUntil = now + ms
         if (ms) return void m.easeTo({ ...camera, duration: ms })
       }

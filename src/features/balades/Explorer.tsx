@@ -192,19 +192,18 @@ export default function Explorer() {
   // fixée en bas ; réduit, le panneau se colle à la barre d’onglets (sans action), le titre coupé à mi-hauteur.
   const ideasHead = useRef<HTMLDivElement>(null)
   const filtersRow = useRef<HTMLDivElement>(null)
-  // La fiche : réduit, le résumé (jusqu’à « Revoir » et « Raconter ») ; la relecture : réduit, lecture et barre, au
-  // milieu, les vitesses aussi.
+  // La fiche : réduit, le résumé (jusqu’à « Revoir » et « Raconter ») ; la relecture (R-096) : réduit, toutes ses
+  // commandes (retour, lecture, barre, vitesses), la carte en grand au-dessus.
   const sheetPeek = useRef<HTMLDivElement>(null)
   const outingPeek = useRef<HTMLDivElement>(null)
   const replayPeek = useRef<HTMLDivElement>(null)
-  const replayHalf = useRef<HTMLDivElement>(null)
   const snapParam = SNAPS.find((c) => c === params.get('cran'))
   const sheet = useSheet({
     peekRef: kind === 'journal' ? peekRef : kind === 'sheet' ? sheetPeek : kind === 'outing' ? outingPeek : replayPeek,
-    halfRef: kind === 'journal' ? (loops.length ? ideasHead : filtersRow) : kind === 'replay' ? replayHalf : undefined,
+    halfRef: kind === 'journal' ? (loops.length ? ideasHead : filtersRow) : undefined,
     bottomInset: kind === 'journal' ? footerHeight || HOME_CLEARANCE : HOME_CLEARANCE,
     ...(kind === 'journal' ? { peekInset: 0, peekGap: 0 } : {}),
-    start: snapParam ?? 'half',
+    start: mode.kind === 'replay' ? 'collapsed' : (snapParam ?? 'half'),
   })
 
   // La photo ouverte en grand, le doigt sur la courbe d’allure, une photo à montrer sur la carte : ceux de la balade ouverte.
@@ -220,7 +219,8 @@ export default function Explorer() {
     setViewer(null)
     setCursor(undefined)
     setPhotoAt(undefined)
-    sheet.setSnap(kind === 'replay' ? 'half' : (snapParam ?? 'half'))
+    // R-096 : la relecture s’ouvre réduite, à la hauteur de ses commandes : on voit la carte.
+    sheet.setSnap(kind === 'replay' ? 'collapsed' : (snapParam ?? 'half'))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modeKey])
 
@@ -425,7 +425,7 @@ export default function Explorer() {
           ) : kind === 'outing' && outing ? (
             <OutingSheet key={outing.id} outing={outing} backLabel={retour ?? 'Le journal'} onBack={retour ? back : toJournal} onDeleted={toJournal} peekRef={outingPeek} />
           ) : kind === 'replay' && walkEntry && walkRoute ? (
-            <ReplayPanel key={walkEntry.id} route={walkRoute} channel={replayChannel} onBack={() => openWalk(walkEntry.id)} peekRef={replayPeek} halfRef={replayHalf} pillSlot={pillSlot} />
+            <ReplayPanel key={walkEntry.id} route={walkRoute} channel={replayChannel} onBack={() => openWalk(walkEntry.id)} peekRef={replayPeek} pillSlot={pillSlot} />
           ) : (
           <>
           {/* 1. Son journal (R-098) : surtitre et titre (réduit, on n’en voit que le haut, coupé à mi-hauteur du titre). */}

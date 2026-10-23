@@ -9,12 +9,13 @@ import type { ReplayChannel } from './walkLayer'
 /**
  * R-096 « Revoir la balade en 3ᵉ personne », dans le panneau de la carte de l’onglet Balades (R-094) : « ‹ La balade »,
  * lecture/pause, la barre de position (on peut la glisser), les vitesses × 0,5 · × 1 · × 2 · × 4 (× 4 par défaut,
- * T-108). L’horloge de lecture mène la carte : inclinée, la caméra suit le chien et tourne vers où il marche. Panneau
- * réduit : lecture et barre seulement, la carte prend l’écran. En haut à droite de la carte, l’heure et la rue.
+ * T-108). L’horloge de lecture mène la carte : inclinée, la caméra suit le chien et tourne vers où il marche. Le panneau
+ * s’ouvre réduit, à la hauteur de ces commandes (R-096) : la carte en grand au-dessus. En haut à droite de la carte,
+ * l’heure et la rue.
  * Toucher la carte met en pause (on regarde autour) ; « Lecture » reprend la caméra. « Réduire les animations » : la
  * caméra ne bouge pas d’elle-même (la carte reste sur toute la balade) et la lecture attend qu’on la lance.
  */
-export function ReplayPanel({ route, channel, onBack, peekRef, halfRef, pillSlot }: { route: Route; channel: { current: ReplayChannel }; onBack: () => void; peekRef: Ref<HTMLDivElement>; halfRef: Ref<HTMLDivElement>; pillSlot: HTMLElement | null }) {
+export function ReplayPanel({ route, channel, onBack, peekRef, pillSlot }: { route: Route; channel: { current: ReplayChannel }; onBack: () => void; /** Le bas des commandes : ce que montre le panneau réduit. */ peekRef: Ref<HTMLDivElement>; pillSlot: HTMLElement | null }) {
   const span = useMemo(() => replaySpan(route) ?? ([0, 0] as [number, number]), [route])
   const [s, setS] = useState(span[0])
   const [playing, setPlaying] = useState(() => !reducedMotion())
@@ -76,8 +77,7 @@ export function ReplayPanel({ route, channel, onBack, peekRef, halfRef, pillSlot
   return (
     <>
       <BackLink label="La balade" onClick={onBack} className="-mt-1 -mb-2" />
-      {/* Ce que garde le panneau réduit : lecture et barre de position. */}
-      <div ref={peekRef} className="flex items-center gap-4">
+      <div className="flex items-center gap-4">
         <button type="button" onClick={play} aria-label={playing ? 'Pause' : 'Lecture'} className="tap flex size-14 shrink-0 items-center justify-center rounded-full border-0 bg-primary text-white">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             {playing ? <path d="M6.5 5h4v14h-4zM13.5 5h4v14h-4z" /> : <path d="M8 5v14l11-7z" />}
@@ -107,8 +107,10 @@ export function ReplayPanel({ route, channel, onBack, peekRef, halfRef, pillSlot
           )}
         </div>
       </div>
-      <div ref={halfRef} className="flex flex-col gap-2">
-        <span id="vitesse" className="text-[0.9412rem] font-bold">
+      {/* Le panneau réduit s’arrête sous les vitesses. */}
+      <div ref={peekRef}>
+        {/* Les « × » se lisent seuls : le mot reste pour VoiceOver, la carte garde la place (R-096). */}
+        <span id="vitesse" className="sr-only">
           Vitesse
         </span>
         <div role="group" aria-labelledby="vitesse" className="grid grid-cols-4 gap-2">
@@ -119,7 +121,6 @@ export function ReplayPanel({ route, channel, onBack, peekRef, halfRef, pillSlot
           ))}
         </div>
       </div>
-      <p className="text-[0.8824rem] leading-snug text-muted">Baissez le panneau pour voir la carte en grand{' '}; la lecture continue.</p>
       {/* Pour VoiceOver : l’heure et la rue, dites seulement en pause (pas à chaque image). */}
       <p className="sr-only" aria-live="polite">
         {playing ? '' : label}

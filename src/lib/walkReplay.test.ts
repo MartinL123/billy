@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Route } from './route'
 import type { Track } from './track'
-import { photoWhen, REPLAY_DEFAULT_SPEED, REPLAY_SPEEDS, replayAdvance, replayAt, replayHeading, replaySpan, speedLabel } from './walkReplay'
+import { photoWhen, REPLAY_DEFAULT_SPEED, REPLAY_SPEEDS, replayAdvance, replayAt, replayHeading, replayPadding, replaySpan, speedLabel } from './walkReplay'
 
 const track: Track = { t: [0, 600, 1200], lat: [48.85, 48.86, 48.87], lng: [2.35, 2.35, 2.35] }
 const route = (extra: Partial<Route> = {}): Route => ({ points: [[48.85, 2.35], [48.87, 2.35]], distanceM: 2200, moments: [], ...extra })
@@ -63,5 +63,21 @@ describe('Revoir la balade en 3ᵉ personne (R-096)', () => {
     const still: Track = { t: [0, 600], lat: [48.85, 48.85], lng: [2.35, 2.35] }
     expect(replayHeading(route({ track: still, points: [[48.85, 2.35], [48.85, 2.35]] }), 300)).toBeUndefined()
     expect(replayHeading({ points: [[48.85, 2.35]], distanceM: 0, moments: [] }, 0)).toBeUndefined()
+  })
+})
+
+describe('R-096 · la caméra de la relecture', () => {
+  it('le chien aux deux tiers de la carte visible, entre les boutons du haut et le panneau', () => {
+    // Carte de 756 px, boutons jusqu’à 78 px, panneau réduit qui couvre 300 px : 378 px visibles.
+    const pad = replayPadding({ top: 78, bottom: 300 }, 756)
+    const center = (pad.top + 756 - pad.bottom) / 2
+    expect(center).toBe(78 + 252)
+    expect(pad).toMatchObject({ bottom: 300, left: 0, right: 0 })
+  })
+  it('le panneau monte : le chien remonte avec la carte visible, toujours dedans', () => {
+    const pad = replayPadding({ top: 78, bottom: 420 }, 756)
+    const center = (pad.top + 756 - pad.bottom) / 2
+    expect(center).toBeGreaterThan(78)
+    expect(center).toBeLessThan(756 - 420)
   })
 })

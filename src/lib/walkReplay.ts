@@ -2,6 +2,7 @@ import { parisMinutes } from './activity'
 import { formatDayHeading, type ISODate } from './dates'
 import { distanceMeters } from './community'
 import { bearing, cumulative, pointAlong } from './replay'
+import type { Padding } from './mapFrame'
 import type { Route } from './route'
 import { effectiveTrack } from './trim'
 import { clockAt, clockLabel, streetAt } from './walkSheet'
@@ -84,4 +85,15 @@ export function replayHeading(route: Parameters<typeof replayAt>[0], s: number):
   if (far(here, ahead)) return bearing([here.lat, here.lng], [ahead!.lat, ahead!.lng])
   if (far(behind, here)) return bearing([behind!.lat, behind!.lng], [here.lat, here.lng])
   return undefined
+}
+
+/**
+ * R-096 : les marges de la caméra qui suit le chien : il se place aux deux tiers de la carte visible (sous les boutons
+ * du haut, au-dessus du panneau), pour laisser voir le trajet devant lui (la carte inclinée regarde vers le haut).
+ */
+export function replayPadding(pad: Pick<Padding, 'top' | 'bottom'>, height: number): Padding {
+  const visible = Math.max(0, height - pad.top - pad.bottom)
+  // Le centre des marges tombe au milieu de [top + extra, height − bottom] : extra = 2 × (2/3 − 1/2) de la hauteur visible.
+  const extra = Math.round(visible / 3)
+  return { top: pad.top + extra, bottom: pad.bottom, left: 0, right: 0 }
 }

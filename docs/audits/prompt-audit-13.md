@@ -25,3 +25,23 @@ Un commit par ticket. Après chaque push : ticket en « Révision du code » ave
 ## Vérifier avant de pousser
 - `npm test`, `npm run build`, `npm run test:e2e`, skill `apple-design` sur l'accueil et le journal.
 - Web seulement : pas besoin de Xcode.
+
+---
+
+# Suite : décisions d'organisation de Martin (10 nov., 14 h 48)
+
+Mêmes règles : un commit par ticket, ticket en « Révision du code » avec une ligne datée.
+
+## R-110 · Un seul journal
+- `/balades` ouvre la carte, journal au cran du milieu, pastille « Balades » ; la tuile « Ses souvenirs » ouvre le journal sur « Souvenirs ».
+- Les filtres de lieu de Walks.tsx (lieux, « Avec une peur », « Plus de 3 km ») passent dans le journal, sous les pastilles, avec « Balades ».
+- Walks.tsx disparaît ; liens entrants mis à jour ; `/balades` reste une adresse redirigée. Test e2e : tuile → journal filtré.
+
+## R-111 · Vocabulaire fixe
+- Sortie = tout moment dehors avec le chien ; Balade = une sortie avec un tracé ; Souvenir = un mot ou une photo.
+- L'ajouter au style guide (Écriture) et à docs/design/contexte-flair.md ; relire les textes de l'accueil, du journal, de Santé et des notifications.
+
+## R-112 · Cacher les os
+- `SHOW_BONES = false` (un seul interrupteur) : plus de « +3 os » ni de solde affiché nulle part. Les os restent comptés.
+
+Non retenu : la roue « Réglages » sur l'accueil (les réglages restent dans Son profil).

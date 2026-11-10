@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { notedOutings, outingTotals } from '../../lib/notedOutings'
+import { walkTimes } from '../../lib/walks'
 import { Stats } from '../../components/Stats'
 import { BackLink } from '../../components/BackLink'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -30,7 +32,7 @@ const PHOTOS = 9
  */
 export default function Walks() {
   const readOnly = useReadOnly()
-  const { entries, dog } = useData()
+  const { entries, dog, walks: walkDays } = useData()
   const today = useToday()
   const navigate = useNavigate()
   const back = useBack('/territoire')
@@ -46,6 +48,8 @@ export default function Walks() {
   }, [filter])
   const [all, setAll] = useState(false)
   const walks = useMemo(() => walkItems(entries), [entries])
+  // R-109 : en tête, toutes les sorties (la liste garde seulement les balades avec tracé).
+  const totals = useMemo(() => outingTotals(walks, notedOutings(walkDays, entries, walkTimes(dog.walkTimes))), [walks, walkDays, entries, dog.walkTimes])
   const shown = useMemo(() => filterWalks(walks, filter, today), [walks, filter, today])
   const communes = useMemo(() => communesOf(walks), [walks])
   // La même couleur que sur la carte.
@@ -104,7 +108,7 @@ export default function Walks() {
         <div className="flex flex-col gap-1">
           <h1 className="title-screen">Ses balades</h1>
           {/* Sans balade, pas de « 0 balade · 0,0 km » au-dessus de l’état vide (R-036). */}
-          {walks.length > 0 && <Stats items={bilanStats(walks)} className="mt-2" />}
+          {totals.count > 0 && <Stats items={bilanStats(totals)} className="mt-2" />}
         </div>
         {/* « Noter un souvenir » vit ici depuis la V5 (il a quitté l’accueil). */}
         {!readOnly && (

@@ -3,7 +3,7 @@ import { isTrainingEntry, notedExercise, notedMinutes } from './billyPage'
 import { diffDays, formatDayHeading, formatLong, parseISO, type ISODate } from './dates'
 import { feelingLabel } from './moment'
 import type { NotedOuting } from './notedOutings'
-import { outingAbout } from './notedOutings'
+import { outingAbout, outingTotals } from './notedOutings'
 import { distanceLabel } from './walkingBouts'
 import { walkInstant, weekStart, type WalkItem } from './walkList'
 
@@ -166,15 +166,20 @@ export function journalGroups<W>(items: JournalItem<W>[], pill: JournalPill, tod
   return groups
 }
 
-/** « 3 balades · 7,1 km · 1 souvenir · 1 séance cette semaine » (depuis lundi) : les nombres à part, pour le gras. */
+/** « 3 sorties · 7,1 km · 1 souvenir · 1 séance cette semaine » (depuis lundi) : les nombres à part, pour le gras. */
 export function weekSummary(items: JournalItem<Pick<WalkItem, 'route'>>[], today: ISODate): { n: string; label: string }[] {
   const week = items.filter((i) => i.date >= weekStart(today) && i.date <= today)
-  const walks = week.filter((i) => i.kind === 'walk' || i.kind === 'outing').length
-  const km = week.reduce((sum, i) => sum + (i.kind === 'walk' ? i.walk.route.distanceM : 0), 0) / 1000
+  // R-109 : le même compteur que l’accueil et « Ses balades » : balades à tracé et sorties notées ou repérées.
+  const totals = outingTotals(
+    week.flatMap((i) => (i.kind === 'walk' ? [i.walk] : [])),
+    week.flatMap((i) => (i.kind === 'outing' ? [i.outing] : [])),
+  )
+  const walks = totals.count
+  const km = totals.meters / 1000
   const memos = week.filter((i) => i.kind === 'memo').length
   const sessions = week.filter((i) => i.kind === 'session').length
   const out: { n: string; label: string }[] = []
-  if (walks) out.push({ n: String(walks), label: walks > 1 ? 'balades' : 'balade' })
+  if (walks) out.push({ n: String(walks), label: walks > 1 ? 'sorties' : 'sortie' })
   if (km >= 0.05) out.push({ n: km.toFixed(1).replace('.', ','), label: 'km' })
   if (memos) out.push({ n: String(memos), label: memos > 1 ? 'souvenirs' : 'souvenir' })
   if (sessions) out.push({ n: String(sessions), label: sessions > 1 ? 'séances' : 'séance' })

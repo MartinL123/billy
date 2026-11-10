@@ -1,4 +1,6 @@
 import { useMemo } from 'react'
+import { walkTimes } from '../../lib/walks'
+import { notedOutings, outingTotals } from '../../lib/notedOutings'
 import { Link } from 'react-router-dom'
 import { ChevronRightIcon } from '../../components/Icons'
 import { useData } from '../../firebase/store'
@@ -80,9 +82,11 @@ function Row({ to, icon, tint, title, detail, alert = false, last = false }: { t
  */
 export function LifeTiles({ arrival = false }: { /** Première ouverture du jour : la carte monte avec la cascade (T-033). */ arrival?: boolean }) {
   const readOnly = useReadOnly()
-  const { dog, bossProgress, entries, events } = useData()
+  const { dog, bossProgress, entries, events, walks: walkDays } = useData()
   const today = useToday()
   const walks = useMemo(() => walkItems(entries), [entries])
+  // R-109 : un seul compteur de sorties (balades à tracé, sorties notées ou repérées).
+  const totals = useMemo(() => outingTotals(walks, notedOutings(walkDays, entries, walkTimes(dog.walkTimes))), [walks, walkDays, entries, dog.walkTimes])
   const active = activeSkills(dog.activeSkills, dog.traits ?? [], bossProgress)
   // App iOS : aucune séance trouvée dans Santé, la lecture n’est sans doute pas autorisée (T-001). Une ligne, pas de popup.
   const watchHint = isNative() && watchOptedIn() && watchLooksBlocked() ? `Autoriser ${APP_NAME} à lire vos marches (Réglages › Santé)` : undefined
@@ -94,7 +98,7 @@ export function LifeTiles({ arrival = false }: { /** Première ouverture du jour
       <h2 className="title-section mt-1">Sa vie avec vous</h2>
       <nav aria-label="Sa vie avec vous" className={`card flex flex-col p-0 ${arrival ? 'anim-in' : ''}`}>
         <Row to="/billy" icon={ICONS.progres} tint="#DCEBE6" title="Ses progrès" detail={progressLine(active)} />
-        <Row to={walks.length || readOnly ? '/territoire' : '/importer'} icon={ICONS.balades} tint="#E3EAF8" title="Ses balades" detail={watchHint ?? walksLine(walks.map((w) => w.route))} />
+        <Row to={totals.count || readOnly ? '/territoire' : '/importer'} icon={ICONS.balades} tint="#E3EAF8" title="Ses balades" detail={watchHint ?? walksLine(totals)} />
         <Row to="/sante" icon={ICONS.sante} tint="#FBE6D4" title="Sa santé" detail={sante.text} alert={sante.late} />
         {/* Visiteur (R-073) : rien à noter, seulement à regarder. */}
         <Row to={memories.count || readOnly ? '/balades' : '/noter'} icon={ICONS.souvenirs} tint="#FCEFD3" title="Ses souvenirs" detail={memories.count ? memoriesLine(entries) : readOnly ? 'Pas encore de souvenir' : 'Noter le premier'} last />

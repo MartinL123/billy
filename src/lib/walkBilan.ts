@@ -17,13 +17,15 @@ type BilanWalk = { id: string; date: ISODate; route: Pick<Route, 'points' | 'dis
 
 const km = (m: number) => `${(m / 1000).toFixed(1).replace('.', ',')} km`
 
-/** Les Stats du haut : balades · km · temps de balade (toutes les balades). V6.1 § 1 : plus de pourcentage découvert. */
-export function bilanStats(walks: BilanWalk[]): Stat[] {
-  const min = walks.reduce((s, w) => s + (w.route.durationMin ?? 0), 0)
+/**
+ * Les Stats du haut : Sorties · Distance · Temps dehors. R-109 : toutes les sorties avec le chien (outingTotals :
+ * balades à tracé, sorties notées ou repérées). V6.1 § 1 : plus de pourcentage découvert.
+ */
+export function bilanStats(totals: { count: number; meters: number; minutes: number }): Stat[] {
   return [
-    { value: String(walks.length), label: walks.length > 1 ? 'Balades' : 'Balade' },
-    { value: km(walks.reduce((s, w) => s + w.route.distanceM, 0)), label: 'Distance' },
-    { value: min ? walkTimeText(min) : '', label: 'De balade' },
+    { value: String(totals.count), label: totals.count > 1 ? 'Sorties' : 'Sortie' },
+    { value: km(totals.meters), label: 'Distance' },
+    { value: totals.minutes ? walkTimeText(totals.minutes) : '', label: 'Temps dehors' },
   ]
 }
 

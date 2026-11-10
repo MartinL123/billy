@@ -54,3 +54,26 @@ export function notedOutings(days: Pick<WalkDay, 'date' | 'done' | 'noted' | 'de
   }
   return out.sort((a, b) => b.date.localeCompare(a.date) || WALK_SLOTS.findIndex((s) => s.id === b.slot) - WALK_SLOTS.findIndex((s) => s.id === a.slot))
 }
+
+/** R-109 : le compteur unique des sorties avec le chien. */
+export interface OutingTotals {
+  /** Balades à tracé + sorties notées (« J’ai fait cette sortie ») + sorties repérées confirmées. */
+  count: number
+  /** La distance connue (m) : celle des balades et des sorties repérées ; une sortie notée sans distance n’y compte pas. */
+  meters: number
+  /** Le temps dehors (min) : la durée des balades et des sorties notées. */
+  minutes: number
+}
+
+/**
+ * R-109 : toutes les sorties avec le chien, en un seul compteur (« 37 sorties · 57 km »). `outings` vient de
+ * `notedOutings`, qui écarte déjà un créneau rattaché à une balade : rien n’est compté deux fois. La carte et la liste
+ * des balades, elles, gardent seulement les balades avec tracé.
+ */
+export function outingTotals(walks: { route: { distanceM: number; durationMin?: number } }[], outings: Pick<NotedOuting, 'minutes' | 'iphoneMeters'>[]): OutingTotals {
+  return {
+    count: walks.length + outings.length,
+    meters: walks.reduce((s, w) => s + w.route.distanceM, 0) + outings.reduce((s, o) => s + (o.iphoneMeters ?? 0), 0),
+    minutes: walks.reduce((s, w) => s + (w.route.durationMin ?? 0), 0) + outings.reduce((s, o) => s + o.minutes, 0),
+  }
+}

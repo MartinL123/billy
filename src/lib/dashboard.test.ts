@@ -36,8 +36,10 @@ describe('« Sa vie avec vous » en 4 lignes (V5, T-050)', () => {
   it('progrès, balades, souvenirs', () => {
     expect(progressLine(['rappel', 'calme', 'soins'])).toBe('3 compétences en route')
     expect(progressLine(['rappel'])).toBe('Une compétence en route')
-    expect(nb(walksLine([{ distanceM: 2600 }, { distanceM: 2100 }]))).toBe('2 balades · 4,7 km')
-    expect(walksLine([])).toBe('Pas encore de balade')
+    expect(nb(walksLine({ count: 2, meters: 4700 }))).toBe('2 sorties · 4,7 km')
+    expect(nb(walksLine({ count: 37, meters: 57_000 }))).toBe('37 sorties · 57,0 km')
+    expect(walksLine({ count: 1, meters: 0 })).toBe('1 sortie')
+    expect(walksLine({ count: 0, meters: 0 })).toBe('Pas encore de sortie')
     expect(nb(memoriesLine([{ id: 'a', date: '2026-10-19' }, { id: 'repos-2026-10-20', date: '2026-10-20' }]))).toBe('Le dernier : 19 octobre 2026')
   })
 })

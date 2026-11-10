@@ -65,11 +65,11 @@ export function progressLine(active: string[]): string {
   return active.length === 1 ? 'Une compétence en route' : `${active.length} compétences en route`
 }
 
-/** « 12 balades · 18,4 km » (V6.1 § 1 : plus de pourcentage découvert, ni « km ensemble »). */
-export function walksLine(walks: { distanceM: number }[]): string {
-  if (!walks.length) return 'Pas encore de balade'
-  const km = (walks.reduce((sum, w) => sum + w.distanceM, 0) / 1000).toFixed(1).replace('.', ',')
-  return `${plural(walks.length, 'balade')} · ${km}\u00a0km`
+/** R-109 : « 37 sorties · 57,0 km » : toutes les sorties avec le chien (outingTotals), les km connus. */
+export function walksLine(totals: { count: number; meters: number }): string {
+  if (!totals.count) return 'Pas encore de sortie'
+  const km = (totals.meters / 1000).toFixed(1).replace('.', ',')
+  return totals.meters > 0 ? `${plural(totals.count, 'sortie')} · ${km}\u00a0km` : plural(totals.count, 'sortie')
 }
 
 /** « Le dernier : 19 octobre 2026 » (sans les jours de repos). */

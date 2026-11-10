@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { bilanStats, monthReport, monthStats, topMomentLine, walkPhotos } from './walkBilan'
 import type { RouteMoment, RoutePoint } from './route'
+import { outingTotals } from './notedOutings'
 
 const line = (lat0: number, n = 10): RoutePoint[] => Array.from({ length: n }, (_, i) => [lat0 + i * 0.0005, 2.35])
 const m = (type: RouteMoment['type']): RouteMoment => ({ lat: 48.85, lng: 2.35, type })
@@ -11,16 +12,24 @@ const walk = (id: string, date: string, points: RoutePoint[], extra: Partial<{ d
 })
 
 describe('bilanStats', () => {
-  it('balades · km · temps de balade (V6.1 : plus de pourcentage, « de balade » et non « ensemble »)', () => {
+  it('R-109 : Sorties · Distance · Temps dehors, toutes les sorties avec le chien (balades et sorties notées ou repérées)', () => {
     const walks = [walk('a', '2026-10-01', line(48.85), { distanceM: 2100, durationMin: 45 }), walk('b', '2026-09-01', line(48.86), { distanceM: 3000, durationMin: 95 })]
+    const outings = [{ minutes: 30, iphoneMeters: 1800 }, { minutes: 20 }]
     const nb = (t: string) => t.replace(/\u00a0/g, ' ')
-    expect(bilanStats(walks).map((s) => `${nb(s.value)} ${s.label}`)).toEqual(['2 Balades', '5,1 km Distance', '2 h 20 De balade'])
+    expect(bilanStats(outingTotals(walks, outings)).map((s) => `${nb(s.value)} ${s.label}`)).toEqual(['4 Sorties', '6,9 km Distance', '3 h 10 Temps dehors'])
   })
 
   it('sans durée : cette case reste vide (le composant Stats la cache)', () => {
-    const stats = bilanStats([walk('a', '2026-10-01', line(48.85))])
-    expect(stats[0]).toEqual({ value: '1', label: 'Balade' })
+    const stats = bilanStats(outingTotals([walk('a', '2026-10-01', line(48.85))], []))
+    expect(stats[0]).toEqual({ value: '1', label: 'Sortie' })
     expect(stats[2]!.value).toBe('')
+  })
+})
+
+describe('R-109 · outingTotals', () => {
+  it('une sortie sans distance compte dans le nombre, pas dans les km', () => {
+    expect(outingTotals([{ route: { distanceM: 2000, durationMin: 40 } }], [{ minutes: 25 }, { minutes: 30, iphoneMeters: 1800 }])).toEqual({ count: 3, meters: 3800, minutes: 95 })
+    expect(outingTotals([], [])).toEqual({ count: 0, meters: 0, minutes: 0 })
   })
 })
 

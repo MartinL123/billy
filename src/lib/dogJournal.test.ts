@@ -90,7 +90,7 @@ describe('R-098 · le journal du chien', () => {
     const items = journalItems(input())
     // Lundi 19 → vendredi 23 : la balade du 21 et la sortie notée (2), 2,4 km, 1 souvenir, 1 séance.
     expect(weekSummary(items, TODAY)).toEqual([
-      { n: '2', label: 'balades' },
+      { n: '2', label: 'sorties' },
       { n: '2,4', label: 'km' },
       { n: '1', label: 'souvenir' },
       { n: '1', label: 'séance' },

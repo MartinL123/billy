@@ -562,7 +562,7 @@ function JournalHead({ peekRef }: { peekRef: RefObject<HTMLDivElement | null> })
   )
 }
 
-/** R-098 : « 3 balades · 7,1 km · 1 souvenir · 1 séance cette semaine », les nombres en gras ; rien : une phrase. */
+/** R-098 : « 3 sorties · 7,1 km · 1 souvenir · 1 séance cette semaine », les nombres en gras ; rien : une phrase. */
 function WeekLine({ items, today }: { items: JournalItem<WalkItem>[]; today: string }) {
   const parts = weekSummary(items, today)
   return (

@@ -8,7 +8,7 @@ import { useToday } from '../../lib/useToday'
 
 const points = () => [
   { icon: '🎯', title: 'Sa mission du jour', text: 'Sur l’accueil : une chose à faire, quelques minutes, pas à pas.' },
-  { icon: '🗺️', title: 'Ses balades', text: 'Importez vos balades Strava : elles s’affichent sur sa carte.' },
+  { icon: '🗺️', title: 'Ses balades', text: 'Vos balades de l’iPhone et de l’Apple Watch s’affichent sur sa carte.' },
   { icon: '💉', title: 'Sa santé', text: 'Vaccins, vermifuge, pesées : l’app vous rappelle quand c’est le moment.' },
 ]
 

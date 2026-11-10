@@ -1,3 +1,4 @@
+import { journalPath } from '../../lib/mapPanel'
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '../../components/Toast'
@@ -30,7 +31,7 @@ export function WatchSync() {
       void syncWatch(
         () => latest.current,
         // V6 § 6.3 : une seule balade arrivée, « Voir » ouvre son récap « Belle balade ! » ; plusieurs, le résultat de l’import.
-        (count, ids) => show.current.toast(`🐾 ${watchAddedLine(count)}`, { label: 'Voir', run: () => show.current.navigate(count === 1 && ids[0] ? `/balade/recap/${ids[0]}` : '/importer/resultat') }),
+        (count, ids) => show.current.toast(`🐾 ${watchAddedLine(count)}`, { label: 'Voir', run: () => show.current.navigate(count === 1 && ids[0] ? `/balade/recap/${ids[0]}` : journalPath('balades')) }),
         { force },
       )
     }

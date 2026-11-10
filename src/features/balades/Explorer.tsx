@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { isNative } from '../../native'
-import { CloseIcon, PlusIcon } from '../../components/Icons'
+import { CloseIcon } from '../../components/Icons'
 import { FileImage } from '../../components/FileImage'
 import { MapButton } from '../../components/Buttons'
 import { useToast } from '../../components/Toast'
@@ -425,13 +425,7 @@ export default function Explorer() {
               <Switch label="Lieux les plus fréquentés" hint="Plus c’est orange, plus vous y passez souvent" on={prefs.heat} onChange={(heat) => setPref({ heat })} />
               {/* T-097 : les idées masquées depuis le panneau se remettent ici. */}
               {isNative() && !readOnly && <Switch label="Idées de balade" hint="Des balades déjà faites qui partent d’ici" on={prefs.ideas} onChange={(ideas) => setPref({ ideas })} />}
-              {/* L’import reste ici (V6.1 § 4), plus en bas du panneau. */}
-              {!readOnly && (
-                <Link to="/importer" className="flex min-h-11 items-center gap-2 rounded-field px-2 text-[0.8824rem] font-bold text-primary no-underline">
-                  <PlusIcon size={18} />
-                  {isNative() ? 'Importer des balades' : 'Ajouter mes balades'}
-                </Link>
-              )}
+              {/* R-115 : plus d’import Strava / GPX (décision de Martin, 10 nov.) ; le code reste gelé dans ImportStrava. */}
             </div>
           )}
         </div>
@@ -566,14 +560,7 @@ export default function Explorer() {
             <Link to={`/balade-en-cours?depart=1${idea ? `&boucle=${encodeURIComponent(idea.item.id)}` : ''}`} className="tap btn btn-main min-h-[56px]">
               {idea ? 'Partir sur cette boucle' : 'Partir en balade'}
             </Link>
-          ) : (
-            shown.length === 0 && (
-              <Link to="/importer" className="tap btn btn-main min-h-[56px] gap-2">
-                <PlusIcon size={22} />
-                Ajouter mes balades
-              </Link>
-            )
-          )}
+          ) : null}
         </div>
       )}
       {placing && walkRoute && (

@@ -15,13 +15,11 @@ import WatchArrivalScreen from './features/trajets/WatchArrivalScreen'
 import Billy from './features/billy/Billy'
 import Explorer from './features/balades/Explorer'
 import LoopScreen from './features/balades/LoopScreen'
-import ImportStrava from './features/balades/ImportStrava'
 import Mission from './features/training/Mission'
 import HealthEvents from './features/calendar/HealthEvents'
 import HealthWeight from './features/calendar/HealthWeight'
 import HealthMeals from './features/calendar/HealthMeals'
 import HealthDocuments from './features/calendar/HealthDocuments'
-import ImportResult from './features/balades/ImportResult'
 import LiveWalk from './features/balades/LiveWalk'
 import { BonesBackfill } from './features/shop/BonesBackfill'
 import { FogBackfill } from './features/balades/FogBackfill'
@@ -254,8 +252,9 @@ export default function App() {
             <Route path="balades" element={<WalksRedirect />} />
             <Route path="exploration" element={<Navigate to="/territoire" replace />} />
             <Route path="ajouter-balade" element={<Navigate to="/territoire" replace />} />
-            <Route path="importer" element={<ImportStrava />} />
-            <Route path="importer/resultat" element={<ImportResult />} />
+            {/* R-115 : plus d’import Strava / GPX ; ImportStrava et ImportResult restent gelés (non branchés). */}
+            <Route path="importer" element={<Navigate to="/territoire" replace />} />
+            <Route path="importer/resultat" element={<Navigate to="/territoire" replace />} />
             <Route path="balade-en-cours" element={<LiveWalk />} />
             <Route path="boucle/:id" element={<LoopScreen />} />
             <Route path="installer" element={<InstallRoute />} />

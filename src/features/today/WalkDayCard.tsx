@@ -9,7 +9,6 @@ import { useData } from '../../firebase/store'
 import { useReadOnly } from '../../firebase/viewer'
 import type { ISODate } from '../../lib/dates'
 import { DURATION_CHOICES, preselectedDuration, slotWalkId, type WalkDayPlan } from '../../lib/walkDay'
-import { walkItems } from '../../lib/walkList'
 import { formatHour, WALK_SLOTS, type WalkSlot, type WalkTimes } from '../../lib/walks'
 import { useToday } from '../../lib/useToday'
 import { isNative } from '../../native'
@@ -84,7 +83,7 @@ export function NoteSheet({ walk, onClose }: { walk: ToNote; onClose: () => void
           Entrez une durée entre 1 et 300{'\u00a0'}min
         </p>
       )}
-      <p className="text-[0.8235rem] leading-snug text-[#3F4946]">Sans tracé, cette sortie n’est pas sur la carte. Pour l’y voir, lancez la marche sur la Watch ou importez-la.</p>
+      <p className="text-[0.8235rem] leading-snug text-[#3F4946]">Sans tracé, cette sortie n’est pas sur la carte. Pour l’y voir, lancez la marche sur la Watch ou « Partir en balade » sur l’iPhone.</p>
       <button type="button" onClick={save} className="btn btn-main min-h-[56px]">
         C’est noté
       </button>
@@ -141,7 +140,6 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
 }) {
   const { entries } = useData()
   const today = useToday()
-  const noWalkYet = useMemo(() => walkItems(entries).length === 0, [entries])
   // Visiteur (T-048) : il voit les sorties, sans les noter.
   const readOnly = useReadOnly()
   const label = (slot: WalkSlot) => WALK_SLOTS.find((s) => s.id === slot)!.label
@@ -193,12 +191,6 @@ export function WalkDayCard({ plan, times, yesterday, sentence, onNote, showStar
             <path d="M8 5.5v13l10.5-6.5z" fill="currentColor" />
           </svg>
           Partir en balade
-        </Link>
-      )}
-      {/* Un compte sans aucune balade : l’import reste proposé ici (sinon, il est dans le panneau de Balades). */}
-      {!readOnly && noWalkYet && (
-        <Link to="/importer" className="btn-text self-center px-4">
-          {isNative() ? 'Importer un fichier GPX' : 'Importer mes balades'}
         </Link>
       )}
       {children}

@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flair · Plan et design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --primary:#1E5A50; --primary-dark:#143F38; --primary-soft:#DCEBE6;
+  --action:#BF5519; --milestone:#D9661F; --milestone-soft:#FBE6D4; --milestone-dark:#8A3E0C;
+  --bg:#F3F5F2; --surface:#FFFFFF; --border:#D3D9D6; --divider:#E6EAE7; --text:#18201E; --muted:#5A6662;
+  --info:#2559A8; --info-soft:#E3EAF8; --danger:#B3261E; --danger-soft:#FDF1F0;
+  --gold:#F2B544; --gold-soft:#FCEFD3; --gold-dark:#3D2A00;
+  --route:#2F8F6B; --route-idea:#4F46E5; --care:#7B4FC9; --vaccine:#2F6FD0; --vet:#C4423A;
+  --frozen:#8A918E; --frozen-soft:#ECEEEC;
+  --display:"Bricolage Grotesque",system-ui,sans-serif; --body:Figtree,system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.55 var(--body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1160px;margin:0 auto;padding:0 16px}
+h1,h2,h3,h4{font-family:var(--display);margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(34px,6vw,54px);font-weight:800;line-height:1.02}
+h2{font-size:clamp(26px,4vw,34px);font-weight:700;line-height:1.1}
+h3{font-size:19px;font-weight:700;line-height:1.25}
+h4{font-size:15px;font-weight:700}
+p{margin:0}
+code{font:500 .86em ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--frozen-soft);padding:1px 5px;border-radius:5px}
+a{color:var(--primary);font-weight:600}
+
+/* En-tête */
+header.hero{background:var(--primary);color:#fff;padding:48px 0 40px}
+.hero .kicker{font:700 13px var(--body);letter-spacing:.08em;text-transform:uppercase;opacity:.8;margin-bottom:12px}
+.hero p.lead{font-size:18px;max-width:720px;margin-top:14px;opacity:.92}
+.hero .meta{margin-top:18px;font-size:14px;opacity:.75}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:28px}
+.kpi{background:rgba(255,255,255,.1);border-radius:16px;padding:14px 16px}
+.kpi b{display:block;font:800 30px/1 var(--display)}
+.kpi span{font-size:14px;opacity:.85}
+
+/* Sommaire */
+nav.toc{position:sticky;top:0;z-index:5;background:rgba(243,245,242,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--divider)}
+nav.toc .wrap{display:flex;gap:6px;overflow-x:auto;padding-top:10px;padding-bottom:10px;scrollbar-width:none}
+nav.toc a{flex:none;display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:999px;background:var(--surface);border:1px solid var(--border);color:var(--text);text-decoration:none;font:600 14px var(--body);white-space:nowrap}
+nav.toc a:hover{border-color:var(--primary);color:var(--primary)}
+
+section{padding:56px 0 8px}
+.sec-head{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;max-width:780px}
+.sec-head .num{font:700 13px var(--body);color:var(--milestone-dark);letter-spacing:.08em;text-transform:uppercase}
+.sec-head p{color:var(--muted);font-size:17px}
+
+.card{background:var(--surface);border-radius:20px;padding:20px;box-shadow:0 1px 2px rgba(24,32,30,.06)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+
+/* Pastilles */
+.pill{display:inline-flex;align-items:center;gap:4px;font:700 12px/1 var(--body);padding:5px 9px;border-radius:999px;white-space:nowrap;vertical-align:middle}
+.p-tab{background:var(--primary);color:#fff}
+.p-out{background:var(--primary-soft);color:var(--primary-dark)}
+.p-full{background:var(--milestone-soft);color:var(--milestone-dark)}
+.p-ios{background:var(--info-soft);color:var(--info)}
+.p-frozen{background:var(--frozen-soft);color:#555D5A}
+.p-new{background:var(--gold-soft);color:var(--gold-dark)}
+.p-bad{background:var(--danger-soft);color:var(--danger)}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+
+/* Plan */
+.map-entry{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:18px}
+.node{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 14px;font-weight:600}
+.node small{display:block;font:500 12px var(--body);color:var(--muted)}
+.arrow{color:var(--muted);font-weight:700}
+.tabs3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:900px){.tabs3{grid-template-columns:1fr}}
+.tabcol{background:var(--surface);border-radius:22px;overflow:hidden;box-shadow:0 1px 2px rgba(24,32,30,.06)}
+.tabcol .top{background:var(--primary);color:#fff;padding:16px 18px}
+.tabcol.home .top{background:var(--primary-dark)}
+.tabcol .top h3{color:#fff}
+.tabcol .top .route{font:500 13px ui-monospace,Menlo,monospace;opacity:.75}
+.tabcol .body{padding:6px 18px 18px}
+.blk{padding:12px 0;border-top:1px solid var(--divider)}
+.blk:first-child{border-top:0}
+.blk h4{margin-bottom:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.blk ul{margin:4px 0 0;padding-left:18px;font-size:15px}
+.blk li{margin:2px 0}
+.blk .to{color:var(--muted);font-size:14px}
+.r{font:500 12px ui-monospace,Menlo,monospace;color:var(--muted)}
+.outside{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:14px}
+.outside .card h3{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+
+/* Parcours */
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px}
+.step{background:var(--bg);border:1px solid var(--divider);border-radius:12px;padding:7px 11px;font:600 14px/1.3 var(--body)}
+.step.main{background:var(--action);border-color:var(--action);color:#fff}
+.flow .arrow{font-size:14px}
+.taps{font:700 13px var(--body);color:var(--primary)}
+
+/* Tableau */
+.tbl{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface);border-radius:18px;overflow:hidden;font-size:15px}
+.tbl th,.tbl td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--divider);vertical-align:top}
+.tbl th{font:700 13px var(--body);color:var(--muted);text-transform:uppercase;letter-spacing:.04em;background:#FAFBFA}
+.tbl tr:last-child td{border-bottom:0}
+.tbl-wrap{overflow-x:auto;border-radius:18px;box-shadow:0 1px 2px rgba(24,32,30,.06)}
+.yes{color:var(--route);font-weight:700}.no{color:var(--muted)}
+
+/* Design */
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.sw{background:var(--surface);border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(24,32,30,.06)}
+.sw .c{height:64px}
+.sw .t{padding:10px 12px;font-size:13px;line-height:1.35}
+.sw .t b{display:block;font-size:14px}
+.sw .t code{background:none;padding:0;color:var(--muted)}
+.type-row{display:flex;flex-wrap:wrap;gap:24px;align-items:baseline}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:6px 20px;border-radius:999px;border:2px solid transparent;font:700 16px/1.2 var(--body);white-space:nowrap}
+.b-main{background:var(--action);color:#fff}
+.b-primary{background:var(--primary);color:#fff}
+.b-secondary{background:var(--primary-soft);color:var(--primary-dark)}
+.b-tertiary{background:var(--surface);border-color:var(--primary);color:var(--primary)}
+.b-danger{background:var(--surface);border-color:var(--danger);color:var(--danger)}
+.b-text{background:none;color:var(--primary);padding:6px 4px;min-height:44px}
+.btn-demo{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.btn-demo .small{max-width:220px}
+.comp{display:flex;flex-direction:column;gap:12px}
+.mini-phone{background:var(--bg);border:8px solid var(--text);border-radius:34px;height:300px;position:relative;overflow:hidden}
+.mini-map{position:absolute;inset:0;background:linear-gradient(160deg,#DDE7D8,#CBDCCB)}
+.mini-sheet{position:absolute;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;box-shadow:0 -3px 12px rgba(0,0,0,.12);padding:8px 12px}
+.mini-sheet .g{width:32px;height:4px;border-radius:2px;background:#C7CEC9;margin:0 auto 6px}
+.mini-sheet .l{height:9px;border-radius:5px;background:var(--divider);margin:6px 0}
+.mini-sheet .l.t{background:var(--text);width:60%;height:11px}
+.notch-lbl{position:absolute;right:8px;font:700 11px var(--body);background:var(--text);color:#fff;border-radius:6px;padding:2px 6px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stats div{background:var(--bg);border-radius:12px;padding:8px 10px}
+.stats b{display:block;font:700 20px var(--display)}
+.stats span{font-size:12px;color:var(--muted)}
+.banner{display:flex;align-items:center;gap:10px;background:var(--info-soft);color:var(--info);border-radius:14px;padding:12px 14px;font:700 15px var(--body)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{min-height:36px;display:inline-flex;align-items:center;padding:0 12px;border-radius:999px;border:1px solid var(--border);font:600 14px var(--body);background:var(--surface)}
+.chip.on{background:var(--text);color:#fff;border-color:var(--text)}
+.jrow{display:flex;gap:10px;align-items:center}
+.jrow .i{width:40px;height:40px;border-radius:11px;background:var(--primary-soft);flex:none}
+.jrow b{display:block;font-size:15px}
+.jrow span{font-size:13px;color:var(--muted)}
+.moment{background:var(--surface);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:8px;border:1px solid var(--divider)}
+.moment .k{font:700 12px var(--body);color:var(--milestone-dark);letter-spacing:.06em}
+.moment .h{font:700 18px var(--display)}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.rule{background:var(--surface);border-radius:16px;padding:14px 16px;font-size:15px}
+.rule b{display:block;font-family:var(--display);font-size:16px;margin-bottom:2px}
+
+/* Organisation */
+.loop{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;counter-reset:s}
+.loop .st{background:var(--surface);border-radius:16px;padding:14px;position:relative;font-size:14px}
+.loop .st::before{counter-increment:s;content:counter(s);display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--primary);color:#fff;font:700 13px var(--body);align-items:center;justify-content:center;margin-bottom:8px}
+.loop .st b{display:block;font-size:15px;margin-bottom:2px}
+.kanban{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.kcol{background:var(--surface);border-radius:14px;padding:12px}
+.kcol b{display:block;font:800 28px/1 var(--display)}
+.kcol span{font-size:13px;color:var(--muted)}
+.kcol.warn{background:var(--milestone-soft)}
+.kcol.warn span{color:var(--milestone-dark)}
+
+/* Diagnostic */
+.issue{background:var(--surface);border-radius:20px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;border-left:5px solid var(--milestone)}
+.issue.maj{border-left-color:var(--danger)}
+.issue.idea{border-left-color:var(--info)}
+.issue .hd{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.issue .reco{background:var(--primary-soft);border-radius:12px;padding:10px 12px;font-size:15px}
+.issue .reco b{color:var(--primary-dark)}
+.issue p{font-size:15px}
+
+/* Feuille de route */
+.road{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.road .card h3{margin-bottom:10px}
+.road ul{margin:0;padding-left:18px;font-size:15px}
+.road li{margin:5px 0}
+.who{font:700 12px var(--body);padding:2px 7px;border-radius:6px;margin-left:4px}
+.who.m{background:var(--info-soft);color:var(--info)}
+.who.c{background:var(--primary-soft);color:var(--primary-dark)}
+
+footer{padding:48px 0 64px;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">Flair · app de Billy</div>
+    <h1>Plan, parcours et design de l’app</h1>
+    <p class="lead">Une seule page pour voir tout Flair : les écrans et ce qui y mène, les parcours importants, d’où viennent les sorties, le design, la façon dont on travaille, et ce que je propose de changer.</p>
+    <div class="kpis">
+      <div class="kpi"><b>3</b><span>onglets : Balades · Accueil · Santé</span></div>
+      <div class="kpi"><b>≈ 40</b><span>écrans et vues, plus 15 anciennes adresses redirigées</span></div>
+      <div class="kpi"><b>5</b><span>façons dont une sortie arrive</span></div>
+      <div class="kpi"><b>2</b><span>cibles, un seul code : site et app iPhone</span></div>
+      <div class="kpi"><b>36</b><span>tickets codés qui attendent leur recette</span></div>
+    </div>
+    <p class="meta">Relevé dans le code le 10 novembre 2026 (commit 3c8015e) et dans le kanban Notion. Remplace <code style="background:rgba(255,255,255,.15);color:#fff">arborescence.html</code> du 21 octobre.</p>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sommaire">
+  <div class="wrap">
+    <a href="#plan">1 · Plan</a>
+    <a href="#parcours">2 · Parcours</a>
+    <a href="#sorties">3 · D’où viennent les sorties</a>
+    <a href="#design">4 · Design</a>
+    <a href="#organisation">5 · Organisation</a>
+    <a href="#diagnostic">6 · Diagnostic</a>
+    <a href="#route">7 · Feuille de route</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- 1 · PLAN -->
+<section id="plan">
+  <div class="sec-head">
+    <span class="num">1 · Plan de l’app</span>
+    <h2>Tous les écrans, et ce qui y mène</h2>
+    <p>Trois onglets en bas, Accueil au centre (le rond vert). Billy et son profil s’ouvrent depuis l’accueil. Les écrans « plein écran » cachent la barre d’onglets le temps d’une tâche.</p>
+  </div>
+
+  <div class="legend">
+    <span class="pill p-tab">Onglet</span>
+    <span class="pill p-out">Hors barre</span>
+    <span class="pill p-full">Plein écran</span>
+    <span class="pill p-ios">App iPhone seulement</span>
+    <span class="pill p-new">Nouveau depuis le 21 oct.</span>
+    <span class="pill p-frozen">Gelé</span>
+  </div>
+
+  <h3 style="margin-bottom:10px">Entrée dans l’app</h3>
+  <div class="map-entry">
+    <div class="node">Connexion<small>e-mail + mot de passe</small></div><span class="arrow">→</span>
+    <div class="node">Écran d’ouverture<small><span class="r">/ouverture</span> · 1ʳᵉ fois, entre seul après 1 s</small></div><span class="arrow">→</span>
+    <div class="node">Questionnaire<small><span class="r">/questionnaire</span> · 9 questions</small></div><span class="arrow">→</span>
+    <div class="node">Bienvenue<small><span class="r">/bienvenue</span></small></div><span class="arrow">→</span>
+    <div class="node" style="background:var(--primary);color:#fff;border-color:var(--primary)">Accueil</div>
+  </div>
+  <div class="map-entry">
+    <div class="node">Lien d’invitation<small><span class="r">/invitation/:code</span></small></div><span class="arrow">→</span>
+    <div class="node">Mode visiteur<small>un proche regarde Billy, en lecture seule</small></div>
+  </div>
+
+  <div class="tabs3" style="margin-top:22px">
+    <!-- BALADES -->
+    <div class="tabcol">
+      <div class="top"><h3>Balades</h3><div class="route">/territoire</div></div>
+      <div class="body">
+        <div class="blk">
+          <h4>La carte, en plein écran</h4>
+          <ul>
+            <li>Tous les tracés, colorés ; brouillard <span class="muted">(éteint par défaut)</span></li>
+            <li><b>Affichage</b> : Plan / Satellite, 2D / 3D, Brouillard, Lieux les plus fréquentés, Idées de balade</li>
+            <li><b>Me situer</b> · boussole</li>
+          </ul>
+        </div>
+        <div class="blk">
+          <h4>Le panneau à 3 crans <span class="pill p-new">Nouveau</span></h4>
+          <p class="to">Un seul panneau, qui change de contenu :</p>
+          <ul>
+            <li><b>Le journal de Billy</b>, jour par jour : balades, sorties sans tracé, souvenirs, séances, soins · pastilles Tout · Balades · Souvenirs · Séances · Santé</li>
+            <li><b>Fiche d’une balade</b> <span class="r">?souvenir=</span> : Stats, allure, « Ce qui s’est passé », relief, corps, météo, Revoir, Raconter</li>
+            <li><b>Revoir la balade</b> : lecture, vitesses × 0,5 à × 4, caméra qui suit</li>
+            <li><b>Fiche d’une sortie</b> sans tracé <span class="r">?sortie=</span></li>
+            <li><b>Une idée de balade</b> <span class="r">?idee=</span>, en indigo</li>
+          </ul>
+        </div>
+        <div class="blk">
+          <h4>Depuis la carte</h4>
+          <ul>
+            <li><span class="pill p-full">Plein écran</span> Partir en balade → Balade en cours</li>
+            <li>Importer <span class="r">/importer</span> → Résultat</li>
+            <li>Ses balades <span class="r">/balades</span> : liste filtrable <span class="muted">(voir diagnostic n°1)</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCUEIL -->
+    <div class="tabcol home">
+      <div class="top"><h3>Accueil</h3><div class="route">/</div></div>
+      <div class="body">
+        <div class="blk">
+          <h4>En-tête</h4>
+          <p class="to">Date, « Bonjour, Billy », sa photo → Billy</p>
+        </div>
+        <div class="blk">
+          <h4>La carte du moment</h4>
+          <p class="to">Elle suit la journée : sortie, repas, mission, pesée, véto… Le seul bouton orange de l’écran (« Je l’ai faite », « Partir »…).</p>
+        </div>
+        <div class="blk">
+          <h4>Bandeaux <span class="pill p-ios">iPhone</span></h4>
+          <ul>
+            <li>« N balades de la Watch ajoutées »</li>
+            <li>« N sorties repérées par votre iPhone » <span class="pill p-new">Nouveau</span> → feuille « C’était avec Billy » / « Pas avec lui »</li>
+          </ul>
+        </div>
+        <div class="blk">
+          <h4>Ses sorties du jour</h4>
+          <ul>
+            <li>Matin · Midi · Soir : fait, ou « + Noter » (durée seule)</li>
+            <li>« Encore 2 sorties, 25 min conseillées chacune »</li>
+            <li><b>Idées pour maintenant</b> <span class="pill p-new">Nouveau</span> : 3 balades selon la météo → carte</li>
+          </ul>
+        </div>
+        <div class="blk">
+          <h4>Sa vie avec vous (4 tuiles)</h4>
+          <ul>
+            <li>Ses progrès → Billy</li>
+            <li>Ses balades → carte</li>
+            <li>Sa santé → Santé</li>
+            <li>Ses souvenirs → <span class="r">/balades</span></li>
+          </ul>
+        </div>
+        <div class="blk">
+          <h4>Bandeau d’installation</h4>
+          <p class="to">« Ajoutez Flair à votre écran d’accueil » (site seulement)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SANTE -->
+    <div class="tabcol">
+      <div class="top"><h3>Santé</h3><div class="route">/sante</div></div>
+      <div class="body">
+        <div class="blk">
+          <h4>Le haut</h4>
+          <ul>
+            <li>Calendrier replié sur la semaine</li>
+            <li>Soin en retard (rouge, seul cas de rouge) · Prochaine chose</li>
+            <li>Ajouter : quoi ? puis quand ?</li>
+          </ul>
+          <p class="to">Pastille sur l’onglet quand un soin est en retard.</p>
+        </div>
+        <div class="blk">
+          <h4>Sa santé en détail</h4>
+          <ul>
+            <li>Vaccins · Vermifuge · Antiparasitaire → <span class="r">/sante/evenements</span></li>
+            <li>Poids <span class="r">/sante/poids</span></li>
+            <li>Repas <span class="r">/sante/repas</span> : 1 à 4 repas, ration par repas</li>
+            <li>Documents <span class="r">/sante/documents</span> → ajouter, voir</li>
+          </ul>
+        </div>
+        <div class="blk">
+          <h4>Un événement</h4>
+          <p class="to">Créer ou modifier <span class="r">/evenement/:id</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="outside">
+    <div class="card">
+      <h3>Billy <span class="pill p-out">Hors barre</span></h3>
+      <p class="small muted"><span class="r">/billy</span> · par sa photo ou la tuile « Ses progrès »</p>
+      <ul class="small" style="padding-left:18px;margin:8px 0 0">
+        <li>Ses entraînements : chemin, badges (3 par ligne), progrès</li>
+        <li>Une compétence <span class="r">/competence/:id</span> → Exercice</li>
+        <li>Changer ce qu’il apprend <span class="r">/en-cours</span></li>
+        <li>Tous ses progrès · une journée de séances</li>
+        <li>→ Son profil</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Son profil <span class="pill p-out">Hors barre</span></h3>
+      <p class="small muted"><span class="r">/profil</span> · depuis Billy</p>
+      <ul class="small" style="padding-left:18px;margin:8px 0 0">
+        <li>Photo, Son identité, Ce qui l’inquiète, Contacts</li>
+        <li>Questionnaire de départ · Famille (inviter un proche)</li>
+        <li><b>Réglages</b> : Notifications, Balades détectées, Partage en direct <span class="pill p-ios">iPhone</span>, Unités</li>
+        <li>Compte : mot de passe, export, installer, se déconnecter, supprimer</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Plein écran <span class="pill p-full">Parcours</span></h3>
+      <ul class="small" style="padding-left:18px;margin:8px 0 0">
+        <li>Balade en cours <span class="r">/balade-en-cours</span> : GPS écran verrouillé, Live Activity <span class="pill p-ios">iPhone</span>, Annuler</li>
+        <li>« Belle balade ! » <span class="r">/balade/recap/:id</span> · arrivée de la Watch</li>
+        <li>Mission pas à pas <span class="r">/mission</span> · Exercice <span class="r">/exercice</span></li>
+        <li>Noter un souvenir <span class="r">/noter</span></li>
+        <li>Raconter, Recadrer, Modifier une balade · Boucle <span class="r">/boucle/:id</span></li>
+        <li>Mesure <span class="r">/mesure</span> : journal privé, sans lien</li>
+      </ul>
+    </div>
+    <div class="card" style="background:var(--frozen-soft)">
+      <h3>Gelés <span class="pill p-frozen">T-072</span></h3>
+      <ul class="small" style="padding-left:18px;margin:8px 0 0">
+        <li>La meute : spots, amis, « Marquer »</li>
+        <li>La boutique (les os sont encore comptés)</li>
+        <li>L’arbre de compétences (remplacé par le chemin)</li>
+      </ul>
+      <p class="small muted" style="margin-top:8px">Le code reste dans <code>features/meute</code> et <code>features/shop</code>. Toutes les anciennes adresses redirigent : un vieux lien ne casse jamais.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · PARCOURS -->
+<section id="parcours">
+  <div class="sec-head">
+    <span class="num">2 · Parcours clés</span>
+    <h2>Les 6 choses qu’on fait le plus</h2>
+    <p>Le nombre de touchers compte depuis l’accueil. En orange : l’action principale de l’écran.</p>
+  </div>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Noter une sortie faite</h3><span class="taps">1 toucher</span>
+      <div class="flow"><span class="step">Accueil</span><span class="arrow">→</span><span class="step main">Je l’ai faite</span><span class="arrow">→</span><span class="step">Créneau coché, +3 os</span></div>
+    </div>
+    <div class="card">
+      <h3>Partir en balade avec le GPS</h3><span class="taps">2 touchers</span>
+      <div class="flow"><span class="step">Accueil</span><span class="arrow">→</span><span class="step main">Partir</span><span class="arrow">→</span><span class="step">Balade en cours</span><span class="arrow">→</span><span class="step">Terminer</span><span class="arrow">→</span><span class="step">Belle balade !</span><span class="arrow">→</span><span class="step">Fiche sur la carte</span></div>
+    </div>
+    <div class="card">
+      <h3>Confirmer les sorties de l’iPhone</h3><span class="taps">2 touchers</span>
+      <div class="flow"><span class="step">Ouvrir Flair</span><span class="arrow">→</span><span class="step">Bandeau « 3 sorties repérées »</span><span class="arrow">→</span><span class="step main">C’était avec Billy</span><span class="arrow">→</span><span class="step">Journal</span></div>
+    </div>
+    <div class="card">
+      <h3>Revoir une balade</h3><span class="taps">3 touchers</span>
+      <div class="flow"><span class="step">Balades</span><span class="arrow">→</span><span class="step">Toucher un tracé</span><span class="arrow">→</span><span class="step main">Revoir la balade</span><span class="arrow">→</span><span class="step">Lecture × 4</span></div>
+    </div>
+    <div class="card">
+      <h3>Ajouter un soin ou un vaccin</h3><span class="taps">2 touchers + formulaire</span>
+      <div class="flow"><span class="step">Santé</span><span class="arrow">→</span><span class="step main">Ajouter</span><span class="arrow">→</span><span class="step">Quoi ?</span><span class="arrow">→</span><span class="step">Quand ?</span><span class="arrow">→</span><span class="step">Calendrier</span></div>
+    </div>
+    <div class="card">
+      <h3>Faire la mission du jour</h3><span class="taps">1 toucher</span>
+      <div class="flow"><span class="step">Accueil</span><span class="arrow">→</span><span class="step main">Commencer</span><span class="arrow">→</span><span class="step">Mission pas à pas</span><span class="arrow">→</span><span class="step">« Ça s’est bien passé ? »</span><span class="arrow">→</span><span class="step">Badge, pattes</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · SORTIES -->
+<section id="sorties">
+  <div class="sec-head">
+    <span class="num">3 · D’où viennent les sorties</span>
+    <h2>Cinq entrées, un seul journal</h2>
+    <p>C’est la partie la plus riche de Flair, et la plus difficile à comprendre de l’extérieur. Tout finit dans « Ses sorties du jour » (accueil) et dans le journal (carte).</p>
+  </div>
+  <div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr><th>Source</th><th>Ce qu’il faut faire</th><th>Tracé sur la carte</th><th>Où</th><th>Ticket</th></tr></thead>
+    <tbody>
+      <tr><td><b>iPhone en poche</b></td><td>Rien, puis 1 toucher pour confirmer à l’ouverture</td><td class="no">Non (durée, distance)</td><td>iPhone</td><td>T-121</td></tr>
+      <tr><td><b>Séance « Marche » sur la Watch</b></td><td>Lancer la séance sur la montre</td><td class="yes">Oui, avec cœur et allure</td><td>iPhone</td><td>T-084, R-104</td></tr>
+      <tr><td><b>Partir en balade</b> dans Flair</td><td>1 toucher au départ, Terminer au retour</td><td class="yes">Oui</td><td>iPhone et site</td><td>T-062</td></tr>
+      <tr><td><b>Import</b> Strava ou GPX</td><td>Exporter le fichier depuis un ordinateur</td><td class="yes">Oui</td><td>Site</td><td>—</td></tr>
+      <tr><td><b>Noter</b> « J’ai fait cette sortie »</td><td>1 toucher, la durée</td><td class="no">Non</td><td>iPhone et site</td><td>R-044</td></tr>
+      <tr style="background:var(--gold-soft)"><td><b>Sortie de chez soi</b> <span class="pill p-new">Proposé</span></td><td>Rien, puis 1 toucher pour confirmer</td><td class="yes">Oui</td><td>iPhone</td><td>T-122</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="small muted" style="margin-top:10px">Doublons évités : une séance Watch au même moment retire la sortie repérée ; une balade à tracé couvre le créneau. Avec T-122, la balade enregistrée seule remplacerait la sortie repérée.</p>
+</section>
+
+<!-- 4 · DESIGN -->
+<section id="design">
+  <div class="sec-head">
+    <span class="num">4 · Design</span>
+    <h2>Le système Flair</h2>
+    <p>Vert profond pour la marque, orange réservé à une seule action par écran, rendu sobre « façon Komoot » depuis la V6. La référence complète reste <code>docs/style-guide.html</code>.</p>
+  </div>
+
+  <h3 style="margin-bottom:12px">Couleurs et leur rôle</h3>
+  <div class="swatches">
+    <div class="sw"><div class="c" style="background:#1E5A50"></div><div class="t"><b>Primary</b>Marque, boutons primary, onglets <code>#1E5A50</code></div></div>
+    <div class="sw"><div class="c" style="background:#DCEBE6"></div><div class="t"><b>Primary soft</b>Boutons secondary, pastilles <code>#DCEBE6</code></div></div>
+    <div class="sw"><div class="c" style="background:#BF5519"></div><div class="t"><b>Action</b>Une seule par écran <code>#BF5519</code></div></div>
+    <div class="sw"><div class="c" style="background:#D9661F"></div><div class="t"><b>Milestone</b>Étapes, réussites <code>#D9661F</code></div></div>
+    <div class="sw"><div class="c" style="background:#F2B544"></div><div class="t"><b>Or</b>Os, récompenses <code>#F2B544</code></div></div>
+    <div class="sw"><div class="c" style="background:#2F8F6B"></div><div class="t"><b>Tracé</b>Balades faites <code>#2F8F6B</code></div></div>
+    <div class="sw"><div class="c" style="background:#4F46E5"></div><div class="t"><b>Idée</b>Balade proposée <code>#4F46E5</code></div></div>
+    <div class="sw"><div class="c" style="background:#2559A8"></div><div class="t"><b>Info</b>Bandeaux, liens <code>#2559A8</code></div></div>
+    <div class="sw"><div class="c" style="background:#B3261E"></div><div class="t"><b>Danger</b>Retard, suppression seulement <code>#B3261E</code></div></div>
+    <div class="sw"><div class="c" style="background:#2F6FD0"></div><div class="t"><b>Vaccin</b>Calendrier <code>#2F6FD0</code></div></div>
+    <div class="sw"><div class="c" style="background:#7B4FC9"></div><div class="t"><b>Soin</b>Calendrier <code>#7B4FC9</code></div></div>
+    <div class="sw"><div class="c" style="background:#F3F5F2;border-bottom:1px solid var(--divider)"></div><div class="t"><b>Fond</b>Avec surfaces blanches <code>#F3F5F2</code></div></div>
+  </div>
+
+  <div class="grid g2" style="margin-top:22px">
+    <div class="card">
+      <h3 style="margin-bottom:12px">Typographie</h3>
+      <div class="type-row">
+        <div><div style="font:700 34px/1.05 var(--display)">Bricolage</div><span class="small muted">Titres, chiffres · 600 à 800</span></div>
+        <div><div style="font:500 26px/1.1 var(--body)">Figtree</div><span class="small muted">Texte, boutons · 400 à 700</span></div>
+      </div>
+      <p class="small muted" style="margin-top:12px">Texte à 16 px minimum dans les champs (sinon Safari zoome). Suit le texte agrandi d’iOS (R-056).</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:12px">Mouvement</h3>
+      <ul class="small" style="padding-left:18px;margin:0">
+        <li>150 ms au toucher, 250 ms transition, 400 ms apparition</li>
+        <li>Courbe <code>cubic-bezier(.2,.8,.3,1)</code>, ressort <code>(.3,1.3,.5,1)</code></li>
+        <li>Seulement <code>transform</code> et <code>opacity</code></li>
+        <li>Tout coupé avec « Réduire les animations »</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="margin:28px 0 12px">Boutons (convention du 22 octobre)</h3>
+  <div class="card" style="display:flex;flex-wrap:wrap;gap:22px">
+    <div class="btn-demo"><span class="btn b-main">Partir en balade</span><span class="small muted">Action : orange plein, une seule par écran</span></div>
+    <div class="btn-demo"><span class="btn b-primary">C’était avec Billy</span><span class="small muted">Primary : vert plein</span></div>
+    <div class="btn-demo"><span class="btn b-secondary">Raconter</span><span class="small muted">Secondary : fond vert clair</span></div>
+    <div class="btn-demo"><span class="btn b-tertiary">Pas avec lui</span><span class="small muted">Tertiary : contour</span></div>
+    <div class="btn-demo"><span class="btn b-danger">Supprimer</span><span class="small muted">Danger : contour rouge, toujours confirmé</span></div>
+    <div class="btn-demo"><span class="btn b-text">Ajouter un mot ›</span><span class="small muted">Texte : actions secondaires</span></div>
+  </div>
+  <p class="small muted" style="margin-top:8px">Tous sur une ligne, jamais coupés ; 44 px minimum de haut ; dans la moitié basse de l’écran.</p>
+
+  <h3 style="margin:28px 0 12px">Composants qui portent l’app</h3>
+  <div class="grid g3">
+    <div class="card comp">
+      <h4>Panneau de la carte à 3 crans</h4>
+      <div class="mini-phone" aria-hidden="true">
+        <div class="mini-map"></div>
+        <div class="mini-sheet" style="top:200px;bottom:0"><div class="g"></div><div class="l t"></div><div class="l"></div><div class="l" style="width:70%"></div></div>
+        <span class="notch-lbl" style="top:24px">Haut</span>
+        <span class="notch-lbl" style="top:120px">Milieu</span>
+        <span class="notch-lbl" style="top:206px">Réduit</span>
+      </div>
+      <p class="small muted">Journal, fiche, sortie et relecture partagent le même geste et la même poignée (R-099, R-102, R-105).</p>
+    </div>
+    <div class="card comp">
+      <h4>Carte du moment</h4>
+      <div class="moment"><span class="k">SORTIE DE L’APRÈS-MIDI · 14 H 30</span><span class="h">C’est l’heure de sortir Billy</span><span class="small muted">25 min conseillées.</span><span class="btn b-main" style="min-height:44px">Je l’ai faite</span></div>
+      <p class="small muted">Elle change avec l’heure ; c’est elle qui porte le seul orange de l’accueil.</p>
+    </div>
+    <div class="card comp">
+      <h4>Stats</h4>
+      <div class="stats"><div><b>1,9 km</b><span>Distance</span></div><div><b>31 min</b><span>Durée</span></div><div><b>4,2</b><span>km/h · Allure</span></div></div>
+      <p class="small muted">3 ou 4 cases, jamais une case à 0 (R-095).</p>
+      <h4 style="margin-top:6px">Bandeau d’info</h4>
+      <div class="banner">3 sorties repérées par votre iPhone ›</div>
+    </div>
+    <div class="card comp">
+      <h4>Pastilles de filtre</h4>
+      <div class="chips"><span class="chip on">Tout</span><span class="chip">Balades</span><span class="chip">Souvenirs</span><span class="chip">Séances</span><span class="chip">Santé</span></div>
+      <p class="small muted">Gras, 44 px de zone tactile, une ligne qui défile, jamais compressées.</p>
+    </div>
+    <div class="card comp">
+      <h4>Ligne du journal</h4>
+      <div class="jrow"><span class="i"></span><div><b>Sortie du matin · 25 min</b><span>Repérée par l’iPhone, 760 m, vers 11 h 20</span></div></div>
+      <div class="jrow"><span class="i" style="background:var(--milestone-soft)"></span><div><b>Séance · Le Lien</b><span>« Au calme » · 3 min · Super</span></div></div>
+      <p class="small muted">Une icône, un titre, une ligne de détail. Toute ligne s’ouvre.</p>
+    </div>
+    <div class="card comp">
+      <h4>Progression</h4>
+      <p style="font:700 20px var(--display)">🐾🐾🐾 <span style="opacity:.25">🐾🐾</span></p>
+      <p class="small">Prochaine étape : rester assis 10 s</p>
+      <p class="small muted">Des pattes et la prochaine étape, jamais « 3 sur 5 ». Rien ne baisse après un mauvais jour.</p>
+    </div>
+  </div>
+
+  <h3 style="margin:28px 0 12px">Règles d’écriture et d’ergonomie</h3>
+  <div class="rules">
+    <div class="rule"><b>Une action par écran</b>Visible sans défiler, dans la moitié basse.</div>
+    <div class="rule"><b>2 touchers</b>Tout ajout depuis l’accueil : photo, note, événement, document.</div>
+    <div class="rule"><b>Jamais d’écran vide</b>Une phrase et le bouton qui le remplit.</div>
+    <div class="rule"><b>Français simple</b>Vouvoiement, « 13 mai 2026 », « 19 h 30 », espace insécable avant « ? ! : ; ».</div>
+    <div class="rule"><b>Pas de culpabilité</b>Jamais de rouge pour un jour sans balade, pas de « Vous n’avez pas… ».</div>
+    <div class="rule"><b>Hors ligne d’abord</b>Tout se lit sans réseau ; « en attente d’envoi » sinon.</div>
+  </div>
+</section>
+
+<!-- 5 · ORGANISATION -->
+<section id="organisation">
+  <div class="sec-head">
+    <span class="num">5 · Organisation</span>
+    <h2>Comment on travaille</h2>
+    <p>Cette discussion fait le lien entre toi et Claude Code. Le kanban Notion est la seule source de vérité du suivi.</p>
+  </div>
+
+  <div class="loop">
+    <div class="st"><b>Tu donnes un retour</b>Ici, en une phrase ou une capture.</div>
+    <div class="st"><b>Ticket et maquette</b>R-xxx ou T-xxx dans Notion ; maquette si le design change.</div>
+    <div class="st"><b>Tu tranches</b>En QCM, seulement ce qui est à toi.</div>
+    <div class="st"><b>Prompt prêt</b><code>docs/audits/prompt-audit-NN.md</code></div>
+    <div class="st"><b>Claude Code code</b>Un commit par ticket, ticket en « Révision du code ».</div>
+    <div class="st"><b>Tu dis « update »</b>Audit, recette en prod, tickets en Done ou KO.</div>
+  </div>
+
+  <h3 style="margin:28px 0 12px">Le kanban aujourd’hui (Projet = Billy)</h3>
+  <div class="kanban">
+    <div class="kcol"><b>5</b><span>Backlog</span></div>
+    <div class="kcol"><b>7</b><span>Conception · à toi</span></div>
+    <div class="kcol"><b>7</b><span>À faire</span></div>
+    <div class="kcol warn"><b>36</b><span>Révision du code · à recetter</span></div>
+    <div class="kcol"><b>178</b><span>Done</span></div>
+  </div>
+
+  <h3 style="margin:28px 0 12px">Où vivent les choses</h3>
+  <div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr><th>Quoi</th><th>Où</th></tr></thead>
+    <tbody>
+      <tr><td>Code, specs, maquettes, audits</td><td>Dossier <code>~/Desktop/Billy</code> = GitHub <code>martinl123/billy</code></td></tr>
+      <tr><td>Règles pour Claude Code</td><td><code>CLAUDE.md</code> à la racine</td></tr>
+      <tr><td>Contexte produit (personas, décisions)</td><td><code>docs/design/contexte-flair.md</code></td></tr>
+      <tr><td>Spec en cours</td><td><code>docs/specs/spec-v6-balades-komoot.md</code>, puis V3</td></tr>
+      <tr><td>Style guide</td><td><code>docs/style-guide.html</code></td></tr>
+      <tr><td>Maquettes</td><td><code>docs/maquettes/</code> (V6-*, flair-2026-10-22/)</td></tr>
+      <tr><td>Audits et prompts</td><td><code>docs/audits/</code> · Notion « Billy — Journal des audits UX »</td></tr>
+      <tr><td>Tickets</td><td>Notion « My professional life », filtre Projet = Billy</td></tr>
+      <tr><td>App en ligne</td><td><a href="https://martinl123.github.io/billy/">martinl123.github.io/billy</a> · app iPhone via Xcode (à relancer tous les 7 jours)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- 6 · DIAGNOSTIC -->
+<section id="diagnostic">
+  <div class="sec-head">
+    <span class="num">6 · Diagnostic</span>
+    <h2>Ce que je changerais dans l’organisation</h2>
+    <p>Vu avec les yeux de Josiane et de Nadia, qui découvrent l’app. Classé par importance.</p>
+  </div>
+  <div class="grid g2">
+    <div class="issue maj">
+      <div class="hd"><span class="pill p-bad">Majeur</span><h3>1 · Deux listes de balades</h3></div>
+      <p>« Ses balades » (<span class="r">/balades</span>, 17 balades) et le journal de la carte montrent presque la même chose. Mais les sorties repérées et les séances ne sont que dans le journal, et la tuile « Ses souvenirs » ouvre… « Ses balades ».</p>
+      <div class="reco"><b>Proposition :</b> un seul journal. <span class="r">/balades</span> ouvre le journal sur la pastille « Balades », et « Ses souvenirs » sur « Souvenirs ». Les filtres de lieu passent dans le journal.</div>
+    </div>
+    <div class="issue maj">
+      <div class="hd"><span class="pill p-bad">Majeur</span><h3>2 · « Balade », « sortie », « souvenir »</h3></div>
+      <p>Trois mots pour des choses proches, mélangés d’un écran à l’autre : « 3 balades cette semaine » compte des sorties sans tracé, « Sortie de midi » à 16 h (R-107).</p>
+      <div class="reco"><b>Proposition :</b> un glossaire fixe. <b>Sortie</b> = tout moment dehors avec Billy. <b>Balade</b> = une sortie avec un tracé. <b>Souvenir</b> = un mot ou une photo. Le compteur unique de R-109 suit cette règle.</div>
+    </div>
+    <div class="issue">
+      <div class="hd"><span class="pill p-full">Moyen</span><h3>3 · Les réglages à 3 niveaux</h3></div>
+      <p>Accueil → Billy → Son profil → Réglages. Josiane qui cherche « Notifications » ne pensera pas à passer par la page de son chien.</p>
+      <div class="reco"><b>Proposition :</b> une roue « Réglages » en haut à droite de l’accueil, qui ouvre la même liste. Le profil garde ce qui parle du chien.</div>
+    </div>
+    <div class="issue">
+      <div class="hd"><span class="pill p-full">Moyen</span><h3>4 · Des os qui ne servent à rien</h3></div>
+      <p>« +3 os » s’affiche encore (sorties repérées, balades), mais la boutique est gelée : une récompense qu’on ne peut pas dépenser perd son sens.</p>
+      <div class="reco"><b>Proposition :</b> cacher les os tant que la boutique est gelée (ils restent comptés), ou dégeler une petite boutique de 3 objets.</div>
+    </div>
+    <div class="issue">
+      <div class="hd"><span class="pill p-full">Moyen</span><h3>5 · 36 tickets attendent leur recette</h3></div>
+      <p>La plupart se vérifient sur l’iPhone (Live Activity, notifications, gestes, Watch). Plus la pile monte, plus un bug ancien est dur à retrouver.</p>
+      <div class="reco"><b>Proposition :</b> une séance de recette de 30 min sur l’iPhone, ensemble, avec une liste courte (T-093 et T-105 regroupés).</div>
+    </div>
+    <div class="issue idea">
+      <div class="hd"><span class="pill p-ios">Idée</span><h3>6 · Billy, le cœur caché</h3></div>
+      <p>Le dressage, c’est la promesse « un petit pas chaque jour », mais Billy n’a pas d’onglet. La mission de l’accueil compense, pas la progression.</p>
+      <div class="reco"><b>À méditer :</b> garder 3 onglets, et faire de la photo de Billy en haut de l’accueil une vraie carte « Ses progrès » (déjà en tuile plus bas). Pas de 4ᵉ onglet.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 · FEUILLE DE ROUTE -->
+<section id="route">
+  <div class="sec-head">
+    <span class="num">7 · Feuille de route</span>
+    <h2>Maintenant, ensuite, plus tard</h2>
+  </div>
+  <div class="road">
+    <div class="card">
+      <h3>Maintenant</h3>
+      <ul>
+        <li>R-107, R-108, R-109 : noms des sorties, idées, compteur unique <span class="who c">Claude Code</span></li>
+        <li>Recette iPhone : R-105, R-099, puis T-093 et T-105 <span class="who m">Martin</span></li>
+        <li>Notification « Flair expire demain » vers le 16 nov. (R-104) <span class="who m">Martin</span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Ensuite</h3>
+      <ul>
+        <li>T-123 : tes proches voient le point et le tracé complet, toutes les 15 s <span class="who c">Claude Code</span></li>
+        <li>T-124 : « Vous passez près de chez… », prévenir un frère en un toucher <span class="who c">Claude Code</span></li>
+        <li>T-122 : balade enregistrée seule en sortant de chez soi (maquette prête) <span class="who m">à valider</span></li>
+        <li>Diagnostic n°1 à 4 ci-dessus <span class="who m">à valider</span></li>
+        <li>T-068 : un seul lanceur de séance <span class="who m">à décider</span></li>
+        <li>T-069 puis T-070 : fiche contenu validée par la véto et l’éducateur <span class="who m">Martin</span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Plus tard</h3>
+      <ul>
+        <li>T-043 balade sur l’écran verrouillé, T-044 widgets, T-045 app Watch</li>
+        <li>T-047 premier lancement, récap du dimanche</li>
+        <li>T-004 communauté (meute dégelée) · T-003 spec Trajets</li>
+        <li>T-125 notification automatique chez tes proches (Flair installé chez eux)</li>
+        <li>T-073 test avec 5 personnes (VoiceOver, grand texte)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">Sources : <code>src/App.tsx</code>, <code>src/components/TabBar.tsx</code>, les écrans de <code>src/features/</code>, <code>src/index.css</code>, <code>docs/design/contexte-flair.md</code> et le kanban Notion, relevés le 10 novembre 2026.</div>
+</footer>
+</body>
+</html>

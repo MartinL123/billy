@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Balade enregistrée seule</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* T-122 : balade enregistrée seule en sortant de chez soi (app iOS). Tokens de src/index.css. */
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --text:#18201E; --muted:#5A6662; --hint:#3F4946; --line:#E6EAE7;
+  --primary:#1E5A50; --primary-soft:#DCEBE6; --action:#BF5519; --info:#2559A8; --info-soft:#E3EAF8;
+  --display:"Bricolage Grotesque",system-ui,sans-serif; --body:Figtree,system-ui,sans-serif;
+  --page:#E9ECE8; --frame:#18201E;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --page:#0E1311; --frame:#000;}}
+:root[data-theme="dark"]{--page:#0E1311; --frame:#000;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font:400 16px/1.5 var(--body)}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 16px 64px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .intro{color:#E8EEEA}}
+:root[data-theme="dark"] .intro{color:#E8EEEA}
+.intro h1{font:600 clamp(28px,4.5vw,40px)/1.08 var(--display);margin:0 0 10px;letter-spacing:-.01em}
+.intro p{margin:0 0 8px;max-width:720px}
+.screens{display:flex;flex-wrap:wrap;gap:28px;margin-top:28px;align-items:flex-start}
+figure{margin:0;display:flex;flex-direction:column;gap:10px;width:min(390px,100%)}
+figcaption{font:600 14px/1.4 var(--body);color:inherit}
+.phone{width:100%;max-width:390px;height:780px;border-radius:44px;border:10px solid var(--frame);background:var(--bg);overflow:hidden;position:relative;color:var(--text)}
+.status{height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font:600 15px var(--body)}
+.content{padding:4px 16px 0;display:flex;flex-direction:column;gap:12px}
+.hello{font:600 26px/1.15 var(--display);margin:6px 0 2px}
+.card{background:var(--surface);border-radius:20px;box-shadow:0 1px 2px rgba(24,32,30,.06);padding:16px 18px}
+.moment{display:flex;flex-direction:column;gap:10px}
+.moment .t{font:600 18px/1.2 var(--display)}
+.moment .s{font-size:15px;color:var(--hint)}
+.btn{display:flex;align-items:center;justify-content:center;min-height:52px;padding:6px 18px;border-radius:999px;border:2px solid transparent;font:700 16px/1.2 var(--body);white-space:nowrap;cursor:pointer}
+.btn-main{background:var(--action);border-color:var(--action);color:#fff}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn-tertiary{background:var(--surface);border-color:var(--primary);color:var(--primary)}
+.btn.sm{min-height:44px;padding:4px 14px;font-size:15px}
+.banner{display:flex;align-items:center;gap:12px;background:var(--info-soft);color:var(--info);border-radius:16px;padding:12px 14px;min-height:56px;font:700 15px/1.3 var(--body);text-decoration:none}
+.banner svg{flex:none}
+.banner .go{margin-left:auto}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:88px;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:flex-end;padding-bottom:14px;font:600 13px var(--body);color:var(--hint)}
+.tabbar .home{width:64px;height:64px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:6px;box-shadow:0 6px 16px rgba(30,90,80,.35);font-size:12px}
+.dim{position:absolute;inset:0;background:rgba(24,32,30,.32)}
+.sheet{position:absolute;left:0;right:0;bottom:0;top:96px;background:var(--surface);border-radius:26px 26px 0 0;box-shadow:0 -4px 18px rgba(24,32,30,.18);padding:10px 16px 24px;display:flex;flex-direction:column;gap:12px}
+.grab{width:40px;height:5px;border-radius:3px;background:#C7CEC9;margin:0 auto 4px}
+.sheet h2{font:600 22px/1.2 var(--display);margin:0}
+.sheet .lead{font-size:15px;color:var(--hint);margin:0}
+.det{border:1px solid var(--line);border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.det .when{font:700 16px/1.3 var(--body)}
+.det .what{font-size:15px;color:var(--hint);display:flex;align-items:center;gap:6px}
+.row2{display:grid;grid-template-columns:1.25fr 1fr;gap:8px}
+.done{display:flex;align-items:center;gap:8px;color:var(--primary);font:700 15px var(--body)}
+.close{align-self:center;background:none;border:0;color:var(--primary);font:700 16px var(--body);min-height:44px;padding:0 16px}
+.day{font:600 16px var(--display);margin:4px 0 0}
+.jrow{display:flex;gap:12px;align-items:center}
+.jicon{width:44px;height:44px;border-radius:12px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;flex:none}
+.jrow .n{font:700 16px/1.3 var(--body)}
+.jrow .m{font-size:14px;color:var(--hint)}
+.tag{display:inline-flex;align-items:center;gap:4px;font:600 13px var(--body);color:var(--primary);background:var(--primary-soft);border-radius:999px;padding:2px 8px;margin-top:4px}
+.notes{margin-top:36px;max-width:780px}
+.notes h2{font:600 22px/1.2 var(--display);margin:0 0 10px}
+.notes li{margin-bottom:8px}
+
+.navtop{display:flex;align-items:center;gap:6px;color:var(--primary);font:700 16px var(--body);min-height:44px}
+.title{font:600 26px/1.15 var(--display);margin:2px 0 4px}
+.group{background:var(--surface);border-radius:20px;overflow:hidden}
+.gh{font:600 13px var(--body);text-transform:uppercase;letter-spacing:.04em;color:var(--hint);margin:6px 4px 0}
+.li{display:flex;align-items:center;gap:12px;padding:12px 16px;min-height:56px;border-top:1px solid var(--line)}
+.li:first-child{border-top:0}
+.li .x{flex:1}
+.li .n{font:600 16px/1.3 var(--body)}
+.li .m{font-size:14px;color:var(--hint)}
+.sw{width:51px;height:31px;border-radius:999px;background:var(--primary);position:relative;flex:none}
+.sw::after{content:"";position:absolute;right:2px;top:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.pin{width:36px;height:36px;border-radius:10px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;flex:none}
+.add{color:var(--primary);font:700 16px var(--body)}
+.foot{font-size:14px;color:var(--hint);margin:0 4px}
+.map{height:150px;border-radius:16px;background:linear-gradient(135deg,#E4EBDD,#D6E2D3);position:relative;overflow:hidden}
+.map svg{position:absolute;inset:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="intro">
+    <h1>Balade enregistrée seule</h1>
+    <p>T-122 · app iOS seulement. Quand l’iPhone sort d’une zone de 150 m autour d’un point de départ (chez soi), iOS réveille Flair, qui enregistre le tracé GPS jusqu’au retour dans la zone. Rien à lancer. À l’arrivée, la balade attend une confirmation en un toucher, comme les sorties repérées (T-121).</p>
+    <p>Exemple : départ de Saint-Ouen à 17 h 20, retour à 17 h 52.</p>
+  </div>
+
+  <div class="screens">
+    <figure>
+      <figcaption>1 · Son profil › Réglages › Balades détectées</figcaption>
+      <div class="phone" role="img" aria-label="Réglage : enregistrer le tracé en partant de chez moi, avec deux points de départ">
+        <div class="status"><span>9:41</span><span>•••</span></div>
+        <div class="content">
+          <span class="navtop">‹ Son profil</span>
+          <p class="title">Balades détectées</p>
+          <div class="group">
+            <div class="li"><div class="x"><div class="n">Enregistrer le tracé en partant de chez moi</div><div class="m">Flair suit la balade tout seul, de la sortie au retour</div></div><span class="sw" role="switch" aria-checked="true" aria-label="Activé"></span></div>
+          </div>
+          <p class="gh">Mes points de départ</p>
+          <div class="group">
+            <div class="li"><span class="pin">⌂</span><div class="x"><div class="n">Saint-Ouen</div><div class="m">Votre départ habituel · 150 m autour</div></div><span class="m">›</span></div>
+            <div class="li"><span class="pin">⌂</span><div class="x"><div class="n">Bretagne</div><div class="m">Saint-Briac-sur-Mer · 150 m autour</div></div><span class="m">›</span></div>
+            <div class="li"><span class="add">+ Ajouter un point de départ</span></div>
+          </div>
+          <p class="foot">Il faut l’accès à la position « Toujours ». Le GPS ne tourne que pendant les sorties ; dans la zone, rien n’est suivi.</p>
+        </div>
+        <div class="tabbar"><span>Balades</span><span class="home">Accueil</span><span>Santé</span></div>
+      </div>
+    </figure>
+
+    <figure>
+      <figcaption>2 · Au retour, à l’ouverture de Flair : la balade à confirmer</figcaption>
+      <div class="phone" role="img" aria-label="Feuille : balade enregistrée, avec sa carte et les boutons C’était avec Billy et Pas avec lui">
+        <div class="status"><span>9:41</span><span>•••</span></div>
+        <div class="dim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <h2>Balade enregistrée</h2>
+          <p class="lead">Flair vous a suivi en sortant de chez vous. Avec Billy&nbsp;?</p>
+          <div class="det">
+            <div class="map"><svg viewBox="0 0 330 150" aria-hidden="true"><path d="M40 120 C70 90 80 60 120 55 S190 30 230 50 280 95 250 115 170 130 120 118 60 125 40 120" fill="none" stroke="#1E5A50" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="40" cy="120" r="7" fill="#BF5519" stroke="#fff" stroke-width="3"/></svg></div>
+            <span class="when">Aujourd’hui · 17 h 20 → 17 h 52</span>
+            <span class="what">32&nbsp;min · 1,9&nbsp;km · sortie du soir</span>
+            <div class="row2">
+              <button class="btn btn-primary sm">C’était avec Billy</button>
+              <button class="btn btn-tertiary sm">Pas avec lui</button>
+            </div>
+          </div>
+          <button class="close">Plus tard</button>
+        </div>
+      </div>
+    </figure>
+
+    <figure>
+      <figcaption>3 · Dans le journal : une vraie balade, avec son tracé</figcaption>
+      <div class="phone" role="img" aria-label="Journal : Balade du soir avec tracé, enregistrée seule">
+        <div class="status"><span>9:41</span><span>•••</span></div>
+        <div class="content">
+          <p class="day">Aujourd’hui, mardi 10 novembre</p>
+          <div class="card" style="display:flex;flex-direction:column;gap:10px">
+            <div class="map" style="height:120px"><svg viewBox="0 0 330 120" aria-hidden="true"><path d="M40 96 C70 72 80 48 120 44 S190 24 230 40 280 76 250 92 170 104 120 94 60 100 40 96" fill="none" stroke="#1E5A50" stroke-width="5" stroke-linecap="round"/></svg></div>
+            <div><div class="n" style="font:700 16px var(--body)">Balade du soir</div>
+            <div class="m" style="font-size:14px;color:var(--hint)">17 h 20 · 32&nbsp;min · 1,9&nbsp;km</div>
+            <span class="tag">Enregistrée seule</span></div>
+          </div>
+          <div class="card jrow">
+            <span class="jicon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg></span>
+            <div><div class="n">Sortie du matin</div><div class="m">11 h 20 · 25&nbsp;min · 760&nbsp;m</div><span class="tag">Repérée par l’iPhone</span></div>
+          </div>
+        </div>
+        <div class="tabbar"><span>Balades</span><span class="home">Accueil</span><span>Santé</span></div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes intro">
+    <h2>Choix faits, à valider</h2>
+    <ul>
+      <li><b>Éteint par défaut</b>, allumé dans Réglages › Balades détectées. Au premier allumage, une phrase explique pourquoi Flair demande la position « Toujours », puis iOS pose la question.</li>
+      <li><b>Points de départ</b> : Saint-Ouen et Bretagne proposés depuis les départs de tes balades passées ; 150 m autour (en dessous, iOS se trompe). Un départ d’ailleurs (chez un ami) n’est pas suivi : « Partir en balade » reste là pour ça.</li>
+      <li><b>Confirmation en un toucher</b>, comme T-121 : « Pas avec lui » efface le tracé (vie privée). Sans réponse, rien ne compte et le tracé est effacé au bout de 14 jours.</li>
+      <li><b>Pas de doublon</b> : la balade enregistrée seule remplace la sortie repérée par l’iPhone au même moment, et s’efface si une séance Watch ou « Partir en balade » couvre déjà ce temps.</li>
+      <li><b>Garde-fous</b> : arrêt au retour dans la zone, ou au bout de 3 h (comme T-062) ; une sortie de moins de 10 min ou 300 m (poubelles, voiture) n’est pas proposée ; un trajet en voiture (vitesse &gt; 15 km/h tenue) n’est pas une balade.</li>
+      <li><b>Expiration</b> : l’app iOS gratuite expire au bout de 7 jours ; expirée, rien n’est enregistré. Le rappel de R-104 s’en charge.</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

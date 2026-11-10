@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { emptyTally, tallyActivity } from './importPlan'
-import { newWatchWalks, shouldSync, slotWalkName, watchActivity, watchAddedLine, watchName, watchSince, type WatchWalk } from './watch'
+import { newWatchWalks, shouldSync, slotWalkName, watchActivity, watchAddedLine, watchChunks, watchName, watchSince, watchStaleDays, watchStaleLine, type WatchWalk } from './watch'
 
 const walk = (start: string, type: WatchWalk['type'] = 'walking'): WatchWalk => ({
   uuid: start,
@@ -59,5 +59,38 @@ describe('marches de l’Apple Watch (T-001)', () => {
     expect(slotWalkName('14:30', 'Balade de midi')).toBe('Balade de l’après-midi')
     expect(slotWalkName('08:00', 'Randonnée de nuit')).toBe('Randonnée du matin')
     expect(slotWalkName('19:00', 'Balade du soir')).toBe('Balade du soir')
+  })
+})
+
+describe('R-104 · rattrapage par tranches et alerte d’expiration', () => {
+  const now = new Date('2026-11-10T12:00:00.000Z')
+
+  it('une seule tranche quand la dernière lecture date de moins de 7 jours', () => {
+    expect(watchChunks('2026-11-06T08:00:00.000Z', now)).toEqual([{ since: '2026-11-06T08:00:00.000Z', until: '2026-11-10T12:00:00.000Z' }])
+  })
+
+  it('17 jours à rattraper : 3 tranches de 7 jours au plus, la dernière finit maintenant', () => {
+    expect(watchChunks('2026-10-24T12:00:00.000Z', now)).toEqual([
+      { since: '2026-10-24T12:00:00.000Z', until: '2026-10-31T12:00:00.000Z' },
+      { since: '2026-10-31T12:00:00.000Z', until: '2026-11-07T12:00:00.000Z' },
+      { since: '2026-11-07T12:00:00.000Z', until: '2026-11-10T12:00:00.000Z' },
+    ])
+  })
+
+  it('exactement 7 jours : une tranche', () => {
+    expect(watchChunks('2026-11-03T12:00:00.000Z', now)).toHaveLength(1)
+  })
+
+  it('une date illisible ou dans le futur : une tranche jusqu’à maintenant', () => {
+    expect(watchChunks('n’importe quoi', now)).toEqual([{ since: 'n’importe quoi', until: '2026-11-10T12:00:00.000Z' }])
+    expect(watchChunks('2026-11-11T00:00:00.000Z', now)).toHaveLength(1)
+  })
+
+  it('l’alerte seulement au-delà de 7 jours sans lecture', () => {
+    expect(watchStaleDays(undefined, now)).toBeUndefined()
+    expect(watchStaleDays('2026-11-04T12:00:00.000Z', now)).toBeUndefined()
+    expect(watchStaleDays('2026-11-02T11:00:00.000Z', now)).toBe(8)
+    expect(watchStaleDays('2026-10-29T12:00:00.000Z', now)).toBe(12)
+    expect(watchStaleLine(12)).toBe('Dernière lecture de la Watch\u00a0: il y a 12\u00a0jours')
   })
 })

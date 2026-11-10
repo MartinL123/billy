@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useData } from '../../firebase/store'
-import { planNotifications, readPrefs } from '../../lib/localNotifications'
+import { expiryNotification, MAX_PENDING, planNotifications, readPrefs } from '../../lib/localNotifications'
 import { useToday } from '../../lib/useToday'
 import { walkTimes } from '../../lib/walks'
 import { isNative } from '../../native'
@@ -33,7 +33,9 @@ export function NotificationScheduler() {
   useEffect(() => {
     if (!isNative()) return
     const timer = window.setTimeout(() => {
-      const plan = planNotifications({ now: new Date(), dogName: dogName(dog), events, times: walkTimes(dog.walkTimes), doneToday: doneToday ?? {}, prefs: readPrefs(dog.notifications) })
+      const now = new Date()
+      // R-104 : « Flair expire demain », repoussée à chaque ouverture (une place gardée parmi les 64 d’iOS).
+      const plan = [...planNotifications({ now, dogName: dogName(dog), events, times: walkTimes(dog.walkTimes), doneToday: doneToday ?? {}, prefs: readPrefs(dog.notifications) }).slice(0, MAX_PENDING - 1), expiryNotification(now)]
       replaceNotifications(plan).catch((error) => console.error('Notifications non planifiées', error))
     }, 500)
     return () => window.clearTimeout(timer)

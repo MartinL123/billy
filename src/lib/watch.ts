@@ -45,6 +45,37 @@ export function watchSince(syncedAt: string | undefined, now: Date): string {
   return new Date(from).toISOString()
 }
 
+/** R-104 : un rattrapage de plus de 7 jours se lit par tranches de 7 jours (une seule lecture trop longue dépasserait ses délais). */
+export const CHUNK_DAYS = 7
+
+/**
+ * Les tranches à lire, dans l’ordre : de `since` à `now`, 7 jours au plus chacune (la dernière finit à `now`).
+ * Après chaque tranche enregistrée, la date de lecture avance à sa fin : une tranche qui échoue est reprise à la
+ * prochaine ouverture, sans relire celles d’avant.
+ */
+export function watchChunks(since: string, now: Date): { since: string; until: string }[] {
+  const start = Date.parse(since)
+  const end = now.getTime()
+  if (Number.isNaN(start) || start >= end) return [{ since, until: now.toISOString() }]
+  const chunks: { since: string; until: string }[] = []
+  for (let from = start; from < end; from += CHUNK_DAYS * DAY_MS) {
+    const to = Math.min(end, from + CHUNK_DAYS * DAY_MS)
+    chunks.push({ since: new Date(from).toISOString(), until: new Date(to).toISOString() })
+  }
+  return chunks
+}
+
+/** R-104 : la dernière lecture de la Watch date de plus de 7 jours (l’app iOS a sans doute expiré) : le nombre de jours, sinon `undefined`. */
+export function watchStaleDays(syncedAt: string | undefined, now: Date): number | undefined {
+  const last = syncedAt ? Date.parse(syncedAt) : NaN
+  if (Number.isNaN(last)) return undefined
+  const days = Math.floor((now.getTime() - last) / DAY_MS)
+  return days > CHUNK_DAYS ? days : undefined
+}
+
+/** « Dernière lecture de la Watch : il y a 12 jours ». */
+export const watchStaleLine = (days: number) => `Dernière lecture de la Watch\u00a0: il y a ${days}\u00a0jours`
+
 /** Faut-il relire maintenant ? Pas plus d'une fois toutes les 5 minutes. */
 export const shouldSync = (lastRun: number | undefined, now: number) => lastRun === undefined || now - lastRun >= SYNC_EVERY_MS
 

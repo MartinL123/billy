@@ -6,7 +6,7 @@ import type { Bone } from '../../lib/bones'
 import type { Commune } from '../../lib/commune'
 import type { ISODate } from '../../lib/dates'
 import { withoutGpsDuplicates } from '../../lib/gpsWalk'
-import { newWatchWalks, shouldSync, watchActivity, watchSince } from '../../lib/watch'
+import { newWatchWalks, shouldSync, watchActivity, watchChunks, watchSince } from '../../lib/watch'
 import type { WalkTimes } from '../../lib/walks'
 import { withTimeout } from '../../lib/timeout'
 import { isFirestoreCrash } from '../../lib/firestoreCrash'
@@ -107,23 +107,35 @@ async function readAndImport(ctx: () => WatchContext, onAdded: (count: number, e
     const current = await withTimeout(FlairNative.currentWalk(), 10_000, 'currentWalk')
     // Une balade iPhone en cours bloque la synchro ; pas une balade déjà enregistrée qui attend le réseau (T-061).
     if (current.active && !current.savedAs) return
-    // Délais maximum (R-042) : une lecture bloquée n’empêche jamais les suivantes.
-    const read = await withTimeout(FlairNative.getWalks({ since }), 60_000, 'getWalks')
-    if (!read.available) return
     const first = !saved?.watchSyncedAt || watchLooksBlocked()
-    if (read.walks.length) setLooksBlocked(false)
-    else if (first && read.workouts === 0) setLooksBlocked(true)
-    const data = ctx()
-    const fresh = withoutGpsDuplicates(newWatchWalks(read.walks, data.entries.map((e) => e.route ?? {})), data.entries)
-    if (fresh.length) {
-      const result = await withTimeout(importActivities(fresh.length, async (i) => watchActivity(fresh[i]!), { knownKeys: knownImportKeys(data.entries), bones: data.bones, fog: data.fog, communes: data.communes, today: data.today, times: data.times }, () => undefined, { source: 'watch' }), 15_000 + 2_000 * fresh.length, 'enregistrement')
-      // Rien n’avance tant que les marches ne sont pas dans la base locale (R-045) : sinon, elles seront relues.
-      await ensureSavedLocally(result.walks.map((w) => w.entryId), entryInLocalCache)
-      if (result.walks.length) onAdded(result.walks.length, result.walks.map((w) => w.entryId))
+    // R-104 : plus de 7 jours à rattraper (l’app iOS a expiré) : une tranche de 7 jours à la fois. La date de lecture
+    // avance à la fin de chaque tranche enregistrée ; une tranche qui échoue sera reprise à la prochaine ouverture.
+    const chunks = watchChunks(since, new Date(now))
+    let found = 0
+    let workouts = 0
+    for (const [i, chunk] of chunks.entries()) {
+      // Délais maximum (R-042) : une lecture bloquée n’empêche jamais les suivantes.
+      const read = await withTimeout(FlairNative.getWalks({ since: chunk.since, until: chunk.until }), 60_000, 'getWalks')
+      if (!read.available) return
+      // Une app iOS plus ancienne ne connaît pas `until` : la fin de la tranche est filtrée ici.
+      const end = Date.parse(chunk.until)
+      const walks = read.walks.filter((w) => Date.parse(w.start) < end)
+      found += walks.length
+      workouts += read.workouts
+      const data = ctx()
+      const fresh = withoutGpsDuplicates(newWatchWalks(walks, data.entries.map((e) => e.route ?? {})), data.entries)
+      if (fresh.length) {
+        const result = await withTimeout(importActivities(fresh.length, async (j) => watchActivity(fresh[j]!), { knownKeys: knownImportKeys(data.entries), bones: data.bones, fog: data.fog, communes: data.communes, today: data.today, times: data.times }, () => undefined, { source: 'watch' }), 15_000 + 2_000 * fresh.length, 'enregistrement')
+        // Rien n’avance tant que les marches ne sont pas dans la base locale (R-045) : sinon, elles seront relues.
+        await ensureSavedLocally(result.walks.map((w) => w.entryId), entryInLocalCache)
+        if (result.walks.length) onAdded(result.walks.length, result.walks.map((w) => w.entryId))
+      }
+      // Seulement après un enregistrement réussi : en cas d’échec, la prochaine lecture reprend les mêmes marches
+      // (celles déjà enregistrées sont écartées par leur clé). La dernière tranche finit à l’heure du début de lecture.
+      send(setDoc(accountDoc(), { watchSyncedAt: i === chunks.length - 1 ? startedAt : chunk.until }, { merge: true }))
     }
-    // Seulement après un enregistrement réussi : en cas d’échec, la prochaine lecture reprend les mêmes marches
-    // (celles déjà enregistrées sont écartées par leur clé).
-    send(setDoc(accountDoc(), { watchSyncedAt: startedAt }, { merge: true }))
+    if (found) setLooksBlocked(false)
+    else if (first && workouts === 0) setLooksBlocked(true)
   } catch (error) {
     console.error('Lecture des marches de la Watch impossible', error)
     // Firestore en panne (R-042) : l’app se recharge ; les mêmes marches seront relues (rien n’est perdu).

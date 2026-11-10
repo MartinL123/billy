@@ -39,7 +39,7 @@ import type { Padding } from '../../lib/mapFrame'
 import { useBack } from '../../lib/useBack'
 import { modernCard } from '../../lib/carnet'
 import { useReadOnly } from '../../firebase/viewer'
-import { WatchOptIn } from './WatchOptIn'
+import { WatchOptIn, WatchStale } from './WatchOptIn'
 import { ROUTE_COLOR, ROUTE_IDEA_COLOR } from '../../components/maplibre'
 import { IdeaSheet } from './IdeaSheet'
 
@@ -656,6 +656,7 @@ function Journal({ items, pill, today, filter, empty }: { items: JournalItem<Wal
     const action = readOnly ? undefined : EMPTY_ACTIONS[pill]
     return (
       <div className="flex flex-col gap-3 pt-1">
+        {!readOnly && <WatchStale />}
         <p className="text-[0.9412rem] leading-snug text-[#3F4946]">{filter !== 'toutes' && pill === 'balades' ? 'Aucune balade pour ce filtre.' : emptyPillText(pill)}</p>
         {action && (
           <Link to={action.to} className="btn-text -ml-1 self-start">
@@ -669,6 +670,8 @@ function Journal({ items, pill, today, filter, empty }: { items: JournalItem<Wal
   }
   return (
     <div className="flex flex-col gap-3">
+      {/* R-104 : la Watch n’est plus lue depuis plus de 7 jours. */}
+      {!readOnly && <WatchStale />}
       {days.map((day) => (
         <section key={day.date} aria-label={day.label} className="flex flex-col gap-2.5">
           <h2 className="mt-1 font-display text-[1rem] font-semibold">{day.label}</h2>

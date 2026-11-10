@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_NOTIFICATION_PREFS, MAX_PENDING, notificationId, planNotifications, readPrefs } from './localNotifications'
+import { DEFAULT_NOTIFICATION_PREFS, expiryNotification, MAX_PENDING, notificationId, planNotifications, readPrefs } from './localNotifications'
 import { DEFAULT_WALK_TIMES } from './walks'
 
 // Lundi 19 octobre 2026, 10 h (heure du téléphone).
@@ -55,5 +55,15 @@ describe('notifications locales de l’app iOS (T-042)', () => {
     expect(Number.isInteger(notificationId('x'))).toBe(true)
     expect(readPrefs({ sortie: true })).toEqual({ soin: true, sortie: true, recap: true })
     expect(readPrefs()).toEqual(DEFAULT_NOTIFICATION_PREFS)
+  })
+})
+
+describe('R-104 · alerte d’expiration de l’app iOS', () => {
+  it('6 jours après l’ouverture, toujours avec le même numéro', () => {
+    const a = expiryNotification(new Date('2026-11-10T12:00:00.000Z'))
+    const b = expiryNotification(new Date('2026-11-12T08:00:00.000Z'))
+    expect(a.at.toISOString()).toBe('2026-11-16T12:00:00.000Z')
+    expect(a.title).toBe('Flair expire demain')
+    expect(a.id).toBe(b.id)
   })
 })

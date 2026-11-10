@@ -56,7 +56,8 @@ export interface CurrentWalk {
 }
 
 interface FlairNativePlugin {
-  getWalks(options: { since: string }): Promise<WatchWalks>
+  /** R-104 : `until` (facultatif) borne la lecture, pour un rattrapage par tranches de 7 jours. */
+  getWalks(options: { since: string; until?: string }): Promise<WatchWalks>
   /** T-080 : le cœur, les pas et l’énergie que Santé a sur cette fenêtre (vide si rien, ou si la lecture n’est pas permise). */
   healthWindow(options: { start: string; end: string }): Promise<HealthExtras>
   /**

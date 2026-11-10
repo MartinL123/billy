@@ -30,7 +30,8 @@ export const WALK_LEAD_MIN = 15
 
 export interface PlannedNotification {
   id: number
-  kind: NotificationKind
+  /** `expiration` (R-104) : l’app iOS signée par un compte Apple gratuit, qui s’arrête au bout de 7 jours. */
+  kind: NotificationKind | 'expiration'
   at: Date
   title: string
   body: string
@@ -98,4 +99,15 @@ export function planNotifications({ now, dogName, events, times, doneToday, pref
   }
 
   return out.sort((a, b) => a.at.getTime() - b.at.getTime()).slice(0, MAX_PENDING)
+}
+
+/** R-104 : l’app iOS (compte Apple gratuit) expire 7 jours après son installation ; on prévient au 6ᵉ jour. */
+export const EXPIRY_WARN_DAYS = 6
+
+/**
+ * « Flair expire demain » : 6 jours après cette ouverture de l’app iOS. Replanifiée à chaque ouverture (même numéro,
+ * elle remplace la précédente) : elle ne sonne que si l’app n’a plus été ouverte depuis 6 jours.
+ */
+export function expiryNotification(now: Date): PlannedNotification {
+  return { id: notificationId('expiration'), kind: 'expiration', at: new Date(now.getTime() + EXPIRY_WARN_DAYS * 86_400_000), title: 'Flair expire demain', body: 'Relancez-le depuis Xcode pour que les balades de la Watch continuent d’arriver.' }
 }

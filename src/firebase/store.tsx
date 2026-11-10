@@ -31,6 +31,8 @@ interface Data {
   usage: number
   /** T-085 : les marches vues par l’iPhone auxquelles on a répondu « Non » (identifiants de période, compte). */
   motionDismissed: string[]
+  /** R-104 : la dernière lecture des marches de la Watch (app iOS), ISO ; absente si le compte ne lit pas la Watch. */
+  watchSyncedAt?: string
   /** Trajets habituels (20 au plus). */
   /** Brouillard : les cases de 25 m découvertes, par zone (users/{uid}/fog25/{zone}). */
   fog: WithId<FogZone>[]
@@ -92,6 +94,7 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
   const [bones, setBones] = useState<WithId<Bone>[]>()
   const [usage, setUsageState] = useState(0)
   const [motionDismissed, setMotionDismissed] = useState<string[]>([])
+  const [watchSyncedAt, setWatchSyncedAt] = useState<string | undefined>(undefined)
   const [inventory, setInventory] = useState<WithId<InventoryItem>[]>()
   const [fog, setFog] = useState<WithId<FogZone>[]>()
   const [communes, setCommunes] = useState<WithId<Commune>[]>()
@@ -117,7 +120,8 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
       watchCollection<Bone>('bones', 'desc', setBones),
       watchCollection<WalkDay>('walks', 'desc', setWalks),
       onSnapshot(accountDoc(), (snap) => {
-        const account = snap.data() as { usage?: { bytes?: number }; motion?: { dismissed?: unknown } } | undefined
+        const account = snap.data() as { usage?: { bytes?: number }; motion?: { dismissed?: unknown }; watchSyncedAt?: unknown } | undefined
+        setWatchSyncedAt(typeof account?.watchSyncedAt === 'string' ? account.watchSyncedAt : undefined)
         const bytes = Math.max(0, Number(account?.usage?.bytes ?? 0))
         setUsageState(bytes)
         setKnownUsage(bytes)
@@ -158,8 +162,8 @@ export function DataProvider({ children, fallback }: { children: ReactNode; fall
     // Sans jardin : les textes du dressage parlent de couloir, palier, parc vide.
     setNoGarden(dog.garden === 'Non')
     setFemale(isFemale(dog.sex))
-    return { dog: named, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, xpLog, dailyQuests, bones, inventory, fog, communes, walks, usage, motionDismissed, pendingCount, online }
-  }, [shownDog, events, weights, entries, documents, sessions, exposures, bossProgress, xpLog, dailyQuests, bones, inventory, fog, communes, walks, usage, motionDismissed, online])
+    return { dog: named, events, weights, entries, documents, sessions, exposures, bossProgress: progressById, xpLog, dailyQuests, bones, inventory, fog, communes, walks, usage, motionDismissed, watchSyncedAt, pendingCount, online }
+  }, [shownDog, events, weights, entries, documents, sessions, exposures, bossProgress, xpLog, dailyQuests, bones, inventory, fog, communes, walks, usage, motionDismissed, watchSyncedAt, online])
 
   if (!data) return <>{fallback(dog === null && !online)}</>
   return <DataContext.Provider value={data}>{children}</DataContext.Provider>

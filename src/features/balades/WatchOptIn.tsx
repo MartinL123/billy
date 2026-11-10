@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { Sheet } from '../../components/Sheet'
 import { APP_NAME } from '../../appName'
 import { isNative } from '../../native'
+import { useData } from '../../firebase/store'
+import { watchStaleDays, watchStaleLine } from '../../lib/watch'
+import { useToday } from '../../lib/useToday'
 import { optInWatch, watchLooksBlocked, watchOptedIn } from './watchImport'
 
 /**
@@ -53,4 +56,17 @@ export function WatchOptIn({ compact = false }: { compact?: boolean }) {
       )}
     </>
   )
+}
+
+/**
+ * R-104 (web et iOS) : « Dernière lecture de la Watch : il y a 12 jours », quand le compte lit la Watch et que la
+ * dernière lecture date de plus de 7 jours (l’app iOS a sans doute expiré). Une ligne discrète, rien d’autre.
+ */
+export function WatchStale() {
+  const { watchSyncedAt } = useData()
+  // Recalculée chaque jour (useToday), pas à chaque rendu.
+  const today = useToday()
+  const days = watchStaleDays(watchSyncedAt, new Date(`${today}T12:00:00`))
+  if (days === undefined) return null
+  return <p className="text-[0.8235rem] leading-snug text-[#3F4946]">{watchStaleLine(days)}</p>
 }

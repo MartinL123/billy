@@ -162,6 +162,8 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
             return
         }
         let since = call.getString("since").flatMap(FlairNativePlugin.parseDate) ?? Date().addingTimeInterval(-30 * 86400)
+        // R-104 : une fin facultative, pour lire un long rattrapage par tranches de 7 jours.
+        let until = call.getString("until").flatMap(FlairNativePlugin.parseDate)
         let read: Set<HKObjectType> = [HKObjectType.workoutType(), HKSeriesType.workoutRoute(), heartRate, stepCount, activeEnergy]
         // La demande ne s'affiche qu'une fois par type ; ensuite, iOS répond sans rien montrer (et ne dit jamais si la
         // lecture est refusée). Les trois types ajoutés par la T-080 sont demandés à la première lecture qui suit.
@@ -170,7 +172,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
                 call.reject("Autorisation Santé impossible", nil, error)
                 return
             }
-            self.readWalks(since: since, call: call)
+            self.readWalks(since: since, until: until, call: call)
         }
     }
 
@@ -187,8 +189,12 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         healthData(from: start, to: end) { call.resolve($0) }
     }
 
-    private func readWalks(since: Date, call: CAPPluginCall) {
-        let predicate = HKQuery.predicateForSamples(withStart: since, end: nil, options: .strictStartDate)
+    private func readWalks(since: Date, until: Date?, call: CAPPluginCall) {
+        // R-104 : avec une fin, seule la date de départ compte (départ dans [since, until[) : une marche à cheval sur deux
+        // tranches est lue dans la première, jamais perdue entre les deux.
+        let predicate: NSPredicate = until.map {
+            NSPredicate(format: "%K >= %@ AND %K < %@", HKPredicateKeyPathStartDate, since as NSDate, HKPredicateKeyPathStartDate, $0 as NSDate)
+        } ?? HKQuery.predicateForSamples(withStart: since, end: nil, options: .strictStartDate)
         let byStart = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
         let query = HKSampleQuery(sampleType: HKObjectType.workoutType(), predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [byStart]) { _, samples, error in
             if let error = error {

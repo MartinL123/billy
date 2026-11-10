@@ -54,6 +54,18 @@ export function outingOnMap(id: string, { filter }: { filter?: string } = {}): s
 export const ideaOnMap = (id: string) => `/territoire?${new URLSearchParams({ idee: id }).toString()}`
 
 /** Le journal de la carte, avec son filtre. */
+/**
+ * R-110 : un seul journal, celui de la carte. Une pastille (« balades », « souvenirs »…) et un filtre de lieu ; le
+ * panneau s’ouvre au cran du milieu (sans « cran » dans l’adresse).
+ */
+export function journalPath(pill?: string, filter?: string | null): string {
+  const q = new URLSearchParams()
+  if (pill && pill !== 'tout') q.set('voir', pill)
+  if (filter && filter !== 'toutes') q.set('filtre', filter)
+  const s = q.toString()
+  return s ? `/territoire?${s}` : '/territoire'
+}
+
 export function journalOnMap(filter?: string): string {
   return filter && filter !== 'toutes' ? `/territoire?filtre=${encodeURIComponent(filter)}` : '/territoire'
 }

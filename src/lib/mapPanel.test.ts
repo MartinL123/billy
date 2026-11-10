@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ideaOnMap, journalOnMap, lowAsJournal, outingOnMap, panelMode, tellHref, walkOnMap } from './mapPanel'
+import { ideaOnMap, journalOnMap, journalPath, lowAsJournal, outingOnMap, panelMode, tellHref, walkOnMap } from './mapPanel'
 
 describe('Une seule carte (R-094)', () => {
   it('le mode du panneau se lit dans l’adresse', () => {
@@ -46,5 +46,15 @@ describe('T-118 : une idée de balade de l’Accueil sur la carte', () => {
   it('« ?idee= » ouvre le panneau sur l’idée', () => {
     expect(ideaOnMap('abc')).toBe('/territoire?idee=abc')
     expect(panelMode(new URLSearchParams('idee=abc'))).toEqual({ kind: 'idea', id: 'abc' })
+  })
+})
+
+describe('R-110 · un seul journal', () => {
+  it('l’adresse du journal : pastille et filtre de lieu', () => {
+    expect(journalPath()).toBe('/territoire')
+    expect(journalPath('balades')).toBe('/territoire?voir=balades')
+    expect(journalPath('souvenirs')).toBe('/territoire?voir=souvenirs')
+    expect(journalPath('balades', 'commune:Saint-Ouen-sur-Seine')).toBe('/territoire?voir=balades&filtre=commune%3ASaint-Ouen-sur-Seine')
+    expect(journalPath('tout', 'toutes')).toBe('/territoire')
   })
 })

@@ -39,7 +39,7 @@ export default function TellWalk() {
   const placeOnStop = usePlaceOnStop(id ?? '', route ?? { points: [], distanceM: 0, moments: [] })
   const back = () => navigate(`/souvenir/${id}`, { replace: true })
 
-  if (!entry || !route || readOnly) return <Navigate to={id ? `/souvenir/${id}` : '/balades'} replace />
+  if (!entry || !route || readOnly) return <Navigate to={id ? `/souvenir/${id}` : '/territoire'} replace />
   const done = step >= queue.length
 
   const next = () => {

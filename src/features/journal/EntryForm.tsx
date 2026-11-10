@@ -35,7 +35,7 @@ export default function EntryForm() {
   const [params] = useSearchParams()
   const { entries } = useData()
   const today = useToday()
-  const back = useBack('/balades')
+  const back = useBack('/territoire')
   const navigate = useNavigate()
   const existing = id ? entries.find((e) => e.id === id) : undefined
   const route = readRoute(existing?.route)
@@ -296,7 +296,7 @@ export default function EntryForm() {
             setSaving(true)
             deleteEntry(existing)
             // Le détail n’existe plus : on revient à ses balades.
-            navigate('/balades', { replace: true })
+            navigate('/territoire', { replace: true })
           }}
         />
       )}

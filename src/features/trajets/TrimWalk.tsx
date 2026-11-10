@@ -40,7 +40,7 @@ export default function TrimWalk() {
   const fromForm = (useLocation().state as { retour?: string } | null)?.retour === 'modifier'
   const back = () => (fromForm ? navigate(-1) : navigate(`/souvenir/${id}`, { replace: true }))
 
-  if (!entry || !route || !track || !preview || readOnly) return <Navigate to={id ? `/souvenir/${id}` : '/balades'} replace />
+  if (!entry || !route || !track || !preview || readOnly) return <Navigate to={id ? `/souvenir/${id}` : '/territoire'} replace />
   const start = route.startTime && !Number.isNaN(Date.parse(route.startTime)) ? route.startTime : undefined
   const label = (s: number) => (start ? clockAt(start, s) : s - first < 60 ? 'Départ' : `${durationText(s - first)} après le départ`)
   const changed = range[0] !== (route.trimmed?.startS ?? first) || range[1] !== (route.trimmed?.endS ?? last)

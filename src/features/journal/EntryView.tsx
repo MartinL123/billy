@@ -21,10 +21,10 @@ export default function EntryView() {
   const readOnly = useReadOnly()
   const { id } = useParams()
   const { entries } = useData()
-  const back = useBack('/balades')
+  const back = useBack('/territoire')
   // Ouvert depuis la page Billy (T-104) : le retour dit d’où l’on vient (« Billy », « Sa journée »), comme la fiche d’une balade.
   const location = useLocation()
-  const backLabel = (location.state as { retour?: string } | null)?.retour ?? 'Ses balades'
+  const backLabel = (location.state as { retour?: string } | null)?.retour ?? 'La carte'
   const [viewer, setViewer] = useState<number | null>(null)
   const found = entries.find((e) => e.id === id)
 

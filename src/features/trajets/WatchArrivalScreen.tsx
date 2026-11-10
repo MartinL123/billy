@@ -39,6 +39,6 @@ export default function WatchArrivalScreen() {
   }, [])
 
   if (found) return <Navigate to={`/balade/recap/${found.id}`} replace />
-  if (givenUp) return <Navigate to="/balades" replace />
+  if (givenUp) return <Navigate to="/territoire" replace />
   return <Splash title="La balade arrive…">Flair la lit dans Santé.</Splash>
 }

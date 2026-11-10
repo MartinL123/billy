@@ -18,7 +18,7 @@ import { knownFog } from '../../lib/fog'
 import { readMapPrefs, writeMapPrefs } from '../../lib/mapPrefs'
 import { heatPoints } from '../../lib/heatmap'
 import { useToday } from '../../lib/useToday'
-import { FILTERS, filterWalks, walkColors, walkItems, walksNear, type WalkFilter, type WalkItem } from '../../lib/walkList'
+import { communesOf, FILTERS, filterWalks, walkColors, walkItems, walksNear, type WalkFilter, type WalkItem } from '../../lib/walkList'
 import type { MapPlace, MapWalk } from './ExplorerMap'
 import { PlaceCard, type Selected } from './PlaceCard'
 import { LoopsBlock } from './LoopsBlock'
@@ -28,7 +28,8 @@ import { PlaceMoment } from '../trajets/PlaceMoment'
 import { WalkSheet } from '../trajets/WalkSheet'
 import { ReplayPanel } from './ReplayPanel'
 import type { ReplayChannel } from './walkLayer'
-import { updateEntryRoute } from '../../firebase/db'
+import { setEntryCommune, updateEntryRoute } from '../../firebase/db'
+import { communeName } from '../../lib/street'
 import { nearestOnRoute, readRoute, storeRoute, type Route } from '../../lib/route'
 import { useGrantedPosition } from '../../lib/useGrantedPosition'
 import { formatRouteDistance } from '../../lib/route'
@@ -104,6 +105,26 @@ export default function Explorer() {
   const cells = useMemo(() => knownFog(fog), [fog])
   const walks = useMemo(() => walkItems(entries), [entries])
   const shown = useMemo(() => filterWalks(walks, filter, today), [walks, filter, today])
+  // R-110 : les filtres de lieu sous la pastille « Balades » (repris de « Ses balades », supprimé).
+  const placeFilters = useMemo<{ id: WalkFilter; label: string }[]>(() => [...communesOf(walks).map((c) => ({ id: `commune:${c}` as WalkFilter, label: c })), { id: 'peur', label: 'Avec une peur' }, { id: 'long', label: 'Plus de 3\u00a0km' }], [walks])
+  // La commune de chaque balade, demandée une fois (géocodage inverse du départ) puis gardée avec elle.
+  useEffect(() => {
+    if (readOnly) return
+    let live = true
+    const missing = walks.filter((w) => !w.commune).slice(0, 20)
+    void (async () => {
+      for (const w of missing) {
+        if (!live) return
+        const name = await communeName(w.route.points[0]![0], w.route.points[0]![1])
+        if (name && live) setEntryCommune(w.id, name)
+      }
+    })()
+    return () => {
+      live = false
+    }
+    // Une seule passe à l’ouverture de la carte.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   // T-109 : « Lieux les plus fréquentés » (« Affichage », éteint par défaut) : les passages de toutes les balades.
   const heat = useMemo(() => (prefs.heat ? heatPoints(walks.map((w) => w.route.points)) : undefined), [walks, prefs.heat])
   // Une couleur par balade, la même sur la carte et dans la liste. Brouillard éteint (V6.1 § 2) : toutes en vert carte.
@@ -486,8 +507,8 @@ export default function Explorer() {
           {/* Le résumé de la semaine, puis les pastilles (un seul choix). */}
           <WeekLine items={items} today={today} />
           <div ref={filtersRow} role="group" aria-label="Choisir ce que montre le journal" className="scroll-row -mx-4 -my-1.5 flex gap-1.5 px-4">
-            {/* Venu de « Ses balades » avec un filtre : il reste visible, et se retire d’un toucher. */}
-            {filter !== 'toutes' && (
+            {/* Un filtre de lieu choisi, hors de « Balades » : il reste visible, et se retire d’un toucher. */}
+            {filter !== 'toutes' && pill !== 'balades' && (
               <button type="button" onClick={() => setFilter('toutes')} aria-label={`Retirer le filtre des balades\u00a0: ${filterLabel(filter)}`} className="flex min-h-11 shrink-0 items-center border-0 bg-transparent p-0">
                 <span className={`${chip(true)} gap-1.5`}>
                   {filterLabel(filter)}
@@ -501,6 +522,16 @@ export default function Explorer() {
               </button>
             ))}
           </div>
+          {/* R-110 : sous « Balades », les filtres de l’ancien « Ses balades » (lieux, peur, plus de 3 km), un seul choix. */}
+          {pill === 'balades' && walks.length > 0 && (
+            <div role="group" aria-label="Filtrer les balades" className="scroll-row -mx-4 -my-1.5 flex gap-1.5 px-4">
+              {placeFilters.map((f) => (
+                <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => setFilter(filter === f.id ? 'toutes' : f.id)} className="flex min-h-11 shrink-0 items-center border-0 bg-transparent p-0">
+                  <span className={chip(filter === f.id)}>{f.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
           {/* 2. Idées de balade (app iOS, avec la position), sous « Balades ». */}
           <LoopsBlock loops={loops} titles={loopTitles} picked={idea?.item.id} onPick={pickIdea} onHide={() => setPref({ ideas: false })} headRef={ideasHead} />
           {/* 3. Le journal, groupé par jour : un toucher sur une balade ouvre sa fiche dans le panneau (R-094). */}

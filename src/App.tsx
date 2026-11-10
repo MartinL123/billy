@@ -15,7 +15,6 @@ import WatchArrivalScreen from './features/trajets/WatchArrivalScreen'
 import Billy from './features/billy/Billy'
 import Explorer from './features/balades/Explorer'
 import LoopScreen from './features/balades/LoopScreen'
-import Walks from './features/balades/Walks'
 import ImportStrava from './features/balades/ImportStrava'
 import Mission from './features/training/Mission'
 import HealthEvents from './features/calendar/HealthEvents'
@@ -56,6 +55,7 @@ import { DataProvider } from './firebase/store'
 import { setViewedOwner } from './firebase/paths'
 import { ReadOnlyContext, useReadOnly, viewedOwnerOf } from './firebase/viewer'
 import { isWriteRoute } from './lib/visitor'
+import { journalPath } from './lib/mapPanel'
 import Invitation from './features/visitor/Invitation'
 import Mesure, { JournalOpen } from './features/mesure/Mesure'
 import { SkeletonScreen } from './components/Skeleton'
@@ -128,6 +128,12 @@ function Screen({ children }: { children: React.ReactNode }) {
       {children}
     </div>
   )
+}
+
+/** R-110 : `/balades` (et ses anciennes adresses) : le journal de la carte, pastille « Balades », filtre gardé. */
+function WalksRedirect() {
+  const { search } = useLocation()
+  return <Navigate to={journalPath('balades', new URLSearchParams(search).get('filtre'))} replace />
 }
 
 function InstallRoute() {
@@ -228,8 +234,8 @@ export default function App() {
               <Route path="billy" element={<Billy />} />
               {/* Gelé (T-072) : routes de la meute et de la boutique retirées ; les écrans restent dans features/meute et features/shop. */}
               <Route path="territoire" element={<Explorer />} />
-              <Route path="journal" element={<Navigate to="/balades" replace />} />
-              <Route path="carnet" element={<Navigate to="/balades" replace />} />
+              <Route path="journal" element={<WalksRedirect />} />
+              <Route path="carnet" element={<WalksRedirect />} />
             </Route>
             <Route path="ouverture" element={<Opening />} />
             <Route path="invitation/:code" element={<Invitation />} />
@@ -244,7 +250,8 @@ export default function App() {
             {/* T-104 : le fil complet de ses progrès, et les séances d’un jour de « Sa semaine ». */}
             <Route path="billy/progres" element={<AllProgress />} />
             <Route path="billy/jour/:date" element={<DaySessions />} />
-            <Route path="balades" element={<Walks />} />
+            {/* R-110 : un seul journal, celui de la carte ; « Ses balades » n’existe plus, l’adresse reste. */}
+            <Route path="balades" element={<WalksRedirect />} />
             <Route path="exploration" element={<Navigate to="/territoire" replace />} />
             <Route path="ajouter-balade" element={<Navigate to="/territoire" replace />} />
             <Route path="importer" element={<ImportStrava />} />

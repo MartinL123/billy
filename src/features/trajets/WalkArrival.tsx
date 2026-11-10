@@ -16,7 +16,7 @@ export default function WalkArrival() {
   const navigate = useNavigate()
   const entry = entries.find((e) => e.id === id)
   const route = useMemo(() => readRoute(entry?.route), [entry?.route])
-  if (!entry || !route || !id) return <Navigate to="/balades" replace />
+  if (!entry || !route || !id) return <Navigate to="/territoire" replace />
   return (
     <main className="fixed inset-0 mx-auto flex max-w-[430px] flex-col bg-bg">
       <div className="relative min-h-0 flex-1">

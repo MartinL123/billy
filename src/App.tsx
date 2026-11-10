@@ -30,6 +30,7 @@ import { StoryBackfill } from './features/balades/StoryBackfill'
 import { FilesKindBackfill } from './features/profile/FilesKindBackfill'
 import { MilestonesFix } from './features/calendar/MilestonesFix'
 import { WatchSync } from './features/balades/WatchSync'
+import { DetectedSync } from './features/detected/DetectedOutings'
 import { WatchArrivalBridge } from './features/balades/WatchArrivalBridge'
 import { PendingWalksSync } from './features/balades/PendingWalksSync'
 import { NotificationScheduler } from './features/notifications/NotificationScheduler'
@@ -211,6 +212,7 @@ export default function App() {
           {!visitor && (
             <>
               <WatchSync />
+              <DetectedSync />
               <WatchArrivalBridge />
               <PendingWalksSync />
               <NotificationScheduler />

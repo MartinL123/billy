@@ -30,7 +30,6 @@ import { useReadOnly } from '../../firebase/viewer'
 import { FamilySection, VisitorAccount } from '../visitor/Family'
 import { ExportButton } from './ExportButton'
 import { WatchOptIn } from '../balades/WatchOptIn'
-import { MotionSetting } from '../motion/MotionSetting'
 import { WalkPhotosSetting } from './WalkPhotosSetting'
 import { ProchesSection } from '../live/Proches'
 import { watchOptedIn } from '../balades/watchImport'
@@ -335,13 +334,12 @@ export default function Profile() {
         </Sheet>
       )}
       {setting === 'detectees' && (
-        // R-079 (Apple Watch), T-085 (sans montre), T-103 (photos des balades) : ce que l’app iOS repère seule.
+        // R-079 (Apple Watch et, T-121, la distance à pied de l’iPhone), T-103 (photos des balades) : ce que l’app iOS repère seule.
         <Sheet label="Balades détectées" onClose={() => setSetting(undefined)}>
           <section className="flex flex-col gap-2.5">
             <h2 className="title-section">Apple Watch</h2>
             <WatchOptIn />
           </section>
-          <MotionSetting />
           <WalkPhotosSetting />
         </Sheet>
       )}

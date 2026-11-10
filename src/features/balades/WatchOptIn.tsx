@@ -33,10 +33,10 @@ export function WatchOptIn({ compact = false }: { compact?: boolean }) {
         <Sheet label="Les balades de votre montre" onClose={() => setAsking(false)}>
           <h2 className="title-section mt-1">Les balades de votre montre</h2>
           <p className="text-[0.9412rem] leading-snug text-[#3F4946]">
-            Quand vous lancez une séance « Marche » sur votre Apple Watch, la balade arrive seule dans {APP_NAME}, avec son tracé.
+            Quand vous lancez une séance « Marche » sur votre Apple Watch, la balade arrive seule dans {APP_NAME}, avec son tracé. Sans séance, {APP_NAME} repère aussi vos sorties à pied (iPhone en poche) et vous propose de les noter.
           </p>
           <p className="text-[0.9412rem] leading-snug text-[#3F4946]">
-            iOS va vous demander l’accès à Santé. {APP_NAME} lit seulement vos séances de marche et leur parcours, rien d’autre, et n’écrit rien.
+            iOS va vous demander l’accès à Santé. {APP_NAME} lit seulement vos séances de marche, leur parcours et la distance parcourue à pied, rien d’autre, et n’écrit rien.
           </p>
           <button
             type="button"

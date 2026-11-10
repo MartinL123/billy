@@ -17,6 +17,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
     public let jsName = "FlairNative"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "getWalks", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getWalkingBouts", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "healthWindow", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "startWalk", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "stopWalk", returnType: CAPPluginReturnPromise),
@@ -151,6 +152,8 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
     private let heartRate = HKQuantityType.quantityType(forIdentifier: .heartRate)!
     private let stepCount = HKQuantityType.quantityType(forIdentifier: .stepCount)!
     private let activeEnergy = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned)!
+    /// T-121 : la distance à pied, que Santé fusionne seul entre l'iPhone et la Watch (pas de doublon).
+    private let walkingDistance = HKQuantityType.quantityType(forIdentifier: .distanceWalkingRunning)!
 
     /// `getWalks({ since })` : les marches et randonnées depuis `since` (ISO), avec leur tracé.
     /// Renvoie `{ available, walks: [{ uuid, start, end, type, points: [{ lat, lng, time, alt?, speed?, accuracy? }],
@@ -164,7 +167,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         let since = call.getString("since").flatMap(FlairNativePlugin.parseDate) ?? Date().addingTimeInterval(-30 * 86400)
         // R-104 : une fin facultative, pour lire un long rattrapage par tranches de 7 jours.
         let until = call.getString("until").flatMap(FlairNativePlugin.parseDate)
-        let read: Set<HKObjectType> = [HKObjectType.workoutType(), HKSeriesType.workoutRoute(), heartRate, stepCount, activeEnergy]
+        let read: Set<HKObjectType> = [HKObjectType.workoutType(), HKSeriesType.workoutRoute(), heartRate, stepCount, activeEnergy, walkingDistance]
         // La demande ne s'affiche qu'une fois par type ; ensuite, iOS répond sans rien montrer (et ne dit jamais si la
         // lecture est refusée). Les trois types ajoutés par la T-080 sont demandés à la première lecture qui suit.
         health.requestAuthorization(toShare: nil, read: read) { _, error in
@@ -173,6 +176,46 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
                 return
             }
             self.readWalks(since: since, until: until, call: call)
+        }
+    }
+
+    /// `getWalkingBouts({ since })` (T-121) : la distance à pied par tranches de 5 minutes depuis `since`, telle que Santé
+    /// la donne (iPhone et Watch fusionnés). Renvoie `{ available, buckets: [{ start, meters }] }`, seulement les tranches
+    /// non vides. Même demande d'autorisation que `getWalks` (la distance y est ajoutée). Le JS repère les sorties.
+    @objc func getWalkingBouts(_ call: CAPPluginCall) {
+        guard HKHealthStore.isHealthDataAvailable() else {
+            call.resolve(["available": false, "buckets": []])
+            return
+        }
+        let since = call.getString("since").flatMap(FlairNativePlugin.parseDate) ?? Date().addingTimeInterval(-14 * 86400)
+        let read: Set<HKObjectType> = [HKObjectType.workoutType(), HKSeriesType.workoutRoute(), heartRate, stepCount, activeEnergy, walkingDistance]
+        health.requestAuthorization(toShare: nil, read: read) { _, error in
+            if let error = error {
+                call.reject("Autorisation Santé impossible", nil, error)
+                return
+            }
+            // Les tranches de 5 min calées sur l'heure ronde.
+            let anchor = Calendar.current.dateInterval(of: .hour, for: since)?.start ?? since
+            let predicate = HKQuery.predicateForSamples(withStart: since, end: Date(), options: [])
+            let query = HKStatisticsCollectionQuery(quantityType: self.walkingDistance, quantitySamplePredicate: predicate, options: .cumulativeSum, anchorDate: anchor, intervalComponents: DateComponents(minute: 5))
+            query.initialResultsHandler = { _, results, error in
+                if let error = error {
+                    // Lecture refusée ou rien dans Santé : aucune sortie, pas une erreur pour la personne.
+                    if (error as? HKError)?.code == .errorNoData {
+                        call.resolve(["available": true, "buckets": []])
+                    } else {
+                        call.reject("Lecture de la distance impossible", nil, error)
+                    }
+                    return
+                }
+                var buckets: [[String: Any]] = []
+                results?.enumerateStatistics(from: since, to: Date()) { stats, _ in
+                    let meters = stats.sumQuantity()?.doubleValue(for: .meter()) ?? 0
+                    if meters > 0 { buckets.append(["start": FlairNativePlugin.format(stats.startDate), "meters": meters]) }
+                }
+                call.resolve(["available": true, "buckets": buckets])
+            }
+            self.health.execute(query)
         }
     }
 

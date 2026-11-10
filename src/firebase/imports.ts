@@ -1,4 +1,5 @@
-import { deleteField, getDocFromCache, updateDoc, writeBatch } from 'firebase/firestore'
+import { deleteField, getDocFromCache, setDoc, updateDoc, writeBatch } from 'firebase/firestore'
+import { answerDetected, type DetectedOuting, type PendingOuting } from '../lib/walkingBouts'
 import type { ImportedActivity } from '../lib/activity'
 import { momentBones, noteBone, walkBone, type Bone, type BoneWithId } from '../lib/bones'
 import type { ISODate } from '../lib/dates'
@@ -94,6 +95,24 @@ export function noteWalk(walk: { date: ISODate; slot: WalkSlot; minutes: number;
   for (const g of gains) batch.set(userDoc('bones', g.id), { date: g.date, amount: g.amount, reason: g.reason, refId: g.refId })
   send(batch.commit())
   logEvent({ type: 'walk_saved', source: 'sortie', min: walk.minutes })
+  return gains
+}
+
+/** T-121 : les sorties repérées nouvelles, jour par jour (la liste du jour remplace l’ancienne, réponses gardées). */
+export function saveDetected(byDate: Map<ISODate, DetectedOuting[]>): void {
+  if (!byDate.size) return
+  const batch = writeBatch(db)
+  for (const [date, detected] of byDate) batch.set(userDoc('walks', date), { date, detected }, { merge: true })
+  send(batch.commit())
+}
+
+/**
+ * T-121 : « C’était avec Billy » (la sortie est notée dans son créneau, comme « J’ai fait cette sortie », R-044) ou
+ * « Pas avec lui » (plus jamais proposée). Renvoie les os gagnés.
+ */
+export function answerOuting(o: PendingOuting, status: 'yes' | 'no', dayDetected: DetectedOuting[], bones: (Bone & { id: string })[], today: ISODate): BoneWithId[] {
+  const gains = status === 'yes' ? noteWalk({ date: o.date, slot: o.slot, minutes: o.minutes, time: o.time }, bones, today) : []
+  send(setDoc(userDoc('walks', o.date), { date: o.date, detected: answerDetected(dayDetected, o.start, status) }, { merge: true }))
   return gains
 }
 

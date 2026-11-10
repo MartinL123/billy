@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sorties détectées</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* T-121 : maquette de la carte « Sortie détectée » (app iOS). Tokens de src/index.css. */
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --text:#18201E; --muted:#5A6662; --hint:#3F4946; --line:#E6EAE7;
+  --primary:#1E5A50; --primary-soft:#DCEBE6; --action:#BF5519; --info:#2559A8; --info-soft:#E3EAF8;
+  --display:"Bricolage Grotesque",system-ui,sans-serif; --body:Figtree,system-ui,sans-serif;
+  --page:#E9ECE8; --frame:#18201E;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --page:#0E1311; --frame:#000;}}
+:root[data-theme="dark"]{--page:#0E1311; --frame:#000;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font:400 16px/1.5 var(--body)}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 16px 64px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .intro{color:#E8EEEA}}
+:root[data-theme="dark"] .intro{color:#E8EEEA}
+.intro h1{font:600 clamp(28px,4.5vw,40px)/1.08 var(--display);margin:0 0 10px;letter-spacing:-.01em}
+.intro p{margin:0 0 8px;max-width:720px}
+.screens{display:flex;flex-wrap:wrap;gap:28px;margin-top:28px;align-items:flex-start}
+figure{margin:0;display:flex;flex-direction:column;gap:10px;width:min(390px,100%)}
+figcaption{font:600 14px/1.4 var(--body);color:inherit}
+.phone{width:100%;max-width:390px;height:780px;border-radius:44px;border:10px solid var(--frame);background:var(--bg);overflow:hidden;position:relative;color:var(--text)}
+.status{height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font:600 15px var(--body)}
+.content{padding:4px 16px 0;display:flex;flex-direction:column;gap:12px}
+.hello{font:600 26px/1.15 var(--display);margin:6px 0 2px}
+.card{background:var(--surface);border-radius:20px;box-shadow:0 1px 2px rgba(24,32,30,.06);padding:16px 18px}
+.moment{display:flex;flex-direction:column;gap:10px}
+.moment .t{font:600 18px/1.2 var(--display)}
+.moment .s{font-size:15px;color:var(--hint)}
+.btn{display:flex;align-items:center;justify-content:center;min-height:52px;padding:6px 18px;border-radius:999px;border:2px solid transparent;font:700 16px/1.2 var(--body);white-space:nowrap;cursor:pointer}
+.btn-main{background:var(--action);border-color:var(--action);color:#fff}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn-tertiary{background:var(--surface);border-color:var(--primary);color:var(--primary)}
+.btn.sm{min-height:44px;padding:4px 14px;font-size:15px}
+.banner{display:flex;align-items:center;gap:12px;background:var(--info-soft);color:var(--info);border-radius:16px;padding:12px 14px;min-height:56px;font:700 15px/1.3 var(--body);text-decoration:none}
+.banner svg{flex:none}
+.banner .go{margin-left:auto}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:88px;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:flex-end;padding-bottom:14px;font:600 13px var(--body);color:var(--hint)}
+.tabbar .home{width:64px;height:64px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:6px;box-shadow:0 6px 16px rgba(30,90,80,.35);font-size:12px}
+.dim{position:absolute;inset:0;background:rgba(24,32,30,.32)}
+.sheet{position:absolute;left:0;right:0;bottom:0;top:96px;background:var(--surface);border-radius:26px 26px 0 0;box-shadow:0 -4px 18px rgba(24,32,30,.18);padding:10px 16px 24px;display:flex;flex-direction:column;gap:12px}
+.grab{width:40px;height:5px;border-radius:3px;background:#C7CEC9;margin:0 auto 4px}
+.sheet h2{font:600 22px/1.2 var(--display);margin:0}
+.sheet .lead{font-size:15px;color:var(--hint);margin:0}
+.det{border:1px solid var(--line);border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.det .when{font:700 16px/1.3 var(--body)}
+.det .what{font-size:15px;color:var(--hint);display:flex;align-items:center;gap:6px}
+.row2{display:grid;grid-template-columns:1.25fr 1fr;gap:8px}
+.done{display:flex;align-items:center;gap:8px;color:var(--primary);font:700 15px var(--body)}
+.close{align-self:center;background:none;border:0;color:var(--primary);font:700 16px var(--body);min-height:44px;padding:0 16px}
+.day{font:600 16px var(--display);margin:4px 0 0}
+.jrow{display:flex;gap:12px;align-items:center}
+.jicon{width:44px;height:44px;border-radius:12px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;flex:none}
+.jrow .n{font:700 16px/1.3 var(--body)}
+.jrow .m{font-size:14px;color:var(--hint)}
+.tag{display:inline-flex;align-items:center;gap:4px;font:600 13px var(--body);color:var(--primary);background:var(--primary-soft);border-radius:999px;padding:2px 8px;margin-top:4px}
+.notes{margin-top:36px;max-width:780px}
+.notes h2{font:600 22px/1.2 var(--display);margin:0 0 10px}
+.notes li{margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="intro">
+    <h1>Sorties repérées par l’iPhone</h1>
+    <p>T-121 · app iOS seulement. Santé compte la distance à pied de l’iPhone (et de la Watch quand elle est portée) ; Flair y repère les blocs de marche de 15 min et 400 m au moins, sans GPS ni séance à lancer. Une confirmation en un toucher par sortie.</p>
+    <p>Exemple : les deux sorties du samedi 7 novembre (10 h 55 et 17 h 20), et une du lendemain matin.</p>
+  </div>
+
+  <div class="screens">
+    <figure>
+      <figcaption>1 · Accueil, à l’ouverture de l’app : un bandeau sous la carte du moment</figcaption>
+      <div class="phone" role="img" aria-label="Accueil avec le bandeau : 3 sorties repérées par votre iPhone">
+        <div class="status"><span>9:41</span><span>•••</span></div>
+        <div class="content">
+          <p class="hello">Bonjour Martin</p>
+          <div class="card moment">
+            <span class="t">Sortie du soir</span>
+            <span class="s">Vers 19 h · 30 min conseillées</span>
+            <button class="btn btn-main">J’ai fait cette sortie</button>
+          </div>
+          <a class="banner" href="#liste">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 4c1.5 0 2.5 1.6 2.5 3.5S9.5 11 8 11 5.5 9.4 5.5 7.5 6.5 4 8 4zM16 9c1.5 0 2.5 1.6 2.5 3.5S17.5 16 16 16s-2.5-1.6-2.5-3.5S14.5 9 16 9zM7 14v6M15 19v2"/></svg>
+            <span>3 sorties repérées par votre iPhone</span>
+            <svg class="go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          </a>
+          <div class="card"><span style="font:600 16px var(--display)">Ses sorties du jour</span><p style="margin:6px 0 0;color:var(--hint);font-size:15px">Matin · Midi · Soir</p></div>
+        </div>
+        <div class="tabbar"><span>Balades</span><span class="home">Accueil</span><span>Santé</span></div>
+      </div>
+    </figure>
+
+    <figure id="liste">
+      <figcaption>2 · Le bandeau ouvre la liste : une carte par sortie</figcaption>
+      <div class="phone" role="img" aria-label="Liste des sorties repérées, avec les boutons C’était avec Billy et Pas avec lui">
+        <div class="status"><span>9:41</span><span>•••</span></div>
+        <div class="dim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <h2>Sorties repérées</h2>
+          <p class="lead">Votre iPhone vous a vu marcher. Avec Billy&nbsp;?</p>
+          <div class="det">
+            <span class="when">Sam. 7 nov. · 10 h 55</span>
+            <span class="what">25&nbsp;min · 1,3&nbsp;km · sortie du matin</span>
+            <div class="done">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+              Notée avec Billy · +3 os
+            </div>
+          </div>
+          <div class="det">
+            <span class="when">Sam. 7 nov. · 17 h 20</span>
+            <span class="what">30&nbsp;min · 1,8&nbsp;km · sortie du soir</span>
+            <div class="row2">
+              <button class="btn btn-primary sm">C’était avec Billy</button>
+              <button class="btn btn-tertiary sm">Pas avec lui</button>
+            </div>
+          </div>
+          <div class="det">
+            <span class="when">Dim. 8 nov. · 8 h 10</span>
+            <span class="what">18&nbsp;min · 1,1&nbsp;km · sortie du matin</span>
+            <div class="row2">
+              <button class="btn btn-primary sm">C’était avec Billy</button>
+              <button class="btn btn-tertiary sm">Pas avec lui</button>
+            </div>
+          </div>
+          <button class="close">Plus tard</button>
+        </div>
+      </div>
+    </figure>
+
+    <figure>
+      <figcaption>3 · Dans le journal des Balades : la sortie confirmée, sans tracé</figcaption>
+      <div class="phone" role="img" aria-label="Journal : Sortie du soir, repérée par l’iPhone">
+        <div class="status"><span>9:41</span><span>•••</span></div>
+        <div class="content">
+          <p class="day">Samedi 7 novembre</p>
+          <div class="card jrow">
+            <span class="jicon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg></span>
+            <div>
+              <div class="n">Sortie du soir</div>
+              <div class="m">17 h 20 · 30&nbsp;min · 1,8&nbsp;km</div>
+              <span class="tag">Repérée par l’iPhone</span>
+            </div>
+          </div>
+          <div class="card jrow">
+            <span class="jicon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg></span>
+            <div>
+              <div class="n">Sortie du matin</div>
+              <div class="m">10 h 55 · 25&nbsp;min · 1,3&nbsp;km</div>
+              <span class="tag">Repérée par l’iPhone</span>
+            </div>
+          </div>
+        </div>
+        <div class="tabbar"><span>Balades</span><span class="home">Accueil</span><span>Santé</span></div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes intro">
+    <h2>Choix faits, à valider</h2>
+    <ul>
+      <li><b>Bandeau en bleu « info »</b>, pas en orange : l’orange reste à la carte du moment (une seule action principale).</li>
+      <li><b>Liste en feuille</b> (poignée, « Plus tard » pour sortir) ; une carte répondue reste visible avec « Notée avec Billy », pour voir ce qui a été fait.</li>
+      <li><b>« C’était avec Billy »</b> en vert plein (primary), <b>« Pas avec lui »</b> en contour (tertiary), sur une ligne. À 320 px de large, les deux boutons ne tiennent plus : ils passent l’un sous l’autre.</li>
+      <li><b>Le créneau</b> (matin, midi, soir) est rappelé sur la carte : c’est là que la sortie comptera.</li>
+      <li><b>Doublon avec la T-085</b> : l’Accueil a déjà une carte « Vous avez marché 35 min vers 8 h. C’était une sortie avec Billy ? » (Mouvements et forme, 7 jours). Elle ne s’affiche jamais quand la Watch est choisie, d’où son absence chez toi. Proposition : la T-121 la remplace (Santé fusionne iPhone + Watch, rattrapage de 14 jours, une seule autorisation).</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

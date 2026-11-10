@@ -1,3 +1,4 @@
+import type { DetectedOuting } from './walkingBouts'
 // Les sorties de Billy : 3 créneaux fixes par jour (matin, midi, soir), hors du jardin.
 // Ce fichier n’importe rien : il est lu tel quel par le script d’envoi (scripts/rappel-soir.mjs) et par les tests.
 
@@ -22,6 +23,8 @@ export interface WalkDay {
   done: Partial<Record<WalkSlot, string>>
   /** Sorties notées à la main, sans tracé (R-044) : leur durée en minutes. Une balade du même créneau la remplace. */
   noted?: Partial<Record<WalkSlot, number>>
+  /** T-121 : les sorties repérées par la distance à pied (app iOS), à confirmer ou déjà répondues. */
+  detected?: DetectedOuting[]
 }
 
 const isTime = (value: unknown): value is string => typeof value === 'string' && /^\d{2}:\d{2}$/.test(value)

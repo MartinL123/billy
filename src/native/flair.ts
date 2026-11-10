@@ -5,9 +5,7 @@ import type { WalkMarker } from '../lib/route'
 import type { WatchWalk } from '../lib/watch'
 import type { HealthExtras } from '../lib/walkHealth'
 import { withTimeout } from '../lib/timeout'
-import type { MotionPeriod } from '../lib/motionWalks'
 
-export type MotionStatus = 'granted' | 'denied' | 'prompt'
 export type PhotosStatus = 'granted' | 'limited' | 'denied' | 'prompt'
 
 /** T-103 : une photo de la photothèque prise pendant la balade. */
@@ -56,6 +54,8 @@ export interface CurrentWalk {
 }
 
 interface FlairNativePlugin {
+  /** T-121 : la distance à pied (iPhone et Watch, fusionnés par Santé) par tranches de 5 min depuis `since`, tranches vides omises. */
+  getWalkingBouts(options: { since: string }): Promise<{ available: boolean; buckets: { start: string; meters: number }[] }>
   /** R-104 : `until` (facultatif) borne la lecture, pour un rattrapage par tranches de 7 jours. */
   getWalks(options: { since: string; until?: string }): Promise<WatchWalks>
   /** T-080 : le cœur, les pas et l’énergie que Santé a sur cette fenêtre (vide si rien, ou si la lecture n’est pas permise). */
@@ -86,10 +86,6 @@ interface FlairNativePlugin {
    * la lecture des marches est choisie (R-079), la notification est voulue (Profil › Notifications), le prénom du chien.
    */
   setWatchNotify(options: { optedIn: boolean; enabled: boolean; dogName: string }): Promise<void>
-  /** T-085 : l’accès à Mouvements et forme, sans rien demander. */
-  motionStatus(): Promise<{ available: boolean; status: MotionStatus }>
-  /** T-085 : les périodes « à pied » brutes depuis `since` (la première fois, iOS demande l’accès). */
-  motionWalks(options: { since: string }): Promise<{ periods: MotionPeriod[] }>
   /** T-086 : les bouts de territoire de la Live Activity. Plus appelé depuis la V6.1 (§ 1) : la Live Activity n’en montre pas (0). */
   setLiveWalk(options: { bits: number }): Promise<void>
   /** T-101 : les parcs de la balade (rectangle et texte de la notification) ; liste vide : rien à proposer. */
@@ -138,30 +134,6 @@ export function setWatchNotify(options: { optedIn: boolean; enabled: boolean; do
   if (!isNative()) return
   FlairNative.setWatchNotify(options).catch(() => undefined)
 }
-
-/** T-085 : l’accès à Mouvements et forme. `unavailable` sur le web, sur un iPhone sans capteur ou une app plus ancienne. */
-export async function motionStatus(): Promise<MotionStatus | 'unavailable'> {
-  if (!isNative()) return 'unavailable'
-  try {
-    const answer = await withTimeout(FlairNative.motionStatus(), 5_000, 'motionStatus')
-    return answer.available ? answer.status : 'unavailable'
-  } catch {
-    return 'unavailable'
-  }
-}
-
-/** T-085 : les marches vues par l’iPhone depuis `since` ; rien si l’accès est refusé ou si l’iPhone ne répond pas. */
-export async function readMotionWalks(since: string): Promise<MotionPeriod[]> {
-  if (!isNative()) return []
-  try {
-    // Pas de délai court : la première fois, la fenêtre d’iOS attend la réponse de la personne.
-    const answer = await withTimeout(FlairNative.motionWalks({ since }), 120_000, 'motionWalks')
-    return Array.isArray(answer.periods) ? answer.periods : []
-  } catch {
-    return []
-  }
-}
-
 
 /** T-103 : l’accès à la photothèque (`unavailable` sur le web ou une app iOS plus ancienne). */
 export async function photosAccess(ask: boolean): Promise<PhotosStatus | 'unavailable'> {

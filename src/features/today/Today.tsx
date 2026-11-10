@@ -23,7 +23,7 @@ import { weighingDue } from '../../lib/weighing'
 import { dayBudget, minutesOfDay, walkDayPlan, walksOfDay, walksSentence, yesterdayOpenSlots } from '../../lib/walkDay'
 import { addDays } from '../../lib/dates'
 import { KnowCard } from './KnowCard'
-import { MotionCard } from '../motion/MotionCard'
+import { DetectedBanner } from '../detected/DetectedOutings'
 import { NoteSheet, WalkDayCard, type ToNote } from './WalkDayCard'
 import { WalkRecos } from './WalkRecos'
 import { pickRecos, recoTarget } from '../../lib/walkRecos'
@@ -376,8 +376,8 @@ export default function Today() {
         <WalkRecos recos={recos} />
       </WalkDayCard>
 
-      {/* T-085 (app iOS) : une marche vue par l’iPhone, « C’était une sortie avec Billy ? ». */}
-      {!readOnly && <MotionCard />}
+      {/* T-121 (app iOS) : les sorties faites iPhone en poche, repérées dans Santé, à confirmer. Remplace la T-085. */}
+      {!readOnly && <DetectedBanner />}
 
       {/* Faisons connaissance (V5) : tant que le questionnaire n’est pas fini, une partie à la fois, contre des os. */}
       {!readOnly && !questionnaire.complete && <KnowCard />}

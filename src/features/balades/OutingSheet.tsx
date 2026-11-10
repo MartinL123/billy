@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { distanceLabel } from '../../lib/walkingBouts'
 import { Link } from 'react-router-dom'
 import { BackLink } from '../../components/BackLink'
 import { ConfirmSheet } from '../../components/Sheet'
@@ -40,7 +41,11 @@ export function OutingSheet({ outing, backLabel, onBack, onDeleted }: { outing: 
 
       <div className="flex flex-col gap-4 pt-1">
         <p className="m-0 rounded-card border-[1.5px] border-dashed border-line-strong px-3.5 py-3 text-[0.8824rem] leading-snug text-[#3F4946]">
-          Pas de trajet pour cette sortie{' '}: elle a été notée sans GPS. La carte reste sur toutes les balades.
+          {outing.iphoneMeters ? (
+            `Repérée par l’iPhone (${distanceLabel(outing.iphoneMeters)} à pied), sans GPS\u00a0: pas de trajet. La carte reste sur toutes les balades.`
+          ) : (
+            <>Pas de trajet pour cette sortie{' '}: elle a été notée sans GPS. La carte reste sur toutes les balades.</>
+          )}
         </p>
         {!readOnly && (
           <section className="card flex flex-col gap-1 p-4">

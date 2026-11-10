@@ -1,4 +1,5 @@
 import type { ISODate } from './dates'
+import { confirmedFor } from './walkingBouts'
 import { formatHour, WALK_SLOTS, type WalkDay, type WalkSlot } from './walks'
 
 // R-095 / R-098 : une sortie notée à la main, sans trajet (« Combien de temps ? », R-044) : elle vit dans
@@ -12,6 +13,8 @@ export interface NotedOuting {
   minutes: number
   /** L’heure notée (« 08:00 »), si on la sait. */
   time?: string
+  /** T-121 : repérée par l’iPhone (distance à pied de Santé) et confirmée : sa distance, en mètres. */
+  iphoneMeters?: number
 }
 
 const SLOT_NAMES: Record<WalkSlot, string> = { matin: 'Sortie du matin', midi: 'Sortie de midi', soir: 'Sortie du soir' }
@@ -34,7 +37,7 @@ export function parseOutingId(id: string): { date: ISODate; slot: WalkSlot } | u
  * Les sorties notées sans trajet, de la plus récente à la plus ancienne. Un créneau qui a sa balade (rattachée par
  * `walkSlot`) n’en est plus une : la balade la remplace.
  */
-export function notedOutings(days: Pick<WalkDay, 'date' | 'done' | 'noted'>[], entries: { route?: unknown; walkSlot?: { date: string; creneau: string } }[]): NotedOuting[] {
+export function notedOutings(days: Pick<WalkDay, 'date' | 'done' | 'noted' | 'detected'>[], entries: { route?: unknown; walkSlot?: { date: string; creneau: string } }[]): NotedOuting[] {
   const withWalk = new Set(entries.filter((e) => e.route && e.walkSlot).map((e) => `${e.walkSlot!.date}:${e.walkSlot!.creneau}`))
   const out: NotedOuting[] = []
   for (const day of days) {
@@ -42,7 +45,8 @@ export function notedOutings(days: Pick<WalkDay, 'date' | 'done' | 'noted'>[], e
       const minutes = day.noted?.[slot]
       if (!minutes || minutes <= 0 || withWalk.has(outingId(day.date, slot))) continue
       const time = day.done?.[slot]
-      out.push({ id: outingId(day.date, slot), date: day.date, slot, minutes, ...(time ? { time } : {}) })
+      const iphone = confirmedFor(day.detected, slot, time)
+      out.push({ id: outingId(day.date, slot), date: day.date, slot, minutes, ...(time ? { time } : {}), ...(iphone ? { iphoneMeters: iphone.meters } : {}) })
     }
   }
   return out.sort((a, b) => b.date.localeCompare(a.date) || WALK_SLOTS.findIndex((s) => s.id === b.slot) - WALK_SLOTS.findIndex((s) => s.id === a.slot))

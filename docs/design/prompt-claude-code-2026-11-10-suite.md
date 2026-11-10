@@ -40,3 +40,16 @@ Maquette : docs/maquettes/V6-balade-auto.html. App iOS seulement, sous isNative(
 
 ## Vérifier avant de pousser
 - `npm test`, `npm run build`, skill `apple-design` sur la carte et la feuille « Balade enregistrée ».
+
+---
+
+## R-116 · Balade enregistrée seule : la faire découvrir, prévenir au retour (retour de Martin, 10 nov., 17 h 36)
+Martin est sorti après le Run Xcode : rien n'a été enregistré, car le réglage était éteint et il ne le savait pas.
+- Accueil (app iOS) : tant que le réglage n'a jamais été choisi, une carte sous « Ses sorties du jour » :
+  « Nouveau : vos balades s'enregistrent seules quand vous partez de chez vous. », primary « Activer » (même parcours
+  que le réglage), lien texte « Plus tard » (revient dans 7 jours ; plus jamais après 2 « Plus tard »).
+- Notification locale au retour dans la zone : « Balade enregistrée : 32 min, 1,9 km. C'était avec Billy ? » ;
+  le toucher ouvre la feuille « Balade enregistrée ». Pas de notification au départ.
+- Si T-123 est codé et un partage en direct configuré : Live Activity pendant l'enregistrement.
+- Notifications : nouveau réglage « Quand une balade s'enregistre seule » (activé par défaut).
+- Tests : règle d'affichage de la carte (jamais choisi / plus tard / 2 refus).

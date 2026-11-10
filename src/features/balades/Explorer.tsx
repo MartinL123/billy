@@ -350,7 +350,9 @@ export default function Explorer() {
         <div className="flex flex-col items-start gap-2">
           <MapButton kind="display" aria-expanded={display} onClick={() => setDisplay(!display)} />
           {display && (
-            <div className="anim-pop pointer-events-auto flex flex-col gap-2 rounded-card bg-surface p-2 shadow-[0_4px_14px_rgba(24,32,30,0.25)]">
+            // R-106 : la fenêtre finit au-dessus du rond Accueil (26 px au-dessus de la barre, + 8 px d’air) ; sur un petit
+            // écran (320 × 568), elle défile. Son haut : zone sûre + 8 + 44 (« Affichage ») + 8.
+            <div className="anim-pop pointer-events-auto flex max-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-182px)] flex-col gap-2 overflow-y-auto overscroll-contain rounded-card bg-surface p-2 shadow-[0_4px_14px_rgba(24,32,30,0.25)]">
               {/* Deux colonnes égales sur toute la largeur de la fenêtre. */}
               <div role="group" aria-label="Fond de carte" className="grid grid-cols-2 rounded-full bg-bg p-1">
                 <button type="button" aria-pressed={!prefs.satellite} onClick={() => setPref({ satellite: false })} className={toggle(!prefs.satellite)}>
@@ -382,7 +384,9 @@ export default function Explorer() {
             </div>
           )}
         </div>
-        <div className="flex flex-col items-end gap-2">
+        {/* R-106 : pendant qu’« Affichage » est ouvert, « Me situer » (et la boussole) se cachent : la fenêtre les poussait
+            hors de l’écran. */}
+        <div className={`flex flex-col items-end gap-2 ${display ? 'hidden' : ''}`}>
           {/* Me situer (T-020) : la carte et la commune suivent l’endroit où l’on est. */}
           <MapButton kind="locate" onClick={locate} aria-label="Me situer : les balades du coin où je suis" active={Boolean(myPos)} busy={locating} />
           {/* La boussole n’apparaît que si la carte est tournée ; un toucher la remet face au nord. */}

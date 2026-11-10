@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { activeShare, liveTrack, MAX_TRACK_POINTS, trackShown, tracksToClear, cleanProche, followLink, followSentence, followTokenFromHash, formatSince, isToken, liveExpired, newToken, pushDue, sharesToDelete, updatedSentence, walkLiveStatus, withNames } from './liveShare'
+import { activeShare, nearMessage, nearNotice, nearProche, nearSmsLink, liveTrack, MAX_TRACK_POINTS, trackShown, tracksToClear, cleanProche, followLink, followSentence, followTokenFromHash, formatSince, isToken, liveExpired, newToken, pushDue, sharesToDelete, updatedSentence, walkLiveStatus, withNames } from './liveShare'
 
 const NOW = Date.parse('2026-10-22T08:30:00+02:00')
 const ago = (ms: number) => new Date(NOW - ms).toISOString()
@@ -145,5 +145,37 @@ describe('T-123 · le tracé derrière le point', () => {
       { token: 'd', startedAt: ago(600_000), with: ['Paul'] },
     ]
     expect(tracksToClear(shares, NOW).map((s) => s.token)).toEqual(['a'])
+  })
+})
+
+describe('T-124 · « Vous passez près de chez… »', () => {
+  const coralie = { id: 'c', name: 'Coralie', contact: '06 12 34 56 78', home: { lat: 48.9116, lng: 2.3338 } }
+  const paul = { id: 'p', name: 'Paul', home: { lat: 48.915, lng: 2.3338 } }
+  const sansAdresse = { id: 's', name: 'Sam' }
+  // ~330 m au sud de Coralie.
+  const here = { lat: 48.9086, lng: 2.3338 }
+
+  it('à 500 m ou moins de chez un proche, adresse connue', () => {
+    expect(nearProche(here, [sansAdresse, coralie])?.id).toBe('c')
+    // ~560 m : trop loin.
+    expect(nearProche({ lat: 48.9066, lng: 2.3338 }, [coralie])).toBeUndefined()
+    expect(nearProche(here, [sansAdresse])).toBeUndefined()
+  })
+
+  it('le plus proche d’abord, une seule fois par balade et par proche', () => {
+    const near = { lat: 48.913, lng: 2.3338 }
+    expect(nearProche(near, [coralie, paul])?.id).toBe('c')
+    expect(nearProche(near, [coralie, paul], ['c'])?.id).toBe('p')
+    expect(nearProche(near, [coralie, paul], ['c', 'p'])).toBeUndefined()
+  })
+
+  it('les textes et le lien vers Messages', () => {
+    expect(nearNotice('Coralie')).toBe('Vous passez près de chez Coralie. Le prévenir\u00a0?')
+    const body = nearMessage('Billy', 'https://x.test/#/suivre/abc')
+    expect(body).toBe('Billy et moi passons près de chez toi, suis-nous\u00a0: https://x.test/#/suivre/abc')
+    expect(nearSmsLink('06 12 34 56 78', 'Coucou')).toBe('sms:0612345678&body=Coucou')
+    expect(nearSmsLink('+33 6 12', 'a b')).toBe('sms:+33612&body=a%20b')
+    expect(nearSmsLink('coralie@mail.fr', 'a')).toBe('mailto:coralie%40mail.fr?body=a')
+    expect(nearSmsLink(undefined, 'a')).toBe('sms:&body=a')
   })
 })

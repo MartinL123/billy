@@ -35,6 +35,10 @@ export interface Proche {
   id: string
   name: string
   contact?: string
+  /** T-124 : « Son adresse », facultative, telle qu’écrite. Données privées seulement, jamais dans live/. */
+  address?: string
+  /** T-124 : l’adresse géocodée une fois (Nominatim) ; absente si introuvable. */
+  home?: { lat: number; lng: number }
 }
 
 /** Un partage lancé depuis ce compte, gardé dans le profil pour l’arrêter et l’effacer après 24 h (sans `list`). */
@@ -199,5 +203,42 @@ export function trackShown(live: Pick<LiveDoc, 'track' | 'status' | 'endsAt'>, n
 /** À l’ouverture de l’app : les partages finis depuis 1 h dont le tracé est encore dans live/{jeton}. */
 export function tracksToClear(shares: LiveShareRef[] | undefined, now: number): LiveShareRef[] {
   return (shares ?? []).filter((s) => s.endedAt && !s.trackCleared && now - Date.parse(s.endedAt) >= TRACK_KEEP_MS && now - Date.parse(s.endedAt) < KEEP_MS)
+}
+
+// ——— T-124 : « Vous passez près de chez… » (app iOS, pendant une balade lancée) ———
+
+/** À 500 m ou moins de chez un proche. */
+export const NEAR_M = 500
+
+/**
+ * Le proche dont on passe près (le plus proche à 500 m ou moins, adresse connue), pas encore prévenu pendant cette
+ * balade (`told` : ses identifiants). Miroir : `NearProches` (FlairNativePlugin.swift), qui envoie la notification.
+ */
+export function nearProche(at: { lat: number; lng: number }, proches: Proche[] | undefined, told: string[] = []): Proche | undefined {
+  let best: { p: Proche; d: number } | undefined
+  for (const p of proches ?? []) {
+    if (!p.home || told.includes(p.id)) continue
+    const d = distanceMeters(at, p.home)
+    if (d <= NEAR_M && (!best || d < best.d)) best = { p, d }
+  }
+  return best?.p
+}
+
+/** La notification : « Vous passez près de chez Coralie. Le prévenir ? ». */
+export const nearNotice = (name: string) => `Vous passez près de chez ${name}. Le prévenir\u00a0?`
+
+/** Le message préparé dans Messages : « Billy et moi passons près de chez toi, suis-nous : <lien> ». */
+export const nearMessage = (dogName: string, link: string) => `${dogName.trim() || 'Mon chien'} et moi passons près de chez toi, suis-nous\u00a0: ${link}`
+
+/**
+ * Le lien qui ouvre Messages avec le texte prêt (rien n’est envoyé sans le toucher de l’utilisateur) : `sms:<numéro>&body=`
+ * (forme d’iOS) ; un e-mail : `mailto:` ; sans contact : Messages, destinataire à choisir.
+ */
+export function nearSmsLink(contact: string | undefined, body: string): string {
+  const text = encodeURIComponent(body)
+  const c = contact?.trim() ?? ''
+  if (c.includes('@')) return `mailto:${encodeURIComponent(c)}?body=${text}`
+  const number = c.replace(/[^\d+]/g, '')
+  return `sms:${number}&body=${text}`
 }
 

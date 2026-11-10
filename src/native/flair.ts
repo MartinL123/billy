@@ -99,6 +99,8 @@ interface FlairNativePlugin {
   setLiveWalk(options: { bits: number }): Promise<void>
   /** T-101 : les parcs de la balade (rectangle et texte de la notification) ; liste vide : rien à proposer. */
   setParks(options: { parks: { s: number; w: number; n: number; e: number; text: string }[]; title: string }): Promise<void>
+  /** T-124 : les proches dont l’adresse est connue, pour « Vous passez près de chez… » pendant cette balade. */
+  setNearProches(options: { proches: { id: string; name: string; lat: number; lng: number }[] }): Promise<void>
   /** T-101 : le bandeau a été montré : plus de notification pendant cette balade. */
   parkOffered(): Promise<void>
   /** T-103 : l’accès à la photothèque ; avec `ask`, iOS le demande la première fois. */
@@ -115,6 +117,8 @@ interface FlairNativePlugin {
   /** R-116 : la notification au retour dans la zone (« Balade enregistrée : 32 min, 1,9 km. C’était avec Billy ? »). */
   setAutoWalkNotify(options: { enabled: boolean; dogName: string }): Promise<void>
   addListener(event: 'walkPoint', listener: (point: GpsPoint) => void): Promise<PluginListenerHandle>
+  /** T-124 : à 500 m de chez un proche, app au premier plan (sinon, la notification). */
+  addListener(event: 'procheNear', listener: (data: { id: string }) => void): Promise<PluginListenerHandle>
   addListener(event: 'walkStopped', listener: (data: { stoppedAt?: string }) => void): Promise<PluginListenerHandle>
   /** La précision du GPS à chaque mise à jour (même pour un point écarté) : signal faible (T-051). */
   /** T-062 : un point n’a pas pu être écrit sur l’iPhone (`storage` : stockage plein). */

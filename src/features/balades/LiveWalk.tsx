@@ -38,6 +38,7 @@ import { activeShare } from '../../lib/liveShare'
 import { useLivePrivate } from '../live/useLivePrivate'
 import { dogName, realDogName } from '../../lib/dogName'
 import { useParkOffer } from './useParkOffer'
+import { useNearProches } from '../live/ProcheNear'
 
 /** La boucle suivie (T-089), en pointillés gris : le tracé du jour reste le vert carte. */
 const LOOP_COLOR = '#5C6662'
@@ -346,6 +347,8 @@ export default function LiveWalk() {
   }, [latLngs, points, loopPoints])
   const here = latLngs[latLngs.length - 1]
   // T-101 : un exercice au parc, une fois par balade, si la mission du jour n’est pas faite.
+  // T-124 : « Vous passez près de chez… » : l’iPhone reçoit les adresses des proches pour cette balade.
+  useNearProches(isNative() && phase === 'walking' && !ended && !gone && !stoppedAt)
   const park = useParkOffer({ active: isNative() && phase === 'walking' && !ended && !gone && !stoppedAt, points, now })
   const startFailed = Boolean(failure && (failure.step.startsWith('départ') || failure.step.startsWith('lecture')))
   const weak = weakSignal(accuracy, weakSince, now)

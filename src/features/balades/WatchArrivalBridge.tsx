@@ -9,6 +9,7 @@ import { setWatchNotify } from '../../native/flair'
 import { watchOptedIn } from './watchImport'
 import { realDogName } from '../../lib/dogName'
 import { AUTO_WALK_OPEN } from '../autowalk/autoWalkEvents'
+import { openProche } from '../live/ProcheNear'
 
 /**
  * App iOS (T-084, spec V6 § 4) : le pont avec la notification « Belle balade avec Billy ! ».
@@ -53,6 +54,8 @@ export function WatchArrivalBridge() {
         go.current('/')
         window.dispatchEvent(new CustomEvent(AUTO_WALK_OPEN, { detail: (extra as { id?: string }).id }))
       }
+      // T-124 : « Vous passez près de chez Coralie. Le prévenir ? » : le partage vers ce proche, puis Messages.
+      else if (extra?.kind === 'proche' && (extra as { id?: string }).id) openProche((extra as { id: string }).id)
     })
     return () => {
       void handle.then((h) => h.remove())

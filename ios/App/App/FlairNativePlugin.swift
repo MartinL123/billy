@@ -38,6 +38,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         CAPPluginMethod(name: "walkPhotos", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setParks", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "parkOffered", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setNearProches", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "autoWalkConfig", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setAutoWalk", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "autoWalks", returnType: CAPPluginReturnPromise),
@@ -624,6 +625,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
             notifyListeners("walkPoint", data: FlairNativePlugin.pointData(point))
             watchForFinish(point)
             watchForPark(point)
+            watchForProches(point)
             WalkMarkers.lastLocation = point
             addLiveDistance(point)
         }
@@ -1072,6 +1074,57 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [FlairNativePlugin.parkId])
         }
         parkPromptAt = nil
+    }
+
+    // MARK: - « Vous passez près de chez… » (T-124)
+    //
+    // Pendant une balade lancée seulement. Le JS passe les proches dont l'adresse est connue (`setNearProches`, gardés
+    // avec le départ de la balade : l'app relancée en arrière-plan les retrouve). À 500 m ou moins : une notification
+    // locale, une fois par balade et par proche. Rien n'est envoyé au proche : le toucher ouvre l'app, qui lance le
+    // partage et prépare le message dans Messages. Miroir testé : `nearProche` (src/lib/liveShare.ts).
+
+    private static let prochesKey = "flair.proches-pres"
+    private static let prochesToldKey = "flair.proches-prevenus"
+    private static let nearMeters: CLLocationDistance = 500
+
+    /// `setNearProches({ proches: [{ id, name, lat, lng }] })` : pour la balade en cours.
+    @objc func setNearProches(_ call: CAPPluginCall) {
+        let list = ((call.getArray("proches") as? [[String: Any]]) ?? []).filter { $0["id"] is String && $0["name"] is String && $0["lat"] is Double && $0["lng"] is Double }
+        DispatchQueue.main.async {
+            if let startedAt = self.readState()?["startedAt"] as? String {
+                UserDefaults.standard.set(["startedAt": startedAt, "proches": list], forKey: FlairNativePlugin.prochesKey)
+            }
+            call.resolve()
+        }
+    }
+
+    private func watchForProches(_ point: CLLocation) {
+        guard let startedAt = readState()?["startedAt"] as? String,
+              let saved = UserDefaults.standard.dictionary(forKey: FlairNativePlugin.prochesKey),
+              saved["startedAt"] as? String == startedAt,
+              let proches = saved["proches"] as? [[String: Any]], !proches.isEmpty else { return }
+        let toldSaved = UserDefaults.standard.dictionary(forKey: FlairNativePlugin.prochesToldKey)
+        var told = toldSaved?["startedAt"] as? String == startedAt ? (toldSaved?["ids"] as? [String] ?? []) : []
+        var best: (id: String, name: String, d: CLLocationDistance)?
+        for p in proches {
+            guard let id = p["id"] as? String, let name = p["name"] as? String, let lat = p["lat"] as? Double, let lng = p["lng"] as? Double, !told.contains(id) else { continue }
+            let d = point.distance(from: CLLocation(latitude: lat, longitude: lng))
+            if d <= FlairNativePlugin.nearMeters && (best == nil || d < best!.d) { best = (id, name, d) }
+        }
+        guard let near = best else { return }
+        told.append(near.id)
+        UserDefaults.standard.set(["startedAt": startedAt, "ids": told], forKey: FlairNativePlugin.prochesToldKey)
+        // App au premier plan : le JS montre la même question dans un bandeau (« Prévenir »), pas de notification.
+        if UIApplication.shared.applicationState == .active {
+            notifyListeners("procheNear", data: ["id": near.id])
+            return
+        }
+        let content = UNMutableNotificationContent()
+        content.body = "Vous passez près de chez \(near.name). Le prévenir\u{00A0}?"
+        content.sound = .default
+        // `cap_extra` : le JS lance le partage vers ce proche et ouvre Messages (ProcheNearBridge).
+        content.userInfo = ["cap_extra": ["kind": "proche", "id": near.id]]
+        UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: "proche-\(near.id)", content: content, trigger: nil))
     }
 
     /// `keepAwake({ on })` : l'écran reste allumé tant que l'écran « Balade en cours » est affiché.

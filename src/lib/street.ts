@@ -149,3 +149,29 @@ export async function routePlaces(samples: [number, number][]): Promise<{ street
   }
   return { streets: streetSequence(roads), places: placeSequence(places) }
 }
+
+/** T-124 : la première réponse de la recherche Nominatim (`/search`), en position ; sinon rien. */
+export function placeFromSearch(json: unknown): { lat: number; lng: number } | undefined {
+  const first = Array.isArray(json) ? (json[0] as { lat?: string; lon?: string } | undefined) : undefined
+  const lat = Number(first?.lat)
+  const lng = Number(first?.lon)
+  return first && Number.isFinite(lat) && Number.isFinite(lng) ? { lat: Math.round(lat * 1e5) / 1e5, lng: Math.round(lng * 1e5) / 1e5 } : undefined
+}
+
+/**
+ * T-124 : « Son adresse » d’un proche, géocodée une fois (Nominatim, par la file commune), puis gardée dans les données
+ * privées. Hors ligne ou introuvable : rien.
+ */
+export async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | undefined> {
+  const q = address.trim()
+  if (!q || (typeof navigator !== 'undefined' && !navigator.onLine)) return undefined
+  return nominatimTurn(async () => {
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=fr&q=${encodeURIComponent(q)}`
+      const response = await fetch(url, { signal: AbortSignal.timeout(6000) })
+      return response.ok ? placeFromSearch(await response.json()) : undefined
+    } catch {
+      return undefined
+    }
+  })
+}

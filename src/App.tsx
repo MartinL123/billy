@@ -59,6 +59,7 @@ import Mesure, { JournalOpen } from './features/mesure/Mesure'
 import { SkeletonScreen } from './components/Skeleton'
 import Follow from './features/live/Follow'
 import { LiveShareSync } from './features/live/LiveShare'
+import { ProcheNearBridge } from './features/live/ProcheNear'
 import { followTokenFromHash } from './lib/liveShare'
 
 function ScrollToTop() {
@@ -221,6 +222,7 @@ export default function App() {
               <PendingWalksSync />
               <NotificationScheduler />
               <LiveShareSync />
+              <ProcheNearBridge />
             </>
           )}
           <ScrollToTop />

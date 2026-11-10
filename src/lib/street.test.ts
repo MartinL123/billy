@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { communeFromAddress, NOMINATIM_GAP_MS, nominatimTurn, placeFromNominatim, roadFromNominatim, spotFromNominatim, streetFromNominatim } from './street'
+import { communeFromAddress, NOMINATIM_GAP_MS, nominatimTurn, placeFromNominatim, placeFromSearch, roadFromNominatim, spotFromNominatim, streetFromNominatim } from './street'
 
 describe('nom de la rue', () => {
   it('prend la rue, puis le chemin piéton, puis le parc', () => {
@@ -72,5 +72,13 @@ describe('arrêt dans un parc (T-103)', () => {
     expect(spotFromNominatim({ address: { road: 'Rue Haute' } })).toEqual({ street: 'Rue Haute', park: '' })
     // Une aire de jeux n’est pas un parc où l’on joue avec son chien.
     expect(spotFromNominatim({ category: 'leisure', type: 'playground', name: 'Aire Pivert' })).toEqual({ park: '' })
+  })
+})
+
+describe('T-124 · l’adresse d’un proche', () => {
+  it('la première réponse de la recherche, 5 décimales', () => {
+    expect(placeFromSearch([{ lat: '48.911612345', lon: '2.333812345' }, { lat: '1', lon: '1' }])).toEqual({ lat: 48.91161, lng: 2.33381 })
+    expect(placeFromSearch([])).toBeUndefined()
+    expect(placeFromSearch(null)).toBeUndefined()
   })
 })

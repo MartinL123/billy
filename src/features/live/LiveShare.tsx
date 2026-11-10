@@ -9,6 +9,7 @@ import { useLivePrivate } from './useLivePrivate'
 import { gpsDistance, type GpsPoint } from '../../lib/gpsWalk'
 import { activeShare, cleanProche, followLink, liveTrack, MAX_CHOSEN, newToken, pushDue, walkLiveStatus, withNames, type Proche } from '../../lib/liveShare'
 import { isNative } from '../../native'
+import { geocodeAddress } from '../../lib/street'
 import { FlairNative } from '../../native/flair'
 import { ofDog } from '../../lib/dogName'
 
@@ -112,25 +113,40 @@ export function LiveShareLine({ startedAt, points }: { startedAt: string; points
 }
 
 /** Le formulaire d’un proche : prénom, numéro ou e-mail. Gardé dans private/live (Profil › Mes proches). */
-export function ProcheForm({ proches, onAdded }: { proches: Proche[] | undefined; onAdded?: (proche: Proche) => void }) {
+export function ProcheForm({ proches, onAdded, withAddress = false }: { proches: Proche[] | undefined; onAdded?: (proche: Proche) => void; /** T-124 : « Son adresse » (Profil, app iOS). */ withAddress?: boolean }) {
   const [name, setName] = useState('')
   const [contact, setContact] = useState('')
+  const [address, setAddress] = useState('')
   const [error, setError] = useState('')
-  const add = () => {
+  const [busy, setBusy] = useState(false)
+  const toast = useToast()
+  const add = async () => {
     const proche = cleanProche({ name, contact }, newToken().slice(0, 10))
     if (!proche) return setError('Écrivez au moins un prénom.')
-    updateLivePrivate({ proches: [...(proches ?? []), proche] })
+    // T-124 : l’adresse est géocodée une fois, avant d’enregistrer ; introuvable, le proche est gardé sans.
+    const clean = address.trim().slice(0, 160)
+    let saved: Proche = proche
+    if (clean) {
+      setBusy(true)
+      const home = await geocodeAddress(clean)
+      setBusy(false)
+      saved = { ...proche, address: clean, ...(home ? { home } : {}) }
+      if (!home) toast(`Adresse introuvable\u00a0: ${proche.name} est ajouté sans.`)
+    }
+    updateLivePrivate({ proches: [...(proches ?? []), saved] })
     setName('')
     setContact('')
+    setAddress('')
     setError('')
-    onAdded?.(proche)
+    onAdded?.(saved)
   }
   return (
     <div className="flex flex-col gap-3">
       <TextField label="Prénom" value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" maxLength={40} {...(error ? { error } : {})} />
       <TextField label={<>Numéro ou e-mail<Optional /></>} value={contact} onChange={(e) => setContact(e.target.value)} autoComplete="off" inputMode="email" maxLength={80} />
-      <button type="button" onClick={add} className="btn btn-tertiary min-h-12">
-        Ajouter ce proche
+      {withAddress && <TextField label={<>Son adresse<Optional /></>} value={address} onChange={(e) => setAddress(e.target.value)} autoComplete="off" maxLength={160} placeholder="12 rue des Lilas, Saint-Ouen" />}
+      <button type="button" disabled={busy} onClick={() => void add()} className="btn btn-tertiary min-h-12">
+        {busy ? 'Recherche de l’adresse…' : 'Ajouter ce proche'}
       </button>
     </div>
   )

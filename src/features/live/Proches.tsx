@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { useToast } from '../../components/Toast'
+import { geocodeAddress } from '../../lib/street'
+import { isNative } from '../../native'
 import { TextField, Optional } from '../../components/Form'
 import type { Proche } from '../../lib/liveShare'
 import { updateLivePrivate } from '../../firebase/live'
@@ -35,6 +38,7 @@ function Proches({ saved }: { saved: { proches?: Proche[]; ownerName?: string } 
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-base font-semibold">{p.name}</span>
                 {p.contact && <span className="truncate text-[0.7647rem] text-muted">{p.contact}</span>}
+                {isNative() && <ProcheAddress proche={p} proches={proches} />}
               </span>
               <button type="button" onClick={() => updateLivePrivate({ proches: proches.filter((x) => x.id !== p.id) })} aria-label={`Retirer ${p.name}`} className="btn-text min-h-11 px-3 text-[0.8824rem] text-danger">
                 Retirer
@@ -45,7 +49,7 @@ function Proches({ saved }: { saved: { proches?: Proche[]; ownerName?: string } 
       )}
       {adding || proches.length === 0 ? (
         <div className="card p-4">
-          <ProcheForm proches={saved.proches} onAdded={() => setAdding(false)} />
+          <ProcheForm proches={saved.proches} onAdded={() => setAdding(false)} withAddress={isNative()} />
         </div>
       ) : (
         <button type="button" onClick={() => setAdding(true)} className="btn-text self-start -ml-1">
@@ -56,3 +60,41 @@ function Proches({ saved }: { saved: { proches?: Proche[]; ownerName?: string } 
     </section>
   )
 }
+
+/**
+ * T-124 (app iOS) : « Son adresse », facultative. Géocodée une fois (Nominatim), gardée dans les données privées, jamais
+ * dans live/ : pendant une balade, « Vous passez près de chez Coralie. Le prévenir ? ».
+ */
+function ProcheAddress({ proche, proches }: { proche: Proche; proches: Proche[] }) {
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState(proche.address ?? '')
+  const [busy, setBusy] = useState(false)
+  const toast = useToast()
+  const save = async () => {
+    const address = value.trim().slice(0, 160)
+    setBusy(true)
+    const home = address ? await geocodeAddress(address) : undefined
+    setBusy(false)
+    if (address && !home) return toast('Adresse introuvable. Essayez avec la ville.')
+    const rest = { ...proche }
+    delete rest.address
+    delete rest.home
+    updateLivePrivate({ proches: proches.map((x) => (x.id === proche.id ? { ...rest, ...(address ? { address } : {}), ...(home ? { home } : {}) } : x)) })
+    setEditing(false)
+  }
+  if (!editing)
+    return (
+      <button type="button" onClick={() => setEditing(true)} aria-label={proche.address ? `Modifier l’adresse de ${proche.name}` : `Ajouter l’adresse de ${proche.name}`} className="btn-text -ml-1 min-h-11 self-start truncate px-1 text-left text-[0.8235rem]">
+        {proche.address ? `${proche.address}${proche.home ? '' : ' (introuvable)'}` : '+ Son adresse'}
+      </button>
+    )
+  return (
+    <span className="flex flex-col gap-2 py-1">
+      <TextField label={<>Son adresse<Optional /></>} value={value} onChange={(e) => setValue(e.target.value)} autoComplete="off" maxLength={160} />
+      <button type="button" disabled={busy} onClick={() => void save()} className="btn btn-tertiary min-h-11 self-start px-4">
+        {busy ? 'Recherche…' : 'Enregistrer'}
+      </button>
+    </span>
+  )
+}
+

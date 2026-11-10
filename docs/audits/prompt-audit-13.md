@@ -14,8 +14,13 @@ Un commit par ticket. Après chaque push : ticket en « Révision du code » ave
 - Titre = nom donné par Martin s'il existe, sinon le lieu marquant du tracé (parc, rue ou quartier le plus parcouru, déjà connu par les rues de la balade),
   sinon « Balade du 27 oct. ». Fonction pure testée (ideaTitle dans src/lib/walkRecos.ts).
 
-## R-109 · Compteurs de balades et sorties repérées
-Appliquer la décision de Martin notée dans le ticket (voir « Décision »). Ne pas coder avant qu'elle y soit.
+## R-109 · Un seul compteur de sorties (décision de Martin, 10 nov.)
+- Compter toutes les sorties avec Billy : balades à tracé + sorties notées (« J'ai fait cette sortie ») + sorties repérées confirmées.
+  Ex. « 37 sorties · 57 km ». Une sortie sans distance compte dans le nombre, pas dans les km.
+- Où : la carte « Ses balades » de l'accueil, l'en-tête de « Ses balades » (Sorties · Distance · Temps dehors), le résumé de la semaine du journal
+  (« 3 sorties · 2,5 km cette semaine »).
+- La carte et la liste des balades gardent seulement les balades avec tracé.
+- Fonction pure testée (outingTotals dans src/lib/notedOutings.ts), réutilisée aux trois endroits.
 
 ## Vérifier avant de pousser
 - `npm test`, `npm run build`, `npm run test:e2e`, skill `apple-design` sur l'accueil et le journal.

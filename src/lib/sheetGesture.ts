@@ -53,10 +53,15 @@ export function moveList(scrollTop: number, step: number, maxScroll: number): { 
   return { scrollTop: Math.min(maxScroll, next), rest: 0 }
 }
 
-/** La vitesse du doigt (px/ms) sur ses derniers mouvements (au plus `window` ms), pour l’élan au lâcher. */
+/**
+ * La vitesse du doigt (px/ms) sur ses derniers mouvements (au plus `window` ms), pour l’élan au lâcher.
+ * R-105 : quand le téléphone rame, il ne reste parfois qu’un mouvement dans la fenêtre ; la vitesse se prend alors
+ * entre les deux derniers mouvements (sinon elle vaudrait 0 et un glissé franc reviendrait au cran le plus proche).
+ */
 export function releaseSpeed(samples: { y: number; t: number }[], window = 100): number {
   const last = samples[samples.length - 1]
   if (!last) return 0
-  const first = samples.find((s) => last.t - s.t <= window) ?? last
+  let first = samples.find((s) => last.t - s.t <= window) ?? last
+  if (first === last && samples.length >= 2) first = samples[samples.length - 2]!
   return last.t > first.t ? (last.y - first.y) / (last.t - first.t) : 0
 }

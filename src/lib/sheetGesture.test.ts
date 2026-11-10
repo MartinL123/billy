@@ -69,4 +69,10 @@ describe('releaseSpeed', () => {
     expect(releaseSpeed([])).toBe(0)
     expect(releaseSpeed([{ y: 0, t: 0 }, { y: 100, t: 400 }, { y: 150, t: 450 }, { y: 200, t: 500 }])).toBe(1)
   })
+
+  it('R-105 : un seul mouvement dans les 100 dernières ms, la vitesse entre les deux derniers', () => {
+    // Le téléphone rame : 250 ms entre les deux derniers mouvements.
+    expect(releaseSpeed([{ y: 0, t: 0 }, { y: 100, t: 250 }, { y: 300, t: 500 }])).toBe(0.8)
+    expect(releaseSpeed([{ y: 0, t: 0 }])).toBe(0)
+  })
 })

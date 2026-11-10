@@ -52,7 +52,7 @@ export async function importActivities(
   read: (index: number) => Promise<Activity | undefined>,
   ctx: ImportContext,
   onProgress: (done: number, total: number) => void,
-  { tally = emptyTally(), source = 'strava' }: { tally?: ImportTally; source?: 'strava' | 'watch' | 'gps' } = {},
+  { tally = emptyTally(), source = 'strava', auto = false }: { tally?: ImportTally; source?: 'strava' | 'watch' | 'gps'; /** T-122 : enregistrée seule. */ auto?: boolean } = {},
 ): Promise<ImportResult> {
   const walks: ImportResult['walks'] = []
   const tracks: { lat: number; lng: number }[][] = []
@@ -62,7 +62,7 @@ export async function importActivities(
     onProgress(i, count)
     const walk = tallyActivity(tally, await read(i), ctx.knownKeys)
     if (!walk) continue
-    const saved = saveImportedWalk(walk, bones, ctx.today, ctx.times, source)
+    const saved = saveImportedWalk(walk, bones, ctx.today, ctx.times, source, { auto })
     bones = [...bones, ...saved.bones]
     gained.push(...saved.bones)
     tracks.push(walk.full)

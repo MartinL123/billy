@@ -30,6 +30,7 @@ import { useReadOnly } from '../../firebase/viewer'
 import { FamilySection, VisitorAccount } from '../visitor/Family'
 import { ExportButton } from './ExportButton'
 import { WatchOptIn } from '../balades/WatchOptIn'
+import { AutoWalkSetting } from '../autowalk/AutoWalk'
 import { WalkPhotosSetting } from './WalkPhotosSetting'
 import { ProchesSection } from '../live/Proches'
 import { watchOptedIn } from '../balades/watchImport'
@@ -340,6 +341,8 @@ export default function Profile() {
             <h2 className="title-section">Apple Watch</h2>
             <WatchOptIn />
           </section>
+          {/* T-122 : le tracé enregistré seul en sortant de chez soi. */}
+          <AutoWalkSetting />
           <WalkPhotosSetting />
         </Sheet>
       )}

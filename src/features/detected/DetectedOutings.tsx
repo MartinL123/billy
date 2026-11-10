@@ -14,6 +14,7 @@ import { withTimeout } from '../../lib/timeout'
 import { isNative } from '../../native'
 import { FlairNative, haptic } from '../../native/flair'
 import { watchOptedIn } from '../balades/watchImport'
+import { useAutoTracks } from '../autowalk/AutoWalk'
 
 // T-121 (app iOS) : les sorties faites iPhone en poche, sans séance Watch, repérées dans la distance à pied de Santé.
 // Remplace la carte de la T-085 (Mouvements et forme). Rien sur le web : Santé n’y est pas lisible.
@@ -70,7 +71,9 @@ export function DetectedSync() {
 export function DetectedBanner() {
   const { entries, walks, dog } = useData()
   const [open, setOpen] = useState<PendingOuting[]>()
-  const pending = useMemo(() => (isNative() ? pendingOutings(walks, entries, walkTimes(dog.walkTimes)) : []), [walks, entries, dog.walkTimes])
+  // T-122 : une balade enregistrée seule au même moment la remplace (proposée par sa propre feuille).
+  const auto = useAutoTracks()
+  const pending = useMemo(() => (isNative() ? pendingOutings(walks, [...entries, ...auto.map((t) => ({ route: { startTime: t.startedAt, endTime: t.endedAt } }))], walkTimes(dog.walkTimes)) : []), [walks, entries, auto, dog.walkTimes])
   if (!pending.length && !open) return null
   return (
     <>

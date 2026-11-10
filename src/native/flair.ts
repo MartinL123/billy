@@ -5,6 +5,15 @@ import type { WalkMarker } from '../lib/route'
 import type { WatchWalk } from '../lib/watch'
 import type { HealthExtras } from '../lib/walkHealth'
 import { withTimeout } from '../lib/timeout'
+import type { AutoTrack, Home } from '../lib/autoWalk'
+
+/** T-122 : le réglage tel que l’iPhone le garde. */
+export interface AutoWalkConfig {
+  enabled: boolean
+  homes: Home[]
+  status: 'always' | 'whenInUse' | 'denied' | 'notDetermined'
+  recording: boolean
+}
 
 export type PhotosStatus = 'granted' | 'limited' | 'denied' | 'prompt'
 
@@ -96,6 +105,13 @@ interface FlairNativePlugin {
   photosAccess(options: { ask: boolean }): Promise<{ status: PhotosStatus }>
   /** T-103 : les photos prises entre `start` et `end` (JPEG en base64, 1600 px au plus), sans les vidéos. */
   walkPhotos(options: { start: string; end: string; max?: number }): Promise<{ photos: LibraryPhoto[] }>
+  /** T-122 : la balade enregistrée seule en sortant de chez soi : le réglage, les points de départ, la position « Toujours ». */
+  autoWalkConfig(): Promise<AutoWalkConfig>
+  /** Allumé : demande la position « Toujours » (une fois) et surveille 150 m autour de chaque point de départ. */
+  setAutoWalk(options: { enabled: boolean; homes: Home[] }): Promise<AutoWalkConfig>
+  /** Les tracés gardés en attente de réponse. */
+  autoWalks(): Promise<{ tracks: AutoTrack[]; recording: boolean }>
+  clearAutoWalk(options: { id: string }): Promise<void>
   addListener(event: 'walkPoint', listener: (point: GpsPoint) => void): Promise<PluginListenerHandle>
   addListener(event: 'walkStopped', listener: (data: { stoppedAt?: string }) => void): Promise<PluginListenerHandle>
   /** La précision du GPS à chaque mise à jour (même pour un point écarté) : signal faible (T-051). */

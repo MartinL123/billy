@@ -79,6 +79,8 @@ export interface Route {
   moments: RouteMoment[]
   /** D’où vient le tracé : un fichier GPX (Strava), l’Apple Watch (Santé) ou le GPS de l’iPhone. Avec ses heures de début et de fin. */
   source?: 'gpx' | 'watch' | 'gps'
+  /** T-122 : enregistrée seule par l’iPhone en sortant de chez soi (« Enregistrée seule » dans le journal). */
+  auto?: boolean
   startTime?: string
   endTime?: string
   // ——— V6 § 2.1 : tout est optionnel, les anciennes balades restent lisibles ———

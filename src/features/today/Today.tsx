@@ -24,6 +24,7 @@ import { dayBudget, minutesOfDay, walkDayPlan, walksOfDay, walksSentence, yester
 import { addDays } from '../../lib/dates'
 import { KnowCard } from './KnowCard'
 import { DetectedBanner } from '../detected/DetectedOutings'
+import { AutoWalkPrompt } from '../autowalk/AutoWalk'
 import { NoteSheet, WalkDayCard, type ToNote } from './WalkDayCard'
 import { WalkRecos } from './WalkRecos'
 import { pickRecos, recoTarget } from '../../lib/walkRecos'
@@ -378,6 +379,8 @@ export default function Today() {
 
       {/* T-121 (app iOS) : les sorties faites iPhone en poche, repérées dans Santé, à confirmer. Remplace la T-085. */}
       {!readOnly && <DetectedBanner />}
+      {/* T-122 : la balade enregistrée seule en sortant de chez soi, à confirmer (app iOS). */}
+      {!readOnly && <AutoWalkPrompt />}
 
       {/* Faisons connaissance (V5) : tant que le questionnaire n’est pas fini, une partie à la fois, contre des os. */}
       {!readOnly && !questionnaire.complete && <KnowCard />}

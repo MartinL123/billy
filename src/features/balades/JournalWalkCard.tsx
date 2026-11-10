@@ -32,7 +32,7 @@ export function JournalWalkCard({ walk, photos, to, replace = false }: { walk: W
   const pills = walkPills(route)
   const details = [route.durationMin ? formatDuration(route.durationMin) : '', formatRouteDistance(route.distanceM), stops ? `${stops} arrêt${stops > 1 ? 's' : ''}` : ''].filter(Boolean).join(', ')
   return (
-    <Link to={to ?? `/souvenir/${encodeURIComponent(walk.id)}`} replace={replace} aria-label={`${walk.name}. ${details}${untold ? `. ${untold} à raconter` : ''}. Ouvrir sa fiche`} className="tap flex flex-col overflow-hidden rounded-card border border-solid border-divider bg-surface shadow-card text-text no-underline">
+    <Link to={to ?? `/souvenir/${encodeURIComponent(walk.id)}`} replace={replace} aria-label={`${walk.name}. ${details}${route.auto ? '. Enregistrée seule' : ''}${untold ? `. ${untold} à raconter` : ''}. Ouvrir sa fiche`} className="tap flex flex-col overflow-hidden rounded-card border border-solid border-divider bg-surface shadow-card text-text no-underline">
       <RouteMap route={route} photos={photos} untold={untold} />
       <span className="flex min-w-0 flex-col gap-1.5 px-3.5 pt-2.5 pb-3">
         <span className="title-card">{walk.name}</span>
@@ -45,6 +45,7 @@ export function JournalWalkCard({ walk, photos, to, replace = false }: { walk: W
             </span>
           )}
         </span>
+        {route.auto && <span className="text-[0.8235rem] text-[#3F4946]">Enregistrée seule</span>}
         {pills.length > 0 && (
           <span className="-mr-3.5 flex gap-1.5 overflow-hidden [mask-image:linear-gradient(to_right,#000_85%,transparent)]">
             {pills.map((p) => (

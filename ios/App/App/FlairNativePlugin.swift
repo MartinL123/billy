@@ -37,7 +37,11 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         CAPPluginMethod(name: "photosAccess", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "walkPhotos", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setParks", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "parkOffered", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "parkOffered", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "autoWalkConfig", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setAutoWalk", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "autoWalks", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "clearAutoWalk", returnType: CAPPluginReturnPromise)
     ]
 
     private let health = HKHealthStore()
@@ -62,6 +66,31 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         // Une Live Activity restée affichée sans balade à reprendre (enregistrée, effacée) disparaît.
         let state = WalkFiles.readState()
         if state == nil || state?["stoppedAt"] != nil || state?["savedAs"] != nil { LiveWalkActivity.end(dismissNow: true) }
+    }
+
+    // T-122 : la balade enregistrée seule (classe `AutoWalks`, plus bas).
+
+    /// `autoWalkConfig()` : `{ enabled, homes, status, recording }`.
+    @objc func autoWalkConfig(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { call.resolve(AutoWalks.shared.config()) }
+    }
+
+    /// `setAutoWalk({ enabled, homes: [{ lat, lng, name }] })` : rend la même chose qu'`autoWalkConfig`.
+    @objc func setAutoWalk(_ call: CAPPluginCall) {
+        let enabled = call.getBool("enabled") ?? false
+        let homes: [[String: Any]] = (call.getArray("homes", JSObject.self) ?? []).map { $0 as [String: Any] }
+        AutoWalks.shared.configure(enabled: enabled, homes: homes) { call.resolve($0) }
+    }
+
+    /// `autoWalks()` : les tracés en attente de réponse, et si un enregistrement est en cours.
+    @objc func autoWalks(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { call.resolve(["tracks": AutoWalks.shared.tracks(), "recording": AutoWalks.shared.recording]) }
+    }
+
+    /// `clearAutoWalk({ id })` : le tracé confirmé (devenu une balade) ou refusé est effacé de l'iPhone.
+    @objc func clearAutoWalk(_ call: CAPPluginCall) {
+        AutoWalks.shared.clear(id: call.getString("id") ?? "")
+        call.resolve()
     }
 
     /// `setWatchNotify({ optedIn, enabled, dogName })` (T-084) : ce qu'il faut savoir pour annoncer seul une balade de la
@@ -564,6 +593,8 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         manager.showsBackgroundLocationIndicator = true
         manager.startUpdatingLocation()
         recording = true
+        // T-122 : un enregistrement seul en cours s'arrête, la balade lancée garde le seul tracé.
+        AutoWalks.shared.cancelCurrent()
         resetFinishWatch()
         scheduleAutoStop()
         startLiveActivity(dogName: call.getString("dogName"))
@@ -1443,5 +1474,272 @@ struct PlaceMarkerIntent: LiveActivityIntent {
     func perform() async throws -> some IntentResult {
         await MainActor.run { _ = WalkMarkers.place() }
         return .result()
+    }
+}
+
+// MARK: - Balade enregistrée seule en sortant de chez soi (T-122)
+//
+// Réglage éteint par défaut, allumé dans Son profil › Réglages › Balades détectées (position « Toujours »). iOS surveille
+// une zone de 150 m autour de chaque point de départ (`startMonitoring(for: CLCircularRegion)`). À la sortie, iOS
+// réveille l'app (même tuée) et le GPS enregistre en arrière-plan jusqu'au retour dans une zone, ou 3 h. Le tracé est
+// gardé dans un fichier (`balades-auto/`) jusqu'à la réponse dans l'app : le JS (`src/lib/autoWalk.ts`) écarte les
+// sorties trop courtes, en voiture ou déjà couvertes, et propose les autres. Rien n'est suivi dans la zone.
+// Créé au lancement (`AppDelegate`), aussi quand iOS relance l'app pour une sortie de zone, avant tout chargement de la page.
+final class AutoWalks: NSObject, CLLocationManagerDelegate {
+    static let shared = AutoWalks()
+
+    private static let enabledKey = "flair.auto-balade"
+    private static let homesKey = "flair.auto-departs"
+    /// Le départ de l'enregistrement en cours (ISO), absent sinon.
+    private static let currentKey = "flair.auto-en-cours"
+    private static let regionPrefix = "flair-depart-"
+    private static let radius: CLLocationDistance = 150
+    private static let maxDuration: TimeInterval = 3 * 3600
+    private static let maxAccuracy: CLLocationAccuracy = 50
+
+    private let defaults = UserDefaults.standard
+    private var manager: CLLocationManager?
+    private var authWaiters: [(String) -> Void] = []
+    private var stopTimer: Timer?
+    /// Sorti à plus de 250 m de tout point de départ : le retour à moins de 100 m arrête aussi (si iOS tarde à prévenir).
+    private var leftHome = false
+
+    private var dir: URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("balades-auto", isDirectory: true)
+    }
+    private var currentFile: URL { dir.appendingPathComponent("en-cours.txt") }
+
+    var enabled: Bool { defaults.bool(forKey: AutoWalks.enabledKey) }
+    var recording: Bool { defaults.string(forKey: AutoWalks.currentKey) != nil }
+
+    private var homes: [[String: Any]] { (defaults.array(forKey: AutoWalks.homesKey) as? [[String: Any]]) ?? [] }
+
+    private func ensureManager() -> CLLocationManager {
+        if let m = manager { return m }
+        let m = CLLocationManager()
+        m.delegate = self
+        manager = m
+        return m
+    }
+
+    /// Au lancement : les zones restent surveillées par iOS ; un enregistrement interrompu (app tuée) reprend.
+    func start() {
+        DispatchQueue.main.async {
+            guard self.enabled || self.recording else { return }
+            let m = self.ensureManager()
+            if self.enabled { self.syncRegions() }
+            if self.recording {
+                if let started = self.startedAt, Date().timeIntervalSince(started) > AutoWalks.maxDuration { self.finish() } else { self.resume(m) }
+            }
+        }
+    }
+
+    func statusName() -> String {
+        switch ensureManager().authorizationStatus {
+        case .authorizedAlways: return "always"
+        case .authorizedWhenInUse: return "whenInUse"
+        case .denied, .restricted: return "denied"
+        default: return "notDetermined"
+        }
+    }
+
+    func config() -> [String: Any] {
+        ["enabled": enabled, "homes": homes, "status": statusName(), "recording": recording]
+    }
+
+    /// `setAutoWalk({ enabled, homes })` : allumé, la position « Toujours » est demandée (une fois ; iOS ne repose plus
+    /// la question ensuite) ; la réponse arrive dans `done` (au plus 30 s).
+    func configure(enabled: Bool, homes: [[String: Any]], done: @escaping ([String: Any]) -> Void) {
+        DispatchQueue.main.async {
+            self.defaults.set(enabled, forKey: AutoWalks.enabledKey)
+            self.defaults.set(homes, forKey: AutoWalks.homesKey)
+            let m = self.ensureManager()
+            let finish = { (_: String) in
+                self.syncRegions()
+                done(self.config())
+            }
+            guard enabled, m.authorizationStatus == .notDetermined || m.authorizationStatus == .authorizedWhenInUse else {
+                if !enabled && self.recording { self.cancelCurrent() }
+                finish("")
+                return
+            }
+            var answered = false
+            let once: (String) -> Void = { status in
+                guard !answered else { return }
+                answered = true
+                finish(status)
+            }
+            self.authWaiters.append(once)
+            // Depuis « Pendant l'utilisation », iOS peut ne rien demander (déjà refusé une fois) : on répond quand même.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 30) { once(self.statusName()) }
+            m.requestAlwaysAuthorization()
+        }
+    }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        guard manager.authorizationStatus != .notDetermined else { return }
+        let waiters = authWaiters
+        authWaiters = []
+        for w in waiters { w(statusName()) }
+        syncRegions()
+    }
+
+    /// Surveille une zone de 150 m par point de départ (allumé, position « Toujours »), sinon plus aucune.
+    private func syncRegions() {
+        let m = ensureManager()
+        for region in m.monitoredRegions where region.identifier.hasPrefix(AutoWalks.regionPrefix) { m.stopMonitoring(for: region) }
+        guard enabled, m.authorizationStatus == .authorizedAlways, CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) else { return }
+        for (i, home) in homes.prefix(10).enumerated() {
+            guard let lat = home["lat"] as? Double, let lng = home["lng"] as? Double else { continue }
+            let region = CLCircularRegion(center: CLLocationCoordinate2D(latitude: lat, longitude: lng), radius: AutoWalks.radius, identifier: "\(AutoWalks.regionPrefix)\(i)")
+            region.notifyOnExit = true
+            region.notifyOnEntry = true
+            m.startMonitoring(for: region)
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
+        guard region.identifier.hasPrefix(AutoWalks.regionPrefix), enabled, !recording else { return }
+        // « Partir en balade » déjà en cours : c'est elle qui enregistre.
+        if let state = WalkFiles.readState(), state["stoppedAt"] == nil, state["startedAt"] != nil { return }
+        begin(manager)
+    }
+
+    func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+        guard region.identifier.hasPrefix(AutoWalks.regionPrefix), recording else { return }
+        finish()
+    }
+
+    private var startedAt: Date? { defaults.string(forKey: AutoWalks.currentKey).flatMap(AutoWalks.parse) }
+
+    private func begin(_ m: CLLocationManager) {
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try? FileManager.default.removeItem(at: currentFile)
+        defaults.set(AutoWalks.format(Date()), forKey: AutoWalks.currentKey)
+        leftHome = false
+        resume(m)
+    }
+
+    private func resume(_ m: CLLocationManager) {
+        m.desiredAccuracy = kCLLocationAccuracyBest
+        m.distanceFilter = 5
+        m.activityType = .fitness
+        m.allowsBackgroundLocationUpdates = true
+        m.pausesLocationUpdatesAutomatically = false
+        m.showsBackgroundLocationIndicator = true
+        m.startUpdatingLocation()
+        stopTimer?.invalidate()
+        if let started = startedAt {
+            let delay = max(1, started.addingTimeInterval(AutoWalks.maxDuration).timeIntervalSinceNow)
+            stopTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in self?.finish() }
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard recording, let started = startedAt else { return }
+        let limit = started.addingTimeInterval(AutoWalks.maxDuration)
+        var lines = ""
+        for p in locations where p.horizontalAccuracy >= 0 && p.horizontalAccuracy <= AutoWalks.maxAccuracy && p.timestamp <= limit {
+            let speed = p.speed >= 0 ? "\(p.speed)" : ""
+            lines += "\(p.coordinate.latitude),\(p.coordinate.longitude),\(AutoWalks.format(p.timestamp)),\(speed),\(p.horizontalAccuracy)\n"
+            let nearest = homes.compactMap { h -> CLLocationDistance? in
+                guard let lat = h["lat"] as? Double, let lng = h["lng"] as? Double else { return nil }
+                return p.distance(from: CLLocation(latitude: lat, longitude: lng))
+            }.min()
+            if let d = nearest {
+                if d > 250 { leftHome = true }
+                if leftHome && d < 100 {
+                    appendLines(lines)
+                    finish()
+                    return
+                }
+            }
+        }
+        appendLines(lines)
+        if Date() > limit { finish() }
+    }
+
+    private func appendLines(_ lines: String) {
+        guard !lines.isEmpty, let data = lines.data(using: .utf8) else { return }
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        if FileManager.default.fileExists(atPath: currentFile.path), let handle = try? FileHandle(forWritingTo: currentFile) {
+            defer { try? handle.close() }
+            _ = try? handle.seekToEnd()
+            try? handle.write(contentsOf: data)
+        } else {
+            try? data.write(to: currentFile)
+        }
+    }
+
+    private func stopUpdates() {
+        stopTimer?.invalidate()
+        stopTimer = nil
+        manager?.stopUpdatingLocation()
+        manager?.allowsBackgroundLocationUpdates = false
+    }
+
+    /// Retour dans la zone (ou 3 h) : le tracé est gardé, en attente de réponse dans l'app.
+    private func finish() {
+        guard let started = defaults.string(forKey: AutoWalks.currentKey) else { return }
+        stopUpdates()
+        let points = readPoints(currentFile)
+        let end = points.last?["time"] as? String ?? AutoWalks.format(Date())
+        let id = started.replacingOccurrences(of: ":", with: "-")
+        let track: [String: Any] = ["id": id, "startedAt": started, "endedAt": end, "points": points]
+        if !points.isEmpty, let data = try? JSONSerialization.data(withJSONObject: track) {
+            try? data.write(to: dir.appendingPathComponent("\(id).json"), options: .atomic)
+        }
+        try? FileManager.default.removeItem(at: currentFile)
+        defaults.removeObject(forKey: AutoWalks.currentKey)
+    }
+
+    /// « Partir en balade » touché pendant un enregistrement seul : un seul tracé, celui de la balade lancée.
+    func cancelCurrent() {
+        DispatchQueue.main.async {
+            guard self.recording else { return }
+            self.stopUpdates()
+            try? FileManager.default.removeItem(at: self.currentFile)
+            self.defaults.removeObject(forKey: AutoWalks.currentKey)
+        }
+    }
+
+    private func readPoints(_ file: URL) -> [[String: Any]] {
+        guard let text = try? String(contentsOf: file, encoding: .utf8) else { return [] }
+        return text.split(separator: "\n").compactMap { line in
+            let parts = line.split(separator: ",", omittingEmptySubsequences: false)
+            guard parts.count >= 3, let lat = Double(parts[0]), let lng = Double(parts[1]) else { return nil }
+            var point: [String: Any] = ["lat": lat, "lng": lng, "time": String(parts[2])]
+            if parts.count >= 5 {
+                if let speed = Double(parts[3]) { point["speed"] = speed }
+                if let accuracy = Double(parts[4]) { point["accuracy"] = accuracy }
+            }
+            return point
+        }
+    }
+
+    /// Les tracés en attente (fichiers `*.json`), du plus ancien au plus récent.
+    func tracks() -> [[String: Any]] {
+        let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? []
+        return files.filter { $0.pathExtension == "json" }.sorted { $0.lastPathComponent < $1.lastPathComponent }.compactMap { url in
+            guard let data = try? Data(contentsOf: url) else { return nil }
+            return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+        }
+    }
+
+    func clear(id: String) {
+        guard !id.isEmpty, !id.contains("/") else { return }
+        try? FileManager.default.removeItem(at: dir.appendingPathComponent("\(id).json"))
+    }
+
+    private static func format(_ date: Date) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter.string(from: date)
+    }
+
+    private static func parse(_ text: String) -> Date? {
+        let withFraction = ISO8601DateFormatter()
+        withFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return withFraction.date(from: text) ?? ISO8601DateFormatter().date(from: text)
     }
 }

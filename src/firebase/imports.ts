@@ -23,7 +23,7 @@ import { logEvent } from './journal'
  * La balade coche la sortie de son créneau (spec V4 § 1 : plus de coche à la main) et en donne les os une fois,
  * seulement si elle date des 7 derniers jours.
  */
-export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: ISODate, times?: WalkTimes, source: 'strava' | 'watch' | 'gps' = 'strava'): { entryId: string; name: string; bones: Bone[] } {
+export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: ISODate, times?: WalkTimes, source: 'strava' | 'watch' | 'gps' = 'strava', { auto = false }: { auto?: boolean } = {}): { entryId: string; name: string; bones: Bone[] } {
   const entryId = newId('entries')
   const date = walk.date && walk.date <= today ? walk.date : today
   const minutes = walk.startTime ? parisMinutes(walk.startTime) : undefined
@@ -44,6 +44,7 @@ export function saveImportedWalk(walk: ImportedActivity, bones: Bone[], today: I
       // T-086 : les « Repère » posés pendant la balade, « À raconter ».
       moments: walk.moments ?? [],
       source: source === 'strava' ? 'gpx' : source,
+      ...(auto ? { auto: true } : {}),
       ...(walk.durationMin ? { durationMin: walk.durationMin } : {}),
       ...(walk.startTime ? { startTime: walk.startTime } : {}),
       ...(walk.endTime ? { endTime: walk.endTime } : {}),

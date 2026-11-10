@@ -9,6 +9,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // T-084 : à chaque lancement, aussi quand Santé relance l'app en arrière-plan pour une nouvelle séance.
         WatchArrivals.shared.start()
+        // T-122 : la sortie d'une zone de départ relance l'app en arrière-plan ; la surveillance et l'enregistrement reprennent ici.
+        AutoWalks.shared.start()
         return true
     }
 

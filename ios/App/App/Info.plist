@@ -29,7 +29,7 @@
 	<key>NSHealthShareUsageDescription</key>
 	<string>Flair lit vos marches, leur tracé et votre rythme cardiaque pour raconter chaque balade. Rien n’est partagé.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Flair enregistre le tracé de la balade, même écran verrouillé.</string>
+	<string>Flair enregistre le tracé de la balade, même écran verrouillé, et, si vous l’avez choisi, dès que vous sortez de chez vous.</string>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
 	<dict>
 		<key>balade</key>

@@ -20,7 +20,7 @@ function ideaElevation(route: WalkItem['route']) {
  * nom, la durée estimée, la distance, la météo de l’heure qui vient, le dénivelé (s’il est connu) et, dans l’app iOS,
  * « Partir en balade » : la balade en cours garde ce tracé en pointillés (comme les boucles, T-089).
  */
-export function IdeaSheet({ item, backLabel, onBack, weatherAt, halfRef }: { item: WalkItem; backLabel: string; onBack: () => void; /** Où lire la météo (la même position que l’Accueil : une requête par heure). */ weatherAt?: { lat: number; lng: number }; /** Le bas de l’action : ce que montre le panneau au cran du milieu. */ halfRef: Ref<HTMLDivElement> }) {
+export function IdeaSheet({ item, title, backLabel, onBack, weatherAt, halfRef }: { item: WalkItem; /** R-108 : le titre de l’idée, le même que sur la carte touchée. */ title: string; backLabel: string; onBack: () => void; /** Où lire la météo (la même position que l’Accueil : une requête par heure). */ weatherAt?: { lat: number; lng: number }; /** Le bas de l’action : ce que montre le panneau au cran du milieu. */ halfRef: Ref<HTMLDivElement> }) {
   const weather = useNextHourWeather(weatherAt)
   const elev = ideaElevation(item.route)
   const rows = [...(weather ? [{ label: 'Météo dans l’heure', value: nextHourLine(weather) }] : []), ...(elev ? [{ label: 'Dénivelé', value: `+${elev.ascentM} m · −${elev.descentM} m` }] : [])]
@@ -29,7 +29,7 @@ export function IdeaSheet({ item, backLabel, onBack, weatherAt, halfRef }: { ite
       <BackLink label={backLabel} onClick={onBack} className="-mt-1 -mb-2" />
       <div className="flex flex-col gap-1">
         <span className="surtitre text-route-idea">Idée de balade</span>
-        <h1 className="title-screen">{item.name}</h1>
+        <h1 className="title-screen">{title}</h1>
         <p className="text-[1rem] leading-snug text-muted tabular-nums">
           ≈{' '}{walkMinutes(item.route)}{' '}min · {formatRouteDistance(item.route.distanceM)}
         </p>

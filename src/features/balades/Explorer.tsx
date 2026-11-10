@@ -8,6 +8,7 @@ import { ofDog } from '../../lib/dogName'
 import { emptyPillText, isJournalPill, JOURNAL_PILLS, journalGroups, journalItems, weekSummary, type JournalItem, type JournalPill } from '../../lib/dogJournal'
 import { ICONS } from '../today/LifeTiles'
 import { pickLoops, type Loop } from '../../lib/loops'
+import { ideaTitle, ideaTitles } from '../../lib/walkRecos'
 import { JournalWalkCard } from './JournalWalkCard'
 import { auth } from '../../firebase/app'
 import { removeSpot, type Mark, type Spot, type WithId } from '../../firebase/community'
@@ -125,6 +126,8 @@ export default function Explorer() {
   // T-097 : « Idées de balade » (app iOS, avec la position) : jusqu’à 3 balades passées qui partent d’ici. R-098 : sous
   // la pastille « Balades » seulement (le haut du journal reste à son titre, son résumé et ses pastilles).
   const loops = useMemo(() => (isNative() && !readOnly && here && prefs.ideas && pill === 'balades' ? pickLoops(walks, here, cells, { birthDate: dog.birthDate, today }) : []), [walks, here?.lat, here?.lng, cells, dog.birthDate, today, readOnly, prefs.ideas, pill]) // eslint-disable-line react-hooks/exhaustive-deps
+  // R-108 : les titres des idées, jamais deux pareils.
+  const loopTitles = useMemo(() => ideaTitles(loops.map((l) => l.item)), [loops])
   const start = myPos ?? position ?? (last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined)
   // La carte se cadre sur les balades du coin (Saint-Ouen, la Bretagne…), pas sur toute la France.
   const local = useMemo(() => walksNear(shown, start), [shown, start?.lat, start?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -179,6 +182,8 @@ export default function Explorer() {
   const kind: PanelKind = outing ? 'outing' : ideaItem ? 'idea' : !walkEntry || !walkRoute ? 'journal' : mode.kind === 'replay' && canReplay ? 'replay' : 'sheet'
   // Ouverte depuis un autre écran (Accueil, Billy…) : le retour y ramène et le dit (« ‹ Accueil »).
   const retour = (location.state as { retour?: string } | null)?.retour
+  // R-108 : le titre de l’idée touchée à l’accueil (le même que là-bas), sinon calculé seul.
+  const ideaTitleShown = (location.state as { titre?: string } | null)?.titre
   const back = useBack(journalOnMap(filter))
 
   // R-077 : le panneau à trois crans dans tous les modes ; réduit, il garde le titre du journal, le résumé d’une
@@ -445,7 +450,7 @@ export default function Explorer() {
               halfRef={sheetHalf}
             />
           ) : kind === 'idea' && ideaItem ? (
-            <IdeaSheet key={ideaItem.id} item={ideaItem} backLabel={retour ?? 'Le journal'} onBack={retour ? back : toJournal} weatherAt={here ?? (last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined)} halfRef={ideaHalf} />
+            <IdeaSheet key={ideaItem.id} item={ideaItem} title={ideaTitleShown ?? ideaTitle(ideaItem)} backLabel={retour ?? 'Le journal'} onBack={retour ? back : toJournal} weatherAt={here ?? (last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined)} halfRef={ideaHalf} />
           ) : kind === 'outing' && outing ? (
             <OutingSheet key={outing.id} outing={outing} backLabel={retour ?? 'Le journal'} onBack={retour ? back : toJournal} onDeleted={toJournal} />
           ) : kind === 'replay' && walkEntry && walkRoute ? (
@@ -473,7 +478,7 @@ export default function Explorer() {
             ))}
           </div>
           {/* 2. Idées de balade (app iOS, avec la position), sous « Balades ». */}
-          <LoopsBlock loops={loops} picked={idea?.item.id} onPick={pickIdea} onHide={() => setPref({ ideas: false })} headRef={ideasHead} />
+          <LoopsBlock loops={loops} titles={loopTitles} picked={idea?.item.id} onPick={pickIdea} onHide={() => setPref({ ideas: false })} headRef={ideasHead} />
           {/* 3. Le journal, groupé par jour : un toucher sur une balade ouvre sa fiche dans le panneau (R-094). */}
           <Journal items={items} pill={pill} today={today} filter={filter} empty={walks.length === 0} />
           </>
@@ -501,7 +506,7 @@ export default function Explorer() {
           inert={!footerShown || undefined}
           className={`absolute inset-x-0 bottom-0 z-[11] mx-auto flex max-w-[430px] flex-col gap-2 bg-gradient-to-b from-transparent to-surface to-[22px] px-4 pt-6 pb-9 transition-opacity duration-150 motion-reduce:transition-none ${selected ? 'invisible' : ''} ${footerShown ? '' : 'pointer-events-none opacity-0'}`}
         >
-          {idea && <IdeaLine idea={idea} onClose={() => setIdea(undefined)} />}
+          {idea && <IdeaLine idea={idea} title={loopTitles[loops.findIndex((l) => l.item.id === idea.item.id)] ?? ideaTitle(idea.item)} onClose={() => setIdea(undefined)} />}
           {isNative() ? (
             <Link to={`/balade-en-cours?depart=1${idea ? `&boucle=${encodeURIComponent(idea.item.id)}` : ''}`} className="tap btn btn-main min-h-[56px]">
               {idea ? 'Partir sur cette boucle' : 'Partir en balade'}
@@ -596,11 +601,11 @@ function Switch({ label, hint, on, onChange }: { label: string; hint: string; on
 }
 
 /** T-097 : l’idée choisie, « Le tour du square · ≈ 15 min · 1,2 km », et ✕ pour la relâcher. */
-function IdeaLine({ idea, onClose }: { idea: Loop; onClose: () => void }) {
+function IdeaLine({ idea, title, onClose }: { idea: Loop; title: string; onClose: () => void }) {
   return (
     <div className="anim-pop -mx-1 flex min-h-12 items-center gap-2.5 rounded-field bg-bg py-1 pl-3 text-[0.9412rem]">
       <span className="flex min-w-0 flex-1 gap-1">
-        <span className="min-w-0 truncate font-bold">{idea.item.name}</span>
+        <span className="min-w-0 truncate font-bold">{title}</span>
         <span className="shrink-0 text-[#3F4946]">
           · ≈{'\u00a0'}{idea.duration}{'\u00a0'}min · {formatRouteDistance(idea.item.route.distanceM)}
         </span>

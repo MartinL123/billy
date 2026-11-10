@@ -1,5 +1,7 @@
 import { distanceMeters } from './community'
-import { diffDays, type ISODate } from './dates'
+import { diffDays, formatShort, type ISODate } from './dates'
+import { isAutoName, notablePlace } from './walkAutoName'
+import type { RoutePlace, RouteStreet } from './walkFacts'
 import { walkMinutes } from './loops'
 import type { NextHourWeather } from './openMeteo'
 import type { WalkBudget } from './walkBudget'
@@ -112,4 +114,44 @@ export function pickRecos(walks: WalkItem[], { target, weather, today }: { targe
       const hint = hintFor(c)
       return { item: c.item, minutes: c.minutes, ...(hint ? { hint } : {}), ...(c.longer ? { longer: true } : {}) }
     })
+}
+
+/** Ce qu’il faut d’une balade pour titrer une idée. */
+export interface IdeaLike {
+  name: string
+  date: ISODate
+  commune?: string
+  route: { places?: RoutePlace[]; streets?: RouteStreet[] }
+}
+
+/**
+ * R-108 : le titre d’une idée, différent de ceux déjà pris (`taken`) : le nom donné par la personne, sinon le lieu
+ * marquant du tracé (parc, square, jardin…), une de ses rues ou sa commune, sinon « Balade du 27 oct. ». En dernier
+ * recours, la date départage deux titres pareils (« Square des Tilleuls · 27 oct. »).
+ */
+export function ideaTitle(item: IdeaLike, taken: string[] = []): string {
+  const free = (t: string | undefined): t is string => Boolean(t?.trim()) && !taken.includes(t!.trim())
+  const chosen = isAutoName({ text: item.name }) ? undefined : item.name.trim()
+  if (chosen && free(chosen)) return chosen
+  // Un nom choisi déjà pris : le même, avec sa date.
+  if (chosen && free(`${chosen} · ${formatShort(item.date)}`)) return `${chosen} · ${formatShort(item.date)}`
+  const place = notablePlace(item.route.places)?.name.trim()
+  const candidates = [place, ...(item.route.places ?? []).map((p) => p.name.trim()), ...(item.route.streets ?? []).map((s) => s.name.trim()), item.commune?.trim()]
+  const found = candidates.find(free)
+  if (found) return found
+  const day = formatShort(item.date)
+  const dated = `Balade du ${day}`
+  if (!taken.includes(dated)) return dated
+  const base = chosen ?? place ?? dated
+  for (let n = 2; ; n++) {
+    const t = n === 2 && base !== dated ? `${base} · ${day}` : `${dated} (${n})`
+    if (!taken.includes(t)) return t
+  }
+}
+
+/** R-108 : les titres d’une liste d’idées, jamais deux pareils (dans l’ordre de la liste). */
+export function ideaTitles(items: IdeaLike[]): string[] {
+  const out: string[] = []
+  for (const item of items) out.push(ideaTitle(item, out))
+  return out
 }

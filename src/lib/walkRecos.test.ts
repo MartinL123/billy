@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { RoutePoint } from './route'
 import type { WalkBudget } from './walkBudget'
 import type { WalkItem } from './walkList'
-import { DEFAULT_TARGET, pickRecos, recoTarget, recoWeather } from './walkRecos'
+import { DEFAULT_TARGET, ideaTitle, ideaTitles, pickRecos, recoTarget, recoWeather } from './walkRecos'
 
 // Des balades inventées, autour d’un point inventé (0,001° de latitude ≈ 110 m).
 const HOME = { lat: 45.5, lng: 4.2 }
@@ -88,5 +88,35 @@ describe('T-118 : 3 idées de balade', () => {
     expect(pickRecos([], { target: 25, today: TODAY })).toEqual([])
     const dot: WalkItem = { id: 'p', date: TODAY, name: 'Point', route: { points: [[45.5, 4.2]], distanceM: 0, durationMin: 20, moments: [] } }
     expect(pickRecos([dot], { target: 25, today: TODAY })).toEqual([])
+  })
+})
+
+describe('R-108 · des titres d’idées qui se distinguent', () => {
+  const idea = (name: string, date: string, route: { places?: { name: string; kind: 'parc' | 'square' | 'lieu' }[]; streets?: { name: string }[] } = {}, commune?: string) => ({ name, date, route, ...(commune ? { commune } : {}) })
+
+  it('le nom donné par la personne', () => {
+    expect(ideaTitle(idea('Le tour du lac', '2026-10-27', { places: [{ name: 'Parc Monceau', kind: 'parc' }] }))).toBe('Le tour du lac')
+  })
+
+  it('sinon le lieu marquant, une rue, la commune, puis la date', () => {
+    expect(ideaTitle(idea('Balade de l’après-midi', '2026-10-27', { places: [{ name: 'Le Bocage', kind: 'lieu' }, { name: 'Square des Tilleuls', kind: 'square' }] }))).toBe('Square des Tilleuls')
+    expect(ideaTitle(idea('Balade du matin', '2026-10-27', { streets: [{ name: 'Rue de la Paix' }] }))).toBe('Rue de la Paix')
+    expect(ideaTitle(idea('Balade du soir', '2026-10-27', {}, 'Saint-Briac-sur-Mer'))).toBe('Saint-Briac-sur-Mer')
+    expect(ideaTitle(idea('Balade du soir', '2026-10-27'))).toBe('Balade du 27 oct.')
+  })
+
+  it('deux « Balade de l’après-midi » ne gardent jamais le même titre', () => {
+    const titles = ideaTitles([
+      idea('Balade de l’après-midi', '2026-10-27', { places: [{ name: 'Square des Tilleuls', kind: 'square' }], streets: [{ name: 'Rue Haute' }] }),
+      idea('Balade de l’après-midi', '2026-10-29', { places: [{ name: 'Square des Tilleuls', kind: 'square' }], streets: [{ name: 'Rue Basse' }] }),
+      idea('Balade de l’après-midi', '2026-10-30'),
+      idea('Balade du matin', '2026-10-30'),
+    ])
+    expect(titles).toEqual(['Square des Tilleuls', 'Rue Basse', 'Balade du 30 oct.', 'Balade du 30 oct. (2)'])
+    expect(new Set(titles).size).toBe(titles.length)
+  })
+
+  it('deux noms choisis pareils : la date départage', () => {
+    expect(ideaTitles([idea('Le tour du lac', '2026-10-27'), idea('Le tour du lac', '2026-10-29')])).toEqual(['Le tour du lac', 'Le tour du lac · 29 oct.'])
   })
 })

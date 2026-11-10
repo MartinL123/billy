@@ -9,6 +9,7 @@ Ce dossier garde le détail complet de chaque audit et les prompts Claude Code.
 
 | Date | Audit | Prompt Claude Code | Verdict |
 | --- | --- | --- | --- |
+| 10 nov. 2026, 14 h | `audit-13-2026-11-10.md` (recette) | `prompt-audit-13.md` | Watch rattrapée, 20 sorties repérées. 4 OK, R-105 sur iPhone. R-107 à R-109. |
 | 10 nov. 2026, 12 h | `audit-12-2026-11-10.md` (recette) | `prompt-audit-12.md` | Watch toujours absente (app iOS pas relancée) ; rattrapage par tranches à coder avant Xcode. |
 | 23 oct. 2026, 14 h | `audit-10-2026-10-23.md` (une seule carte) | `prompt-audit-10.md` | 4 OK, Revoir à reprendre (panneau qui cache la carte), défilement sur iPhone. R-100, R-101. |
 | 23 oct. 2026, 11 h 30 | `audit-09-2026-10-23.md` (V6.1 + retours de Martin) | `prompt-audit-09.md` | 14 OK, 6 partiels repris par R-094 à R-099 ; maquettes « Une seule carte » à valider. |

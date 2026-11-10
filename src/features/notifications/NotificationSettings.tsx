@@ -3,11 +3,11 @@ import { SWITCH } from '../../components/Form'
 import { updateDog } from '../../firebase/db'
 import { useData } from '../../firebase/store'
 import { ofName } from '../../lib/gender'
-import { readPrefs, watchArrivalOn, type NotificationKind } from '../../lib/localNotifications'
+import { autoWalkNoticeOn, readPrefs, watchArrivalOn, type NotificationKind } from '../../lib/localNotifications'
 import { parkOfferOn } from '../../lib/parkDwell'
 import { askNotificationPermission, notificationPermission, type Permission } from './localNotifications'
 
-type SettingKind = NotificationKind | 'balade' | 'parc'
+type SettingKind = NotificationKind | 'balade' | 'seule' | 'parc'
 
 const KINDS: { id: SettingKind; title: string; detail: (name: string) => string }[] = [
   { id: 'soin', title: 'Soin à venir', detail: () => 'La veille à 18\u00a0h\u00a0: « Vermifuge demain »' },
@@ -15,6 +15,8 @@ const KINDS: { id: SettingKind; title: string; detail: (name: string) => string 
   { id: 'recap', title: 'Récap du dimanche', detail: (name) => `Le dimanche à 18\u00a0h, la semaine ${ofName(name)}` },
   // T-084 : programmée par l’iPhone lui-même, réveillé par Santé ; jamais entre 22 h et 7 h.
   { id: 'balade', title: 'Quand une balade de la Watch arrive', detail: (name) => `« Belle balade avec ${name.trim() || 'votre chien'}\u00a0! », jamais entre 22\u00a0h et 7\u00a0h` },
+  // R-116 : envoyée par l’iPhone au retour dans la zone, jamais au départ.
+  { id: 'seule', title: 'Quand une balade s’enregistre seule', detail: (name) => `Au retour\u00a0: «\u00a0Balade enregistrée\u00a0: 32\u00a0min, 1,9\u00a0km. C’était avec ${name.trim() || 'votre chien'}\u00a0?\u00a0»` },
   // T-101 : pendant une balade lancée, si la mission du jour n’est pas faite (bandeau, ou notification écran verrouillé).
   { id: 'parc', title: 'Me proposer un exercice au parc pendant une balade', detail: () => 'Une fois par balade, si la mission du jour n’est pas faite' },
 ]
@@ -25,7 +27,7 @@ const KINDS: { id: SettingKind; title: string; detail: (name: string) => string 
  */
 export function NotificationSettings() {
   const { dog } = useData()
-  const prefs = { ...readPrefs(dog.notifications), balade: watchArrivalOn(dog.notifications), parc: parkOfferOn(dog.notifications) }
+  const prefs = { ...readPrefs(dog.notifications), balade: watchArrivalOn(dog.notifications), seule: autoWalkNoticeOn(dog.notifications), parc: parkOfferOn(dog.notifications) }
   const [permission, setPermission] = useState<Permission>()
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { autoVerdict, autoWalkLines, homeSuggestions, isCarTrip, overlapsTrack, sortAutoTracks, type AutoPoint, type AutoTrack } from './autoWalk'
+import { autoVerdict, autoWalkLines, autoWalkNotice, cardLater, homeSuggestions, showAutoWalkCard, isCarTrip, overlapsTrack, sortAutoTracks, type AutoPoint, type AutoTrack } from './autoWalk'
 
 const at = (day: number, h: number, m: number, s = 0) => new Date(2026, 10, day, h, m, s).toISOString()
 
@@ -72,5 +72,35 @@ describe('T-122 · balade enregistrée seule', () => {
     expect(homes.map((h) => h.name)).toEqual(['Saint-Ouen-sur-Seine', 'Saint-Briac-sur-Mer'])
     expect(homes[0]!.lat).toBeCloseTo(48.9116, 3)
     expect(homeSuggestions([w(45.76, 4.83)])[0]!.name).toBe('Point de départ 1')
+  })
+
+  it('R-116 · la notification au retour', () => {
+    expect(autoWalkNotice(walk, 'Billy')).toEqual({ title: 'Balade enregistrée', body: '32\u00a0min, 1,9\u00a0km. C’était avec Billy\u00a0?' })
+    expect(autoWalkNotice(walk, ' ').body).toBe('32\u00a0min, 1,9\u00a0km. C’était avec votre chien\u00a0?')
+  })
+})
+
+describe('R-116 · la carte « Nouveau » de l’accueil', () => {
+  it('jamais choisi : visible', () => {
+    expect(showAutoWalkCard(undefined, '2026-11-10')).toBe(true)
+    expect(showAutoWalkCard({}, '2026-11-10')).toBe(true)
+  })
+
+  it('choisi (allumé ou éteint) : plus jamais', () => {
+    expect(showAutoWalkCard({ chosen: true }, '2026-11-10')).toBe(false)
+  })
+
+  it('« Plus tard » : revient dans 7 jours', () => {
+    const once = cardLater(undefined, '2026-11-10')
+    expect(once).toEqual({ later: 1, laterOn: '2026-11-10' })
+    expect(showAutoWalkCard(once, '2026-11-10')).toBe(false)
+    expect(showAutoWalkCard(once, '2026-11-16')).toBe(false)
+    expect(showAutoWalkCard(once, '2026-11-17')).toBe(true)
+  })
+
+  it('2 « Plus tard » : plus jamais', () => {
+    const twice = cardLater(cardLater(undefined, '2026-11-10'), '2026-11-17')
+    expect(twice.later).toBe(2)
+    expect(showAutoWalkCard(twice, '2026-12-31')).toBe(false)
   })
 })

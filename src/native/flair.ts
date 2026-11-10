@@ -112,6 +112,8 @@ interface FlairNativePlugin {
   /** Les tracés gardés en attente de réponse. */
   autoWalks(): Promise<{ tracks: AutoTrack[]; recording: boolean }>
   clearAutoWalk(options: { id: string }): Promise<void>
+  /** R-116 : la notification au retour dans la zone (« Balade enregistrée : 32 min, 1,9 km. C’était avec Billy ? »). */
+  setAutoWalkNotify(options: { enabled: boolean; dogName: string }): Promise<void>
   addListener(event: 'walkPoint', listener: (point: GpsPoint) => void): Promise<PluginListenerHandle>
   addListener(event: 'walkStopped', listener: (data: { stoppedAt?: string }) => void): Promise<PluginListenerHandle>
   /** La précision du GPS à chaque mise à jour (même pour un point écarté) : signal faible (T-051). */

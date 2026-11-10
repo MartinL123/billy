@@ -163,3 +163,38 @@ export function homeSuggestions(walks: WalkLike[], max = 2): Home[] {
     .slice(0, max)
     .map((g, i) => ({ lat: Math.round(g.lat * 1e5) / 1e5, lng: Math.round(g.lng * 1e5) / 1e5, name: [...g.communes].sort((a, b) => b[1] - a[1])[0]?.[0] ?? `Point de départ ${i + 1}` }))
 }
+
+// R-116 : la faire découvrir (carte de l'accueil) et prévenir au retour (notification locale).
+
+/** Ce que Martin a répondu à la carte « Nouveau : vos balades s'enregistrent seules » (Firestore, champ optionnel). */
+export interface AutoWalkCardState {
+  /** Réglage choisi une fois (allumé ou éteint, depuis la carte ou Son profil) : la carte ne revient plus. */
+  chosen?: boolean
+  /** Nombre de « Plus tard ». */
+  later?: number
+  /** Jour du dernier « Plus tard ». */
+  laterOn?: ISODate
+}
+
+export const CARD_LATER_DAYS = 7
+export const CARD_MAX_LATER = 2
+
+/** La carte de l'accueil : tant que le réglage n'a jamais été choisi ; « Plus tard » la cache 7 jours, 2 fois au plus. */
+export function showAutoWalkCard(state: AutoWalkCardState | undefined, today: ISODate): boolean {
+  if (state?.chosen) return false
+  const later = state?.later ?? 0
+  if (later >= CARD_MAX_LATER) return false
+  return !(later > 0 && state?.laterOn && today < addDays(state.laterOn, CARD_LATER_DAYS))
+}
+
+/** « Plus tard » sur la carte. */
+export const cardLater = (state: AutoWalkCardState | undefined, today: ISODate): AutoWalkCardState => ({ ...state, later: (state?.later ?? 0) + 1, laterOn: today })
+
+/**
+ * La notification au retour dans la zone : « Balade enregistrée » / « 32 min, 1,9 km. C'était avec Billy ? ».
+ * Miroir : `AutoWalks.notice` (FlairNativePlugin.swift), mêmes textes.
+ */
+export function autoWalkNotice(track: AutoTrack, dogName: string): { title: string; body: string } {
+  const name = dogName.trim() || 'votre chien'
+  return { title: 'Balade enregistrée', body: `${trackMinutes(track)} min, ${distanceLabel(trackMeters(track.points))}. C’était avec ${name} ?` }
+}

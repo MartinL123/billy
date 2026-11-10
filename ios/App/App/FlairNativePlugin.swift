@@ -41,6 +41,7 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
         CAPPluginMethod(name: "autoWalkConfig", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setAutoWalk", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "autoWalks", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setAutoWalkNotify", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "clearAutoWalk", returnType: CAPPluginReturnPromise)
     ]
 
@@ -90,6 +91,12 @@ public class FlairNativePlugin: CAPPlugin, CAPBridgedPlugin, CLLocationManagerDe
     /// `clearAutoWalk({ id })` : le tracé confirmé (devenu une balade) ou refusé est effacé de l'iPhone.
     @objc func clearAutoWalk(_ call: CAPPluginCall) {
         AutoWalks.shared.clear(id: call.getString("id") ?? "")
+        call.resolve()
+    }
+
+    /// `setAutoWalkNotify({ enabled, dogName })` (R-116) : la notification au retour dans la zone.
+    @objc func setAutoWalkNotify(_ call: CAPPluginCall) {
+        AutoWalks.shared.configureNotice(enabled: call.getBool("enabled") ?? true, dogName: call.getString("dogName") ?? "")
         call.resolve()
     }
 
@@ -1496,6 +1503,9 @@ final class AutoWalks: NSObject, CLLocationManagerDelegate {
     private static let radius: CLLocationDistance = 150
     private static let maxDuration: TimeInterval = 3 * 3600
     private static let maxAccuracy: CLLocationAccuracy = 50
+    /// R-116 : la notification au retour (activée par défaut) et le prénom du chien pour son texte.
+    private static let noticeKey = "flair.notif-seule"
+    private static let noticeNameKey = "flair.notif-seule-prenom"
 
     private let defaults = UserDefaults.standard
     private var manager: CLLocationManager?
@@ -1688,9 +1698,60 @@ final class AutoWalks: NSObject, CLLocationManagerDelegate {
         let track: [String: Any] = ["id": id, "startedAt": started, "endedAt": end, "points": points]
         if !points.isEmpty, let data = try? JSONSerialization.data(withJSONObject: track) {
             try? data.write(to: dir.appendingPathComponent("\(id).json"), options: .atomic)
+            notify(id: id, started: started, end: end, points: points)
         }
         try? FileManager.default.removeItem(at: currentFile)
         defaults.removeObject(forKey: AutoWalks.currentKey)
+    }
+
+    func configureNotice(enabled: Bool, dogName: String) {
+        defaults.set(enabled, forKey: AutoWalks.noticeKey)
+        defaults.set(dogName, forKey: AutoWalks.noticeNameKey)
+    }
+
+    /// R-116 : au retour, « Balade enregistrée : 32 min, 1,9 km. C'était avec Billy ? » (pas au départ). Seulement pour un
+    /// tracé que l'app proposera : 10 min et 300 m au moins, pas en voiture (miroir de `autoVerdict`, src/lib/autoWalk.ts).
+    /// Le toucher ouvre l'app sur l'accueil, où la feuille « Balade enregistrée » attend.
+    private func notify(id: String, started: String, end: String, points: [[String: Any]]) {
+        guard defaults.object(forKey: AutoWalks.noticeKey) as? Bool ?? true,
+              let start = AutoWalks.parse(started), let stop = AutoWalks.parse(end) else { return }
+        let located = points.compactMap { p -> (CLLocation, Double?)? in
+            guard let lat = p["lat"] as? Double, let lng = p["lng"] as? Double, let time = (p["time"] as? String).flatMap(AutoWalks.parse) else { return nil }
+            return (CLLocation(coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng), altitude: 0, horizontalAccuracy: 0, verticalAccuracy: -1, timestamp: time), p["speed"] as? Double)
+        }
+        var meters: Double = 0
+        var carSince: Date?
+        var car = false
+        for i in located.indices.dropFirst() {
+            let (a, b) = (located[i - 1].0, located[i].0)
+            meters += b.distance(from: a)
+            let dt = b.timestamp.timeIntervalSince(a.timestamp)
+            let speed = located[i].1.flatMap { $0 >= 0 ? $0 : nil } ?? (dt > 0 ? b.distance(from: a) / dt : 0)
+            if speed > 15 / 3.6 {
+                if carSince == nil { carSince = a.timestamp }
+                if let since = carSince, b.timestamp.timeIntervalSince(since) >= 120 { car = true }
+            } else { carSince = nil }
+        }
+        let minutes = Int((stop.timeIntervalSince(start) / 60).rounded())
+        guard minutes >= 10, meters >= 300, !car else { return }
+        let content = UNMutableNotificationContent()
+        let text = AutoWalks.notice(minutes: minutes, meters: meters, dogName: defaults.string(forKey: AutoWalks.noticeNameKey) ?? "")
+        content.title = text.title
+        content.body = text.body
+        content.sound = .default
+        // `cap_extra` : lu par @capacitor/local-notifications comme `notification.extra` quand on la touche.
+        content.userInfo = ["cap_extra": ["kind": "balade-seule", "id": id]]
+        UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: "balade-seule-\(id)", content: content, trigger: nil))
+    }
+
+    /// Miroir de `autoWalkNotice` (src/lib/autoWalk.ts) : mêmes textes.
+    static func notice(minutes: Int, meters: Double, dogName: String) -> (title: String, body: String) {
+        let nbsp = "\u{00A0}"
+        let name = dogName.trimmingCharacters(in: .whitespaces)
+        let length = meters < 1000
+            ? "\(Int((meters / 10).rounded()) * 10)\(nbsp)m"
+            : String(format: "%.1f", meters / 1000).replacingOccurrences(of: ".", with: ",") + "\(nbsp)km"
+        return ("Balade enregistrée", "\(minutes)\(nbsp)min, \(length). C\u{2019}était avec \(name.isEmpty ? "votre chien" : name)\(nbsp)?")
     }
 
     /// « Partir en balade » touché pendant un enregistrement seul : un seul tracé, celui de la balade lancée.

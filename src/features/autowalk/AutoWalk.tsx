@@ -4,12 +4,14 @@ import { SWITCH } from '../../components/Form'
 import { Sheet } from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
 import { APP_NAME } from '../../appName'
+import { updateDog } from '../../firebase/db'
 import { saveDetected } from '../../firebase/imports'
 import { useData } from '../../firebase/store'
 import { knownImportKeys } from '../../lib/activity'
-import { autoWalkLines, homeSuggestions, overlapsTrack, sortAutoTracks, type AutoTrack, type Home } from '../../lib/autoWalk'
+import { autoWalkLines, cardLater, homeSuggestions, overlapsTrack, showAutoWalkCard, sortAutoTracks, type AutoTrack, type Home } from '../../lib/autoWalk'
 import { todayISO } from '../../lib/dates'
-import { dogName } from '../../lib/dogName'
+import { dogName, realDogName } from '../../lib/dogName'
+import { autoWalkNoticeOn } from '../../lib/localNotifications'
 import { LOCATE_OPTIONS } from '../../lib/locate'
 import { useToday } from '../../lib/useToday'
 import { walkItems } from '../../lib/walkList'
@@ -20,6 +22,8 @@ import { FlairNative, haptic, type AutoWalkConfig } from '../../native/flair'
 import { importActivities } from '../balades/importRun'
 import { RouteMap } from '../balades/JournalWalkCard'
 import { gpsActivity } from '../../lib/gpsWalk'
+import { askNotificationPermission } from '../notifications/localNotifications'
+import { AUTO_WALK_OPEN } from './autoWalkEvents'
 
 // T-122 (app iOS) : la balade enregistrée seule en sortant de chez soi. Le natif (`AutoWalks`, FlairNativePlugin.swift)
 // enregistre ; ici, à l’ouverture, la feuille « Balade enregistrée » la fait confirmer en un toucher, et le réglage de
@@ -46,7 +50,7 @@ const later = new Set<string>()
 
 /** Accueil, app iOS : à l’ouverture et au retour au premier plan, la balade enregistrée seule à confirmer. */
 export function AutoWalkPrompt() {
-  const { entries } = useData()
+  const { entries, dog } = useData()
   const pending = useAutoTracks()
   const [, setTick] = useState(0)
   // Relu à l’ouverture et au retour au premier plan seulement, pas à chaque changement des balades.
@@ -70,9 +74,28 @@ export function AutoWalkPrompt() {
   useEffect(() => {
     void read()
     const onVisible = () => void read()
+    // R-116 : la notification « Balade enregistrée » touchée : sa feuille, même après « Plus tard ».
+    const onOpen = (e: Event) => {
+      const id = (e as CustomEvent<string | undefined>).detail
+      if (id) later.delete(id)
+      else later.clear()
+      setTick((n) => n + 1)
+      void read()
+    }
     document.addEventListener('visibilitychange', onVisible)
-    return () => document.removeEventListener('visibilitychange', onVisible)
+    window.addEventListener(AUTO_WALK_OPEN, onOpen)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener(AUTO_WALK_OPEN, onOpen)
+    }
   }, [read])
+
+  // R-116 : l’iPhone prévient seul au retour (« Quand une balade s’enregistre seule », Profil › Notifications).
+  const notice = autoWalkNoticeOn(dog.notifications)
+  const noticeName = realDogName(dog)
+  useEffect(() => {
+    if (isNative()) FlairNative.setAutoWalkNotify({ enabled: notice, dogName: noticeName }).catch(() => undefined)
+  }, [notice, noticeName])
 
   const track = pending.find((t) => !later.has(t.id))
   if (!track) return null
@@ -161,15 +184,15 @@ function AutoWalkSheet({ track, onDone, onLater }: { track: AutoTrack; onDone: (
   )
 }
 
+const ALWAYS_MESSAGE = `Il faut la position «\u00a0Toujours\u00a0». Pour l’activer\u00a0: Réglages › ${APP_NAME} › Position › Toujours.`
+
 /**
- * Son profil › Réglages › Balades détectées (app iOS) : « Enregistrer le tracé en partant de chez moi », éteint par
- * défaut. Au premier allumage, une phrase dit pourquoi, puis iOS demande la position « Toujours ». Les points de départ
- * proposés : les 2 départs les plus fréquents des balades passées, modifiables.
+ * Le réglage, partagé entre Son profil et la carte de l’accueil (R-116) : même parcours. Allumer demande la position
+ * « Toujours » (puis l’autorisation des notifications, pour prévenir au retour) ; tout choix est retenu (`autoWalkCard`).
  */
-export function AutoWalkSetting() {
-  const { entries } = useData()
+function useAutoWalkSetting() {
+  const { entries, dog } = useData()
   const [config, setConfig] = useState<AutoWalkConfig>()
-  const [intro, setIntro] = useState(false)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string>()
 
@@ -178,31 +201,111 @@ export function AutoWalkSetting() {
     FlairNative.autoWalkConfig().then(setConfig, () => undefined)
   }, [])
 
-  if (!config) return null
-  const on = config.enabled
+  const chosen = () => {
+    if (!dog.autoWalkCard?.chosen) updateDog({ autoWalkCard: { ...dog.autoWalkCard, chosen: true } })
+  }
 
-  const save = async (enabled: boolean, homes: Home[]) => {
+  /** `true` : le réglage est dans l’état demandé. */
+  const save = async (enabled: boolean, homes: Home[]): Promise<boolean> => {
     setBusy(true)
     try {
       const next = await FlairNative.setAutoWalk({ enabled, homes })
       if (enabled && next.status !== 'always') {
         // Sans « Toujours », iOS ne réveille pas l’app : le réglage reste éteint, la phrase dit où l’activer.
         setConfig(await FlairNative.setAutoWalk({ enabled: false, homes }))
-        setMessage(`Il faut la position « Toujours ». Pour l’activer : Réglages › ${APP_NAME} › Position › Toujours.`)
-      } else {
-        setConfig(next)
-        setMessage(undefined)
+        setMessage(ALWAYS_MESSAGE)
+        return false
       }
+      setConfig(next)
+      setMessage(undefined)
+      return true
+    } catch (error) {
+      console.error('Réglage de la balade enregistrée seule', error)
+      return false
     } finally {
       setBusy(false)
     }
   }
 
-  const turnOn = () => {
-    const homes = config.homes.length ? config.homes : homeSuggestions(walkItems(entries))
-    setIntro(false)
-    void save(true, homes)
+  const turnOn = async (): Promise<boolean> => {
+    if (!config) return false
+    const ok = await save(true, config.homes.length ? config.homes : homeSuggestions(walkItems(entries)))
+    if (ok) {
+      chosen()
+      if (autoWalkNoticeOn(dog.notifications)) await askNotificationPermission().catch(() => undefined)
+    }
+    return ok
   }
+
+  const turnOff = async () => {
+    if (!config) return
+    if (await save(false, config.homes)) chosen()
+  }
+
+  return { config, busy, setBusy, message, setMessage, save, turnOn, turnOff }
+}
+
+/** La phrase qui dit pourquoi, puis « Continuer » (iOS demande alors la position « Toujours »). */
+function AutoWalkIntro({ busy, onContinue }: { busy: boolean; onContinue: () => void }) {
+  return (
+    <div className="flex flex-col gap-2.5 rounded-field bg-info-soft p-3.5">
+      <p className="text-[0.9412rem] leading-snug text-text">
+        Pour enregistrer la balade sans rien lancer, {APP_NAME} doit savoir quand vous sortez de chez vous, même app fermée. iOS va demander la position «&nbsp;Toujours&nbsp;». Le GPS ne tourne que pendant les sorties.
+      </p>
+      <button type="button" disabled={busy} onClick={onContinue} className="btn btn-primary min-h-11 self-start px-4 text-[0.9412rem]">
+        Continuer
+      </button>
+    </div>
+  )
+}
+
+/**
+ * Accueil, app iOS (R-116) : tant que le réglage n’a jamais été choisi, sous « Ses sorties du jour ». « Activer » : même
+ * parcours que le réglage ; « Plus tard » : revient dans 7 jours, plus jamais après 2 fois.
+ */
+export function AutoWalkCard() {
+  const { dog } = useData()
+  const today = useToday()
+  const { config, busy, message, turnOn } = useAutoWalkSetting()
+  const [intro, setIntro] = useState(false)
+  if (!config || config.enabled || !showAutoWalkCard(dog.autoWalkCard, today)) return null
+
+  return (
+    <section aria-label="Nouveau, balades enregistrées seules" className="card flex flex-col gap-2.5 p-[18px]">
+      <span className="text-primary surtitre">Nouveau</span>
+      <p className="text-[1rem] font-bold leading-snug">Vos balades s’enregistrent seules quand vous partez de chez vous.</p>
+      {intro ? (
+        <AutoWalkIntro busy={busy} onContinue={() => void turnOn()} />
+      ) : (
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={() => setIntro(true)} className="btn btn-primary min-h-11 flex-1 px-4 text-[0.9412rem]">
+            Activer
+          </button>
+          <button type="button" onClick={() => updateDog({ autoWalkCard: cardLater(dog.autoWalkCard, today) })} className="btn-text min-h-11 px-4">
+            Plus tard
+          </button>
+        </div>
+      )}
+      {message && (
+        <p role="status" className="text-[0.8824rem] leading-snug text-primary-dark">
+          {message}
+        </p>
+      )}
+    </section>
+  )
+}
+
+/**
+ * Son profil › Réglages › Balades détectées (app iOS) : « Enregistrer le tracé en partant de chez moi », éteint par
+ * défaut. Au premier allumage, une phrase dit pourquoi, puis iOS demande la position « Toujours ». Les points de départ
+ * proposés : les 2 départs les plus fréquents des balades passées, modifiables.
+ */
+export function AutoWalkSetting() {
+  const { config, busy, setBusy, message, setMessage, save, turnOn, turnOff } = useAutoWalkSetting()
+  const [intro, setIntro] = useState(false)
+
+  if (!config) return null
+  const on = config.enabled
 
   const addHere = () => {
     if (!navigator.geolocation) return
@@ -214,7 +317,7 @@ export function AutoWalkSetting() {
       },
       () => {
         setBusy(false)
-        setMessage('Position introuvable. Vérifiez que la localisation est autorisée pour Flair.')
+        setMessage(`Position introuvable. Vérifiez que la localisation est autorisée pour ${APP_NAME}.`)
       },
       LOCATE_OPTIONS,
     )
@@ -235,17 +338,16 @@ export function AutoWalkSetting() {
             <span className="text-[1rem] font-bold">Enregistrer le tracé en partant de chez moi</span>
             <span className="text-[0.8824rem] leading-snug text-muted">{APP_NAME} suit la balade tout seul, de la sortie au retour</span>
           </span>
-          <input type="checkbox" role="switch" {...SWITCH} checked={on || intro} disabled={busy} onChange={() => (on ? void save(false, config.homes) : intro ? setIntro(false) : setIntro(true))} className="shrink-0 accent-primary" />
+          <input type="checkbox" role="switch" {...SWITCH} checked={on || intro} disabled={busy} onChange={() => (on ? void turnOff() : setIntro(!intro))} className="shrink-0 accent-primary" />
         </label>
-        {intro && (
-          <div className="flex flex-col gap-2.5 rounded-field bg-info-soft p-3.5">
-            <p className="text-[0.9412rem] leading-snug text-text">
-              Pour enregistrer la balade sans rien lancer, {APP_NAME} doit savoir quand vous sortez de chez vous, même app fermée. iOS va demander la position «&nbsp;Toujours&nbsp;». Le GPS ne tourne que pendant les sorties.
-            </p>
-            <button type="button" disabled={busy} onClick={turnOn} className="btn btn-primary min-h-11 self-start px-4 text-[0.9412rem]">
-              Continuer
-            </button>
-          </div>
+        {intro && !on && (
+          <AutoWalkIntro
+            busy={busy}
+            onContinue={() => {
+              setIntro(false)
+              void turnOn()
+            }}
+          />
         )}
         {on && (
           <div className="flex flex-col gap-1">

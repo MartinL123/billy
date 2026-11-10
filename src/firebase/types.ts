@@ -1,3 +1,4 @@
+import type { AutoWalkCardState } from '../lib/autoWalk'
 import type { Bytes } from 'firebase/firestore'
 import type { ISODate } from '../lib/dates'
 import type { EventType } from '../lib/events'
@@ -33,7 +34,9 @@ export interface Dog {
   /** Ration quotidienne et heures des repas. */
   feeding?: Feeding
   /** App iOS : les notifications locales voulues (T-042). Absent : soins et récap oui, sorties non. `balade` (T-084) : balade de la Watch arrivée, oui par défaut. */
-  notifications?: { soin?: boolean; sortie?: boolean; recap?: boolean; balade?: boolean; parc?: boolean }
+  notifications?: { soin?: boolean; sortie?: boolean; recap?: boolean; balade?: boolean; parc?: boolean; seule?: boolean }
+  /** R-116 (app iOS) : la carte « Nouveau : vos balades s’enregistrent seules » de l’accueil (choisi, « Plus tard »). */
+  autoWalkCard?: AutoWalkCardState
   /** Heures des 3 sorties du jour (Profil › Sorties). Absent : 8 h, 13 h, 19 h. */
   walkTimes?: Partial<WalkTimes>
   /** Traits du chien : ils adaptent le chemin du dressage, jamais les objectifs. */

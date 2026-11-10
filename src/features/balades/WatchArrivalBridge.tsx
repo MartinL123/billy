@@ -8,6 +8,7 @@ import { isNative } from '../../native'
 import { setWatchNotify } from '../../native/flair'
 import { watchOptedIn } from './watchImport'
 import { realDogName } from '../../lib/dogName'
+import { AUTO_WALK_OPEN } from '../autowalk/autoWalkEvents'
 
 /**
  * App iOS (T-084, spec V6 § 4) : le pont avec la notification « Belle balade avec Billy ! ».
@@ -15,6 +16,7 @@ import { realDogName } from '../../lib/dogName'
  *   « Quand une balade de la Watch arrive », prénom du chien.
  * - Touchée, la notification ouvre `#/balade/arrivee?uuid=…&start=…`. Rien sur le web.
  * - T-086 : « Balade finie ? » ouvre « Balade en cours ».
+ * - R-116 : « Balade enregistrée » ouvre l’accueil et sa feuille.
  */
 export function WatchArrivalBridge() {
   const { dog } = useData()
@@ -46,6 +48,11 @@ export function WatchArrivalBridge() {
       else if (extra?.kind === 'balade-finie') go.current('/balade-en-cours')
       // T-101 : « Vous êtes au square… » : la mission du jour, la balade continue (fermer y ramène).
       else if (extra?.kind === 'parc') go.current('/mission?balade=1')
+      // R-116 : « Balade enregistrée : 32 min, 1,9 km. C’était avec Billy ? » : l’accueil, où la feuille attend.
+      else if (extra?.kind === 'balade-seule') {
+        go.current('/')
+        window.dispatchEvent(new CustomEvent(AUTO_WALK_OPEN, { detail: (extra as { id?: string }).id }))
+      }
     })
     return () => {
       void handle.then((h) => h.remove())

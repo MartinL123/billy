@@ -18,6 +18,8 @@ export const readPrefs = (saved?: Partial<NotificationPrefs>): NotificationPrefs
  * iOS la programme seule, réveillée par Santé ; le choix lui est confié par `FlairNative.setWatchNotify`.
  */
 export const watchArrivalOn = (saved?: { balade?: boolean }) => saved?.balade !== false
+/** R-116 : « Quand une balade s’enregistre seule », activé par défaut. */
+export const autoWalkNoticeOn = (saved?: { seule?: boolean }) => saved?.seule !== false
 
 /** iOS garde au plus 64 notifications en attente : on planifie au plus 14 jours, et jamais plus de 64. */
 export const PLAN_DAYS = 14

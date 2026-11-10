@@ -4,6 +4,7 @@ import { isNative } from '../../native'
 import { CloseIcon, PlusIcon } from '../../components/Icons'
 import { FileImage } from '../../components/FileImage'
 import { MapButton } from '../../components/Buttons'
+import { useToast } from '../../components/Toast'
 import { ofDog } from '../../lib/dogName'
 import { emptyPillText, isJournalPill, JOURNAL_PILLS, journalGroups, journalItems, weekSummary, type JournalItem, type JournalPill } from '../../lib/dogJournal'
 import { ICONS } from '../today/LifeTiles'
@@ -38,6 +39,7 @@ import { OutingSheet } from './OutingSheet'
 import { photoPins, type PhotoPin } from '../../lib/walkFiche'
 import { replaySpan } from '../../lib/walkReplay'
 import type { Padding } from '../../lib/mapFrame'
+import { FOLLOW_MS, LOCATE_OPTIONS, type MyPosition } from '../../lib/locate'
 import { useBack } from '../../lib/useBack'
 import { modernCard } from '../../lib/carnet'
 import { useReadOnly } from '../../firebase/viewer'
@@ -119,7 +121,7 @@ export default function Explorer() {
   }, [shown, colors, ideaShown])
   const last = walks[0]
   // Où l’on est (T-020) : la position demandée avec « Autour de moi », sinon celle déjà autorisée, sinon la dernière balade.
-  const [myPos, setMyPos] = useState<{ lat: number; lng: number }>()
+  const [myPos, setMyPos] = useState<MyPosition>()
   const [locating, setLocating] = useState(false)
   const position = useGrantedPosition()
   const here = myPos ?? position
@@ -128,22 +130,44 @@ export default function Explorer() {
   const loops = useMemo(() => (isNative() && !readOnly && here && prefs.ideas && pill === 'balades' ? pickLoops(walks, here, cells, { birthDate: dog.birthDate, today }) : []), [walks, here?.lat, here?.lng, cells, dog.birthDate, today, readOnly, prefs.ideas, pill]) // eslint-disable-line react-hooks/exhaustive-deps
   // R-108 : les titres des idées, jamais deux pareils.
   const loopTitles = useMemo(() => ideaTitles(loops.map((l) => l.item)), [loops])
-  const start = myPos ?? position ?? (last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined)
+  // R-114 : le cadrage sur les balades du coin ne suit pas « Me situer » (la carte vole sur le point bleu).
+  const start = position ?? (last ? { lat: last.route.points[0]![0], lng: last.route.points[0]![1] } : undefined)
   // La carte se cadre sur les balades du coin (Saint-Ouen, la Bretagne…), pas sur toute la France.
   const local = useMemo(() => walksNear(shown, start), [shown, start?.lat, start?.lng]) // eslint-disable-line react-hooks/exhaustive-deps
   // Une idée choisie : la carte se cadre sur sa boucle.
   const frame = useMemo(() => (ideaShown ? ideaShown.route.points : local.flatMap((w) => w.route.points)), [local, ideaShown])
   const frameKey = ideaShown ? `idee:${ideaShown.id}` : local.map((w) => w.id).join(',')
+  // R-114 : « Me situer » : une position fraîche et précise (GPS), la carte vole sur le point bleu à chaque toucher, puis
+  // le point suit 2 min (batterie). Échec ou refus : un toast. La carte ne se recadre plus sur les balades du coin.
+  const [locateKey, setLocateKey] = useState(0)
+  const toast = useToast()
+  const follow = useRef<{ id: number; stop: number } | undefined>(undefined)
+  const stopFollow = () => {
+    if (!follow.current) return
+    navigator.geolocation?.clearWatch(follow.current.id)
+    window.clearTimeout(follow.current.stop)
+    follow.current = undefined
+  }
+  useEffect(() => stopFollow, [])
+  const toPos = (pos: GeolocationPosition) => ({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy })
   const locate = () => {
-    if (!navigator.geolocation) return
+    const failed = () => {
+      setLocating(false)
+      toast('Position introuvable. Vérifiez que la localisation est autorisée pour Flair.')
+    }
+    if (!navigator.geolocation) return failed()
     setLocating(true)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLocating(false)
-        setMyPos({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setMyPos(toPos(pos))
+        setLocateKey((n) => n + 1)
+        stopFollow()
+        const id = navigator.geolocation.watchPosition((p) => setMyPos(toPos(p)), () => undefined, LOCATE_OPTIONS)
+        follow.current = { id, stop: window.setTimeout(stopFollow, FOLLOW_MS) }
       },
-      () => setLocating(false),
-      { maximumAge: 300000, timeout: 10000 },
+      failed,
+      LOCATE_OPTIONS,
     )
   }
 
@@ -345,7 +369,7 @@ export default function Explorer() {
   return (
     <div ref={rootRef} className="fixed inset-x-0 top-0 bottom-[calc(env(safe-area-inset-bottom)+88px)] overflow-hidden bg-[#22332F]">
       <Suspense fallback={null}>
-        <ExplorerMap cells={cells} tracks={tracks} frame={frame} frameKey={frameKey} me={myPos ? [myPos.lat, myPos.lng] : undefined} onWalk={onTrack} places={places} satellite={prefs.satellite} three={prefs.three} fog={prefs.fog} heat={heat} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={onMapTap} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} covered={display} />
+        <ExplorerMap cells={cells} tracks={tracks} frame={frame} frameKey={frameKey} me={myPos ? [myPos.lat, myPos.lng] : undefined} meAccuracy={myPos?.accuracy} locateKey={locateKey} onWalk={onTrack} places={places} satellite={prefs.satellite} three={prefs.three} fog={prefs.fog} heat={heat} center={start ? [start.lat, start.lng] : undefined} focus={focus} onPlace={setSelectedId} onMapTap={onMapTap} onBearing={setBearing} north={north} walk={walk} dogName={dog.name} covered={display} />
       </Suspense>
 
       {/* En haut, 2 pilules seulement (V5) : « Affichage » à gauche, « Me situer » à droite. Pincer pour zoomer. */}

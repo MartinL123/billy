@@ -6,6 +6,7 @@ import { distanceToRoute, NEAR_ROUTE, type Route } from '../../lib/route'
 import { replayLayer, showWalk, type ReplayChannel, type WalkPhoto } from './walkLayer'
 import { ofName } from '../../lib/gender'
 import { fitPadding, type Padding } from '../../lib/mapFrame'
+import { accuracyRing, locateView } from '../../lib/locate'
 
 export interface MapPlace {
   id: string
@@ -34,8 +35,12 @@ interface Props {
   frame?: LatLng[]
   /** Change quand on change de coin (ou de filtre) : la carte se recadre. */
   frameKey?: string
-  /** Ma position, demandée avec « Autour de moi » : un point bleu. */
+  /** Ma position, demandée avec « Me situer » : un point bleu. */
   me?: LatLng
+  /** R-114 : le rayon de précision de ma position (m) : un cercle bleu clair autour du point. */
+  meAccuracy?: number
+  /** R-114 : change à chaque toucher sur « Me situer » : la carte vole sur le point bleu (zoom 16), même s’il n’a pas bougé. */
+  locateKey?: number
   /** Toucher le tracé d’une balade (hors balade mise en avant) : la mettre en avant. */
   onWalk?: (id: string) => void
   places: MapPlace[]
@@ -205,7 +210,7 @@ function innerBox(layout: FogLayout): [number, number, number, number] {
  * La carte qui se découvre : le brouillard (un seul polygone troué, bords adoucis ; en option depuis la V6.1), les
  * trajets, les spots. Plan ou satellite, 2D ou 3D.
  */
-export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places, satellite, three, fog = true, heat, center, focus, recenter, onPlace, onMapTap, onBearing, north, zoom, walk, dogName, covered = false }: Props) {
+export function ExplorerMap({ cells, tracks, frame, frameKey, me, meAccuracy, locateKey, onWalk, places, satellite, three, fog = true, heat, center, focus, recenter, onPlace, onMapTap, onBearing, north, zoom, walk, dogName, covered = false }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const markers = useRef<Marker[]>([])
@@ -314,6 +319,32 @@ export function ExplorerMap({ cells, tracks, frame, frameKey, me, onWalk, places
     const marker = addMarker(m, me, dot('#2F7BF6', 20, 'Vous êtes ici'))
     return () => void marker.remove()
   }, [me?.[0], me?.[1]]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // R-114 : le cercle de précision autour du point bleu.
+  useEffect(() => {
+    const m = map.current
+    if (!m) return
+    const ring = me ? accuracyRing({ lat: me[0], lng: me[1], accuracy: meAccuracy }) : []
+    whenReady(m, () => {
+      const data = { type: 'FeatureCollection' as const, features: ring.length ? [{ type: 'Feature' as const, properties: {}, geometry: { type: 'Polygon' as const, coordinates: [ring] } }] : [] }
+      const source = m.getSource('precision') as GeoJSONSource | undefined
+      if (source) source.setData(data)
+      else {
+        m.addSource('precision', { type: 'geojson', data })
+        m.addLayer({ id: 'precision', type: 'fill', source: 'precision', paint: { 'fill-color': '#2F7BF6', 'fill-opacity': 0.15, 'fill-outline-color': '#2F7BF6' } })
+      }
+    })
+  }, [me?.[0], me?.[1], meAccuracy]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // R-114 : chaque toucher sur « Me situer » : la carte vole sur moi, dans la partie visible (au-dessus du panneau).
+  useEffect(() => {
+    const m = map.current
+    if (!m || !me || !locateKey || walk) return
+    whenReady(m, () => {
+      const view = locateView({ lat: me[0], lng: me[1] }, FRAME, m.getContainer().clientWidth, m.getContainer().clientHeight)
+      m.flyTo({ ...view, duration: cameraMs(800) })
+    })
+  }, [locateKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const m = map.current

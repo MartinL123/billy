@@ -1,3 +1,4 @@
+import { versionLabel } from '../../lib/version'
 import { useEffect, useState } from 'react'
 import { BackLink } from '../../components/BackLink'
 import { DangerButton } from '../../components/Buttons'
@@ -326,7 +327,7 @@ export default function Profile() {
       )}
 
       <p className="text-center text-[0.7647rem] text-muted">
-        Version du {new Date(__BUILD_TIME__).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+        {versionLabel(new Date(__BUILD_TIME__))}
       </p>
 
       {setting === 'notifications' && (

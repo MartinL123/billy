@@ -1,20 +1,16 @@
 import { Link } from 'react-router-dom'
 import { SKILLS, territoryOf } from '../../content/phrases'
-import { MAX_LEVEL } from '../../content/training'
-import { badgeName, badgeRing, ringArcs } from '../../lib/billyPage'
+import { badgeLabel, badgeName, badgeRing, ringArcs } from '../../lib/billyPage'
 
 const ARCS = ringArcs(28, 24)
 
-/** L’anneau d’une compétence : 5 segments, le nombre d’étapes au centre. */
-function Ring({ segments, level }: { segments: string[]; level: number }) {
+/** L’anneau d’une compétence : 5 segments ; R-113 : plus de « 3/5 » au centre, les segments suffisent. */
+function Ring({ segments }: { segments: string[] }) {
   return (
     <svg viewBox="0 0 56 56" className="block aspect-square w-full max-w-14" aria-hidden="true">
       {ARCS.map((d, i) => (
         <path key={i} d={d} stroke={segments[i]} strokeWidth="5" fill="none" strokeLinecap="round" />
       ))}
-      <text x="28" y="33" textAnchor="middle" fontFamily="'Bricolage Grotesque', sans-serif" fontWeight="700" fontSize="14" fill="#18201E">
-        {Math.min(level, MAX_LEVEL)}/{MAX_LEVEL}
-      </text>
     </svg>
   )
 }
@@ -36,10 +32,10 @@ export function BadgeGrid({ levels, active }: { levels: Record<string, number>; 
           <li key={id} className="@container min-w-0">
             <Link
               to={`/competence/${id}`}
-              aria-label={`${skill.name} : ${Math.min(level, MAX_LEVEL)} étape${level > 1 ? 's' : ''} sur ${MAX_LEVEL}${ring.status ? `, ${ring.status.toLowerCase()}` : ''}`}
+              aria-label={badgeLabel(skill.name, level, ring.status)}
               className="tap flex min-h-11 flex-col items-center gap-1 text-center text-[0.7941rem] leading-tight font-semibold text-text no-underline"
             >
-              <Ring segments={ring.segments} level={level} />
+              <Ring segments={ring.segments} />
               {/* R-097 : jamais coupé dans un mot (« Les Rencontre / s ») ; 3 par ligne, chaque nom tient sur 2 lignes. En très
                   grand texte sur un petit écran, le nom se resserre juste assez pour que son plus long mot tienne. */}
               <span className="max-w-full text-[min(0.7941rem,17cqi)] [hyphens:none] [overflow-wrap:normal] [word-break:keep-all]">{badgeName(skill.name)}</span>

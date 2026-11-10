@@ -54,7 +54,7 @@ export function WalkSettings() {
     <section className="flex flex-col gap-2.5">
       <h2 className="title-section">Sorties</h2>
       <div className="card flex flex-col gap-3 p-4">
-        <p className="text-[0.8824rem] leading-snug text-muted">3 sorties par jour. Elles se cochent toutes seules avec vos balades Strava.</p>
+        <p className="text-[0.8824rem] leading-snug text-muted">3 sorties par jour. Elles se cochent toutes seules avec vos balades et les sorties repérées par l’iPhone.</p>
         {WALK_SLOTS.map((slot) => (
           <label key={slot.id} className="flex items-center justify-between gap-3 border-t border-divider pt-3">
             <span className="text-[1rem] font-semibold">{slot.label}</span>

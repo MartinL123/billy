@@ -161,6 +161,13 @@ export function badgeRing(level: number, color: string, active: boolean): BadgeR
   }
 }
 
+/** R-113 : ce que dit VoiceOver d’un badge (« Le Rappel : 3 étapes acquises, en cours ») ; plus de « 3/5 » à l’écran. */
+export function badgeLabel(name: string, level: number, status?: string): string {
+  const done = Math.max(0, Math.min(RING_SEGMENTS, Math.floor(level)))
+  const steps = done === 0 ? 'aucune étape acquise' : `${done} étape${done > 1 ? 's' : ''} acquise${done > 1 ? 's' : ''}`
+  return `${name}\u00a0: ${steps}${status ? `, ${status.toLowerCase()}` : ''}`
+}
+
 /** Le nom sous un badge : sans l’article quand il est long (« Bonnes manières »), pour tenir sur deux lignes au plus. */
 export function badgeName(name: string): string {
   if (name.length <= 15) return name

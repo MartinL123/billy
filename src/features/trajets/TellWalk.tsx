@@ -1,3 +1,4 @@
+import { SHOW_BONES } from '../../lib/bones'
 import { useMemo, useRef, useState } from 'react'
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { BackLink } from '../../components/BackLink'
@@ -51,7 +52,7 @@ export default function TellWalk() {
       if (gain) {
         awardBone(gain)
         setGained(gain.amount)
-        toast(`+${gain.amount} os · balade racontée`, undefined, { bones: true })
+        toast(SHOW_BONES ? `+${gain.amount} os · balade racontée` : 'Balade racontée', undefined, { bones: true })
       }
     }
     setStep(nextStep)
@@ -65,7 +66,7 @@ export default function TellWalk() {
         </span>
         <h1 className="title-screen text-center">C’est raconté !</h1>
         <p className="text-center text-[0.9412rem] text-[#3F4946]">{placed.current ? `Ses arrêts ont leur histoire. Vous les retrouvez dans la fiche de la balade.` : `Rien de noté cette fois. Vous pourrez y revenir depuis la fiche de la balade.`}</p>
-        {gained > 0 && <Stats items={[{ value: String(placed.current), label: placed.current > 1 ? 'Arrêts racontés' : 'Arrêt raconté' }, { value: `+${gained}`, label: 'Os gagnés' }]} className="self-stretch" />}
+        {SHOW_BONES && gained > 0 && <Stats items={[{ value: String(placed.current), label: placed.current > 1 ? 'Arrêts racontés' : 'Arrêt raconté' }, { value: `+${gained}`, label: 'Os gagnés' }]} className="self-stretch" />}
         <button type="button" onClick={back} className="btn btn-main mt-2 min-h-14">
           Voir la balade
         </button>

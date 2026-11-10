@@ -1,3 +1,4 @@
+import { SHOW_BONES } from '../lib/bones'
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 
 interface Toast {
@@ -20,7 +21,7 @@ export const TOAST_ACTION_MS = 10_000
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<Toast | null>(null)
-  const show = useCallback<Show>((text, action, options) => setToast({ id: Date.now(), text, action, ...(options?.bones ? { bones: true } : {}) }), [])
+  const show = useCallback<Show>((text, action, options) => setToast({ id: Date.now(), text, action, ...(options?.bones && SHOW_BONES ? { bones: true } : {}) }), [])
 
   // R-064 : un toast avec une action (« Annuler ») reste 10 s, et le temps s’arrête tant qu’on le touche ou qu’il a le
   // focus (VoiceOver, clavier) ; sans action, 5 s.

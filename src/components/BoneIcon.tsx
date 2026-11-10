@@ -1,3 +1,5 @@
+import { SHOW_BONES } from '../lib/bones'
+
 function BoneShape() {
   return (
     <>
@@ -29,6 +31,8 @@ export function BoneIcon({ size = 20, className = '' }: { size?: number; classNa
 
 /** « +13 os » avec l’os qui saute (désactivé si l’on réduit les animations). */
 export function BonesGained({ amount, label }: { amount: number; label?: string }) {
+  // R-112 : os cachés, seulement le texte.
+  if (!SHOW_BONES) return label ? <span>{label}</span> : null
   return (
     <span className="inline-flex items-center gap-1.5">
       {label && <span>{label}</span>}

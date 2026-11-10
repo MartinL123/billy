@@ -153,3 +153,8 @@ export function backfillBones(
   return out
 }
 
+/**
+ * R-112 (décision de Martin, 10 nov.) : les os sont cachés, un seul interrupteur. Plus de « +3 os » ni de solde nulle
+ * part ; les os restent comptés (gains, rattrapages) pour pouvoir les remontrer en le passant à `true`.
+ */
+export const SHOW_BONES = false

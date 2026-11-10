@@ -9,6 +9,12 @@ Ce dossier garde le détail complet de chaque audit et les prompts Claude Code.
 
 | Date | Audit | Prompt Claude Code | Verdict |
 | --- | --- | --- | --- |
+| 10 nov. 2026, 12 h | `audit-12-2026-11-10.md` (recette) | `prompt-audit-12.md` | Watch toujours absente (app iOS pas relancée) ; rattrapage par tranches à coder avant Xcode. |
+| 23 oct. 2026, 14 h | `audit-10-2026-10-23.md` (une seule carte) | `prompt-audit-10.md` | 4 OK, Revoir à reprendre (panneau qui cache la carte), défilement sur iPhone. R-100, R-101. |
+| 23 oct. 2026, 11 h 30 | `audit-09-2026-10-23.md` (V6.1 + retours de Martin) | `prompt-audit-09.md` | 14 OK, 6 partiels repris par R-094 à R-099 ; maquettes « Une seule carte » à valider. |
+| 22 oct. 2026, 15 h 45 | `audit-08-2026-10-22.md` (recette V6 « balades façon Komoot ») | `prompt-audit-08.md` | 14 OK sur 18, 0 KO, 4 sur iPhone ; V6 solide, banc de test instable. R-090 à R-093. |
+| 21 oct. 2026, 17 h 45 | `audit-07-2026-10-21.md` (recette + « Flair plus profond ») | `prompt-audit-07.md` | 30 OK sur 33, 0 KO, 3 sur iPhone ; visiteur privé, balade blindée. R-082 à R-085. |
+| 20 oct. 2026, 17 h | `audit-06-2026-10-20.md` (ciblé + recette + vie privée) | `prompt-audit-06.md` | V5 réussie ; fuite de vie privée du mode visiteur. R-069 à R-076. |
 | 19 oct. 2026, 18 h | `audit-05-2026-10-19.md` (ciblé + recette) | `prompt-audit-05.md` | Balade iPhone réparée (vérifiée en prod), 11 corrections OK. R-045 à R-049. |
 | 18 oct. 2026, 20 h 40 | Correctif urgent (balade GPS perdue) | `prompt-hotfix-r042.md` (avant le 04) | R-042 confirmé par la balade de Martin : bloquant. |
 | 18 oct. 2026, 20 h | `audit-04-2026-10-18.md` (ciblé + recette + revue iOS) | `prompt-audit-04.md` (remplace le 03) | Tableau de bord et ouverture OK ; balade GPS à sécuriser. R-038 à R-043. |

@@ -1,0 +1,361 @@
+<title>Billy et journal des balades</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout : deux maquettes pleine hauteur (page Billy, panneau de la carte déplié), chacune avec ses notes à côté. */
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --text:#18201E; --muted:#5A6662; --line:#E1E6E2; --primary:#1E5A50; --primary-soft:#DCEBE6;
+  --gold-soft:#FCEFD3; --gold-text:#8A6514;
+  --display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif; --body:Figtree,"Helvetica Neue",system-ui,sans-serif;
+  --a-bg:#F3F5F2; --a-surface:#FFFFFF; --a-text:#18201E; --a-muted:#5A6662; --a-line:#E6EAE7; --a-primary:#1E5A50; --a-soft:#DCEBE6;
+  --a-action:#BF5519; --a-gold:#F2B544; --a-gold-soft:#FCEFD3; --a-gold-text:#8A6514; --a-blue:#2559A8; --a-blue-soft:#E3EAF8;
+  --a-orange-soft:#FBE6D4; --a-orange-text:#8A3E0C; --a-red:#C4423A; --a-route:#2F8F6B;
+  --frame:#18201E;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#121816;--surface:#1B2320;--text:#E8EEEA;--muted:#A3B0AB;--line:#2C3632;--primary:#7FC3B4;--primary-soft:#1F3631;--gold-soft:#3A3220;--gold-text:#F2C96F;--frame:#000;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121816;--surface:#1B2320;--text:#E8EEEA;--muted:#A3B0AB;--line:#2C3632;--primary:#7FC3B4;--primary-soft:#1F3631;--gold-soft:#3A3220;--gold-text:#F2C96F;--frame:#000;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font:400 16px/1.55 var(--body);margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 80px}
+h1,h2,h3{font-family:var(--display);font-weight:600;text-wrap:balance;margin:0}
+h1{font-size:clamp(32px,5vw,46px);line-height:1.05;letter-spacing:-.02em}
+h2{font-size:clamp(24px,3.2vw,30px);line-height:1.1}
+p{margin:0}
+.eyebrow{font:700 12px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:18px;color:var(--muted);max-width:660px;margin-top:14px}
+section{margin-top:56px}
+.layout{display:grid;grid-template-columns:auto minmax(0,1fr);gap:32px;align-items:start}
+@media (max-width:860px){.layout{grid-template-columns:1fr}}
+.notes{display:grid;gap:12px;position:sticky;top:16px}
+@media (max-width:860px){.notes{position:static}}
+.note{background:var(--surface);border-radius:18px;padding:14px 16px;display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;font-size:15px}
+.num{width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:grid;place-items:center;font:700 12px/1 var(--body)}
+.note b{display:block}
+.note span{color:var(--muted)}
+.tag{display:inline-block;font:700 11px/1 var(--body);padding:4px 7px;border-radius:999px;background:var(--gold-soft);color:var(--gold-text);margin-left:4px;vertical-align:1px}
+.phones{display:flex;gap:18px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.phones::-webkit-scrollbar{display:none}
+.shot{display:grid;gap:8px;flex:0 0 auto;align-content:start}
+.cap{font-size:13px;color:var(--muted);max-width:310px}
+.phone{width:310px;border-radius:44px;background:var(--frame);padding:9px}
+.scr{width:100%;border-radius:36px;overflow:hidden;background:var(--a-bg);color:var(--a-text);position:relative;font:400 13px/1.4 var(--body)}
+.fixed-h{height:640px}
+.sb{height:32px;display:flex;justify-content:space-between;align-items:center;padding:0 22px;font-weight:700;font-size:12px}
+.in{padding:0 14px 14px;display:grid;gap:12px}
+.top{display:flex;justify-content:space-between;align-items:center;height:30px}
+.back,.lnk{color:var(--a-primary);font-weight:700;font-size:13px}
+.scr h4{font:600 22px/1.1 var(--display);margin:0}
+.scr h5{font:500 15px/1.2 var(--display);margin:0}
+.ov{font:700 9.5px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--a-muted)}
+.sec{display:flex;justify-content:space-between;align-items:baseline}
+.sec h5{font-weight:600;font-size:16px}
+.mut{color:var(--a-muted)}
+.card{background:var(--a-surface);border-radius:16px;padding:12px}
+.row{display:flex;align-items:center;gap:10px}
+.avatar{width:58px;height:58px;border-radius:50%;background:linear-gradient(140deg,#C99A5B,#8C5A2B);flex:0 0 auto;border:3px solid #fff;box-shadow:0 0 0 2px var(--a-gold)}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center;font-size:10px;color:var(--a-muted)}
+.day{width:28px;height:28px;border-radius:50%;margin:3px auto 0;display:grid;place-items:center;font-size:12px;font-weight:700}
+.d-done{background:var(--a-primary);color:#fff}.d-today{border:2px solid var(--a-action);color:var(--a-action)}.d-next{border:1.5px dashed #B5BFBB}.d-rest{background:var(--a-bg);color:var(--a-muted)}
+.path{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:relative}
+.path::before{content:"";position:absolute;left:10%;right:10%;top:11px;height:3px;background:#E1E6E2;border-radius:2px}
+.path .fill{position:absolute;left:10%;top:11px;height:3px;background:var(--a-gold);border-radius:2px}
+.node{display:grid;justify-items:center;gap:4px;position:relative;font-size:9.5px;text-align:center;color:var(--a-muted);line-height:1.15}
+.dot{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;background:#fff;border:2px solid #D3D9D6;color:var(--a-muted)}
+.dot.ok{background:var(--a-gold);border-color:var(--a-gold);color:#3D2A00}
+.dot.now{border-color:var(--a-action);color:var(--a-action);box-shadow:0 0 0 4px rgba(191,85,25,.15)}
+.node.now{color:var(--a-text);font-weight:700}
+.node{white-space:nowrap;min-width:0}
+.node>:not(.dot){overflow:hidden;text-overflow:ellipsis}
+.next{border-top:1px solid var(--a-line);padding-top:8px;display:grid;gap:2px}
+.next .ov{color:var(--a-orange-text)}
+.badges{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 4px}
+.badge{display:grid;justify-items:center;gap:3px;text-align:center;font-size:9.5px;line-height:1.15;font-weight:600}
+.badge em{font-style:normal;font-size:9px;font-weight:700;color:var(--a-orange-text)}
+.tl .ev{display:grid;grid-template-columns:44px 20px minmax(0,1fr);gap:8px;padding:8px 0;border-top:1px solid var(--a-line);align-items:start}
+.tl .ev:first-of-type{border-top:0}
+.tl time{font-size:10.5px;font-weight:700;color:var(--a-muted);padding-top:2px}
+.ic{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:800}
+.textlink{color:var(--a-primary);font-weight:700;font-size:13px;padding-top:6px;display:block}
+.line{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chev{color:#9AA5A0;font-size:16px}
+.bottom{position:sticky;bottom:0;background:linear-gradient(to bottom,rgba(243,245,242,0),var(--a-bg) 30%);padding:18px 14px 0}
+.btn{height:48px;border-radius:999px;background:var(--a-action);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.tab{height:58px;background:var(--a-surface);border-top:1px solid var(--a-line);display:flex;justify-content:space-around;align-items:center;font-size:10px;color:var(--a-muted);margin:12px -14px 0}
+.pill{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;font-size:10.5px;font-weight:700;background:var(--a-soft);color:var(--a-primary);white-space:nowrap}
+.pill.g{background:var(--a-gold-soft);color:var(--a-gold-text)}
+.pill.o{background:var(--a-orange-soft);color:var(--a-orange-text)}
+button.pill{font-family:inherit;cursor:pointer;border:0}
+.pill.on{background:var(--a-primary);color:#fff}
+.pill.out{background:#fff;border:1px solid #D3D9D6;color:var(--a-text)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.stats.s4{grid-template-columns:repeat(3,minmax(0,1fr))}
+.stat b{display:block;font:700 18px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.stat b small{font-size:12px;font-weight:600}
+.stat span{font-size:10.5px;color:var(--a-muted);display:block;overflow-wrap:anywhere}
+.stat{min-width:0}
+.mstat{display:flex;gap:12px;font-size:11.5px;color:var(--a-muted)} .mstat b{color:var(--a-text);font-weight:700}
+/* carte */
+[data-map]{overflow:hidden}
+[data-map] svg{display:block;width:100%;height:100%}
+.sheet{background:var(--a-surface);border-radius:24px 24px 0 0;margin-top:-22px;position:relative;box-shadow:0 -6px 20px rgba(0,0,0,.10)}
+.grab{width:36px;height:5px;border-radius:4px;background:#D3D9D6;margin:0 auto 14px;display:block}
+.sheet{padding-top:14px}
+.chips{display:flex;gap:6px;overflow:hidden}
+.loops{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.loop{background:var(--a-bg);border-radius:12px;overflow:hidden}
+.loop .m{height:46px}
+.loop div.t{padding:5px 7px 7px;font-size:10px;line-height:1.2}
+.loop b{display:block;font-size:10.5px}
+.day-h{font:600 13px/1 var(--display);margin-top:4px}
+.walk{border:1px solid var(--a-line);border-radius:16px;overflow:hidden}
+.walk .m{height:96px;position:relative}
+.walk .b{padding:10px 12px;display:grid;gap:6px}
+.raconter{position:absolute;top:8px;right:8px}
+.thumbs{display:flex;gap:4px}
+.pin{position:absolute;width:30px;height:30px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);overflow:hidden;transform:translate(-50%,-50%)}
+.pin svg{width:100%;height:100%;display:block}
+.thumbs i{width:40px;height:40px;border-radius:8px;display:block}
+.memo{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;align-items:center;border:1px solid var(--a-line);border-radius:14px;padding:8px}
+.memo i{width:44px;height:44px;border-radius:10px;display:block}
+.floaters{position:absolute;top:40px;left:12px;right:12px;display:flex;justify-content:space-between}
+.fl{background:#fff;border-radius:999px;height:32px;padding:0 12px;display:flex;align-items:center;font-weight:700;font-size:11.5px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.cap2{font-size:12px;color:var(--a-muted);text-align:center}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">T-104 et T-097 · 22 octobre 2026</p>
+  <h1 style="margin-top:12px">Billy et journal des balades</h1>
+  <p class="lede">La page Billy entière (piste A, avec la vitrine de badges de B et « Ses progrès » de C) et le panneau de la carte ouvert en grand. Les écrans sont montrés en entier, comme si on faisait défiler jusqu'en bas.</p>
+
+  <!-- ================= BILLY ================= -->
+  <section>
+    <p class="eyebrow">Page Billy</p>
+    <h2 style="margin:8px 0 22px">Ses entraînements d'abord, son profil ensuite</h2>
+    <div class="layout">
+      <div class="phones">
+        <div class="shot"><div class="phone"><div class="scr">
+          <div class="sb"><span>9:41</span><span>●●●</span></div>
+          <div class="in">
+            <div class="top"><span class="back">‹ Accueil</span></div>
+            <div class="card line" style="padding:12px">
+              <div class="row"><div class="avatar" style="width:60px;height:60px" aria-hidden="true"></div><div><h4>Billy</h4><div class="mut">5 mois</div></div></div>
+              <span style="height:40px;padding:0 14px;border-radius:999px;background:var(--a-soft);color:var(--a-primary);font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap">Son profil ›</span>
+            </div>
+
+            <div class="card" style="display:grid;gap:6px">
+              <div class="line"><h5>Sa semaine</h5><span class="mut" style="font-size:11px">4 séances · 14 min</span></div>
+              <div class="week">
+                <div>L<div class="day d-done">✓</div></div><div>M<div class="day d-done">✓</div></div><div>M<div class="day d-rest">☾</div></div><div>J<div class="day d-done">✓</div></div><div>V<div class="day d-done">✓</div></div><div>S<div class="day d-today">·</div></div><div>D<div class="day d-next"></div></div>
+              </div>
+            </div>
+
+            <div class="sec"><h5>Ce qu'il apprend</h5></div>
+            <div class="card" style="display:grid;gap:9px;box-shadow:inset 0 0 0 2px var(--a-primary)">
+              <div class="line"><h5>Revient quand on l'appelle</h5><span class="pill" style="background:var(--a-blue-soft);color:var(--a-blue)">Le Rappel</span></div>
+              <div class="path"><span class="fill" style="width:40%"></span>
+                <div class="node"><span class="dot ok">✓</span>Au salon</div><div class="node"><span class="dot ok">✓</span>Au jardin</div><div class="node now"><span class="dot now">●</span>Au parc</div><div class="node"><span class="dot"></span>Un chien</div><div class="node"><span class="dot">★</span>Partout</div>
+              </div>
+              <div class="next"><span class="ov">Prochaine étape</span><span>Il revient au parc, même quand il renifle quelque chose.</span></div>
+            </div>
+            <div class="card" style="display:grid;gap:9px">
+              <div class="line"><h5>Reste calme près des chiens</h5><span class="pill o">Les Congénères</span></div>
+              <div class="path"><span class="fill" style="width:20%"></span>
+                <div class="node"><span class="dot ok">✓</span>De loin</div><div class="node now"><span class="dot now">●</span>Plus près</div><div class="node"><span class="dot"></span>Qui aboie</div><div class="node"><span class="dot"></span>La rue</div><div class="node"><span class="dot">★</span>Partout</div>
+              </div>
+            </div>
+            <div class="card" style="display:grid;gap:9px">
+              <div class="line"><h5>Se laisse examiner, même chez le véto</h5><span class="pill">Les Soins</span></div>
+              <div class="path"><span class="fill" style="width:40%"></span>
+                <div class="node"><span class="dot ok">✓</span>Pattes</div><div class="node"><span class="dot ok">✓</span>Brosse</div><div class="node now"><span class="dot now">●</span>Un proche</div><div class="node"><span class="dot"></span>Véto</div><div class="node"><span class="dot">★</span>Partout</div>
+              </div>
+            </div>
+            <div style="height:44px;border-radius:999px;border:2px solid var(--a-primary);color:var(--a-primary);display:flex;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:14px;background:var(--a-surface)">⇄ Changer ce qu'il apprend</div>
+
+            <div class="sec"><h5>Ses badges</h5></div>
+            <div class="card"><div class="badges" data-badges></div></div>
+
+            <div class="sec"><h5>Ses progrès</h5></div>
+            <div class="card tl">
+              <div class="ev"><time>Hier</time><span class="ic" style="background:var(--a-gold);color:#3D2A00">✓</span><div><b>Revient au jardin</b><div class="mut">Étape acquise · Le Rappel</div></div></div>
+              <div class="ev"><time>20 oct.</time><span class="ic" style="background:var(--a-soft);color:var(--a-primary)">★</span><div><b>Super rappel en balade</b><div class="mut">Square Ampère · 8 h 17</div></div></div>
+              <div class="ev"><time>19 oct.</time><span class="ic" style="background:var(--a-soft);color:var(--a-primary)">☺</span><div><b>Séance « Super »</b><div class="mut">Le jeu du prénom · 3 min</div></div></div>
+              <div class="ev"><time>17 oct.</time><span class="ic" style="background:var(--a-gold);color:#3D2A00">✓</span><div><b>La brosse, sans bouger</b><div class="mut">Étape acquise · Les Soins</div></div></div>
+              <span class="textlink">Voir tous ses progrès</span>
+            </div>
+
+          </div>
+          <div class="bottom">
+            <div class="btn">S'entraîner · 3 min</div>
+            <div class="tab"><span>Balades</span><span style="color:var(--a-primary);font-weight:700">Accueil</span><span>Santé</span></div>
+          </div>
+        </div></div><p class="cap">La page entière. « S'entraîner » et la barre d'onglets restent fixés en bas pendant le défilement.</p></div>
+      </div>
+      <div class="notes">
+        <div class="note"><span class="num">1</span><div><b>En-tête</b><span>Une carte : à gauche sa photo ronde, son nom et son âge ; à droite le bouton « Son profil » (puce, véto, ce qui l'inquiète, réglages). Le profil (puce, véto, réglages) passe en lien « Son profil › » en haut à droite : la page n'est plus un profil.</span></div></div>
+        <div class="note"><span class="num">2</span><div><b>Sa semaine</b><span>Une coche par jour d'entraînement, une lune pour le repos, orange pour aujourd'hui. Jamais de rouge. Toucher un jour coché ouvre le souvenir de ce jour-là : l'exercice fait, le ressenti, la note (plusieurs séances : la liste du jour).</span></div></div>
+        <div class="note"><span class="num">3</span><div><b>Ce qu'il apprend</b> <span class="tag">Piste A</span><span>Les pattes deviennent un chemin aux étapes nommées. L'étoile remplace la coupe. Une carte ouverte à la fois, avec sa prochaine étape ; « S'entraîner » lance celle-là. Sous les cartes, « Changer ce qu'il apprend » en bouton contour (le seul de la page).</span></div></div>
+        <div class="note"><span class="num">4</span><div><b>Ses badges</b> <span class="tag">Piste B</span><span>Les 10 compétences en anneaux de 5 segments. « En cours » sous les 3 actuelles. Toucher un badge ouvre la page de cette compétence dans son arbre : ses 5 étapes, ses exercices, où il en est.</span></div></div>
+        <div class="note"><span class="num">5</span><div><b>Ses progrès</b> <span class="tag">Piste C</span><span>Un fil daté : étapes acquises, séances « Super », « Super rappel » placés en balade. Les balades comptent dans l'entraînement.</span></div></div>
+        
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= JOURNAL ================= -->
+  <section>
+    <p class="eyebrow">Onglet Balades</p>
+    <h2 style="margin:8px 0 22px">Le panneau de la carte, ouvert en grand</h2>
+    <div class="layout">
+      <div class="phones">
+        <div class="shot"><div class="phone"><div class="scr">
+          <div class="map" style="height:106px" data-map="top"></div>
+          <div class="floaters"><span class="fl">Affichage</span><span class="fl">Me situer</span></div>
+          <div class="sheet">
+            <div class="grab"></div>
+            <div class="in" style="padding-top:2px">
+              <div class="line"><div><div class="ov">Le quartier</div><h4 style="margin-top:4px">Les balades de Billy</h4></div></div>
+              <div class="row" style="gap:14px;font-size:13px;color:var(--a-muted);justify-content:space-between;padding:2px 0"><span><b data-v="n" style="color:var(--a-text);font-weight:700">12</b> <span data-v="nl">balades</span></span><span><b data-v="km" style="color:var(--a-text);font-weight:700">18,4 km</b></span><span><b data-v="t" style="color:var(--a-text);font-weight:700">9 h 40</b> de balade</span></div>
+              <div class="chips" role="group" aria-label="Filtrer les balades"><button type="button" class="pill on" data-f="all">Toutes</button><button type="button" class="pill out" data-f="24h">24 h</button><button type="button" class="pill out" data-f="week">Cette semaine</button><button type="button" class="pill out" data-f="month">Ce mois</button></div>
+
+              <div class="sec"><h5>Idées de balade</h5><span class="lnk" style="font-size:12px">Masquer</span></div>
+              <div class="loops">
+                <div class="loop"><div class="m" data-map="l1"></div><div class="t"><b>Square Ampère</b>15 min · facile</div></div>
+                <div class="loop"><div class="m" data-map="l2"></div><div class="t"><b>Les quais</b>30 min · moyen</div></div>
+                <div class="loop"><div class="m" data-map="l3"></div><div class="t"><b>Les Docks</b>45 min · long</div></div>
+              </div>
+
+              <div class="day-h">Aujourd'hui</div>
+              <div class="walk">
+                <div class="m" data-map="w1" style="height:130px"><span class="pill g raconter">2 à raconter</span><span class="pin" style="left:27%;top:22%" data-photo="0"></span><span class="pin" style="left:68%;top:38%" data-photo="1"></span><span class="pin" style="left:46%;top:62%" data-photo="2"></span></div>
+                <div class="b">
+                  <div class="line"><h5>Balade du matin au square Ampère</h5></div>
+                  <div class="mstat"><span><b>32 min</b></span><span><b>2,1 km</b></span><span><b>4</b> arrêts</span></div>
+                  <div class="row" style="gap:5px;flex-wrap:nowrap;overflow:hidden;margin-right:-12px;-webkit-mask-image:linear-gradient(to right,#000 85%,transparent);mask-image:linear-gradient(to right,#000 85%,transparent)"><span class="pill">Jeu</span><span class="pill o">Moment de stress</span><span class="pill">3 nouvelles rues</span></div>
+                  
+                </div>
+              </div>
+              <div class="memo"><i style="background:linear-gradient(135deg,#C9A574,#8C6A3E)"></i><div><b>Il a dormi sur mes pieds</b><div class="mut">Souvenir · 14 h</div></div></div>
+
+              <div class="day-h">Hier</div>
+              <div class="walk">
+                <div class="m" data-map="w2"></div>
+                <div class="b">
+                  <div class="line"><h5>Balade du soir sur les quais</h5></div>
+                  <div class="mstat"><span><b>45 min</b></span><span><b>3,2 km</b></span><span><b>2</b> arrêts</span></div>
+                  <div class="row" style="gap:5px"><span class="pill">Super rappel</span><span class="pill">Pipi · Grand Parc</span></div>
+                </div>
+              </div>
+
+              <div class="day-h">Mardi 20 octobre</div>
+              <div class="walk">
+                <div class="m" data-map="w3"></div>
+                <div class="b">
+                  <div class="line"><h5>Balade de midi</h5></div>
+                  <div class="mstat"><span><b>15 min</b></span><span><b>0,9 km</b></span><span><b>1</b> arrêt</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="bottom" style="padding-top:12px">
+              <div class="btn">Partir en balade</div>
+              <div class="tab"><span style="color:var(--a-primary);font-weight:700">Balades</span><span>Accueil</span><span>Santé</span></div>
+            </div>
+          </div>
+        </div></div><p class="cap">Panneau ouvert en grand : il monte jusque sous les boutons « Affichage » et « Me situer », qui restent visibles. On la retrouve en glissant le panneau vers le bas.</p></div>
+
+        <div class="shot"><div class="phone"><div class="scr fixed-h">
+          <div class="map" style="height:330px" data-map="half"></div>
+          <div class="floaters"><span class="fl">Affichage</span><span class="fl">Me situer</span></div>
+          <div class="sheet">
+            <div class="grab"></div>
+            <div class="in" style="padding-top:2px">
+              <div class="line"><div><div class="ov">Le quartier</div><h4 style="margin-top:4px">Les balades de Billy</h4></div></div>
+              <div class="row" style="gap:14px;font-size:13px;color:var(--a-muted);justify-content:space-between;padding:2px 0"><span><b data-v="n" style="color:var(--a-text);font-weight:700">12</b> <span data-v="nl">balades</span></span><span><b data-v="km" style="color:var(--a-text);font-weight:700">18,4 km</b></span><span><b data-v="t" style="color:var(--a-text);font-weight:700">9 h 40</b> de balade</span></div>
+              <div class="chips" role="group" aria-label="Filtrer les balades"><button type="button" class="pill on" data-f="all">Toutes</button><button type="button" class="pill out" data-f="24h">24 h</button><button type="button" class="pill out" data-f="week">Cette semaine</button><button type="button" class="pill out" data-f="month">Ce mois</button></div>
+              <div class="sec"><h5>Idées de balade</h5><span class="lnk" style="font-size:12px">Masquer</span></div>
+              <div class="loops">
+                <div class="loop"><div class="m" data-map="l1"></div><div class="t"><b>Square Ampère</b>15 min · facile</div></div>
+                <div class="loop"><div class="m" data-map="l2"></div><div class="t"><b>Les quais</b>30 min · moyen</div></div>
+                <div class="loop"><div class="m" data-map="l3"></div><div class="t"><b>Les Docks</b>45 min · long</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="bottom" style="position:absolute;left:0;right:0;bottom:0;padding-top:16px">
+            <div class="btn">Partir en balade</div>
+            <div class="tab" style="margin:12px 0 0"><span style="color:var(--a-primary);font-weight:700">Balades</span><span>Accueil</span><span>Santé</span></div>
+          </div>
+        </div></div><p class="cap">À mi-hauteur : le même panneau, coupé plus bas. La carte nette (brouillard éteint), toutes les balades en vert.</p></div>
+        <div class="shot"><div class="phone"><div class="scr fixed-h">
+          <div class="map" style="height:640px" data-map="half"></div>
+          <div class="floaters"><span class="fl">Affichage</span><span class="fl">Me situer</span></div>
+          <div style="position:absolute;left:0;right:0;bottom:0">
+            <div style="background:var(--a-surface);border-radius:22px 22px 0 0;box-shadow:0 -6px 20px rgba(0,0,0,.12);padding:14px 14px 0;height:66px;overflow:hidden">
+              <div class="grab" style="margin:0 auto 12px"></div>
+              <div class="ov">Le quartier</div><h4 style="margin-top:4px">Les balades de Billy</h4>
+            </div>
+            <div class="tab" style="margin:0;border-top:0;height:54px"><span style="color:var(--a-primary);font-weight:700">Balades</span><span>Accueil</span><span>Santé</span></div>
+          </div>
+        </div></div><p class="cap">Panneau tout en bas : la carte en plein écran. Il ne reste que le haut du panneau avec sa poignée, pour montrer qu'on peut le remonter.</p></div>
+      </div>
+      <div class="notes">
+        <div class="note"><span class="num">1</span><div><b>Le résumé</b><span>Une seule ligne sous le titre : « 12 balades · 18,4 km · 9 h 40 de balade », chiffres en gras. Le nombre de balades, les km et le temps de balade suivent le filtre (touchez les filtres de la maquette pour voir). Plus de pourcentage.</span></div></div>
+        <div class="note"><span class="num">2</span><div><b>Filtres</b><span>Toutes · 24 h · Cette semaine · Ce mois. Les spots de la meute passent dans « Affichage », avec Plan / Satellite, 2D / 3D et Brouillard.</span></div></div>
+        <div class="note"><span class="num">3</span><div><b>Idées de balade</b><span>Des recommandations : trois de ses balades passées (15, 30, 45 min) qui partent près d'ici et longent des rues jamais faites. Toucher une idée : le panneau descend, la boucle s'affiche sur la carte avec sa durée et sa distance, et le bouton orange devient « Partir sur cette boucle ». Pendant la balade, la boucle reste en pointillés pour la suivre. « Masquer » les retire pour de bon (réaffichables dans « Affichage »).</span></div></div>
+        <div class="note"><span class="num">4</span><div><b>Le journal</b><span>Groupé par jour. Chaque balade : mini-carte avec ses photos posées là où elles ont été prises, nom avec le lieu marquant, durée, distance, arrêts, repères. « 2 à raconter » quand des arrêts attendent un repère.</span></div></div>
+        <div class="note"><span class="num">5</span><div><b>Trois hauteurs</b><span>Tout en bas (carte en plein écran, seulement le haut du panneau), à mi-hauteur, ou en grand : c'est le même panneau, on en voit plus ou moins.</span></div></div>
+        <div class="note"><span class="num">6</span><div><b>Un toucher = la fiche</b><span>Toucher une carte ouvre directement la fiche de la balade, sans étape intermédiaire.</span></div></div>
+        <div class="note"><span class="num">7</span><div><b>Les souvenirs du jour</b><span>Un souvenir sans trajet apparaît à sa place, en petite ligne.</span></div></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  function ring(n,color,soft,gold){var c=2*Math.PI*37,seg=c/5,gap=4,s='<svg width="56" height="56" viewBox="0 0 90 90" aria-hidden="true">';
+    for(var i=0;i<5;i++){var col=i<n?(gold?'#F2B544':color):soft;s+='<circle cx="45" cy="45" r="37" fill="none" stroke="'+col+'" stroke-width="7" stroke-dasharray="'+(seg-gap)+' '+(c-seg+gap)+'" stroke-dashoffset="'+(-i*seg)+'" transform="rotate(-90 45 45)"/>';}
+    return s+'<circle cx="45" cy="45" r="26" fill="'+(gold?'#FCEFD3':soft)+'"/></svg>';}
+  var G='#1E5A50',GS='#DCEBE6',B='#2559A8',BS='#E3EAF8',O='#C2571A',OS='#FBE6D4';
+  var all=[[5,G,GS,'Le Lien',1],[2,B,BS,'Le Rappel',0,1],[1,O,OS,'Congénères',0,1],[3,G,GS,'Les Soins',0,1],[0,G,GS,'Le Calme'],[1,B,BS,'La Laisse'],[0,B,BS,'Bonnes manières'],[0,B,BS,'Nouveauté'],[0,O,OS,'La Ville'],[0,O,OS,'Rencontres']];
+  var el=document.querySelector('[data-badges]');
+  el.innerHTML=all.map(function(b){return '<div class="badge">'+ring(b[0],b[1],b[2],b[4])+'<span>'+b[3]+'</span>'+(b[5]?'<em>En cours</em>':b[4]?'<em style="color:#8A6514">Maîtrisé</em>':'')+'</div>';}).join('');
+
+  // Petites cartes : fond clair, rues, parc, eau, tracés verts (brouillard éteint).
+  function base(w,h,extra){
+    var s='<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="200" fill="#E9ECE6"/>'+
+    '<path d="M170 90 Q225 80 245 120 Q252 160 200 168 Q160 165 165 130Z" fill="#CFE3C9"/><path d="M0 185 Q120 168 300 192 L300 200 L0 200Z" fill="#BFD6EC"/>';
+    [[0,50,300,35,9],[0,125,300,145,6],[60,0,40,200,9],[150,0,165,200,5],[240,0,232,200,6],[0,90,300,95,5],[100,0,108,200,5]].forEach(function(l){s+='<line x1="'+l[0]+'" y1="'+l[1]+'" x2="'+l[2]+'" y2="'+l[3]+'" stroke="#fff" stroke-width="'+l[4]+'" stroke-linecap="round"/>';});
+    return s+extra+'</svg>';}
+  function route(d,col,w,op){return '<path d="'+d+'" stroke="#fff" stroke-width="'+(w+4)+'" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="'+(op||1)+'"/><path d="'+d+'" stroke="'+col+'" stroke-width="'+w+'" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="'+(op||1)+'"/>';}
+  var r1='M70 150 C70 100 95 60 140 55 C185 52 215 80 220 110 C224 140 200 160 160 162 C120 164 72 172 70 150Z';
+  var r2='M40 160 C90 110 160 120 230 60 C255 100 210 175 40 160Z';
+  var r3='M110 95 C130 70 175 75 185 105 C190 130 140 132 110 95Z';
+  function stops(){return [[122,57],[216,95],[186,161],[95,166]].map(function(p,i){return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="7" fill="'+(i==1?'#C4423A':'#7E8A85')+'" stroke="#fff" stroke-width="2"/>';}).join('');}
+  var maps={
+    top:base(0,0,route(r2,'#2F8F6B',4,.4)+route(r3,'#2F8F6B',4,.4)+route(r1,'#2F8F6B',5)),
+    half:base(0,0,route(r2,'#2F8F6B',4)+route(r3,'#2F8F6B',4)+route(r1,'#2F8F6B',4)+'<circle cx="150" cy="110" r="7" fill="#2559A8" stroke="#fff" stroke-width="3"/>'),
+    l1:base(0,0,route(r3,'#1E5A50',6)), l2:base(0,0,route(r2,'#1E5A50',6)), l3:base(0,0,route(r1,'#1E5A50',6)),
+    w1:base(0,0,route(r1,'#2F8F6B',5)+stops()+'<circle cx="70" cy="150" r="6" fill="#1E5A50" stroke="#fff" stroke-width="2"/>'),
+    w2:base(0,0,route(r2,'#2F8F6B',5)+'<circle cx="40" cy="160" r="6" fill="#1E5A50" stroke="#fff" stroke-width="2"/>'),
+    w3:base(0,0,route(r3,'#2F8F6B',5)+'<circle cx="110" cy="95" r="6" fill="#1E5A50" stroke="#fff" stroke-width="2"/>')
+  };
+  document.querySelectorAll('[data-map]').forEach(function(el){var m=maps[el.getAttribute('data-map')];if(m)el.insertAdjacentHTML('afterbegin',m);});
+  // Vignettes de photos (exemples) : ciel, herbe, un chien.
+  function photo(sky,grass,dog){return '<svg width="40" height="40" viewBox="0 0 40 40" style="border-radius:8px;display:block" aria-hidden="true"><rect width="40" height="40" fill="'+sky+'"/><path d="M0 26 Q12 20 22 25 T40 23 V40 H0Z" fill="'+grass+'"/><ellipse cx="20" cy="27" rx="7" ry="4.5" fill="'+dog+'"/><circle cx="27" cy="22.5" r="3.6" fill="'+dog+'"/><rect x="14" y="29" width="2" height="6" fill="'+dog+'"/><rect x="23" y="29" width="2" height="6" fill="'+dog+'"/></svg>';}
+  var P=[photo('#BFD6EC','#7FA36B','#8C5A2B'),photo('#E8D9B8','#9DB88A','#6B4423'),photo('#F4C9A0','#5D7A4E','#A0703F')];
+  document.querySelectorAll('[data-photo]').forEach(function(el){el.innerHTML=P[+el.getAttribute('data-photo')];});
+  // Filtres : le résumé suit le filtre choisi (exemple).
+  var F={all:['12','balades','18,4 km','9 h 40'],'24h':['1','balade','2,1 km','32 min'],week:['4','balades','8,3 km','3 h 05'],month:['9','balades','14,6 km','7 h 20']};
+  document.querySelectorAll('.chips').forEach(function(group){
+    var panel=group.closest('.in');
+    group.addEventListener('click',function(e){
+      var b=e.target.closest('[data-f]'); if(!b) return;
+      group.querySelectorAll('[data-f]').forEach(function(x){x.className='pill '+(x===b?'on':'out');});
+      var v=F[b.dataset.f];
+      panel.querySelector('[data-v="n"]').textContent=v[0];
+      panel.querySelector('[data-v="nl"]').textContent=v[1];
+      panel.querySelector('[data-v="km"]').textContent=v[2];
+      panel.querySelector('[data-v="t"]').textContent=v[3];
+    });
+  });
+})();
+</script>

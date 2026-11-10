@@ -1,7 +1,7 @@
-# Flair — contexte du projet (mis à jour le 20 octobre 2026)
+# Flair — contexte du projet (mis à jour le 22 octobre 2026)
 
 Document de référence pour Claude (chat, Claude Code, Claude Design). À lire avant toute proposition ou tout code.
-En cas de divergence : la spec en cours (`docs/specs/spec-v4-simplification.md`, puis `spec-v3-simplification.md`) fait foi,
+En cas de divergence : la spec en cours (`docs/specs/spec-v6-balades-komoot.md` pour les balades et le style, puis `spec-v4-simplification.md`, puis `spec-v3-simplification.md`) fait foi,
 puis ce document, puis le reste.
 
 ## 1. Le produit
@@ -71,6 +71,7 @@ Retours de Martin déjà intégrés :
 ## 6. Décisions et points ouverts
 
 Décisions (les plus récentes en haut) :
+- 22/10 (V6 « les balades façon Komoot », tickets T-077 à T-093, spec `docs/specs/spec-v6-balades-komoot.md`, prompt `docs/design/prompt-claude-code-2026-10-22.md`, étude `docs/recherche/komoot-flair.html`) : rendu façon Komoot sur toute l'app (titres en graisse moyenne, retour en chevron sans pilule, actions secondaires en texte, composant Stats) ; on garde le maximum de données Watch et iPhone, **rythme cardiaque compris** (par minute, privé) ; chiffres détaillés repliés, jamais de record ni de comparaison ; balades de la Watch qui arrivent seules (réveil par Santé + notification) ; sans Watch : accès « Mouvements et forme » ; **partage de position en direct avec des proches choisis** (et d'autres cas si besoin) : la règle devient « jamais de position en direct sans un choix explicite » ; les 3 lots enchaînés, tests iPhone ensemble à la fin.
 - 20/10 (refonte V5, tickets T-049 à T-054, prompt `docs/design/prompt-claude-code-2026-10-20.md`) : Santé version B (calendrier replié sur la semaine) ; Balades version A (un bouton « Affichage », plan par défaut, brouillard sombre, « 4 % découvert ») ; compétences en pattes + prochaine étape, **jamais « 3 sur 5 »** ; carte de l'accueil qui suit le moment de la journée ; Boutique, Meute, profil, souvenir et carte déplacés hors de l'accueil ; +3 os par balade terminée (comme un moment) ; ouverture seule après 1 s. Les 5 écrans en un seul lot. Maquettes : `docs/maquettes/V5-*.dc.html`.
 - 19/10 : produit pour des inconnus (personas), fonctions natives si elles valent leur coût.
 - 19/10 : progression de la carte affichée en pourcentage, pas en pattes.

@@ -1,0 +1,286 @@
+<title>Page Billy · trois pistes</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout : intro courte, puis 3 pistes (texte à gauche, 2 écrans à droite), puis la question. */
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --text:#18201E; --muted:#5A6662; --line:#E1E6E2;
+  --primary:#1E5A50; --primary-soft:#DCEBE6; --action:#BF5519; --gold:#F2B544; --gold-soft:#FCEFD3; --gold-text:#8A6514;
+  --danger:#B3261E; --danger-soft:#FDF1F0;
+  --display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif; --body:Figtree,"Helvetica Neue",system-ui,sans-serif;
+  --a-bg:#F3F5F2; --a-surface:#FFFFFF; --a-text:#18201E; --a-muted:#5A6662; --a-line:#E6EAE7; --a-primary:#1E5A50; --a-soft:#DCEBE6;
+  --a-action:#BF5519; --a-gold:#F2B544; --a-gold-soft:#FCEFD3; --a-gold-text:#8A6514; --a-blue:#2559A8; --a-blue-soft:#E3EAF8; --a-orange:#C2571A; --a-orange-soft:#FBE6D4;
+  --frame:#18201E;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121816; --surface:#1B2320; --text:#E8EEEA; --muted:#A3B0AB; --line:#2C3632; --primary:#7FC3B4; --primary-soft:#1F3631;
+  --action:#F08A4B; --gold-soft:#3A3220; --gold-text:#F2C96F; --danger:#F08C84; --danger-soft:#3A1F1D; --frame:#000; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121816; --surface:#1B2320; --text:#E8EEEA; --muted:#A3B0AB; --line:#2C3632; --primary:#7FC3B4; --primary-soft:#1F3631;
+  --action:#F08A4B; --gold-soft:#3A3220; --gold-text:#F2C96F; --danger:#F08C84; --danger-soft:#3A1F1D; --frame:#000; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font:400 16px/1.55 var(--body);margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 80px}
+h1,h2,h3{font-family:var(--display);font-weight:600;text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,5.5vw,50px);line-height:1.04;letter-spacing:-.02em}
+h2{font-size:clamp(24px,3.4vw,32px);line-height:1.1}
+h3{font-size:18px}
+p{margin:0}
+.eyebrow{font:700 12px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:18px;color:var(--muted);max-width:660px;margin-top:14px}
+.explain{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:28px;max-width:860px}
+@media (max-width:760px){.explain{grid-template-columns:1fr}}
+.explain>div{background:var(--surface);border-radius:20px;padding:18px;display:grid;gap:8px;align-content:start}
+.paws{display:flex;gap:6px;align-items:center}
+.muted{color:var(--muted)} .small{font-size:14px}
+section{margin-top:64px}
+.piste{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:28px;background:var(--surface);border-radius:26px;padding:28px;align-items:start}
+@media (max-width:900px){.piste{grid-template-columns:1fr}}
+.piste .txt{display:grid;gap:12px}
+.piste ul{margin:0;padding-left:18px;display:grid;gap:6px;font-size:15px}
+.chip{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:999px;font-size:13px;font-weight:700;background:var(--primary-soft);color:var(--primary)}
+.chip.warn{background:var(--danger-soft);color:var(--danger)}
+.chip.gold{background:var(--gold-soft);color:var(--gold-text)}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.board{display:flex;gap:18px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.board::-webkit-scrollbar{display:none}
+.shot{display:grid;gap:8px;flex:0 0 auto}
+.cap{font-size:13px;color:var(--muted);max-width:290px}
+.phone{width:290px;height:610px;border-radius:44px;background:var(--frame);padding:9px}
+.scr{width:100%;height:100%;border-radius:36px;overflow:hidden;background:var(--a-bg);color:var(--a-text);position:relative;font:400 13px/1.4 var(--body)}
+.sb{height:32px;display:flex;justify-content:space-between;align-items:center;padding:0 22px;font-weight:700;font-size:12px}
+.in{padding:0 14px;display:grid;gap:10px}
+.top{display:flex;justify-content:space-between;align-items:center;height:30px}
+.back{color:var(--a-primary);font-weight:700;font-size:13px}
+.lnk{color:var(--a-primary);font-weight:700;font-size:12.5px}
+.scr h4{font:600 21px/1.1 var(--display);margin:0}
+.scr h5{font:500 15px/1.2 var(--display);margin:0}
+.ov{font:700 9.5px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--a-muted)}
+.mut{color:var(--a-muted)}
+.card{background:var(--a-surface);border-radius:16px;padding:12px}
+.row{display:flex;align-items:center;gap:10px}
+.btn{position:absolute;left:14px;right:14px;bottom:70px;height:46px;border-radius:999px;background:var(--a-action);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.tab{position:absolute;left:0;right:0;bottom:0;height:58px;background:var(--a-surface);border-top:1px solid var(--a-line);display:flex;justify-content:space-around;align-items:center;font-size:10px;color:var(--a-muted)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.stat b{display:block;font:700 18px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.stat span{font-size:10.5px;color:var(--a-muted)}
+.pill{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;font-size:10.5px;font-weight:700;background:var(--a-soft);color:var(--a-primary)}
+.pill.g{background:var(--a-gold-soft);color:var(--a-gold-text)}
+.pill.b{background:var(--a-blue-soft);color:var(--a-blue)}
+.avatar{width:54px;height:54px;border-radius:50%;background:linear-gradient(140deg,#C99A5B,#8C5A2B);flex:0 0 auto;border:3px solid #fff;box-shadow:0 0 0 2px var(--a-gold)}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center;font-size:10px;color:var(--a-muted)}
+.day{width:28px;height:28px;border-radius:50%;margin:3px auto 0;display:grid;place-items:center;font-size:12px;font-weight:700}
+.d-done{background:var(--a-primary);color:#fff}
+.d-today{border:2px solid var(--a-action);color:var(--a-action)}
+.d-next{border:1.5px dashed #B5BFBB}
+.d-rest{background:var(--a-bg);color:var(--a-muted)}
+/* chemin à étapes nommées */
+.path{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:relative;margin-top:4px}
+.path::before{content:"";position:absolute;left:10%;right:10%;top:11px;height:3px;background:#E1E6E2;border-radius:2px}
+.path .fill{position:absolute;left:10%;top:11px;height:3px;background:var(--a-gold);border-radius:2px}
+.node{display:grid;justify-items:center;gap:4px;position:relative;font-size:9.5px;text-align:center;color:var(--a-muted);line-height:1.15}
+.dot{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;background:#fff;border:2px solid #D3D9D6;color:var(--a-muted)}
+.dot.ok{background:var(--a-gold);border-color:var(--a-gold);color:#3D2A00}
+.dot.now{border:2px solid var(--a-action);color:var(--a-action);background:#fff;box-shadow:0 0 0 4px rgba(191,85,25,.15)}
+.node.now{color:var(--a-text);font-weight:700}
+/* badges anneau */
+.badges{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.badge{display:grid;justify-items:center;gap:4px;text-align:center;font-size:10px;line-height:1.15;font-weight:600}
+.bar{height:6px;border-radius:3px;background:#E6EAE7;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--a-primary);border-radius:3px}
+.tl{display:grid}
+.ev{display:grid;grid-template-columns:44px 18px minmax(0,1fr);gap:8px;padding:7px 0;border-top:1px solid var(--a-line);align-items:start}
+.ev:first-child{border-top:0}
+.ev time{font-size:10.5px;font-weight:700;color:var(--a-muted);padding-top:2px}
+.tick{width:18px;height:18px;border-radius:50%;background:var(--a-gold);display:grid;place-items:center;font-size:10px;color:#3D2A00;font-weight:800}
+.questions{background:var(--primary-soft);border-radius:24px;padding:24px;display:grid;gap:10px;max-width:860px}
+.questions ol{margin:0;padding-left:20px;display:grid;gap:6px}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">T-104 · 22 octobre 2026</p>
+  <h1 style="margin-top:12px">Page Billy · trois pistes</h1>
+  <p class="lede">Ton retour : la page est devenue un profil, alors qu'elle doit d'abord donner envie de s'entraîner. Les pattes et la coupe de fin ne se comprennent pas. Voici trois directions, dans le rendu façon Komoot. Toutes gardent un seul bouton orange, « S'entraîner », et l'accès au profil par un lien discret en haut à droite.</p>
+
+  <div class="explain">
+    <div>
+      <p class="eyebrow">Ce que voulaient dire les pattes</p>
+      <div class="paws" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24"><g fill="#F2B544" stroke="#8A6514" stroke-width="1.2"><ellipse cx="12" cy="16" rx="5" ry="4"/><circle cx="6" cy="10" r="2"/><circle cx="10" cy="6.5" r="2"/><circle cx="14" cy="6.5" r="2"/><circle cx="18" cy="10" r="2"/></g></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24"><g fill="#FCEFD3" stroke="#8A6514" stroke-width="1.2" stroke-dasharray="2 2"><ellipse cx="12" cy="16" rx="5" ry="4"/><circle cx="6" cy="10" r="2"/><circle cx="10" cy="6.5" r="2"/><circle cx="14" cy="6.5" r="2"/><circle cx="18" cy="10" r="2"/></g></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24"><g fill="none" stroke="#7D8783" stroke-width="1.4"><ellipse cx="12" cy="16" rx="5" ry="4"/><circle cx="6" cy="10" r="2"/><circle cx="10" cy="6.5" r="2"/><circle cx="14" cy="6.5" r="2"/><circle cx="18" cy="10" r="2"/></g></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24"><g fill="none" stroke="#7D8783" stroke-width="1.4"><ellipse cx="12" cy="16" rx="5" ry="4"/><circle cx="6" cy="10" r="2"/><circle cx="10" cy="6.5" r="2"/><circle cx="14" cy="6.5" r="2"/><circle cx="18" cy="10" r="2"/></g></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24"><path d="M8 4h8v4a4 4 0 0 1-8 0zM12 12v4M8 20h8M10 16h4" fill="none" stroke="#7D8783" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <p class="small muted">Chaque compétence a 5 étapes. Une patte = une étape : dorée, acquise ; en pointillés, en cours ; grise, à venir. La dernière n'est pas un verre mais une coupe, le trophée de la compétence. Si ça ne se lit pas sans explication, c'est le dessin qui est en cause.</p>
+    </div>
+    <div>
+      <p class="eyebrow">Ce qui a fait perdre le côté jeu</p>
+      <p class="small muted">La V4 a retiré le niveau, les badges et l'arbre de la page. Le 21 octobre (T-072), la boutique et la meute ont été gelées. Il reste trois cartes de texte et deux tuiles de profil. Les pistes B et C font revenir une partie du jeu : c'est une décision à prendre.</p>
+    </div>
+  </div>
+
+  <!-- PISTE A -->
+  <section>
+    <div class="piste">
+      <div class="txt">
+        <p class="eyebrow">Piste A</p>
+        <h2>Le chemin d'entraînement</h2>
+        <p class="muted">La plus proche d'aujourd'hui, en plus clair. Chaque compétence devient un petit chemin aux étapes nommées, avec « On en est là ». La semaine d'entraînement passe en haut, comme une série qui ne retombe jamais.</p>
+        <ul>
+          <li>Les pattes et la coupe sont remplacées par des points reliés, chacun avec le nom court de l'étape (« Au salon », « Au jardin », « Dans la rue »…). Aucun chiffre.</li>
+          <li>La semaine : 7 ronds, plein = séance faite, orange = aujourd'hui, lune = repos. Jamais de rouge.</li>
+          <li>Toucher une compétence ouvre son chemin complet (existant).</li>
+        </ul>
+        <div class="meta"><span class="chip">Aucune règle à changer</span><span class="chip">Petit</span></div>
+      </div>
+      <div class="board">
+        <div class="shot"><div class="phone"><div class="scr">
+          <div class="sb"><span>9:41</span><span>●●●</span></div>
+          <div class="in">
+            <div class="top"><span class="back">‹ Accueil</span><span class="lnk">Son profil ›</span></div>
+            <div class="row"><div class="avatar" aria-hidden="true"></div><div><h4>Billy</h4><div class="mut">5 mois · 6 mois le 13 novembre</div></div></div>
+            <div class="card" style="display:grid;gap:6px">
+              <div class="row" style="justify-content:space-between"><h5>Sa semaine</h5><span class="mut" style="font-size:11px">4 séances</span></div>
+              <div class="week">
+                <div>L<div class="day d-done">✓</div></div><div>M<div class="day d-done">✓</div></div><div>M<div class="day d-rest">☾</div></div><div>J<div class="day d-done">✓</div></div><div>V<div class="day d-done">✓</div></div><div>S<div class="day d-today">·</div></div><div>D<div class="day d-next"></div></div>
+              </div>
+            </div>
+            <div class="ov" style="margin-top:2px">Ce qu'il apprend</div>
+            <div class="card" style="display:grid;gap:8px">
+              <h5>Revient quand on l'appelle</h5>
+              <div class="path"><span class="fill" style="width:40%"></span>
+                <div class="node"><span class="dot ok">✓</span>Au salon</div>
+                <div class="node"><span class="dot ok">✓</span>Au jardin</div>
+                <div class="node now"><span class="dot now">●</span>Au parc</div>
+                <div class="node"><span class="dot"></span>Avec un chien</div>
+                <div class="node"><span class="dot">★</span>Partout</div>
+              </div>
+            </div>
+            <div class="card" style="display:grid;gap:8px">
+              <h5>Reste calme quand il entend un chien</h5>
+              <div class="path"><span class="fill" style="width:20%"></span>
+                <div class="node"><span class="dot ok">✓</span>De loin</div>
+                <div class="node now"><span class="dot now">●</span>Plus près</div>
+                <div class="node"><span class="dot"></span>Qui aboie</div>
+                <div class="node"><span class="dot"></span>Dans la rue</div>
+                <div class="node"><span class="dot">★</span>Partout</div>
+              </div>
+            </div>
+          </div>
+          <div class="btn">S'entraîner · 3 min</div>
+          <div class="tab"><span>Balades</span><span style="color:var(--a-primary);font-weight:700">Accueil</span><span>Santé</span></div>
+        </div></div><p class="cap">Les étapes ont un nom, l'étoile marque la compétence maîtrisée.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PISTE B -->
+  <section>
+    <div class="piste">
+      <div class="txt">
+        <p class="eyebrow">Piste B</p>
+        <h2>La vitrine de badges</h2>
+        <p class="muted">La plus « jeu ». La page devient la collection de Billy : les 10 compétences en badges ronds, l'anneau de 5 segments du style guide se remplit étape par étape. Les 3 en cours sont en haut, en grand.</p>
+        <ul>
+          <li>Un badge commencé prend la couleur de son territoire ; un badge maîtrisé devient doré. Les badges à découvrir restent pâles, jamais cadenassés.</li>
+          <li>En haut, la prochaine séance avec ce qu'elle fait avancer (« ▲ Le Rappel ») et les os gagnés cette semaine.</li>
+          <li>Toucher un badge ouvre son chemin.</li>
+        </ul>
+        <div class="meta"><span class="chip warn">Fait revenir les badges (retirés en V4)</span><span class="chip gold">Le plus motivant pour Léo et les Moreau</span></div>
+      </div>
+      <div class="board">
+        <div class="shot"><div class="phone"><div class="scr">
+          <div class="sb"><span>9:41</span><span>●●●</span></div>
+          <div class="in">
+            <div class="top"><span class="back">‹ Accueil</span><span class="lnk">Son profil ›</span></div>
+            <div class="row"><div class="avatar" aria-hidden="true"></div><div><h4>Les badges de Billy</h4><div class="mut">3 en cours · 1 maîtrisé</div></div></div>
+            <div class="card row" style="justify-content:space-between">
+              <div><div class="ov">Prochaine séance · 3 min</div><h5 style="margin-top:4px">Le jeu du prénom, au parc</h5><div style="margin-top:4px" class="row"><span class="pill b">▲ Le Rappel</span><span class="pill g">+10 os</span></div></div>
+            </div>
+            <div class="ov">En cours</div>
+            <div class="badges" data-badges="cur"></div>
+            <div class="ov">Sa collection</div>
+            <div class="badges" data-badges="all"></div>
+          </div>
+          <div class="btn">S'entraîner · 3 min</div>
+          <div class="tab"><span>Balades</span><span style="color:var(--a-primary);font-weight:700">Accueil</span><span>Santé</span></div>
+        </div></div><p class="cap">L'anneau de 5 segments se lit comme une jauge, sans chiffre.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PISTE C -->
+  <section>
+    <div class="piste">
+      <div class="txt">
+        <p class="eyebrow">Piste C</p>
+        <h2>Le carnet d'entraînement</h2>
+        <p class="muted">La plus Komoot : la page ressemble à un profil de sportif. Des Stats d'entraînement, la prochaine séance, et le fil de ses progrès, daté, comme le journal des balades.</p>
+        <ul>
+          <li>Stats : séances cette semaine · minutes d'entraînement · étapes acquises ce mois (ne baissent jamais dans le mois).</li>
+          <li>Compétences en barres avec un mot : « On commence », « En route », « Presque », « Maîtrisé ».</li>
+          <li>« Ses progrès » : chaque étape acquise, chaque séance notée « Super », chaque repère « Super rappel » d'une balade.</li>
+        </ul>
+        <div class="meta"><span class="chip">Aucune règle à changer</span><span class="chip warn">Ajoute des chiffres (à valider)</span></div>
+      </div>
+      <div class="board">
+        <div class="shot"><div class="phone"><div class="scr">
+          <div class="sb"><span>9:41</span><span>●●●</span></div>
+          <div class="in">
+            <div class="top"><span class="back">‹ Accueil</span><span class="lnk">Son profil ›</span></div>
+            <div class="row"><div class="avatar" aria-hidden="true"></div><div><h4>Billy s'entraîne</h4><div class="mut">5 mois · depuis le 22 septembre</div></div></div>
+            <div class="card stats">
+              <div class="stat"><b>4</b><span>séances cette semaine</span></div>
+              <div class="stat"><b>14 min</b><span>d'entraînement</span></div>
+              <div class="stat"><b>3</b><span>étapes en octobre</span></div>
+            </div>
+            <div class="card" style="display:grid;gap:9px">
+              <div><div class="row" style="justify-content:space-between"><h5>Revient quand on l'appelle</h5><span class="mut" style="font-size:11px">En route</span></div><div class="bar" style="margin-top:6px"><i style="width:55%"></i></div></div>
+              <div><div class="row" style="justify-content:space-between"><h5>Reste calme près des chiens</h5><span class="mut" style="font-size:11px">On commence</span></div><div class="bar" style="margin-top:6px"><i style="width:22%"></i></div></div>
+              <div><div class="row" style="justify-content:space-between"><h5>Accepte le brossage</h5><span class="mut" style="font-size:11px">Presque</span></div><div class="bar" style="margin-top:6px"><i style="width:80%"></i></div></div>
+            </div>
+            <div class="card tl">
+              <h5 style="margin-bottom:4px">Ses progrès</h5>
+              <div class="ev"><time>Hier</time><span class="tick">✓</span><div><b>Revient au jardin</b><div class="mut">Étape acquise · 3 jours réussis</div></div></div>
+              <div class="ev"><time>20 oct.</time><span class="tick" style="background:var(--a-soft);color:var(--a-primary)">★</span><div><b>Super rappel en balade</b><div class="mut">Square Ampère · 8 h 17</div></div></div>
+            </div>
+          </div>
+          <div class="btn">S'entraîner · 3 min</div>
+          <div class="tab"><span>Balades</span><span style="color:var(--a-primary);font-weight:700">Accueil</span><span>Santé</span></div>
+        </div></div><p class="cap">Les progrès se lisent comme un journal, et les balades y comptent.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="questions">
+      <h3>À choisir</h3>
+      <ol>
+        <li>Quelle piste : A, B ou C ? Tu peux aussi en mélanger deux (par exemple la vitrine de B avec le fil de progrès de C).</li>
+        <li>Si B : on fait revenir les badges, retirés en V4 ?</li>
+        <li>Si C : on accepte des chiffres d'entraînement (séances, minutes, étapes du mois), qui ne baissent jamais ?</li>
+        <li>La boutique et la meute, gelées le 21 octobre : elles restent gelées ?</li>
+      </ol>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  // Anneau de badge : 5 segments (style guide), r = 37, trait 7, petits espaces.
+  function ring(n, color, soft, gold){
+    var c=2*Math.PI*37, seg=c/5, gap=4, s='<svg width="64" height="64" viewBox="0 0 90 90" aria-hidden="true">';
+    for(var i=0;i<5;i++){
+      var col=i<n?(gold?'#F2B544':color):soft;
+      s+='<circle cx="45" cy="45" r="37" fill="none" stroke="'+col+'" stroke-width="7" stroke-dasharray="'+(seg-gap)+' '+(c-seg+gap)+'" stroke-dashoffset="'+(-i*seg)+'" transform="rotate(-90 45 45)"/>';
+    }
+    s+='<circle cx="45" cy="45" r="26" fill="'+(gold?'#FCEFD3':soft)+'"/>';
+    return s+'</svg>';
+  }
+  var cur=[[2,'#2559A8','#E3EAF8','Le Rappel'],[1,'#C2571A','#FBE6D4','Les Congénères'],[4,'#1E5A50','#DCEBE6','Les Soins']];
+  var all=[[5,'#1E5A50','#DCEBE6','Le Lien',1],[0,'#1E5A50','#DCEBE6','Le Calme'],[1,'#2559A8','#E3EAF8','La Laisse'],[0,'#2559A8','#E3EAF8','Bonnes manières'],[0,'#2559A8','#E3EAF8','La Nouveauté'],[0,'#C2571A','#FBE6D4','La Ville']];
+  function fill(sel,list){var el=document.querySelector(sel);if(!el)return;el.innerHTML=list.map(function(b){return '<div class="badge">'+ring(b[0],b[1],b[2],b[4])+'<span>'+b[3]+'</span></div>';}).join('');}
+  fill('[data-badges="cur"]',cur);fill('[data-badges="all"]',all);
+})();
+</script>

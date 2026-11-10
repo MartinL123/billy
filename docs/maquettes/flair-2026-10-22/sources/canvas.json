@@ -1,0 +1,616 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-22T15:45:00Z"
+ },
+ "title": "Flair — toutes les pages",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Connexion.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Connexion"
+  },
+  "Ouverture.dc.html": {
+   "x": 470,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Ouverture"
+  },
+  "Questionnaire.dc.html": {
+   "x": 940,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Questionnaire de départ"
+  },
+  "Bienvenue.dc.html": {
+   "x": 1410,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Bienvenue"
+  },
+  "Main.dc.html": {
+   "x": 0,
+   "y": 1224,
+   "w": 390,
+   "h": 1420,
+   "title": "Accueil"
+  },
+  "Mission.dc.html": {
+   "x": 470,
+   "y": 1224,
+   "w": 390,
+   "h": 844,
+   "title": "Mission pas à pas"
+  },
+  "Exercice.dc.html": {
+   "x": 940,
+   "y": 1224,
+   "w": 390,
+   "h": 1240,
+   "title": "Exercice"
+  },
+  "Noter.dc.html": {
+   "x": 1410,
+   "y": 1224,
+   "w": 390,
+   "h": 844,
+   "title": "Noter un souvenir"
+  },
+  "CartePleinEcran.dc.html": {
+   "x": 0,
+   "y": 3024,
+   "w": 390,
+   "h": 844,
+   "title": "Balades · carte plein écran"
+  },
+  "CarteMoitie.dc.html": {
+   "x": 470,
+   "y": 3024,
+   "w": 390,
+   "h": 844,
+   "title": "Balades · panneau à mi-hauteur"
+  },
+  "Journal.dc.html": {
+   "x": 940,
+   "y": 3024,
+   "w": 390,
+   "h": 1560,
+   "title": "Balades · panneau en grand (journal)"
+  },
+  "Fiche.dc.html": {
+   "x": 1410,
+   "y": 3024,
+   "w": 390,
+   "h": 2480,
+   "title": "Fiche d'une balade"
+  },
+  "Raconter.dc.html": {
+   "x": 1880,
+   "y": 3024,
+   "w": 390,
+   "h": 844,
+   "title": "Raconter la balade"
+  },
+  "Recadrer.dc.html": {
+   "x": 2350,
+   "y": 3024,
+   "w": 390,
+   "h": 844,
+   "title": "Ajuster le début et la fin"
+  },
+  "BelleBalade.dc.html": {
+   "x": 2820,
+   "y": 3024,
+   "w": 390,
+   "h": 844,
+   "title": "Belle balade !"
+  },
+  "BaladeEnCours.dc.html": {
+   "x": 3290,
+   "y": 3024,
+   "w": 390,
+   "h": 844,
+   "title": "Balade en cours"
+  },
+  "Boucle.dc.html": {
+   "x": 3760,
+   "y": 3024,
+   "w": 390,
+   "h": 844,
+   "title": "Idée de balade"
+  },
+  "Importer.dc.html": {
+   "x": 4230,
+   "y": 3024,
+   "w": 390,
+   "h": 870,
+   "title": "Importer ses balades"
+  },
+  "ImportResultat.dc.html": {
+   "x": 4700,
+   "y": 3024,
+   "w": 390,
+   "h": 880,
+   "title": "Résultat de l'import"
+  },
+  "ModifierSouvenir.dc.html": {
+   "x": 5170,
+   "y": 3024,
+   "w": 390,
+   "h": 870,
+   "title": "Modifier un souvenir"
+  },
+  "Sante.dc.html": {
+   "x": 0,
+   "y": 5884,
+   "w": 390,
+   "h": 1440,
+   "title": "Santé"
+  },
+  "Evenements.dc.html": {
+   "x": 470,
+   "y": 5884,
+   "w": 390,
+   "h": 870,
+   "title": "Tous les événements"
+  },
+  "Poids.dc.html": {
+   "x": 940,
+   "y": 5884,
+   "w": 390,
+   "h": 844,
+   "title": "Poids"
+  },
+  "Repas.dc.html": {
+   "x": 1410,
+   "y": 5884,
+   "w": 390,
+   "h": 844,
+   "title": "Repas"
+  },
+  "Documents.dc.html": {
+   "x": 1880,
+   "y": 5884,
+   "w": 390,
+   "h": 844,
+   "title": "Documents"
+  },
+  "NouvelEvenement.dc.html": {
+   "x": 2350,
+   "y": 5884,
+   "w": 390,
+   "h": 970,
+   "title": "Nouvel événement"
+  },
+  "NouveauDocument.dc.html": {
+   "x": 2820,
+   "y": 5884,
+   "w": 390,
+   "h": 844,
+   "title": "Nouveau document"
+  },
+  "Billy.dc.html": {
+   "x": 0,
+   "y": 7704,
+   "w": 390,
+   "h": 1560,
+   "title": "Billy"
+  },
+  "Competence.dc.html": {
+   "x": 470,
+   "y": 7704,
+   "w": 390,
+   "h": 1150,
+   "title": "Une compétence"
+  },
+  "EnCours.dc.html": {
+   "x": 940,
+   "y": 7704,
+   "w": 390,
+   "h": 1300,
+   "title": "Changer ce qu'il apprend"
+  },
+  "Profil.dc.html": {
+   "x": 0,
+   "y": 9644,
+   "w": 390,
+   "h": 2460,
+   "title": "Son profil"
+  },
+  "ProfilModifier.dc.html": {
+   "x": 470,
+   "y": 9644,
+   "w": 390,
+   "h": 1480,
+   "title": "Modifier le profil"
+  },
+  "Installer.dc.html": {
+   "x": 940,
+   "y": 9644,
+   "w": 390,
+   "h": 870,
+   "title": "Mettre l'app sur son téléphone"
+  },
+  "Photo.dc.html": {
+   "x": 5640,
+   "y": 3024,
+   "w": 390,
+   "h": 844,
+   "title": "Photo en grand"
+  },
+  "FicheCarte.dc.html": {
+   "x": 6110,
+   "y": 3024,
+   "w": 390,
+   "h": 844,
+   "title": "Fiche · carte en grand"
+  },
+  "Revoir.dc.html": {
+   "x": 6580,
+   "y": 3024,
+   "w": 390,
+   "h": 844,
+   "title": "Revoir la balade"
+  }
+ },
+ "order": [
+  "Main.dc.html",
+  "Connexion.dc.html",
+  "Ouverture.dc.html",
+  "Questionnaire.dc.html",
+  "Bienvenue.dc.html",
+  "Mission.dc.html",
+  "Exercice.dc.html",
+  "Noter.dc.html",
+  "CartePleinEcran.dc.html",
+  "CarteMoitie.dc.html",
+  "Journal.dc.html",
+  "Fiche.dc.html",
+  "Raconter.dc.html",
+  "Recadrer.dc.html",
+  "BelleBalade.dc.html",
+  "BaladeEnCours.dc.html",
+  "Boucle.dc.html",
+  "Importer.dc.html",
+  "ImportResultat.dc.html",
+  "ModifierSouvenir.dc.html",
+  "Sante.dc.html",
+  "Evenements.dc.html",
+  "Poids.dc.html",
+  "Repas.dc.html",
+  "Documents.dc.html",
+  "NouvelEvenement.dc.html",
+  "NouveauDocument.dc.html",
+  "Billy.dc.html",
+  "Competence.dc.html",
+  "EnCours.dc.html",
+  "Profil.dc.html",
+  "ProfilModifier.dc.html",
+  "Installer.dc.html",
+  "Photo.dc.html",
+  "FicheCarte.dc.html",
+  "Revoir.dc.html"
+ ],
+ "notes": {
+  "t-entree": {
+   "x": 0,
+   "y": -260,
+   "text": "Entrée dans l'app",
+   "kind": "title1",
+   "maxW": 1800
+  },
+  "t-accueil": {
+   "x": 0,
+   "y": 964,
+   "text": "Accueil et missions",
+   "kind": "title1",
+   "maxW": 1800
+  },
+  "t-balades": {
+   "x": 0,
+   "y": 2764,
+   "text": "Balades",
+   "kind": "title1",
+   "maxW": 6970
+  },
+  "t-sante": {
+   "x": 0,
+   "y": 5624,
+   "text": "Santé",
+   "kind": "title1",
+   "maxW": 3210
+  },
+  "t-billy": {
+   "x": 0,
+   "y": 7444,
+   "text": "Billy et ses entraînements",
+   "kind": "title1",
+   "maxW": 1330
+  },
+  "t-profil": {
+   "x": 0,
+   "y": 9384,
+   "text": "Profil et réglages",
+   "kind": "title1",
+   "maxW": 1330
+  },
+  "n-intro": {
+   "x": -560,
+   "y": 0,
+   "text": "Toutes les pages actives de Flair au 22 octobre 2026. Chaque écran porte une étiquette : vert = Prod, comme l'app actuelle (rendu V6) ; bleu = maquette V6.1 validée, à construire ; jaune = proposition, pas encore dans l'app. Commentez n'importe quel élément pour le retravailler.",
+   "w": 420,
+   "fill": "green"
+  },
+  "tag-Connexion": {
+   "x": 0,
+   "y": -150,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Ouverture": {
+   "x": 470,
+   "y": -150,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Questionnaire": {
+   "x": 940,
+   "y": -150,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Bienvenue": {
+   "x": 1410,
+   "y": -150,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Main": {
+   "x": 0,
+   "y": 1074,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Mission": {
+   "x": 470,
+   "y": 1074,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Exercice": {
+   "x": 940,
+   "y": 1074,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Noter": {
+   "x": 1410,
+   "y": 1074,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-CartePleinEcran": {
+   "x": 0,
+   "y": 2874,
+   "text": "V6.1 validé · à construire",
+   "w": 390,
+   "fill": "blue"
+  },
+  "tag-CarteMoitie": {
+   "x": 470,
+   "y": 2874,
+   "text": "V6.1 validé · à construire",
+   "w": 390,
+   "fill": "blue"
+  },
+  "tag-Journal": {
+   "x": 940,
+   "y": 2874,
+   "text": "V6.1 validé · à construire",
+   "w": 390,
+   "fill": "blue"
+  },
+  "tag-Fiche": {
+   "x": 1410,
+   "y": 2874,
+   "text": "V6.1 validé · à construire",
+   "w": 390,
+   "fill": "blue"
+  },
+  "tag-Raconter": {
+   "x": 1880,
+   "y": 2874,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Recadrer": {
+   "x": 2350,
+   "y": 2874,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-BelleBalade": {
+   "x": 2820,
+   "y": 2874,
+   "text": "V6.1 validé · à construire",
+   "w": 390,
+   "fill": "blue"
+  },
+  "tag-BaladeEnCours": {
+   "x": 3290,
+   "y": 2874,
+   "text": "Proposition · pas encore dans l'app",
+   "w": 390,
+   "fill": "yellow"
+  },
+  "tag-Boucle": {
+   "x": 3760,
+   "y": 2874,
+   "text": "Proposition · pas encore dans l'app",
+   "w": 390,
+   "fill": "yellow"
+  },
+  "tag-Importer": {
+   "x": 4230,
+   "y": 2874,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-ImportResultat": {
+   "x": 4700,
+   "y": 2874,
+   "text": "V6.1 validé · à construire",
+   "w": 390,
+   "fill": "blue"
+  },
+  "tag-ModifierSouvenir": {
+   "x": 5170,
+   "y": 2874,
+   "text": "V6.1 validé · à construire",
+   "w": 390,
+   "fill": "blue"
+  },
+  "tag-Sante": {
+   "x": 0,
+   "y": 5734,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Evenements": {
+   "x": 470,
+   "y": 5734,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Poids": {
+   "x": 940,
+   "y": 5734,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Repas": {
+   "x": 1410,
+   "y": 5734,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Documents": {
+   "x": 1880,
+   "y": 5734,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-NouvelEvenement": {
+   "x": 2350,
+   "y": 5734,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-NouveauDocument": {
+   "x": 2820,
+   "y": 5734,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Billy": {
+   "x": 0,
+   "y": 7554,
+   "text": "V6.1 validé · à construire",
+   "w": 390,
+   "fill": "blue"
+  },
+  "tag-Competence": {
+   "x": 470,
+   "y": 7554,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-EnCours": {
+   "x": 940,
+   "y": 7554,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Profil": {
+   "x": 0,
+   "y": 9494,
+   "text": "Validé · à construire (diffère de la prod)",
+   "w": 390,
+   "fill": "blue"
+  },
+  "tag-ProfilModifier": {
+   "x": 470,
+   "y": 9494,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Installer": {
+   "x": 940,
+   "y": 9494,
+   "text": "Prod · comme l'app actuelle",
+   "w": 390,
+   "fill": "green"
+  },
+  "tag-Photo": {
+   "x": 5640,
+   "y": 2874,
+   "text": "V6.1 validé · à construire",
+   "w": 390,
+   "fill": "blue"
+  },
+  "tag-FicheCarte": {
+   "x": 6110,
+   "y": 2874,
+   "text": "V6.1 validé · à construire",
+   "w": 390,
+   "fill": "blue"
+  },
+  "tag-Revoir": {
+   "x": 6580,
+   "y": 2874,
+   "text": "V6.1 validé · à construire",
+   "w": 390,
+   "fill": "blue"
+  }
+ },
+ "designSystems": [
+  {
+   "title": "Flair",
+   "namespace": "flair",
+   "artifact": "https://claude.ai/artifact/MJMiKuL47wSjTVYpbtqdWx",
+   "version": "1792493190-6079",
+   "copiedAt": "2026-10-22T15:45:00Z"
+  }
+ ]
+}

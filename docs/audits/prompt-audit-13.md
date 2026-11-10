@@ -45,3 +45,8 @@ Mêmes règles : un commit par ticket, ticket en « Révision du code » avec un
 - `SHOW_BONES = false` (un seul interrupteur) : plus de « +3 os » ni de solde affiché nulle part. Les os restent comptés.
 
 Non retenu : la roue « Réglages » sur l'accueil (les réglages restent dans Son profil).
+
+## R-113 · Textes (recette web du 10 nov.)
+- Billy › Ses badges : retirer « 1/5 », « 3/5 » ; des pattes (ou rien), VoiceOver : « 3 étapes acquises ».
+- Son profil › Sorties : « Elles se cochent toutes seules avec vos balades et les sorties repérées par l'iPhone. »
+- Son profil, bas : « Version du 10 novembre à 14 h 22 » (fonction d'heure commune).

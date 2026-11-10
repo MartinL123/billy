@@ -9,7 +9,7 @@ const TODAY = '2026-10-23' // un vendredi
 
 const input = () => ({
   walks: [walk('a', '2026-10-21', 2400, '2026-10-21T07:02:00Z'), walk('b', '2026-10-18', 2000), walk('c', '2026-10-17', 2800)],
-  outings: [{ id: '2026-10-23:matin', date: '2026-10-23', slot: 'matin' as const, minutes: 35, time: '08:00' }],
+  outings: [{ id: '2026-10-23:matin', date: '2026-10-23', slot: 'matin' as const, minutes: 35, time: '08:00', name: 'Sortie du matin' }],
   entries: [
     { id: 'souv', date: TODAY, text: 'Premier tour au parc\nIl a reniflé un pigeon.', photos: [{ thumbFileId: 't1' }], feeling: 'super', createdAt: `${TODAY}T09:30:00Z` },
     { id: 'seance', date: TODAY, text: 'Au calme, 3 minutes.', photos: [], skills: ['lien'], feeling: 'super', createdAt: `${TODAY}T10:30:00Z` },

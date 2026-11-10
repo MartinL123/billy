@@ -72,6 +72,9 @@ export function walkName(time: string): string {
   return 'la sortie du soir'
 }
 
+/** R-107 : « Sortie de l’après-midi » : le nom, avec majuscule, d’une sortie partie à `time` (accueil, journal, fiche). */
+export const sortieName = (time: string) => walkName(time).replace(/^la s/, 'S')
+
 /** « 8 h », « 13 h 30 ». */
 export function formatHour(time: string): string {
   const [h, m] = time.split(':')

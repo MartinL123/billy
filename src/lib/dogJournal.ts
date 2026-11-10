@@ -3,7 +3,7 @@ import { isTrainingEntry, notedExercise, notedMinutes } from './billyPage'
 import { diffDays, formatDayHeading, formatLong, parseISO, type ISODate } from './dates'
 import { feelingLabel } from './moment'
 import type { NotedOuting } from './notedOutings'
-import { outingAbout, outingName } from './notedOutings'
+import { outingAbout } from './notedOutings'
 import { distanceLabel } from './walkingBouts'
 import { walkInstant, weekStart, type WalkItem } from './walkList'
 
@@ -87,7 +87,7 @@ function careTitle(e: Pick<EventLike, 'title' | 'type'>): string {
 export function journalItems<W extends Pick<WalkItem, 'id' | 'date' | 'route'>>({ walks, outings, entries, events, weights }: { walks: W[]; outings: NotedOuting[]; entries: EntryLike[]; events: EventLike[]; weights: WeightLike[] }): JournalItem<W>[] {
   const items: JournalItem<W>[] = []
   for (const walk of walks) items.push({ kind: 'walk', id: walk.id, date: walk.date, at: walkInstant(walk), walk })
-  for (const o of outings) items.push({ kind: 'outing', id: o.id, date: o.date, at: o.time ? new Date(`${o.date}T${o.time}:00`).getTime() : noon(o.date), outing: o, title: `${outingName(o.slot)} · ${o.minutes} min`, line: (o.iphoneMeters ? ['Repérée par l’iPhone', distanceLabel(o.iphoneMeters), outingAbout(o)] : ['Notée sans trajet', outingAbout(o)]).filter(Boolean).join(', ') })
+  for (const o of outings) items.push({ kind: 'outing', id: o.id, date: o.date, at: o.time ? new Date(`${o.date}T${o.time}:00`).getTime() : noon(o.date), outing: o, title: `${o.name} · ${o.minutes} min`, line: (o.iphoneMeters ? ['Repérée par l’iPhone', distanceLabel(o.iphoneMeters), outingAbout(o)] : ['Notée sans trajet', outingAbout(o)]).filter(Boolean).join(', ') })
   for (const e of entries) {
     if (e.route?.points?.length || AUTO.some((p) => e.id.startsWith(p))) continue
     const at = instant(e.createdAt, e.date)

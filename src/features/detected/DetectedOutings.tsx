@@ -9,11 +9,10 @@ import { dogName } from '../../lib/dogName'
 import { shouldSync } from '../../lib/watch'
 import { bannerLine, detectOutings, LOOKBACK_DAYS, newDetected, outingCardLine, pendingOutings, type PendingOuting } from '../../lib/walkingBouts'
 import { useToday } from '../../lib/useToday'
-import { walkTimes } from '../../lib/walks'
+import { sortieName, walkTimes } from '../../lib/walks'
 import { withTimeout } from '../../lib/timeout'
 import { isNative } from '../../native'
 import { FlairNative, haptic } from '../../native/flair'
-import { outingName } from '../../lib/notedOutings'
 import { watchOptedIn } from '../balades/watchImport'
 
 // T-121 (app iOS) : les sorties faites iPhone en poche, sans séance Watch, repérées dans la distance à pied de Santé.
@@ -106,7 +105,7 @@ function DetectedSheet({ outings, onClose }: { outings: PendingOuting[]; onClose
     const amount = gains.reduce((sum, g) => sum + g.amount, 0)
     if (status === 'yes') {
       haptic('success')
-      toast(amount ? <BonesGained label={`${outingName(o.slot)} notée`} amount={amount} /> : `${outingName(o.slot)} notée`, undefined, amount ? { bones: true } : undefined)
+      toast(amount ? <BonesGained label={`${sortieName(o.time)} notée`} amount={amount} /> : `${sortieName(o.time)} notée`, undefined, amount ? { bones: true } : undefined)
     }
     setAnswers((a) => ({ ...a, [o.start]: { status, bones: amount } }))
   }
@@ -122,7 +121,7 @@ function DetectedSheet({ outings, onClose }: { outings: PendingOuting[]; onClose
             <li key={o.start} className="flex flex-col gap-2.5 rounded-card border border-solid border-[#E6EAE7] px-4 py-3.5">
               <span className="flex flex-col">
                 <b className="text-[1rem] leading-snug">{outingCardLine(o)}</b>
-                <span className="text-[0.8824rem] leading-snug text-[#3F4946]">{outingName(o.slot)}</span>
+                <span className="text-[0.8824rem] leading-snug text-[#3F4946]">{sortieName(o.time)}</span>
               </span>
               {done ? (
                 <p role="status" className="flex min-h-11 items-center gap-2 text-[0.8824rem] font-bold text-primary">

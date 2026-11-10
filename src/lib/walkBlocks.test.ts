@@ -93,8 +93,14 @@ describe('R-095 · les sorties notées sans trajet', () => {
     const entries = [{ route: {}, walkSlot: { date: '2026-10-23', creneau: 'midi' } }]
     const out = notedOutings(days, entries)
     expect(out.map((o) => o.id)).toEqual(['2026-10-23:matin', '2026-10-22:soir'])
-    expect(out[0]).toEqual({ id: '2026-10-23:matin', date: '2026-10-23', slot: 'matin', minutes: 35, time: '08:00' })
-    expect(outingName('matin')).toBe('Sortie du matin')
+    expect(out[0]).toEqual({ id: '2026-10-23:matin', date: '2026-10-23', slot: 'matin', minutes: 35, time: '08:00', name: 'Sortie du matin' })
+    // R-107 : le nom suit l’heure de départ ; sans heure, l’heure réglée du créneau.
+    const times = { matin: '08:00', midi: '13:00', soir: '19:00' }
+    expect(outingName('matin', '10:45', times)).toBe('Sortie du matin')
+    expect(outingName('midi', '13:35', times)).toBe('Sortie de midi')
+    expect(outingName('midi', '16:25', times)).toBe('Sortie de l’après-midi')
+    expect(outingName('soir', '21:30', times)).toBe('Sortie du soir')
+    expect(outingName('midi', undefined, { ...times, midi: '14:30' })).toBe('Sortie de l’après-midi')
     expect(outingAbout(out[0]!)).toBe('vers 8 h')
     expect(outingAbout({})).toBe('')
   })

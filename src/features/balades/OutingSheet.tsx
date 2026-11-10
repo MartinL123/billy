@@ -9,7 +9,7 @@ import { useReadOnly } from '../../firebase/viewer'
 import { formatDuration } from '../../lib/balade'
 import { formatDayHeading } from '../../lib/dates'
 import { dogName } from '../../lib/dogName'
-import { outingAbout, outingName, type NotedOuting } from '../../lib/notedOutings'
+import { outingAbout, type NotedOuting } from '../../lib/notedOutings'
 import { walkTimes } from '../../lib/walks'
 import { NoteSheet } from '../today/WalkDayCard'
 
@@ -23,7 +23,7 @@ export function OutingSheet({ outing, backLabel, onBack, onDeleted }: { outing: 
   const readOnly = useReadOnly()
   const [editing, setEditing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const name = outingName(outing.slot)
+  const name = outing.name
   const time = outing.time ?? walkTimes(dog.walkTimes)[outing.slot]
 
   return (

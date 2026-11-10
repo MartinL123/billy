@@ -14,7 +14,7 @@ import { useToday } from '../../lib/useToday'
 import { lateLabel } from '../../lib/events'
 import { nextVetVisit } from '../../lib/health'
 import { walkItems } from '../../lib/walkList'
-import { formatHour, walkName, walkTimes, type WalkSlot } from '../../lib/walks'
+import { formatHour, sortieName, walkTimes, type WalkSlot } from '../../lib/walks'
 import { InstallBanner, installBannerVisible, PasswordPrompt } from '../account/HomeNotices'
 import { DogPhoto } from '../shop/DogPhoto'
 import { Illustration } from '../training/Illustration'
@@ -176,7 +176,7 @@ function useCardContent(card: NowCard, onWeighLater: () => void, onNote: (slot: 
       }
     // La sortie du moment (V5) : partir en balade (app iOS) ou la noter (web) ; « Déjà faite » la note sans tracé.
     case 'sortie': {
-      const name = walkName(card.time).replace(/^la s/, 'S')
+      const name = sortieName(card.time)
       return {
         badge: `${name} · ${formatHour(card.time)}`,
         title: `C’est l’heure de sortir ${dogName(dog)}`,
@@ -297,7 +297,7 @@ export default function Today() {
     weighing: { due: weighingDue({ today, birthDate: dog.birthDate, lastWeighed: weights[0]?.date, postponedOn: weighLater }), ...(weights[0] ? { last: weights[0].date } : {}) },
   }
   const card = nowCard(input)
-  const note = (date: string, slot: WalkSlot, minutes?: number) => setNoting({ date, slot, time: times[slot], name: walkName(times[slot]).replace(/^la s/, 'S'), ...(input.budget ? { advised: input.budget.perWalk } : {}), ...(minutes ? { minutes } : {}) })
+  const note = (date: string, slot: WalkSlot, minutes?: number) => setNoting({ date, slot, time: times[slot], name: sortieName(times[slot]), ...(input.budget ? { advised: input.budget.perWalk } : {}), ...(minutes ? { minutes } : {}) })
   const content = useCardContent(card, postponeWeighing, (slot) => note(today, slot), input.budget?.next)
   const walkPlan = walkDayPlan({ times, done: walksDone, walks: todayWalks, budget: input.budget, now })
   const fromOpening = Boolean((location.state as { fromOpening?: boolean } | null)?.fromOpening)

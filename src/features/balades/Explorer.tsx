@@ -32,6 +32,7 @@ import { useGrantedPosition } from '../../lib/useGrantedPosition'
 import { formatRouteDistance } from '../../lib/route'
 import { journalOnMap, lowAsJournal, outingOnMap, panelMode, walkOnMap, type PanelKind } from '../../lib/mapPanel'
 import { notedOutings } from '../../lib/notedOutings'
+import { walkTimes } from '../../lib/walks'
 import { OutingSheet } from './OutingSheet'
 import { photoPins, type PhotoPin } from '../../lib/walkFiche'
 import { replaySpan } from '../../lib/walkReplay'
@@ -171,7 +172,7 @@ export default function Explorer() {
   const walkRoute = useMemo(() => readRoute(walkEntry?.route), [walkEntry?.route])
   const canReplay = Boolean(walkRoute && replaySpan(walkRoute))
   // R-095 : une sortie notée sans trajet ouvre sa petite fiche dans le panneau (la carte reste sur toutes les balades).
-  const outings = useMemo(() => notedOutings(walkDays, entries), [walkDays, entries])
+  const outings = useMemo(() => notedOutings(walkDays, entries, walkTimes(dog.walkTimes)), [walkDays, entries, dog.walkTimes])
   const outing = mode.kind === 'outing' ? outings.find((o) => o.id === mode.id) : undefined
   // R-098 : tout ce que montre le journal (les balades suivent le filtre venu de « Ses balades »).
   const items = useMemo(() => journalItems({ walks: shown, outings, entries, events, weights }), [shown, outings, entries, events, weights])

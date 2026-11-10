@@ -22,7 +22,7 @@ import { entryInLocalCache, noteWalk } from '../../firebase/imports'
 import { todayISO } from '../../lib/dates'
 import { recoverFromFirestoreCrash } from '../../firebase/recover'
 import { useToday } from '../../lib/useToday'
-import { slotForStart, walkName, walkTimes, WALK_SLOTS, type WalkSlot } from '../../lib/walks'
+import { slotForStart, sortieName, walkTimes, WALK_SLOTS, type WalkSlot } from '../../lib/walks'
 import { isNative } from '../../native'
 import { FlairNative, readHealthWindow } from '../../native/flair'
 import { watchOptedIn } from './watchImport'
@@ -353,7 +353,7 @@ export default function LiveWalk() {
   // La sortie à laquelle la balade se rattache, et sa durée conseillée : « Ses 15 min du soir sont faites ».
   const times = walkTimes(dog.walkTimes)
   const slot = startedAt ? slotForStart(times, parisMinutes(startedAt)) : undefined
-  const slotLabel = slot ? walkName(times[slot]).replace(/^la s/, 'S') : undefined
+  const slotLabel = slot ? sortieName(times[slot]) : undefined
   const todayWalk = walks.find((w) => w.date === today)
   const budget = dayBudget({ birthDate: dog.birthDate, today, times, done: todayWalk?.done ?? {}, walks: walksOfDay(entries, today, todayWalk?.noted), now: minutesOfDay(new Date()) })
   const advised = budget?.perWalk

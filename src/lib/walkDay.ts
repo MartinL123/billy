@@ -1,6 +1,6 @@
 import { minutesLabel, walkBudget, type WalkBudget } from './walkBudget'
 import { parisMinutes } from './activity'
-import { formatHour, slotForStart, timeToMinutes, walkName, WALK_SLOTS, type WalkSlot, type WalkTimes } from './walks'
+import { formatHour, slotForStart, timeToMinutes, sortieName, WALK_SLOTS, type WalkSlot, type WalkTimes } from './walks'
 
 // « Ses sorties du jour » (T-035) : les 3 sorties avec leur durée (faite ou conseillée), le temps de marche du jour et
 // un conseil. Les chiffres se lisent d'un coup : ce qui est fait, ce qui reste, pourquoi.
@@ -43,7 +43,7 @@ export function upcomingSlots(times: WalkTimes, done: Partial<Record<WalkSlot, s
 export function walkDayPlan({ times, done, walks, budget, now }: { times: WalkTimes; done: Partial<Record<WalkSlot, string>>; /** Les balades du jour : leur créneau (si connu) et leur durée. */ walks: { slot?: string; minutes?: number; noted?: boolean }[]; budget?: WalkBudget; now: number }): WalkDayPlan {
   const upcoming = upcomingSlots(times, done, now)
   const slots = WALK_SLOTS.map(({ id }): WalkDaySlot => {
-    const base = { slot: id, hour: formatHour(times[id]), name: walkName(times[id]).replace(/^la s/, 'S') }
+    const base = { slot: id, hour: formatHour(times[id]), name: sortieName(times[id]) }
     if (done[id]) {
       const own = walks.filter((w) => w.slot === id && w.minutes)
       const minutes = own.reduce((sum, w) => sum + w.minutes!, 0)

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { activeShare, cleanProche, followLink, followSentence, followTokenFromHash, formatSince, isToken, liveExpired, newToken, pushDue, sharesToDelete, updatedSentence, walkLiveStatus, withNames } from './liveShare'
+import { activeShare, liveTrack, MAX_TRACK_POINTS, trackShown, tracksToClear, cleanProche, followLink, followSentence, followTokenFromHash, formatSince, isToken, liveExpired, newToken, pushDue, sharesToDelete, updatedSentence, walkLiveStatus, withNames } from './liveShare'
 
 const NOW = Date.parse('2026-10-22T08:30:00+02:00')
 const ago = (ms: number) => new Date(NOW - ms).toISOString()
@@ -81,8 +81,8 @@ describe('les partages du compte', () => {
 
   it('une mise à jour par minute au plus', () => {
     expect(pushDue(undefined, NOW)).toBe(true)
-    expect(pushDue(NOW - 59_000, NOW)).toBe(false)
-    expect(pushDue(NOW - 60_000, NOW)).toBe(true)
+    expect(pushDue(NOW - 14_000, NOW)).toBe(false)
+    expect(pushDue(NOW - 15_000, NOW)).toBe(true)
   })
 
   it('« avec Coralie et Paul »', () => {
@@ -102,5 +102,48 @@ describe('les partages du compte', () => {
     expect(cleanProche({ name: '  Coralie ', contact: ' 06 12 34 56 78 ' }, 'p1')).toEqual({ id: 'p1', name: 'Coralie', contact: '06 12 34 56 78' })
     expect(cleanProche({ name: 'Paul', contact: '' }, 'p2')).toEqual({ id: 'p2', name: 'Paul' })
     expect(cleanProche({ name: ' ', contact: 'x@y.fr' }, 'p3')).toBeUndefined()
+  })
+})
+
+describe('T-123 · le tracé derrière le point', () => {
+  /** Une marche vers le nord, un point tous les `m` mètres. */
+  const walk = (count: number, m: number) => Array.from({ length: count }, (_, i) => ({ lat: 48.9 + (i * m) / 111_195, lng: 2.333333333 }))
+
+  it('simplifié à 10 m, 5 décimales, du départ au dernier point', () => {
+    const t = liveTrack(walk(101, 2))
+    // 200 m : un point tous les 10 à 12 m (pas de 2 m), plus le dernier.
+    expect(t.lat.length).toBeGreaterThanOrEqual(17)
+    expect(t.lat.length).toBeLessThanOrEqual(21)
+    expect(t.lng.every((x) => x === 2.33333)).toBe(true)
+    expect(t.lat[0]).toBe(48.9)
+    expect(t.lat[t.lat.length - 1]).toBeCloseTo(48.9 + 200 / 111_195, 5)
+  })
+
+  it('au-delà de 4 000 points : simplifié plus fort ; reste loin de 900 Ko', () => {
+    // 3 h de marche, un point par seconde, 1,3 m entre deux : ~14 km.
+    const t = liveTrack(walk(10_800, 1.3))
+    expect(t.lat.length).toBeLessThanOrEqual(MAX_TRACK_POINTS)
+    expect(t.lat.length).toBeGreaterThan(1000)
+    expect(JSON.stringify(t).length).toBeLessThan(900_000)
+    // Un tracé de 40 km sans pause : toujours sous la limite.
+    expect(liveTrack(walk(40_000, 1)).lat.length).toBeLessThanOrEqual(MAX_TRACK_POINTS)
+  })
+
+  it('montré pendant la balade, puis 1 h après la fin', () => {
+    const track = { lat: [48.9, 48.901], lng: [2.33, 2.33] }
+    expect(trackShown({ track, status: 'en cours' }, NOW)).toEqual([[48.9, 2.33], [48.901, 2.33]])
+    expect(trackShown({ track, status: 'terminée', endsAt: ago(59 * 60_000) }, NOW)).toHaveLength(2)
+    expect(trackShown({ track, status: 'terminée', endsAt: ago(60 * 60_000) }, NOW)).toEqual([])
+    expect(trackShown({ status: 'en cours' }, NOW)).toEqual([])
+  })
+
+  it('effacé 1 h après la fin, une fois', () => {
+    const shares = [
+      { token: 'a', startedAt: ago(3 * 3600_000), with: ['Coralie'], endedAt: ago(2 * 3600_000) },
+      { token: 'b', startedAt: ago(3 * 3600_000), with: ['Paul'], endedAt: ago(30 * 60_000) },
+      { token: 'c', startedAt: ago(3 * 3600_000), with: ['Paul'], endedAt: ago(2 * 3600_000), trackCleared: true },
+      { token: 'd', startedAt: ago(600_000), with: ['Paul'] },
+    ]
+    expect(tracksToClear(shares, NOW).map((s) => s.token)).toEqual(['a'])
   })
 })

@@ -1,3 +1,4 @@
+import { distanceMeters } from './community'
 import { formatRouteDistance } from './route'
 
 // Partage en direct (T-087, spec V6 § 7) : un lien secret vers live/{jeton}, ouvert sans compte. Le jeton fait office
@@ -5,7 +6,13 @@ import { formatRouteDistance } from './route'
 
 export type LiveStatus = 'en cours' | 'pause' | 'terminée'
 
-/** live/{jeton} : ce que voit la page « Suivre ». Aucune autre donnée (ni tracé, ni proches). */
+/** T-123 : le tracé depuis le départ, en deux listes (5 décimales, simplifié à 10 m). */
+export interface LiveTrack {
+  lat: number[]
+  lng: number[]
+}
+
+/** live/{jeton} : ce que voit la page « Suivre ». Aucune autre donnée (ni proches, ni souvenirs). */
 export interface LiveDoc {
   ownerUid: string
   dogName: string
@@ -19,6 +26,8 @@ export interface LiveDoc {
   distanceM: number
   status: LiveStatus
   endsAt?: string
+  /** T-123 : le tracé complet derrière le point ; gardé 1 h après la fin, puis effacé. */
+  track?: LiveTrack
 }
 
 /** Un proche (Profil › Mes proches) : prénom et numéro ou e-mail. */
@@ -35,6 +44,8 @@ export interface LiveShareRef {
   /** Prénoms des proches choisis : « Partagé en direct avec Coralie ». */
   with: string[]
   endedAt?: string
+  /** T-123 : le tracé de live/{jeton} effacé (1 h après la fin). */
+  trackCleared?: boolean
 }
 
 /**
@@ -47,8 +58,13 @@ export interface LivePrivate {
   liveShares?: LiveShareRef[]
 }
 
-/** Mise à jour de la position : toutes les 60 s (≈ 60 écritures par heure). */
-export const PUSH_MS = 60_000
+/** T-123 : mise à jour de la position et du tracé toutes les 15 s (≈ 240 écritures par heure de balade). */
+export const PUSH_MS = 15_000
+/** T-123 : le tracé reste visible 1 h après la fin, puis il est effacé. */
+export const TRACK_KEEP_MS = 3600_000
+/** T-123 : au-delà, le tracé est simplifié plus fort (le document reste loin de 900 Ko). */
+export const MAX_TRACK_POINTS = 4000
+const TRACK_STEP_M = 10
 /** Un partage terminé (ou oublié) disparaît 24 h après. */
 export const KEEP_MS = 24 * 3600_000
 /** On choisit une ou deux personnes. */
@@ -127,7 +143,7 @@ export function sharesToDelete(shares: LiveShareRef[] | undefined, now: number):
   return (shares ?? []).filter((s) => now - Date.parse(s.endedAt ?? s.startedAt) >= KEEP_MS)
 }
 
-/** Une mise à jour est due : jamais plus d’une par minute. */
+/** Une mise à jour est due : jamais plus d’une toutes les 15 s. */
 export const pushDue = (lastPush: number | undefined, now: number) => lastPush === undefined || now - lastPush >= PUSH_MS
 
 /** « Coralie », « Coralie et Paul ». */
@@ -146,3 +162,42 @@ export function cleanProche(input: { name: string; contact: string }, id: string
   const contact = input.contact.trim().slice(0, 80)
   return { id, name, ...(contact ? { contact } : {}) }
 }
+
+const round5 = (n: number) => Math.round(n * 1e5) / 1e5
+
+/** Un point tous les `step` m au moins (le premier et le dernier gardés). */
+function thin(points: { lat: number; lng: number }[], step: number): { lat: number; lng: number }[] {
+  if (points.length <= 2) return points
+  const out = [points[0]!]
+  for (let i = 1; i < points.length - 1; i++) if (distanceMeters(out[out.length - 1]!, points[i]!) >= step) out.push(points[i]!)
+  out.push(points[points.length - 1]!)
+  return out
+}
+
+/**
+ * T-123 : le tracé envoyé aux proches, depuis le départ : simplifié à 10 m, 5 décimales ; au-delà de 4 000 points, le
+ * pas double jusqu’à passer dessous.
+ */
+export function liveTrack(points: { lat: number; lng: number }[]): LiveTrack {
+  let step = TRACK_STEP_M
+  let kept = thin(points, step)
+  while (kept.length > MAX_TRACK_POINTS) {
+    step *= 2
+    kept = thin(points, step)
+  }
+  return { lat: kept.map((p) => round5(p.lat)), lng: kept.map((p) => round5(p.lng)) }
+}
+
+/** Le tracé à dessiner chez le proche : pendant la balade, puis 1 h après la fin. */
+export function trackShown(live: Pick<LiveDoc, 'track' | 'status' | 'endsAt'>, now: number): [number, number][] {
+  if (!live.track) return []
+  if (live.status === 'terminée' && live.endsAt && now - Date.parse(live.endsAt) >= TRACK_KEEP_MS) return []
+  const n = Math.min(live.track.lat.length, live.track.lng.length)
+  return Array.from({ length: n }, (_, i) => [live.track!.lat[i]!, live.track!.lng[i]!])
+}
+
+/** À l’ouverture de l’app : les partages finis depuis 1 h dont le tracé est encore dans live/{jeton}. */
+export function tracksToClear(shares: LiveShareRef[] | undefined, now: number): LiveShareRef[] {
+  return (shares ?? []).filter((s) => s.endedAt && !s.trackCleared && now - Date.parse(s.endedAt) >= TRACK_KEEP_MS && now - Date.parse(s.endedAt) < KEEP_MS)
+}
+

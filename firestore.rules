@@ -80,16 +80,19 @@ service cloud.firestore {
 
     // Partage en direct (T-087, spec V6 § 7) : live/{jeton}, lu sans compte par qui a le lien (le jeton de 128 bits
     // fait office de clé), jamais listé. Seul son propriétaire l'écrit ; un visiteur (T-048) n'en crée pas.
-    // Aucune autre donnée que celles-ci : chien, prénom, heures, position du moment, distance, statut.
+    // Aucune autre donnée que celles-ci : chien, prénom, heures, position du moment, distance, statut, et (T-123) le
+    // tracé depuis le départ (deux listes de nombres, gardé 1 h après la fin).
     function validLive(d) {
-      return d.keys().hasOnly(['ownerUid', 'dogName', 'ownerName', 'startedAt', 'updatedAt', 'lat', 'lng', 'distanceM', 'status', 'endsAt'])
+      return d.keys().hasOnly(['ownerUid', 'dogName', 'ownerName', 'startedAt', 'updatedAt', 'lat', 'lng', 'distanceM', 'status', 'endsAt', 'track'])
         && d.ownerUid is string && d.dogName is string && d.dogName.size() <= 60
         && (!('ownerName' in d) || (d.ownerName is string && d.ownerName.size() <= 40))
         && d.startedAt is string && d.updatedAt is string
         && (!('lat' in d) || d.lat is number) && (!('lng' in d) || d.lng is number)
         && d.distanceM is number
         && d.status in ['en cours', 'pause', 'terminée']
-        && (!('endsAt' in d) || d.endsAt is string);
+        && (!('endsAt' in d) || d.endsAt is string)
+        && (!('track' in d) || (d.track is map && d.track.keys().hasOnly(['lat', 'lng'])
+          && d.track.lat is list && d.track.lng is list && d.track.lat.size() <= 4000 && d.track.lng.size() <= 4000));
     }
     match /live/{token} {
       allow get: if true;

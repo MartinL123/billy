@@ -7,18 +7,18 @@ import { useData } from '../../firebase/store'
 import { cleanLiveShares, endLiveShare, pushLivePosition, startLiveShare, updateLivePrivate } from '../../firebase/live'
 import { useLivePrivate } from './useLivePrivate'
 import { gpsDistance, type GpsPoint } from '../../lib/gpsWalk'
-import { activeShare, cleanProche, followLink, MAX_CHOSEN, newToken, pushDue, walkLiveStatus, withNames, type Proche } from '../../lib/liveShare'
+import { activeShare, cleanProche, followLink, liveTrack, MAX_CHOSEN, newToken, pushDue, walkLiveStatus, withNames, type Proche } from '../../lib/liveShare'
 import { isNative } from '../../native'
 import { FlairNative } from '../../native/flair'
 import { ofDog } from '../../lib/dogName'
 
 // Partage en direct (T-087, spec V6 § 7) : jamais vers la meute, jamais public, jamais automatique.
 
-/** Toutes les 20 s, on regarde si une mise à jour (une par minute) est due, ou si la balade est finie. */
-const TICK_MS = 20_000
+/** Toutes les 5 s, on regarde si une mise à jour (toutes les 15 s, T-123) est due, ou si la balade est finie. */
+const TICK_MS = 5_000
 
 /**
- * App iOS, compte du propriétaire : pendant un partage, la position part toutes les 60 s (depuis la balade gardée par
+ * App iOS, compte du propriétaire : pendant un partage, la position et le tracé partent toutes les 15 s (depuis la balade gardée par
  * l’iPhone, quel que soit l’écran ouvert) ; la balade finie, le partage s’arrête et la position est effacée.
  * À l’ouverture, les partages arrêtés depuis 24 h sont supprimés.
  */
@@ -46,13 +46,13 @@ export function LiveShareSync() {
       if (!alive || !walk) return
       const status = walkLiveStatus(walk)
       const distanceM = gpsDistance(walk.points)
-      if (status === 'terminée') return endLiveShare(token, shares.current, walk.active && !walk.savedAs ? distanceM : undefined)
+      if (status === 'terminée') return endLiveShare(token, shares.current, walk.active && !walk.savedAs ? distanceM : undefined, walk.points.length ? liveTrack(walk.points) : undefined)
       const now = Date.now()
       // La création du partage vaut première mise à jour.
       if (!pushDue(lastPush.current?.token === token ? lastPush.current.at : Date.parse(sharedAt), now)) return
       lastPush.current = { token, at: now }
       const here = walk.points[walk.points.length - 1]
-      pushLivePosition(token, { ...(here ? { lat: here.lat, lng: here.lng } : {}), distanceM }, status)
+      pushLivePosition(token, { ...(here ? { lat: here.lat, lng: here.lng } : {}), distanceM, track: liveTrack(walk.points) }, status)
     }
     void tick()
     const timer = window.setInterval(() => void tick(), TICK_MS)
@@ -154,7 +154,7 @@ function LiveShareSheet({ startedAt, points, onClose }: { startedAt: string; poi
     const token = newToken()
     const url = followLink(token, window.location)
     const here = points[points.length - 1]
-    startLiveShare(token, { dogName: dog.name, ...(priv?.ownerName ? { ownerName: priv.ownerName } : {}), startedAt, ...(here ? { lat: here.lat, lng: here.lng } : {}), distanceM: gpsDistance(points) }, names, priv?.liveShares)
+    startLiveShare(token, { dogName: dog.name, ...(priv?.ownerName ? { ownerName: priv.ownerName } : {}), startedAt, ...(here ? { lat: here.lat, lng: here.lng } : {}), distanceM: gpsDistance(points), track: liveTrack(points) }, names, priv?.liveShares)
     // Rien n’est attendu avant d’ouvrir la feuille de partage d’iOS (elle doit suivre le toucher).
     if (navigator.share) {
       navigator

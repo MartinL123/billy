@@ -252,8 +252,8 @@ test('T-087 · partager en direct : le lien montre la balade sans compte, puis �
   const live = (await serverLive(token!))!
   expect(live.ownerUid).toEqual({ stringValue: user.uid })
   expect(live).toHaveProperty('lat')
-  // Rien d'autre que ce qu'il faut : ni tracé, ni proches.
-  expect(Object.keys(live).sort()).toEqual(['distanceM', 'dogName', 'lat', 'lng', 'ownerUid', 'startedAt', 'status', 'updatedAt'])
+  // Rien d'autre que ce qu'il faut : ni proches, ni souvenirs ; T-123 : le tracé depuis le départ.
+  expect(Object.keys(live).sort()).toEqual(['distanceM', 'dogName', 'lat', 'lng', 'ownerUid', 'startedAt', 'status', 'track', 'updatedAt'])
 
   // Un proche ouvre le lien sur son téléphone, sans compte.
   const other = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'fr-FR', timezoneId: 'Europe/Paris', serviceWorkers: 'block' })
@@ -261,6 +261,8 @@ test('T-087 · partager en direct : le lien montre la balade sans compte, puis �
   await follow.goto(url)
   await expect(follow.getByRole('heading', { name: /est en balade depuis \d+\smin · 100 m/ })).toBeVisible()
   await expect(follow.getByText(/^Mis à jour/)).toBeVisible()
+  // T-123 : le tracé est dessiné sous le point.
+  await expect(follow.locator('[data-testid="trace-suivre"]')).toHaveAttribute('data-points', /^[1-9]/)
 
   // Fin de la balade : « terminée », position effacée, et la page le dit.
   await finishButton(app).click()
@@ -268,6 +270,9 @@ test('T-087 · partager en direct : le lien montre la balade sans compte, puis �
   await expect.poll(async () => (await serverLive(token!))?.status, { message: 'partage terminé' }).toEqual({ stringValue: 'terminée' })
   expect(await serverLive(token!)).not.toHaveProperty('lat')
   await expect(follow.getByRole('heading', { name: /^Balade terminée à \d+\sh\s\d{2}$/ })).toBeVisible()
+  // Le tracé reste visible 1 h après la fin.
+  expect(await serverLive(token!)).toHaveProperty('track')
+  await expect(follow.locator('[data-testid="trace-suivre"]')).toHaveAttribute('data-points', /^[1-9]/)
 
   // Un lien coupé : un message calme, pas l'écran de connexion.
   await follow.goto(url.replace(/.{4}$/, ''))

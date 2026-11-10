@@ -96,7 +96,7 @@ export function planNotifications({ now, dogName, events, times, doneToday, pref
       }
     if (prefs.recap && at(date, 0).getDay() === 0) {
       const when = at(date, RECAP_HOUR * 60)
-      if (when > now) out.push({ id: notificationId(`recap:${date}`), kind: 'recap', at: when, title: `La semaine ${ofName(name)}`, body: 'Ses balades, ses progrès et ses souvenirs de la semaine.' })
+      if (when > now) out.push({ id: notificationId(`recap:${date}`), kind: 'recap', at: when, title: `La semaine ${ofName(name)}`, body: 'Ses sorties, ses progrès et ses souvenirs de la semaine.' })
     }
   }
 

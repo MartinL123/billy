@@ -20,8 +20,8 @@ describe('notifications locales de l’app iOS (T-042)', () => {
     expect(plan.map((n) => [n.kind, local(n.at), n.title, n.body])).toEqual([
       ['soin', '2026-10-21 18:00', 'Vermifuge demain', 'Pour Oslo.'],
       ['soin', '2026-10-24 18:00', 'RDV vétérinaire demain', 'Pour Oslo, à 9 h 30.'],
-      ['recap', '2026-10-25 18:00', 'La semaine d’Oslo', 'Ses balades, ses progrès et ses souvenirs de la semaine.'],
-      ['recap', '2026-11-01 18:00', 'La semaine d’Oslo', 'Ses balades, ses progrès et ses souvenirs de la semaine.'],
+      ['recap', '2026-10-25 18:00', 'La semaine d’Oslo', 'Ses sorties, ses progrès et ses souvenirs de la semaine.'],
+      ['recap', '2026-11-01 18:00', 'La semaine d’Oslo', 'Ses sorties, ses progrès et ses souvenirs de la semaine.'],
     ])
   })
 

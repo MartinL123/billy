@@ -39,6 +39,8 @@ puis ce document, puis le reste.
 - Mouvement : 150 ms au toucher, 250 ms transition, 400 ms apparition ; `cubic-bezier(.2,.8,.3,1)` et ressort
   `cubic-bezier(.3,1.3,.5,1)` ; seulement `transform` et `opacity` ; tout coupé avec « Réduire les animations ».
 - Notifications : jamais culpabilisantes (pas de « Vous n'avez pas… »).
+- **Vocabulaire fixe (R-111, 10 nov. 2026)** : **sortie** = tout moment dehors avec le chien ; **balade** = une sortie
+  avec un tracé ; **souvenir** = un mot ou une photo. Jamais un mot pour un autre (style guide › Écriture).
 
 ## 4. Où vivent les choses
 

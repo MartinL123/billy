@@ -159,6 +159,17 @@ GitHub Pages via GitHub Actions (`.github/workflows/deploy.yml`) à chaque push 
 Les variables `VITE_FIREBASE_*` viennent des secrets du repo (ce ne sont pas des secrets au sens
 sécurité : la protection vient de `firestore.rules`). Ajouter `<user>.github.io` aux domaines autorisés de Firebase Auth.
 
+## Rythme et limites (décision de Martin, 10 nov. 2026)
+
+- **Pause des nouveautés jusqu'au 24 novembre 2026** : on finit le lot lancé (R-110 à R-115, T-123, T-124), puis
+  seulement des corrections (R-xxx). Toute nouvelle idée va en Backlog, sans maquette ni prompt.
+- **5 tickets au plus en « À faire » + « En cours » pour Claude.** Un nouveau n'entre que quand un autre passe en Done.
+  Le lot en cours au 10 nov. est l'exception.
+- **Une seule boucle** : sortir le chien, revoir ce qu'il a vécu, lui apprendre quelque chose, garder sa santé à jour.
+  Une fonction qui ne sert aucune des quatre est gelée (comme la meute), pas étendue.
+- **Rythme** : lundi = livraison du lot de la semaine ; mercredi = recette sur l'iPhone ; dimanche = tri du Backlog
+  (2 décisions au plus).
+
 ## Façon de travailler
 
 - Suivre l'ordre de réalisation de la spec en cours (§ 11 de la V3) : une étape à la fois, s'arrêter au critère de fin et me demander de valider.

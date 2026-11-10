@@ -50,3 +50,7 @@ Non retenu : la roue « Réglages » sur l'accueil (les réglages restent dans S
 - Billy › Ses badges : retirer « 1/5 », « 3/5 » ; des pattes (ou rien), VoiceOver : « 3 étapes acquises ».
 - Son profil › Sorties : « Elles se cochent toutes seules avec vos balades et les sorties repérées par l'iPhone. »
 - Son profil, bas : « Version du 10 novembre à 14 h 22 » (fonction d'heure commune).
+
+## R-115 · Retirer l'import Strava / GPX (décision de Martin, 10 nov.)
+- Retirer les liens « Importer » / « Ajouter mes balades » (Affichage, journal vide, accueil, profil).
+- `/importer` et `/importer/resultat` redirigent vers `/territoire` ; code gelé, pas supprimé ; balades importées intactes.

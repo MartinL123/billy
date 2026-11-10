@@ -208,9 +208,10 @@ footer{padding:48px 0 64px;color:var(--muted);font-size:14px}
     <a href="#parcours">2 · Parcours</a>
     <a href="#sorties">3 · D’où viennent les sorties</a>
     <a href="#design">4 · Design</a>
-    <a href="#organisation">5 · Organisation</a>
-    <a href="#diagnostic">6 · Diagnostic</a>
-    <a href="#route">7 · Feuille de route</a>
+    <a href="#abandons">5 · Ce qu’on ne fait plus</a>
+    <a href="#organisation">6 · Organisation</a>
+    <a href="#diagnostic">7 · Diagnostic</a>
+    <a href="#route">8 · Feuille de route</a>
   </div>
 </nav>
 
@@ -256,7 +257,7 @@ footer{padding:48px 0 64px;color:var(--muted);font-size:14px}
           <ul>
             <li>Tous les tracés, colorés ; brouillard <span class="muted">(éteint par défaut)</span></li>
             <li><b>Affichage</b> : Plan / Satellite, 2D / 3D, Brouillard, Lieux les plus fréquentés, Idées de balade</li>
-            <li><b>Me situer</b> · boussole</li>
+            <li><b>Me situer</b> · boussole <span class="pill p-bad">Marche mal · R-114</span></li>
           </ul>
         </div>
         <div class="blk">
@@ -409,7 +410,7 @@ footer{padding:48px 0 64px;color:var(--muted);font-size:14px}
   <div class="grid g2">
     <div class="card">
       <h3>Noter une sortie faite</h3><span class="taps">1 toucher</span>
-      <div class="flow"><span class="step">Accueil</span><span class="arrow">→</span><span class="step main">Je l’ai faite</span><span class="arrow">→</span><span class="step">Créneau coché, +3 os</span></div>
+      <div class="flow"><span class="step">Accueil</span><span class="arrow">→</span><span class="step main">Je l’ai faite</span><span class="arrow">→</span><span class="step">Créneau coché</span></div>
     </div>
     <div class="card">
       <h3>Partir en balade avec le GPS</h3><span class="taps">2 touchers</span>
@@ -448,7 +449,7 @@ footer{padding:48px 0 64px;color:var(--muted);font-size:14px}
       <tr><td><b>iPhone en poche</b></td><td>Rien, puis 1 toucher pour confirmer à l’ouverture</td><td class="no">Non (durée, distance)</td><td>iPhone</td><td>T-121</td></tr>
       <tr><td><b>Séance « Marche » sur la Watch</b></td><td>Lancer la séance sur la montre</td><td class="yes">Oui, avec cœur et allure</td><td>iPhone</td><td>T-084, R-104</td></tr>
       <tr><td><b>Partir en balade</b> dans Flair</td><td>1 toucher au départ, Terminer au retour</td><td class="yes">Oui</td><td>iPhone et site</td><td>T-062</td></tr>
-      <tr><td><b>Import</b> Strava ou GPX</td><td>Exporter le fichier depuis un ordinateur</td><td class="yes">Oui</td><td>Site</td><td>—</td></tr>
+      <tr style="background:var(--frozen-soft)"><td><b>Import</b> Strava ou GPX <span class="pill p-frozen">Abandonné · R-115</span></td><td>Exporter le fichier depuis un ordinateur</td><td class="yes">Oui</td><td>Site</td><td>Voir « Ce qu’on ne fait plus »</td></tr>
       <tr><td><b>Noter</b> « J’ai fait cette sortie »</td><td>1 toucher, la durée</td><td class="no">Non</td><td>iPhone et site</td><td>R-044</td></tr>
       <tr style="background:var(--gold-soft)"><td><b>Sortie de chez soi</b> <span class="pill p-new">Proposé</span></td><td>Rien, puis 1 toucher pour confirmer</td><td class="yes">Oui</td><td>iPhone</td><td>T-122</td></tr>
     </tbody>
@@ -567,10 +568,25 @@ footer{padding:48px 0 64px;color:var(--muted);font-size:14px}
   </div>
 </section>
 
-<!-- 5 · ORGANISATION -->
+<!-- 5 · ABANDONS -->
+<section id="abandons">
+  <div class="sec-head">
+    <span class="num">5 · Ce qu’on ne fait plus</span>
+    <h2>Ce qu’on a retiré, et pourquoi</h2>
+    <p>Pour ne pas refaire deux fois le même débat. Rien n’a été supprimé des données : ce qui est gelé peut revenir.</p>
+  </div>
+  <div class="tbl-wrap">
+  <table class="tbl">
+    <thead><tr><th>Quoi</th><th>Depuis</th><th>Ticket</th><th>Pourquoi</th></tr></thead>
+    <tbody><tr><td><b>Import Strava ou GPX</b></td><td>10 nov.</td><td>R-115</td><td>L’export ne marche que depuis un ordinateur (sur iPhone, Strava renvoie vers son app) : trop d’étapes pour une seule balade. La Watch, l’iPhone en poche, « Partir en balade » et bientôt la balade enregistrée seule (T-122) couvrent le besoin sans fichier.</td></tr><tr><td><b>Google Maps (Timeline)</b></td><td>10 nov.</td><td>—</td><td>Piste regardée, pas retenue : depuis 2024, l’historique des trajets est gardé sur le téléphone, sans accès pour une autre app. Seul un export manuel de fichier est possible, avec la même friction que Strava.</td></tr><tr><td><b>Tâche planifiée Strava dans Chrome</b></td><td>18 oct.</td><td>—</td><td>Fragile (dépend de Chrome ouvert et de la page Strava). Remplacée par la lecture de la Watch dans l’app iPhone.</td></tr><tr><td><b>Saisie d’un trajet à la main sur la carte</b></td><td>17 oct.</td><td>—</td><td>Long et approximatif. Les trajets viennent des appareils ; « J’ai fait cette sortie » garde la saisie rapide sans tracé.</td></tr><tr><td><b>« Mouvements et forme » (carte « C’était une sortie ? »)</b></td><td>10 nov.</td><td>T-085 → T-121</td><td>Ne marchait pas quand la Watch était choisie. Santé fusionne déjà iPhone et Watch : les sorties repérées (T-121) font mieux, avec 14 jours de rattrapage.</td></tr><tr><td><b>La meute (amis, spots, « Marquer »)</b></td><td>21 oct.</td><td>T-072</td><td>Gelée : elle ne sert aucun des 3 métiers (balades, santé, éducation) et l’app reste limitée à 10 comptes, trop peu pour faire vivre une communauté. Code et données gardés pour le jour où (T-004).</td></tr><tr><td><b>La boutique et les thèmes</b></td><td>21 oct.</td><td>T-072</td><td>Gelée pour la même raison : on concentre l’app sur le chien. Un thème déjà acheté reste appliqué.</td></tr><tr><td><b>Les os affichés</b></td><td>10 nov.</td><td>R-112</td><td>Une récompense qu’on ne peut pas dépenser perd son sens tant que la boutique est gelée. Ils restent comptés, invisibles.</td></tr><tr><td><b>L’arbre de compétences</b></td><td>21 oct.</td><td>T-072</td><td>Plus aucun lien n’y menait, et il doublait le chemin de « Ce qu’il apprend » (pattes et prochaine étape).</td></tr><tr><td><b>Os silencieux, confettis, idées « À découvrir »</b></td><td>21 oct.</td><td>T-072</td><td>Des effets sans action derrière. Les idées viennent maintenant de vos propres balades, selon la météo (T-118).</td></tr><tr><td><b>Le rappel du soir par le web</b></td><td>21 oct.</td><td>T-072</td><td>Il dépendait d’une tâche GitHub toutes les 15 min (en retard, gourmande). Les notifications de l’app iPhone (T-042) prennent le relais.</td></tr><tr><td><b>XP, classement, duels entre chiens</b></td><td>14 oct.</td><td>—</td><td>Le niveau, c’est ce que le chien sait faire. Comparer les chiens décourage ceux qui avancent lentement (Billy est craintif).</td></tr><tr><td><b>« 3 sur 5 »</b></td><td>20 oct.</td><td>—</td><td>Ça se lit comme une note d’école. Des pattes et la prochaine étape montrent le chemin sans juger. Reste à corriger sur les badges (R-113).</td></tr><tr><td><b>L’écran « Aujourd’hui »</b></td><td>18 oct.</td><td>—</td><td>Remplacé par un vrai accueil : la carte du moment et « Sa vie avec vous », avec des liens simples vers tout.</td></tr><tr><td><b>Toucher la photo pour entrer</b></td><td>20 oct.</td><td>—</td><td>Un geste caché. L’écran d’ouverture entre seul après 1 s.</td></tr><tr><td><b>Une deuxième carte pour la fiche, l’écran « Revoir » à part</b></td><td>23 oct.</td><td>R-094, R-096</td><td>Deux cartes, deux gestes. Tout se passe maintenant dans le panneau de la carte des Balades.</td></tr><tr><td><b>« Ses balades », liste séparée</b></td><td>10 nov.</td><td>R-110</td><td>Elle doublait le journal de la carte, sans les sorties ni les séances. Un seul journal.</td></tr><tr><td><b>Le QR code pour partager l’app</b></td><td>14 oct.</td><td>—</td><td>Tu présentes l’app à l’oral en balade ; les comptes sont créés par toi.</td></tr><tr><td><b>Une roue « Réglages » sur l’accueil</b></td><td>10 nov.</td><td>—</td><td>Non retenue : les réglages restent dans Son profil.</td></tr></tbody>
+  </table>
+  </div>
+</section>
+
+<!-- 6 · ORGANISATION -->
 <section id="organisation">
   <div class="sec-head">
-    <span class="num">5 · Organisation</span>
+    <span class="num">6 · Organisation</span>
     <h2>Comment on travaille</h2>
     <p>Cette discussion fait le lien entre toi et Claude Code. Le kanban Notion est la seule source de vérité du suivi.</p>
   </div>
@@ -615,7 +631,7 @@ footer{padding:48px 0 64px;color:var(--muted);font-size:14px}
 <!-- 6 · DIAGNOSTIC -->
 <section id="diagnostic">
   <div class="sec-head">
-    <span class="num">6 · Diagnostic</span>
+    <span class="num">7 · Diagnostic</span>
     <h2>Ce que je changerais dans l’organisation</h2>
     <p>Vu avec les yeux de Josiane et de Nadia, qui découvrent l’app. Classé par importance.</p>
   </div>
@@ -656,7 +672,7 @@ footer{padding:48px 0 64px;color:var(--muted);font-size:14px}
 <!-- 7 · FEUILLE DE ROUTE -->
 <section id="route">
   <div class="sec-head">
-    <span class="num">7 · Feuille de route</span>
+    <span class="num">8 · Feuille de route</span>
     <h2>Maintenant, ensuite, plus tard</h2>
   </div>
   <div class="road">
